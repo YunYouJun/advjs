@@ -24,6 +24,21 @@ function fixture() {
 }
 
 describe('creative team Studio transaction adapter', () => {
+  it('rejects an old filesystem snapshot when the account or project changes during the read', async () => {
+    const { fs } = fixture()
+    let current = true
+    const read = fs.collectAllFiles
+    fs.collectAllFiles = async () => {
+      const files = await read()
+      current = false
+      return files
+    }
+    const workspace = createStudioCreativeWorkspace(fs, 'station', { assertCurrent() {
+      if (!current)
+        throw new Error('scope changed during read')
+    } })
+    await expect(workspace.snapshot()).rejects.toThrow('scope changed during read')
+  })
   it('awaits durable source storage and restores the original snapshot when that barrier fails', async () => {
     const { fs, files } = fixture()
     const workspace = createStudioCreativeWorkspace(fs, 'station')

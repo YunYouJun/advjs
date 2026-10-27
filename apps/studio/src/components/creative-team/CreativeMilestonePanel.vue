@@ -49,7 +49,7 @@ async function inspect() {
       failure.value = true
   }
 }
-watch(() => [props.run.id, props.run.accountId, props.run.plan.projectId], () => {
+watch([() => props.run.id, () => props.run.accountId, () => props.run.plan.projectId], () => {
   reviewed.value = undefined
   selected.value = []
   reason.value = ''

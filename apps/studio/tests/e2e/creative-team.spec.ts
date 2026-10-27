@@ -1,6 +1,77 @@
 import { writeFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
 
+test('executes actual core paths, retains private reports across reload and retests a repaired source', async ({ page }, info) => {
+  const errors: string[] = []
+  const warnings: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  page.on('console', (message) => {
+    if (message.type() === 'error')
+      errors.push(message.text())
+    if (message.type() === 'warning')
+      warnings.push(message.text())
+  })
+  await page.goto('/tests/fixtures/creative-team/authoring.html')
+  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeAuthorFixture))).toBe(true)
+  const readFiles = () => page.evaluate(async () => (window as any).creativeAuthorFixture.files())
+  const before = await readFiles()
+  const tasks = await page.evaluate(() => (window as any).creativeAuthorFixture.run().tasks)
+  const panel = page.getByTestId('creative-playtest')
+  await panel.getByLabel('预期结局地址', { exact: true }).fill('stay#ending-stay')
+  await panel.getByLabel('选择序列（从 0 开始，以英文逗号分隔）', { exact: true }).fill('0')
+  await panel.getByRole('button', { name: '添加路径', exact: true }).click()
+  await panel.getByLabel('预期结局地址', { exact: true }).nth(1).fill('leave#ending-leave')
+  await panel.getByLabel('选择序列（从 0 开始，以英文逗号分隔）', { exact: true }).nth(1).fill('1')
+  await panel.getByRole('button', { name: '执行这些路径', exact: true }).click()
+  const report = page.getByTestId('creative-playtest-report')
+  await expect(report.getByRole('heading', { name: '实际路径报告' })).toBeFocused()
+  await expect(report.getByRole('heading', { name: /指定路径通过/ })).toHaveCount(2)
+  await expect(panel.getByText('已同步作者宿主报告，服务端未重放', { exact: true })).toBeVisible()
+  expect(await readFiles()).toEqual(before)
+  expect(await page.evaluate(() => (window as any).creativeAuthorFixture.run().tasks)).toEqual(tasks)
+  const stored = await page.evaluate(() => Object.values((window as any).creativeAuthorFixture.playtests())) as any[]
+  expect(stored[0].executions.map((item: any) => [item.actualEnding, item.commands])).toEqual([['stay#ending-stay', 5], ['leave#ending-leave', 5]])
+  await page.reload()
+  await expect(report.getByRole('heading', { name: /指定路径通过/ })).toHaveCount(2)
+  expect((await page.evaluate(() => (window as any).creativeAuthorFixture.calls()) as string[]).filter(call => call.startsWith('POST'))).toEqual([])
+  await page.evaluate(() => (window as any).creativeAuthorFixture.editSource('adv/chapters/station.adv.md', '# 雨夜车站 {#arrival}\n\n- [缺失](missing#end)'))
+  await panel.getByRole('button', { name: '核对当前源版本' }).click()
+  await expect(report.getByText(/来源或候选版本已变化/)).toBeVisible()
+  await panel.getByRole('button', { name: '载入这份报告的复现输入' }).click()
+  await panel.getByRole('button', { name: '执行这些路径', exact: true }).click()
+  await expect(report.getByRole('heading', { name: /未完成执行/ })).toHaveCount(2)
+  await report.getByText(/静态诊断/).click()
+  await expect(report.getByText('ADV_RUNTIME_UNKNOWN_TARGET', { exact: true })).toBeVisible()
+  await page.evaluate(value => (window as any).creativeAuthorFixture.editSource('adv/chapters/station.adv.md', value), before['adv/chapters/station.adv.md'])
+  await panel.getByRole('button', { name: '载入这份报告的复现输入' }).click()
+  await panel.getByRole('button', { name: '执行这些路径', exact: true }).click()
+  await expect(report.getByRole('heading', { name: /指定路径通过/ })).toHaveCount(2)
+  await expect(panel.getByText('已同步作者宿主报告，服务端未重放', { exact: true })).toBeVisible()
+  expect(await readFiles()).toEqual(before)
+  await report.locator('.playtest-report__execution').first().getByText(/执行轨迹与源位置/).click()
+  await expect(report.getByRole('button', { name: 'adv/chapters/stay.adv.md:3', exact: true })).toBeVisible()
+  const viewports: unknown[] = []
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await report.scrollIntoViewIfNeeded()
+    await report.locator('.playtest-report__trace').first().evaluate(element => element.scrollTop = 0)
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))
+    await expect(report.locator('.playtest-report__trace').first().getByText('start', { exact: true })).toBeInViewport()
+    viewports.push(await report.locator('.playtest-report__trace').first().evaluate(element => ({ width: innerWidth, scrollTop: element.scrollTop, height: element.clientHeight, textLength: element.textContent?.length })))
+    await page.screenshot({ path: info.outputPath(`executed-path-report-${width}.png`), animations: 'disabled' })
+  }
+  await report.getByRole('button', { name: 'adv/chapters/stay.adv.md:3', exact: true }).click()
+  await expect.poll(() => page.evaluate(() => {
+    const route = new URL((window as any).creativeAuthorFixture.route(), location.origin)
+    return { path: route.pathname, file: route.searchParams.get('file'), line: route.searchParams.get('line'), column: route.searchParams.get('column') }
+  })).toEqual({ path: '/editor', file: 'adv/chapters/stay.adv.md', line: '3', column: '1' })
+  const records = await page.evaluate(() => (window as any).creativeAuthorFixture.playtests())
+  expect(Object.keys(records)).toHaveLength(3)
+  expect(errors).toEqual([])
+  expect(warnings).toEqual([])
+  await writeFile(info.outputPath('executed-path-evidence.json'), JSON.stringify({ scope: 'Actual ADV.JS core runtime execution and private IndexedDB cache; explicitly mocked auth/history transport, no model, media playback or production service certification', records, viewports, errors, warnings }, null, 2))
+})
+
 test('writes reviewed text through the project transaction, recovers a lost receipt after reload and conditionally undoes', async ({ page }, info) => {
   const errors: string[] = []
   const warnings: string[] = []
@@ -94,6 +165,20 @@ test('edits cast and chapter candidates with an explicit fixture and restores th
   await form.getByLabel('本次修改的原因').fill('作者调整开场对白')
   await form.getByRole('button', { name: '保存候选修订' }).click()
   await expect(page.locator('.team-artifact').filter({ hasText: '作者修订 · 尚未写入项目' })).toHaveCount(2)
+  expect(await readFiles()).toEqual(before)
+  const editedChapter = page.locator('.team-artifact').filter({ hasText: '作者修订 · 尚未写入项目' }).filter({ hasText: '本地 fixture 章节初稿' }).last()
+  await editedChapter.getByRole('button', { name: '选定候选并继续' }).click()
+  const playtest = page.getByTestId('creative-playtest')
+  await playtest.getByRole('combobox', { name: '执行快照', exact: true }).selectOption('candidate')
+  await playtest.getByLabel('预期结局地址', { exact: true }).fill('stay#ending-stay')
+  await playtest.getByLabel('选择序列（从 0 开始，以英文逗号分隔）', { exact: true }).fill('0')
+  await playtest.getByRole('button', { name: '执行这些路径', exact: true }).click()
+  const pathReport = page.getByTestId('creative-playtest-report')
+  await expect(pathReport.getByRole('heading', { name: /指定路径通过/ })).toHaveCount(1)
+  const executed = await page.evaluate(() => Object.values((window as any).creativeAuthorFixture.playtests())[0]) as any
+  expect(executed.scope).toBe('candidate')
+  expect(executed.snapshotRevision).not.toBe(executed.baselineRevision)
+  expect(executed.executions[0].trace.some((step: any) => step.text?.includes('请告诉我，你在等谁？'))).toBe(true)
   expect(await readFiles()).toEqual(before)
 
   await page.reload()

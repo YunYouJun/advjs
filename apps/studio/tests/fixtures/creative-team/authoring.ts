@@ -1,5 +1,5 @@
-import type { CreativeArtifact, CreativePartnerOutput, CreativeTeamRun } from '@advjs/agent'
-import { computeAgentProjectRevision, createCreativeTeamRun, creativeMilestoneChanges, creativeOutputFileChanges, ManagedCreativeTeamClient, nextCreativeTeamTask, overlayCreativeChanges, parseCreativeCandidateEditRequest, parseCreativeMilestoneCommand, parseCreativeProject, parseCreativeTeamPublicDecision, parseCreativeTeamRun, prepareCreativeCandidateEdit, prepareCreativeMilestone, reduceCreativeTeamRun, requiredCreativeReviewCapabilities } from '@advjs/agent'
+import type { CreativeArtifact, CreativePartnerOutput, CreativePlaytestReport, CreativeTeamRun } from '@advjs/agent'
+import { computeAgentProjectRevision, createCreativeTeamRun, creativeMilestoneChanges, creativeOutputFileChanges, creativePlaytestCandidateFiles, ManagedCreativeTeamClient, nextCreativeTeamTask, overlayCreativeChanges, parseCreativeCandidateEditRequest, parseCreativeMilestoneCommand, parseCreativePlaytestReport, parseCreativeProject, parseCreativeTeamPublicDecision, parseCreativeTeamRun, prepareCreativeCandidateEdit, prepareCreativeMilestone, reduceCreativeTeamRun, requiredCreativeReviewCapabilities } from '@advjs/agent'
 import { IonApp, IonContent, IonHeader, IonicVue, IonPage, IonTitle, IonToolbar } from '@ionic/vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { createApp, defineComponent, h } from 'vue'
@@ -39,6 +39,7 @@ async function main() {
   const calls: string[] = []
   let loseMilestoneResponse: 'prepare' | 'confirm' | undefined
   const cacheKey = 'creative-team-authoring-ui-fixture'
+  const playtests: Record<string, CreativePlaytestReport> = JSON.parse(localStorage.getItem(`${cacheKey}-playtests`) || '{}')
   let run: CreativeTeamRun
   async function artifact(taskId: string, output: CreativePartnerOutput): Promise<CreativeArtifact> {
     const task = run.plan.tasks.find(item => item.id === taskId)!
@@ -114,12 +115,32 @@ async function main() {
     let value: unknown
     try {
       if (url.pathname.endsWith('/capabilities')) {
-        value = { protocolVersion: 1, enabled: true, serviceVersion: 'UI fixture; no model calls', authoring: { candidateEdits: true, milestoneAdoption: true }, capabilities: ['design-characters', 'write-chapters'], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } }
+        value = { protocolVersion: 1, enabled: true, serviceVersion: 'UI fixture; no model calls', authoring: { candidateEdits: true, milestoneAdoption: true, playtestReports: true }, capabilities: ['design-characters', 'write-chapters'], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } }
       }
       else if (method === 'GET' && url.pathname.endsWith('/runs')) {
         value = { protocolVersion: 1, items: [{ id: run.id, projectId, goal: run.plan.goal, status: run.status, revision: run.revision, chargedMicroPoints: 0, reservedMicroPoints: 0, updatedAt: run.updatedAt }] }
       }
+      else if (method === 'GET' && /\/playtests\/[\w-]+$/.test(url.pathname)) {
+        const report = playtests[url.pathname.split('/').at(-1)!]
+        if (!report)
+          return new Response('{}', { status: 404 })
+        value = { protocolVersion: 1, report }
+      }
       else if (method === 'GET') {
+        value = { protocolVersion: 1, run }
+      }
+      else if (url.pathname.endsWith('/playtests')) {
+        const project = parseCreativeProject(body.project)
+        const report = parseCreativePlaytestReport(body.report)
+        const expected = report.scope === 'candidate' ? creativePlaytestCandidateFiles(run, project, report.artifacts) : project.files
+        if (report.baselineRevision !== project.revision || report.snapshotRevision !== await computeAgentProjectRevision(expected))
+          throw new Error('fixture report source mismatch')
+        const id = `fixture_playtest_${key.replaceAll('-', '')}`
+        if (!playtests[id]) {
+          playtests[id] = report
+          run = { ...run, playtests: [...(run.playtests ?? []), { id, projectId, baselineRevision: report.baselineRevision, snapshotRevision: report.snapshotRevision, scope: report.scope, artifacts: report.artifacts, runnerVersion: report.runnerVersion, verification: 'author-host', passed: report.executions.filter(item => item.status === 'passed').length, failed: report.executions.filter(item => item.status === 'failed').length, blocked: report.executions.filter(item => item.status === 'blocked').length, cancelled: report.executions.filter(item => item.status === 'cancelled').length, createdAt: Date.now() }], revision: run.revision + 1, updatedAt: Date.now() }
+          localStorage.setItem(`${cacheKey}-playtests`, JSON.stringify(playtests))
+        }
         value = { protocolVersion: 1, run }
       }
       else if (url.pathname.endsWith('/milestones')) {
@@ -199,6 +220,14 @@ async function main() {
   Object.assign(window, { creativeAuthorFixture: {
     run: () => structuredClone(run),
     calls: () => [...calls],
+    playtests: () => structuredClone(playtests),
+    route: () => router.currentRoute.value.fullPath,
+    async editSource(path: string, value: string) {
+      await content.whenReady()
+      const fs = content.getFs()!
+      await fs.writeFile(path, value)
+      await fs.flush?.()
+    },
     loseMilestoneResponse: (phase: 'prepare' | 'confirm') => loseMilestoneResponse = phase,
     files: async () => {
       await content.whenReady()

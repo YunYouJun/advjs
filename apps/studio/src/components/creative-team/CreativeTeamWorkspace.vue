@@ -4,6 +4,7 @@ import { CREATIVE_PARTNER_DEFAULT_CAPABILITY, parseCreativeProject } from '@advj
 import { storeToRefs } from 'pinia'
 import { computed, nextTick, shallowRef, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { useAuthStore } from '../../stores/useAuthStore'
 import { useCreativeTeamStore } from '../../stores/useCreativeTeamStore'
@@ -13,11 +14,13 @@ import { createStudioCreativeWorkspace } from '../../utils/creativeTeamWorkspace
 import SButton from '../ui/SButton.vue'
 import CreativeMilestonePanel from './CreativeMilestonePanel.vue'
 import CreativePartnerRoster from './CreativePartnerRoster.vue'
+import CreativePlaytestPanel from './CreativePlaytestPanel.vue'
 import CreativeTeamRequestForm from './CreativeTeamRequestForm.vue'
 import CreativeTeamRunPanel from './CreativeTeamRunPanel.vue'
 
 const props = withDefaults(defineProps<{ initialPartner?: CreativePartnerId }>(), { initialPartner: 'director' })
 const { t, locale } = useI18n()
+const router = useRouter()
 const studio = useStudioStore()
 const auth = useAuthStore()
 const managed = useManagedAgentStore()
@@ -30,6 +33,7 @@ const savedEditArtifactId = shallowRef<string>()
 const snapshotError = shallowRef(false)
 const preparing = shallowRef(false)
 const milestoneBusy = shallowRef(false)
+const playtestBusy = shallowRef(false)
 const partnerEnabled = computed(() => availability.value?.capabilities.includes(CREATIVE_PARTNER_DEFAULT_CAPABILITY[partner.value]))
 const knownCharacterIds = computed(() => content.characters.value.map(character => character.id))
 watch(() => studio.currentProjectId, () => {
@@ -59,7 +63,7 @@ async function projectSnapshot() {
   return parseCreativeProject({ id: projectId, revision: snapshot.revision, files: snapshot.files })
 }
 async function withSnapshot(action: (project: Awaited<ReturnType<typeof projectSnapshot>>) => Promise<void>) {
-  if (preparing.value || mutating.value || milestoneBusy.value)
+  if (preparing.value || mutating.value || milestoneBusy.value || playtestBusy.value)
     return
   preparing.value = true
   snapshotError.value = false
@@ -114,7 +118,7 @@ async function editCandidate(request: CreativeCandidateEditRequest) {
           {{ studio.currentProject?.name || t('creativeTeam.title') }}
         </h1>
       </div>
-      <SButton variant="outline" size="lg" :disabled="!connected || mutating || milestoneBusy" :loading="loading" @click="store.refresh">
+      <SButton variant="outline" size="lg" :disabled="!connected || mutating || milestoneBusy || playtestBusy" :loading="loading" @click="store.refresh">
         {{ t('creativeTeam.refresh') }}
       </SButton>
     </header>
@@ -146,20 +150,21 @@ async function editCandidate(request: CreativeCandidateEditRequest) {
         <p v-if="managed.hasActiveTask" class="team-workspace__notice">
           {{ t('creativeTeam.oldTask') }}
         </p>
-        <CreativeTeamRequestForm :partner="partner" :disabled="!canStart || !partnerEnabled || managed.hasActiveTask || milestoneBusy" :busy="mutating || preparing || milestoneBusy" @submit="start" />
+        <CreativeTeamRequestForm :partner="partner" :disabled="!canStart || !partnerEnabled || managed.hasActiveTask || milestoneBusy || playtestBusy" :busy="mutating || preparing || milestoneBusy || playtestBusy" @submit="start" />
       </section>
       <div class="team-workspace__section">
         <label v-if="runs.length" class="team-workspace__history">
           {{ t('creativeTeam.history') }}
-          <select :value="run?.id" :disabled="mutating || preparing || loading || milestoneBusy" @change="store.open(($event.target as HTMLSelectElement).value)">
+          <select :value="run?.id" :disabled="mutating || preparing || loading || milestoneBusy || playtestBusy" @change="store.open(($event.target as HTMLSelectElement).value)">
             <option v-for="item in runs" :key="item.id" :value="item.id">{{ t(`creativeTeam.status.${item.status}`) }} · {{ item.goal }}</option>
           </select>
         </label>
         <p v-else-if="!loading">
           {{ t('creativeTeam.noRuns') }}
         </p>
-        <CreativeTeamRunPanel v-if="run" :run="run" :busy="mutating || preparing || milestoneBusy || Boolean(run.milestones?.some(item => item.status === 'prepared'))" :enabled="Boolean(availability?.enabled)" :known-character-ids="knownCharacterIds" :author-edits-available="Boolean(availability?.authoring?.candidateEdits)" :saved-edit-artifact-id="savedEditArtifactId" @decide="decide" @sync-facts="withSnapshot(store.refreshFacts)" @edit="editCandidate" />
-        <CreativeMilestonePanel v-if="run" :key="`${run.accountId}:${run.plan.projectId}:${run.id}`" :run="run" :enabled="Boolean(availability?.authoring?.milestoneAdoption)" :busy="mutating || preparing" :workspace="projectWorkspace" @busy="milestoneBusy = $event" @changed="content.reload()" />
+        <CreativeTeamRunPanel v-if="run" :run="run" :busy="mutating || preparing || milestoneBusy || playtestBusy || Boolean(run.milestones?.some(item => item.status === 'prepared'))" :enabled="Boolean(availability?.enabled)" :known-character-ids="knownCharacterIds" :author-edits-available="Boolean(availability?.authoring?.candidateEdits)" :saved-edit-artifact-id="savedEditArtifactId" @decide="decide" @sync-facts="withSnapshot(store.refreshFacts)" @edit="editCandidate" />
+        <CreativeMilestonePanel v-if="run" :key="`${run.accountId}:${run.plan.projectId}:${run.id}`" :run="run" :enabled="Boolean(availability?.authoring?.milestoneAdoption)" :busy="mutating || preparing || playtestBusy" :workspace="projectWorkspace" @busy="milestoneBusy = $event" @changed="content.reload()" />
+        <CreativePlaytestPanel v-if="run" :key="`playtest:${run.accountId}:${run.plan.projectId}:${run.id}`" :run="run" :busy="mutating || preparing || milestoneBusy" :workspace="projectWorkspace" @busy="playtestBusy = $event" @source="(path, line) => router.push({ path: '/editor', query: { file: path, line: String(line || 1), column: '1' } })" />
       </div>
     </div>
     <footer class="team-workspace__footer">

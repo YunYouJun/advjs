@@ -20,6 +20,8 @@ function client() {
     refreshFacts: vi.fn<CreativeTeamClient['refreshFacts']>(async () => run()),
     editCandidate: vi.fn<CreativeTeamClient['editCandidate']>(async () => run()),
     milestone: vi.fn<CreativeTeamClient['milestone']>(async () => run()),
+    recordPlaytest: vi.fn<CreativeTeamClient['recordPlaytest']>(async () => run()),
+    getPlaytest: vi.fn<CreativeTeamClient['getPlaytest']>(),
   }
 }
 function deferred<T>() {

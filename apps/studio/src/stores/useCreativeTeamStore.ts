@@ -1,4 +1,4 @@
-import type { CreativeAdoptionJournal, CreativeCandidateEditRequest, CreativeProjectWorkspace, CreativeTeamAvailability, CreativeTeamClient, CreativeTeamDecisionInput, CreativeTeamRun, CreativeTeamRunSummary, CreativeTeamStartRequest } from '@advjs/agent'
+import type { CreativeAdoptionJournal, CreativeCandidateEditRequest, CreativePlaytestReport, CreativeProjectWorkspace, CreativeTeamAvailability, CreativeTeamClient, CreativeTeamDecisionInput, CreativeTeamRun, CreativeTeamRunSummary, CreativeTeamStartRequest } from '@advjs/agent'
 import { CreativeMilestoneCoordinator, normalizeAgentRuntimeError } from '@advjs/agent'
 import { defineStore } from 'pinia'
 import { computed, shallowRef } from 'vue'
@@ -218,5 +218,22 @@ export const useCreativeTeamStore = defineStore('creative-team', () => {
     return mutate(operation)
   }
 
-  return { availability, runs, run, loading, mutating, error, connected, canStart, needsPolling, configure, disconnect, refresh, open, start, decide, refreshFacts, editCandidate, milestoneCoordinator, performMilestone }
+  async function recordPlaytest(project: CreativeTeamStartRequest['project'], report: CreativePlaytestReport, intent: string): Promise<boolean> {
+    const runId = run.value?.id
+    if (!runId || project.id !== connection?.projectId || report.projectId !== project.id || !availability.value?.authoring?.playtestReports)
+      return false
+    return mutate(current => current.client.recordPlaytest(project, runId, report, intent))
+  }
+
+  async function getPlaytest(reportId: string): Promise<CreativePlaytestReport | undefined> {
+    const current = connection
+    const runId = run.value?.id
+    const epoch = generation
+    if (!current || !runId)
+      return undefined
+    const report = await current.client.getPlaytest(current.projectId, runId, reportId)
+    return epoch === generation && run.value?.id === runId ? report : undefined
+  }
+
+  return { availability, runs, run, loading, mutating, error, connected, canStart, needsPolling, configure, disconnect, refresh, open, start, decide, refreshFacts, editCandidate, milestoneCoordinator, performMilestone, recordPlaytest, getPlaytest }
 })
