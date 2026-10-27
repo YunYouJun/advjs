@@ -4,10 +4,11 @@ import { computed, onMounted, ref, shallowRef, toRaw, useTemplateRef } from 'vue
 import { useI18n } from 'vue-i18n'
 import SButton from '../ui/SButton.vue'
 
-const props = withDefaults(defineProps<{ output: CreativeEditableOutput, candidateId: string, busy: boolean, disabled?: boolean, knownCharacterIds?: readonly string[] }>(), { disabled: false, knownCharacterIds: () => [] })
+type TextOutput = Exclude<CreativeEditableOutput, { kind: 'voice-direction' }>
+const props = withDefaults(defineProps<{ output: TextOutput, candidateId: string, busy: boolean, disabled?: boolean, knownCharacterIds?: readonly string[] }>(), { disabled: false, knownCharacterIds: () => [] })
 const emit = defineEmits<{ save: [value: { output: CreativeEditableOutput, reason: string }], close: [] }>()
 const { t } = useI18n()
-const draft = ref<CreativeEditableOutput>(structuredClone(toRaw(props.output)))
+const draft = ref<TextOutput>(structuredClone(toRaw(props.output)))
 const reason = shallowRef('')
 const summaryInput = useTemplateRef<HTMLInputElement>('summaryInput')
 onMounted(() => summaryInput.value?.focus())

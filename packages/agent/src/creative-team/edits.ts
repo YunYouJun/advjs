@@ -4,7 +4,7 @@ import { creativeArtifactExpectedFiles } from './milestones'
 import { creativeOutputFileChanges, parseCreativePartnerOutput } from './outputs'
 import { requiredCreativeReviewCapabilities } from './validation'
 
-export type CreativeEditableOutput = Extract<CreativePartnerOutput, { kind: 'characters' | 'chapter' }>
+export type CreativeEditableOutput = Extract<CreativePartnerOutput, { kind: 'characters' | 'chapter' | 'voice-direction' }>
 export interface CreativeCandidateEditRequest {
   artifactId: string
   fingerprint: string
@@ -33,7 +33,7 @@ export function prepareCreativeCandidateEdit(run: CreativeTeamRun, request: Crea
   const original = run.artifacts.find(item => item.id === request.artifactId && item.fingerprint === request.fingerprint)
   if (!original || !['candidate', 'selected'].includes(original.status) || run.status === 'completed')
     throw new Error('CREATIVE_EDIT_SOURCE_CONFLICT')
-  if (!original.output || !['characters', 'chapter'].includes(original.output.kind))
+  if (!original.output || !['characters', 'chapter', 'voice-direction'].includes(original.output.kind))
     throw new TypeError('This candidate does not support structured author editing')
   if (!request.reason.trim() || request.reason.length > 4000)
     throw new TypeError('An author edit requires a bounded decision reason')

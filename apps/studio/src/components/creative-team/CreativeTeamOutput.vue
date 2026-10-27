@@ -58,10 +58,16 @@ const { t } = useI18n()
       </RouterLink>
     </template>
     <template v-else-if="output.kind === 'voice-direction'">
+      <p v-if="output.locale">
+        {{ t('creativeTeam.voicePlan.locale') }} · {{ output.locale }}
+      </p>
       <h4>{{ t('creativeTeam.cast') }}</h4>
       <article v-for="cast in output.cast" :key="cast.speakerId" class="team-output__item">
         <strong>{{ cast.speakerId }}</strong>
         <p>{{ cast.designBrief }}</p><p>{{ cast.performance }}</p>
+        <p v-if="cast.intent">
+          {{ t('creativeTeam.voicePlan.intent') }} · {{ Object.values(cast.intent).flat().join(' · ') }}
+        </p>
       </article>
       <h4 v-if="output.dictionary.length">
         {{ t('creativeTeam.dictionary') }}

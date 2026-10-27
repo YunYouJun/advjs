@@ -123,6 +123,9 @@ async function inspect() {
     <p>{{ t(submitMedia ? 'creativeTeam.mediaMilestone.scope' : 'creativeTeam.voiceImport.localScope') }}</p>
     <label>{{ t('creativeTeam.voiceImport.proposal') }}<select v-model="artifactId" :disabled="blocked" @change="targets = []"><option v-for="proposal in proposals" :key="proposal.id" :value="proposal.id">{{ proposal.summary }}</option></select></label>
     <template v-if="direction">
+      <p v-if="direction.locale" role="status">
+        {{ t('creativeTeam.voicePlan.adoptFirst') }}
+      </p>
       <ul>
         <li v-for="cast in direction.cast" :key="cast.speakerId">
           <strong>{{ cast.speakerId }}</strong> · {{ cast.designBrief }} · {{ cast.performance }} <RouterLink :to="voiceWorkflowLocation('design', cast.speakerId)">

@@ -1,5 +1,7 @@
 import type { CreativeFileChange, CreativeTeamLimits, CreativeTeamPlan } from './contracts'
+import type { CreativeVoiceIntent } from './voice-direction'
 import { assertCreativeSourcePath, parseCreativeTeamPlan } from './validation'
+import { assertCreativeDictionaryTerms, creativeVoiceDirectionFileChanges, creativeVoiceLocale, parseCreativeVoiceIntent } from './voice-direction'
 
 /** A structured cast proposal; these ids belong to the game, not to the partner roster. */
 export interface CreativeCharacterProfile {
@@ -49,7 +51,7 @@ export type CreativePartnerOutput
     | { kind: 'characters', summary: string, characters: readonly CreativeCharacterProfile[] }
     | { kind: 'chapter', summary: string, chapters: readonly { id: string, title: string, content: string }[], entryChapterId: string, endingAddresses: readonly string[] }
     | { kind: 'art-direction', summary: string, style: string, requests: readonly CreativeArtRequest[] }
-    | { kind: 'voice-direction', summary: string, cast: readonly { speakerId: string, designBrief: string, performance: string }[], dictionary: readonly { term: string, pronunciation: string }[], lines: readonly { path: string, line: number, speakerId: string, text: string, instruction: string }[] }
+    | { kind: 'voice-direction', summary: string, locale?: string, cast: readonly { speakerId: string, designBrief: string, performance: string, intent?: CreativeVoiceIntent }[], dictionary: readonly { term: string, pronunciation: string }[], lines: readonly { path: string, line: number, speakerId: string, text: string, instruction: string }[] }
     | { kind: 'playtest-plan', summary: string, scenarios: readonly CreativePlaytestScenario[], concerns: readonly { path: string, line: number, expected: string, actual: string, suggestion: string }[] }
 
 /** Effective context assembled by Runtime from saved facts and explicitly selected candidates. */
@@ -212,7 +214,7 @@ function parseOutput(kind: CreativePartnerOutput['kind'], value: unknown, contex
     }
     const cast = array(root.cast, 32, 1).map((item) => {
       const casting = record(item)
-      return { speakerId: speaker(casting.speakerId), designBrief: text(casting.designBrief), performance: text(casting.performance) }
+      return { speakerId: speaker(casting.speakerId), designBrief: text(casting.designBrief), performance: text(casting.performance), ...(casting.intent === undefined ? {} : { intent: parseCreativeVoiceIntent(casting.intent) }) }
     })
     unique(cast.map(item => item.speakerId))
     if (!cast.some(item => item.speakerId === 'narrator'))
@@ -221,6 +223,7 @@ function parseOutput(kind: CreativePartnerOutput['kind'], value: unknown, contex
       const term = record(item)
       return { term: text(term.term, 120), pronunciation: text(term.pronunciation, 240) }
     })
+    assertCreativeDictionaryTerms(dictionary)
     const lines = array(root.lines, 128).map((item) => {
       const line = record(item)
       const path = text(line.path, 200)
@@ -232,7 +235,7 @@ function parseOutput(kind: CreativePartnerOutput['kind'], value: unknown, contex
         throw new TypeError('Voice instruction does not match the frozen dialogue source')
       return { path, line: lineNumber, speakerId: speaker(line.speakerId), text: content, instruction: text(line.instruction) }
     })
-    return { kind, summary, cast, dictionary, lines }
+    return { kind, summary, cast, dictionary, lines, ...(root.locale === undefined ? {} : { locale: creativeVoiceLocale(root.locale) }) }
   }
   const scenarios = parseCreativePlaytestScenarios(root.scenarios)
   const concerns = array(root.concerns, 32).map((item) => {
@@ -272,6 +275,8 @@ function preservedCharacterFrontmatter(content: string | undefined): string[] {
 /** Preserve opaque media/profile metadata when a structured cast candidate edits narrative fields. */
 export function creativeOutputFileChanges(output: CreativePartnerOutput, files: Readonly<Record<string, string>>): CreativeFileChange[] {
   const change = (path: string, after: string): CreativeFileChange => ({ path, before: files[path] ?? null, after })
+  if (output.kind === 'voice-direction')
+    return creativeVoiceDirectionFileChanges(output, files)
   if (output.kind === 'characters') {
     return output.characters.map(character => change(`adv/characters/${character.id}.character.md`, [
       '---',

@@ -6,6 +6,7 @@ import SButton from '../ui/SButton.vue'
 import CreativeCandidateEditor from './CreativeCandidateEditor.vue'
 import CreativeTeamMedia from './CreativeTeamMedia.vue'
 import CreativeTeamOutput from './CreativeTeamOutput.vue'
+import CreativeVoiceDirectionEditor from './CreativeVoiceDirectionEditor.vue'
 
 const props = defineProps<{ artifact: CreativeArtifact, busy: boolean, canSelect: boolean, canRework: boolean, canEdit: boolean, editSaved?: boolean, knownCharacterIds?: readonly string[] }>()
 const emit = defineEmits<{ decide: [decision: CreativeTeamDecisionInput], edit: [request: CreativeCandidateEditRequest] }>()
@@ -14,7 +15,7 @@ const reason = shallowRef('')
 const editing = shallowRef(false)
 const editorOpened = shallowRef(false)
 const artifactRoot = useTemplateRef<HTMLElement>('artifactRoot')
-const editableOutput = computed(() => props.artifact.output?.kind === 'characters' || props.artifact.output?.kind === 'chapter' ? props.artifact.output : undefined)
+const editableOutput = computed(() => props.artifact.output?.kind === 'characters' || props.artifact.output?.kind === 'chapter' || props.artifact.output?.kind === 'voice-direction' ? props.artifact.output : undefined)
 watch(() => props.editSaved, (saved) => {
   if (saved) {
     editing.value = false
@@ -25,7 +26,7 @@ async function openEditor() {
   editorOpened.value = true
   editing.value = true
   await nextTick()
-  artifactRoot.value?.querySelector<HTMLInputElement>('[data-testid="creative-candidate-editor"] input')?.focus()
+  artifactRoot.value?.querySelector<HTMLInputElement>('[data-testid="creative-candidate-editor"] input, [data-testid="creative-voice-plan-editor"] input')?.focus()
 }
 async function closeEditor() {
   editing.value = false
@@ -76,7 +77,10 @@ function select() {
     <SButton v-if="(canEdit || editorOpened) && !editing" data-edit-candidate variant="outline" size="lg" :disabled="busy" @click="openEditor">
       {{ t(canEdit ? 'creativeTeam.editCandidate' : 'creativeTeam.viewEditDraft') }}
     </SButton>
-    <CreativeCandidateEditor v-if="editorOpened && editableOutput" v-show="editing" :output="editableOutput" :candidate-id="artifact.id" :busy="busy" :disabled="!canEdit" :known-character-ids="knownCharacterIds" @save="emit('edit', { artifactId: artifact.id, fingerprint: artifact.fingerprint, ...$event })" @close="closeEditor" />
+    <template v-if="editorOpened && editableOutput">
+      <CreativeVoiceDirectionEditor v-if="editableOutput.kind === 'voice-direction'" v-show="editing" :output="editableOutput" :candidate-id="artifact.id" :busy="busy" :disabled="!canEdit" @save="emit('edit', { artifactId: artifact.id, fingerprint: artifact.fingerprint, ...$event })" @close="closeEditor" />
+      <CreativeCandidateEditor v-else v-show="editing" :output="editableOutput" :candidate-id="artifact.id" :busy="busy" :disabled="!canEdit" :known-character-ids="knownCharacterIds" @save="emit('edit', { artifactId: artifact.id, fingerprint: artifact.fingerprint, ...$event })" @close="closeEditor" />
+    </template>
     <div v-if="canSelect" class="team-artifact__actions">
       <p class="team-artifact__hint">
         {{ t('creativeTeam.selectionHint') }}

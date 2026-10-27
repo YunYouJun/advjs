@@ -2,11 +2,11 @@ import type { CreativeTeamRun } from '@advjs/agent'
 import type { Plugin } from 'vite'
 import { Buffer } from 'node:buffer'
 import { createHash } from 'node:crypto'
-import { computeAgentProjectRevision, creativeMediaCanonical, overlayCreativeMilestone, parseCreativeMediaCandidateRequest, parseCreativeMilestoneCommand, parseCreativeTeamRun, prepareCreativeMediaCandidate, prepareCreativeMilestone, reduceCreativeTeamRun } from '@advjs/agent'
+import { computeAgentProjectRevision, creativeMediaCanonical, overlayCreativeMilestone, parseCreativeCandidateEditRequest, parseCreativeMediaCandidateRequest, parseCreativeMilestoneCommand, parseCreativeProject, parseCreativeTeamPublicDecision, parseCreativeTeamRun, prepareCreativeCandidateEdit, prepareCreativeMediaCandidate, prepareCreativeMilestone, reduceCreativeTeamRun } from '@advjs/agent'
 
 /** Explicit local service substitute. Uses the shared validators/reducer; no models, billing or cloud DB. */
 export function creativeMediaMilestoneFixtureService(): Plugin {
-  const records = new Map<string, { run: CreativeTeamRun, revision: string }>()
+  const records = new Map<string, { run: CreativeTeamRun, revision: string, files: Readonly<Record<string, string>> }>()
   const hash = (value: unknown) => createHash('sha256').update(creativeMediaCanonical(value)).digest('hex')
   return {
     name: 'creative-media-milestone-fixture-service',
@@ -36,7 +36,7 @@ export function creativeMediaMilestoneFixtureService(): Plugin {
             const input = body as CreativeTeamRun
             const run = parseCreativeTeamRun(input, { accountId: input.accountId, projectId: input.plan.projectId })
             if (!records.has(run.plan.projectId))
-              records.set(run.plan.projectId, { run, revision: run.plan.projectRevision })
+              records.set(run.plan.projectId, { run, revision: run.plan.projectRevision, files: run.artifacts[0]!.source.files })
             return send(200, {})
           }
           const projectId = url.searchParams.get('projectId') ?? ''
@@ -44,7 +44,7 @@ export function creativeMediaMilestoneFixtureService(): Plugin {
           if (url.pathname === '/__creative-media-fixture/exists')
             return send(200, { exists: Boolean(record) })
           if (url.pathname.endsWith('/capabilities'))
-            return send(200, { protocolVersion: 1, enabled: false, authoring: { candidateEdits: true, milestoneAdoption: true, mediaCandidates: true }, serviceVersion: 'explicit local media service fixture; no models', capabilities: [], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } })
+            return send(200, { protocolVersion: 1, enabled: projectId.startsWith('creative-media-voice-plan'), authoring: { candidateEdits: true, voiceDirectionEdits: true, milestoneAdoption: true, mediaCandidates: true }, serviceVersion: 'explicit local authoring service fixture; no models', capabilities: [], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } })
           if (!record)
             return send(404, { error: { code: 'CREATIVE_NOT_FOUND', message: 'Explicit fixture project not found' } })
           const run = record.run
@@ -53,7 +53,32 @@ export function creativeMediaMilestoneFixtureService(): Plugin {
           if (!url.pathname.startsWith(`${prefix}/runs/${run.id}`))
             return send(404, {})
           const key = String(request.headers['idempotency-key'] ?? '')
-          if (url.pathname.endsWith('/media-candidates') && request.method === 'POST') {
+          if (url.pathname.endsWith('/facts') && request.method === 'POST') {
+            const project = parseCreativeProject(body)
+            if (project.id !== projectId || await computeAgentProjectRevision(project.files) !== project.revision)
+              throw new Error('CREATIVE_SOURCE_CONFLICT')
+            if (project.revision !== record.revision)
+              record.run = reduceCreativeTeamRun(run, { type: 'refresh-facts', files: project.files }, Date.now())
+            record.revision = project.revision
+            record.files = project.files
+          }
+          else if (url.pathname.endsWith('/candidate-edits') && request.method === 'POST') {
+            const input = parseCreativeCandidateEditRequest(body)
+            const previous = run.decisions.find(item => item.id === key)
+            if (previous && (previous.action !== 'edit' || previous.requestFingerprint !== hash(input)))
+              throw new Error('CREATIVE_IDEMPOTENCY_CONFLICT')
+            if (!previous) {
+              const prepared = prepareCreativeCandidateEdit(run, input, { revision: record.revision, files: record.files })
+              record.run = reduceCreativeTeamRun(run, { type: 'edit-candidate', artifact: { ...prepared, id: `author_${hash([run.id, key]).slice(0, 24)}`, fingerprint: `sha256:${hash(prepared)}` }, decisionId: key, reason: input.reason, requestFingerprint: hash(input) }, Date.now())
+            }
+          }
+          else if (url.pathname.endsWith('/decisions') && request.method === 'POST') {
+            const action = parseCreativeTeamPublicDecision(body, key)
+            if (action.type !== 'select')
+              throw new Error('Fixture permits only explicit candidate selection, never dispatch')
+            record.run = reduceCreativeTeamRun(run, action, Date.now())
+          }
+          else if (url.pathname.endsWith('/media-candidates') && request.method === 'POST') {
             const input = parseCreativeMediaCandidateRequest(body)
             if (input.project.id !== projectId || await computeAgentProjectRevision(input.project.files) !== input.project.revision)
               throw new Error('CREATIVE_SOURCE_CONFLICT')
@@ -66,6 +91,7 @@ export function creativeMediaMilestoneFixtureService(): Plugin {
               const id = `media_${hash([run.id, key]).slice(0, 24)}`
               record.run = reduceCreativeTeamRun(current, { type: 'register-media', artifact: { ...prepared, id, fingerprint: `sha256:${hash(prepared)}` }, decisionId: key, reason: input.reason, requestFingerprint: hash(input) }, Date.now())
               record.revision = input.project.revision
+              record.files = input.project.files
             }
           }
           else if (url.pathname.endsWith('/milestones') && request.method === 'POST') {
@@ -93,6 +119,7 @@ export function creativeMediaMilestoneFixtureService(): Plugin {
                   throw new Error('CREATIVE_SOURCE_CONFLICT')
                 record.run = reduceCreativeTeamRun(run, { type: 'resolve-milestone', milestoneId: intent.id, status: command.type === 'confirm' ? 'confirmed' : 'abandoned', files: command.project.files }, Date.now())
                 record.revision = command.project.revision
+                record.files = command.project.files
               }
             }
           }

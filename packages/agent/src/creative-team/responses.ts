@@ -11,7 +11,7 @@ import { assertCreativeArtifactBoundary, assertCreativeSourcePath, parseCreative
 
 const RUN_STATUSES = ['awaiting_plan_review', 'ready', 'running', 'awaiting_review', 'blocked', 'cancel_requested', 'cancelled', 'completed', 'reconcile_required'] as const
 const TASK_STATUSES = ['pending', 'running', 'awaiting_review', 'completed', 'stale', 'blocked', 'failed', 'cancelled', 'reconcile_required'] as const
-const REVIEW_CAPABILITIES = ['create-source', 'modify-source', 'delete-source', 'catalog-media', 'voice-take', 'candidate-preview'] as const
+const REVIEW_CAPABILITIES = ['create-source', 'modify-source', 'delete-source', 'catalog-media', 'voice-take', 'voice-settings', 'candidate-preview'] as const
 function object(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new TypeError('Invalid creative team response object')

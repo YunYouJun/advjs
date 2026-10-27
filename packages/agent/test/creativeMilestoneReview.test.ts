@@ -59,7 +59,8 @@ describe('creative milestone review with new sources', () => {
   it('checks new chapter references and refuses media adoption without a host verifier', async () => {
     const { workspace, artifact, service } = await fixture()
     await expect(service.review([{ ...artifact, kind: 'chapter', changes: [{ path: 'adv/chapters/broken.adv.md', before: null, after: '# 破损 {#start}\n\n- [走](missing#end)' }] }])).rejects.toThrow(/COMPILE_FAILED/)
-    await expect(service.review([{ ...artifact, kind: 'art-direction', changes: [{ path: 'adv/assets.json', before: null, after: '{}' }] }])).rejects.toThrow(/REVIEW_UNSUPPORTED:catalog-media/)
+    const media = { ...artifact, kind: 'art-direction' as const, source: { ...artifact.source, files: (await workspace.snapshot()).files }, changes: [{ path: 'adv/assets.json', before: null, after: '{}' }] }
+    await expect(service.review([media])).rejects.toThrow(/REVIEW_UNSUPPORTED:catalog-media/)
     expect(Object.keys((await workspace.snapshot()).files)).toHaveLength(2)
   })
 

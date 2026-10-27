@@ -1,6 +1,7 @@
 import type { CreativeArtifact, CreativeReviewCapability, CreativeTeamPlan } from './contracts'
 import { AGENT_CAPABILITY_IDS } from '../core/contracts'
 import { CREATIVE_PARTNER_CAPABILITIES, CREATIVE_PARTNER_IDS, CREATIVE_TEAM_CAPABILITIES, CREATIVE_TEAM_PROTOCOL_VERSION } from './contracts'
+import { isCreativeVoiceSettingsPath } from './voice-direction'
 
 function object(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value))
@@ -109,11 +110,13 @@ export function requiredCreativeReviewCapabilities(artifact: Pick<CreativeArtifa
     if (/^adv\/assets(?:\/|\.json$)/.test(change.path))
       needed.add('catalog-media')
     if (/^adv\/audio\//.test(change.path))
-      needed.add('voice-take')
+      needed.add(/^adv\/audio\/(?:pronunciation|voice-profiles)\.json$/.test(change.path) ? 'voice-settings' : 'voice-take')
   }
   if (artifact.kind === 'media-adoption')
     needed.add('catalog-media')
-  if (artifact.kind === 'voice-direction' || artifact.media?.target.kind === 'voice')
+  if (artifact.kind === 'voice-direction')
+    needed.add(artifact.changes.length && artifact.changes.every(change => isCreativeVoiceSettingsPath(change.path)) ? 'voice-settings' : 'voice-take')
+  if (artifact.media?.target.kind === 'voice')
     needed.add('voice-take')
   if (artifact.kind === 'playtest-report' || artifact.kind === 'chapter')
     needed.add('candidate-preview')

@@ -32,7 +32,7 @@ async function main() {
   const pinia = createPinia()
   setActivePinia(pinia)
   const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`
-  const originals = {
+  const originals: Record<string, string> = {
     'adv.config.json': json({ schemaVersion: 1, id: projectId, root: 'adv', format: 'adv-md' }),
     'adv/settings/game.json': json({ entryChapterId: 'intro', locale: 'zh-CN' }),
     'adv/assets.json': json({ schemaVersion: 2, id: projectId, defaultProfile: 'local', profiles: { local: { provider: 'project', root: 'adv/assets' } }, includes: ['assets/audio.json', 'assets/other.json'] }),
@@ -40,6 +40,16 @@ async function main() {
     'adv/assets/other.json': json({ schemaVersion: 2, assets: [] }),
     'adv/characters/lin.character.md': '---\nid: lin\nname: 林\nvoiceProfile:\n  intent:\n    speakingStyle: 平静\n  locales:\n    zh-CN:\n      providers:\n        local-system:\n          voiceId: Tingting\n          model: macos-say\n          source: system\n---\n外部系统语音和既有小云图片的真实媒体回流验证，不表示人物美术或表演品质。',
     'adv/chapters/intro.adv.md': '# 等车 {#start}\n\n@lin\n列车还没有到，我们再等一会儿。 {#line_01900400-0000-7000-8000-000000000001}\n\n@lin\n这是下一句，没有绑定配音。',
+  }
+  if (variant.startsWith('voice-plan')) {
+    originals['adv/chapters/intro.adv.md'] += '\n\n> 站台上的灯亮了。 {#line_01900400-0000-7000-8000-000000000003}'
+    originals['adv/audio/pronunciation.json'] = json({ schemaVersion: 1, revision: 4, replacements: { ADV: '冒险' }, locales: { 'en': { replacements: { station: 'station' } }, 'zh-CN': { replacements: { 车站: '车站' } } } })
+    originals['adv/audio/voice-profiles.json'] = json({ schemaVersion: 1, revision: 2, narrator: { intent: { temperament: ['从容'], speakingStyle: '既有旁白' } } })
+  }
+  if (variant === 'voice-plan-flow') {
+    originals['adv.config.json'] = json({ schemaVersion: 1, id: projectId, root: 'adv', format: 'flow' })
+    delete originals['adv/chapters/intro.adv.md']
+    originals['adv/chapters/intro.chapter.json'] = json({ schemaVersion: 1, id: 'intro', title: '全部 Flow 配音', nodes: [{ id: 'start', type: 'dialogues', dialogues: [{ speakerId: 'lin', text: '列车还没有到，我们再等一会儿。', lineId: 'line_01900400-0000-7000-8000-000000000001' }, { speakerId: 'lin', text: '这是方案未列出的 Flow 对白。', lineId: 'line_01900400-0000-7000-8000-000000000002' }] }, { id: 'narration', type: 'narration', text: '站台上的灯亮了。', lineId: 'line_01900400-0000-7000-8000-000000000003' }] })
   }
   const fs = new MemoryFsAdapter(projectId)
   await fs.init()
@@ -59,6 +69,14 @@ async function main() {
     { id: 'art-direction', runId, taskId: 'art', partner: 'art-director', projectId, kind: 'art-direction', source, fingerprint: 'art-v1', summary: '既有图片回流方案 fixture', output: { kind: 'art-direction', summary: '既有图片回流方案 fixture', style: 'Preserve the repository image', requests: [{ assetId: 'character/lin/default', kind: 'portrait', characterId: 'lin', width: 619, height: 619, prompt: 'Existing image for protocol verification', constraints: [] }] }, changes: [], reviewCapabilities: [], status: 'selected' },
     { id: 'voice-direction', runId, taskId: 'voice', partner: 'voice-director', projectId, kind: 'voice-direction', source, fingerprint: 'voice-v1', summary: '真实系统语音回流方案 fixture', output: { kind: 'voice-direction', summary: '真实系统语音回流方案 fixture', cast: [{ speakerId: 'lin', designBrief: 'Tingting system voice', performance: 'Calm' }, { speakerId: 'narrator', designBrief: 'Independent narrator', performance: 'Not produced' }], dictionary: [], lines: [{ path: 'adv/chapters/intro.adv.md', line: 4, speakerId: 'lin', text: '列车还没有到，我们再等一会儿。', instruction: '平静地邀请同伴继续等待' }] }, changes: [], reviewCapabilities: ['voice-take'], status: 'selected' },
   ]
+  if (variant.startsWith('voice-plan')) {
+    const output = run.artifacts[1]!.output!
+    if (output.kind === 'voice-direction') {
+      output.dictionary = [{ term: '列车', pronunciation: '火车' }]
+      if (variant === 'voice-plan-flow')
+        output.lines = [{ ...output.lines[0]!, path: 'adv/chapters/intro.chapter.json', line: 1 }]
+    }
+  }
   const exists = await fetch(`/__creative-media-fixture/exists?projectId=${encodeURIComponent(projectId)}`)
   if (!(await exists.json()).exists) {
     const seeded = await fetch('/__creative-media-fixture/seed', { method: 'POST', body: JSON.stringify(run) })
@@ -69,9 +87,13 @@ async function main() {
   let lose: 'register' | 'prepare' | 'confirm' | undefined
   const client = new ManagedCreativeTeamClient({ accountId, baseUrl: 'http://127.0.0.1:4198', getAccessToken: () => 'explicit-media-fixture-only', fetch: async (input, init) => {
     const url = new URL(String(input))
+    // Availability is account-wide in production. This explicit local service
+    // hosts several independent UI cases and needs their fixture identity only.
+    if (url.pathname.endsWith('/capabilities'))
+      url.searchParams.set('projectId', projectId)
     const body = init?.body ? JSON.parse(String(init.body)) : undefined
     calls.push({ method: init?.method ?? 'GET', path: url.pathname, body, key: new Headers(init?.headers).get('idempotency-key') ?? undefined })
-    const response = await fetch(input, init)
+    const response = await fetch(url, init)
     const phase = url.pathname.endsWith('/media-candidates') ? 'register' : body?.type
     if (response.ok && lose && phase === lose) {
       lose = undefined

@@ -1,6 +1,7 @@
 import type { CreativeArtifact, CreativeFileChange, CreativeMilestoneIntent, CreativeTeamRun } from './contracts'
 import type { CreativeTeamStartRequest } from './wire'
 import { compatibleCreativeMediaArtifacts } from './media'
+import { creativeOutputFileChanges } from './outputs'
 import { requiredCreativeReviewCapabilities } from './validation'
 import { parseCreativeProject } from './wire'
 
@@ -75,8 +76,10 @@ export function creativeMilestoneChanges(run: CreativeTeamRun, intent: Pick<Crea
 export function creativeArtifactExpectedFiles(artifact: CreativeArtifact, run?: CreativeTeamRun): Record<string, string | null> {
   const files: Record<string, string | null> = { ...artifact.source.files }
   const dependencies = new Set<string>()
-  if (artifact.kind === 'art-direction' || artifact.kind === 'voice-direction' || artifact.media)
+  if (artifact.kind === 'art-direction' || artifact.kind === 'voice-direction' || artifact.media) {
     dependencies.add('adv/assets.json')
+    dependencies.add('adv.config.json')
+  }
   if (artifact.kind === 'voice-direction' || artifact.media?.target.kind === 'voice') {
     for (const path of ['adv/audio/voice-ledger.json', 'adv/audio/pronunciation.json', 'adv/audio/voice-profiles.json', 'adv/settings/game.json'])
       dependencies.add(path)
@@ -135,6 +138,8 @@ export function prepareCreativeMilestone(run: CreativeTeamRun, request: Creative
         throw new Error('CREATIVE_MILESTONE_CONFLICT')
       if (requiredCreativeReviewCapabilities(artifact).some(capability => ['catalog-media', 'voice-take'].includes(capability)) && (artifact.kind !== 'media-adoption' || artifact.media?.verification !== 'author-host'))
         throw new Error('CREATIVE_MEDIA_VERIFIER_REQUIRED')
+      if (requiredCreativeReviewCapabilities(artifact).includes('voice-settings') && (artifact.output?.kind !== 'voice-direction' || JSON.stringify(creativeOutputFileChanges(artifact.output, request.project.files)) !== JSON.stringify(artifact.changes)))
+        throw new Error('CREATIVE_VOICE_SETTINGS_INVALID')
       for (const [path, content] of Object.entries(creativeArtifactExpectedFiles(artifact, run))) {
         if ((request.project.files[path] ?? null) !== content)
           throw new Error(`CREATIVE_SOURCE_CONFLICT:${path}`)

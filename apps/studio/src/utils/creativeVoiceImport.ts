@@ -68,6 +68,8 @@ export async function readCreativeVoiceTargets(fs: IFileSystem, run: CreativeTea
   if (!artifact)
     throw new Error('CREATIVE_VOICE_PROPOSAL_CHANGED')
   assertProposal(run, artifact, source.files)
+  if (artifact.output?.kind === 'voice-direction' && artifact.output.locale && artifact.changes.some(change => (source.files[change.path] ?? null) !== change.after))
+    throw new Error('CREATIVE_VOICE_PLAN_ADOPTION_REQUIRED')
   const compilation = await compileProject({ files: source.files }, { allowEmptyAssetManifest: true })
   if (compilation.diagnostics.some(item => item.severity === 'error') || !compilation.project.program)
     throw new Error('CREATIVE_VOICE_COMPILE_FAILED')
@@ -88,7 +90,7 @@ export async function readCreativeVoiceTargets(fs: IFileSystem, run: CreativeTea
     if (matches.length !== 1)
       throw new Error('CREATIVE_VOICE_LINE_UNRESOLVED')
     const profile = profiles[request.speakerId]
-    const locale = String(compilation.project.game.locale ?? 'zh-CN')
+    const locale = output.locale ?? String(compilation.project.game.locale ?? 'zh-CN')
     const providers = Object.entries(profile?.locales?.[locale]?.providers ?? {}).flatMap(([id, binding]) => binding.model && ['system', 'recorded'].includes(binding.source) ? [{ id, voiceId: binding.voiceId, model: binding.model, source: binding.source as 'system' | 'recorded', ...(binding.rights ? { rights: binding.rights } : {}) }] : [])
     targets.push({ artifactId, artifactFingerprint: artifact.fingerprint, request, lineId: String(matches[0]!.node.data!.lineId), sourceRevision: source.revision, locale, snapshot, profileRevision: profile ? await audioFingerprint(profile) : '', providers })
   }

@@ -81,7 +81,7 @@ export interface CreativeFileChange {
 
 export const CREATIVE_ARTIFACT_KINDS = ['production-brief', 'characters', 'chapter', 'art-direction', 'voice-direction', 'media-adoption', 'playtest-plan', 'playtest-report', 'delivery-summary', 'outline', 'roleplay', 'consistency-review', 'plot-suggestions'] as const
 export type CreativeArtifactKind = typeof CREATIVE_ARTIFACT_KINDS[number]
-export type CreativeReviewCapability = 'create-source' | 'modify-source' | 'delete-source' | 'catalog-media' | 'voice-take' | 'candidate-preview'
+export type CreativeReviewCapability = 'create-source' | 'modify-source' | 'delete-source' | 'catalog-media' | 'voice-take' | 'voice-settings' | 'candidate-preview'
 
 /** All outputs stay in the candidate layer until the author adopts a revision. */
 export interface CreativeArtifact {
@@ -190,7 +190,7 @@ export interface CreativeTeamAvailability {
   serviceVersion: string
   capabilities: readonly CreativeTeamCapability[]
   media: { image: 'unavailable' | 'manual-import' | 'verified-managed', voice: 'unavailable' | 'manual-import' | 'verified-author-host' | 'verified-managed' }
-  authoring?: { candidateEdits: boolean, milestoneAdoption: boolean, playtestReports?: boolean, playtestRepair?: boolean, mediaCandidates?: boolean }
+  authoring?: { candidateEdits: boolean, milestoneAdoption: boolean, playtestReports?: boolean, playtestRepair?: boolean, mediaCandidates?: boolean, voiceDirectionEdits?: boolean }
   maxConcurrentTasks: 1
 }
 
