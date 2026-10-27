@@ -2,9 +2,9 @@ import type { CreativeVoiceImportCache, CreativeVoiceImportEntry } from '../util
 import type { IFileSystem } from '../utils/fs'
 import { Blob as NodeBlob, File as NodeFile } from 'node:buffer'
 import { webcrypto } from 'node:crypto'
-import { computeAgentProjectRevision, createCreativeTeamRun } from '@advjs/agent'
+import { computeAgentProjectRevision, createCreativeTeamRun, parseCreativePartnerOutput } from '@advjs/agent'
 import { resolveVoiceReviewRows, voiceReviewContextFromProgram } from '@advjs/audio'
-import { compileProject } from '@advjs/core'
+import { compileProject, prepareMarkdownVoiceIdentities } from '@advjs/core'
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, shallowRef } from 'vue'
@@ -177,6 +177,34 @@ async function fixture(format: 'adv-md' | 'flow' = 'adv-md') {
 function current() {}
 
 describe('creative voice return to the canonical authoring ledger', () => {
+  it('hands a host-prepared new identity through frozen voice parsing, actual compiler targeting and canonical registration', async () => {
+    const f = await fixture()
+    const path = 'adv/chapters/intro.adv.md'
+    const prepared = await prepareMarkdownVoiceIdentities({ [path]: '# 等车 {#start}\n\n@lin\n列车还没有到，\n我们再**等一会儿**。' })
+    f.files[path] = prepared.files[path]!
+    const newId = prepared.assigned[0]!.lineId
+    const artifact = f.run.artifacts[0]!
+    artifact.source = { ...artifact.source, files: { ...f.files }, revision: await computeAgentProjectRevision(f.files) }
+    artifact.output = parseCreativePartnerOutput('voice-direction', {
+      kind: 'voice-direction',
+      summary: '已审阅新台词的配音交接',
+      cast: [{ speakerId: 'lin', designBrief: '平静', performance: '完整段落' }, { speakerId: 'narrator', designBrief: '独立旁白', performance: '中性' }],
+      dictionary: [],
+      lines: [{ path, lineId: newId, source: { line: 3, endLine: 5, text: f.files[path].split('\n').slice(2).join('\n') }, speakerId: 'lin', text: '列车还没有到，\n我们再等一会儿。', instruction: '保留完整续行' }],
+    }, { projectId: f.run.plan.projectId, projectRevision: artifact.source.revision, files: f.files, characterIds: ['lin'], limits: f.run.plan.limits })
+    const target = (await readCreativeVoiceTargets(f.fs, f.run, artifact.id, current))[0]!
+    expect(target).toMatchObject({ lineId: newId, address: 'intro#node-1', request: { source: { line: 3, endLine: 5 } } })
+    expect(f.fs.writeFile).not.toHaveBeenCalled()
+    const review = await reviewCreativeVoiceImport(f.fs, f.run, target, f.audio, 'local-system', 'Unit transaction bytes only; not real speech', current)
+    await commitCreativeVoiceImport(f.fs, f.run, review, current)
+    const snapshot = await createStudioAudioService(f.fs).read()
+    expect(Object.keys(snapshot.ledger.lines)).toEqual([newId])
+    expect(snapshot.ledger.lines[newId]!.displayText).toBe('列车还没有到，\n我们再等一会儿。')
+    expect(snapshot.ledger.lines[newId]!.locales['zh-CN']!.selectedTake).toBeNull()
+    f.files[path] = f.files[path].replace('等一会儿', '继续等下去')
+    await expect(readCreativeVoiceTargets(f.fs, f.run, artifact.id, current)).rejects.toThrow('SOURCE_CHANGED')
+  })
+
   async function quotedFixture(narration = false, newline = '\n') {
     const f = await fixture()
     const block = narration ? `> 列车还没有到，\n> 我们再**等一会儿**。 {#${lineId}}` : `@lin\n列车还没有到，\n我们再**等一会儿**。 {#${lineId}}`

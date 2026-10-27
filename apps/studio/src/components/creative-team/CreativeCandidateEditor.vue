@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CreativeEditableOutput } from '@advjs/agent'
+import { prepareMarkdownVoiceIdentities } from '@advjs/core'
 import { computed, onMounted, ref, shallowRef, toRaw, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import SButton from '../ui/SButton.vue'
@@ -10,6 +11,11 @@ const emit = defineEmits<{ save: [value: { output: CreativeEditableOutput, reaso
 const { t } = useI18n()
 const draft = ref<TextOutput>(structuredClone(toRaw(props.output)))
 const reason = shallowRef('')
+const preparing = shallowRef(false)
+const working = computed(() => props.busy || preparing.value)
+const identityError = shallowRef(false)
+const identityResult = shallowRef<{ content: string, added: number, retained: number }>()
+const currentIdentityResult = computed(() => draft.value.kind === 'chapter' && identityResult.value?.content === JSON.stringify(draft.value.chapters) ? identityResult.value : undefined)
 const summaryInput = useTemplateRef<HTMLInputElement>('summaryInput')
 onMounted(() => summaryInput.value?.focus())
 const originalIds = new Set(props.output.kind === 'characters' ? props.output.characters.map(item => item.id) : props.output.chapters.map(item => item.id))
@@ -18,8 +24,28 @@ function lines(value: string) {
   return value.split('\n').map(line => line.trim()).filter(Boolean)
 }
 function save() {
-  if (!props.busy && !props.disabled && reason.value.trim())
+  if (!working.value && !props.disabled && reason.value.trim())
     emit('save', { output: structuredClone(toRaw(draft.value)), reason: reason.value.trim() })
+}
+async function prepareIdentities() {
+  if (working.value || props.disabled || draft.value.kind !== 'chapter')
+    return
+  const original = structuredClone(toRaw(draft.value))
+  preparing.value = true
+  identityError.value = false
+  try {
+    const prepared = await prepareMarkdownVoiceIdentities(Object.fromEntries(original.chapters.map(chapter => [`adv/chapters/${chapter.id}.adv.md`, chapter.content])))
+    if (props.disabled || props.busy || JSON.stringify(draft.value) !== JSON.stringify(original) || Object.values(prepared.files).some(content => content.length > 32000))
+      throw new Error('CREATIVE_IDENTITY_DRAFT_CHANGED')
+    draft.value = { ...original, chapters: original.chapters.map(chapter => ({ ...chapter, content: prepared.files[`adv/chapters/${chapter.id}.adv.md`]! })) }
+    identityResult.value = { content: JSON.stringify(draft.value.chapters), added: prepared.assigned.length, retained: prepared.retained }
+  }
+  catch {
+    identityError.value = true
+  }
+  finally {
+    preparing.value = false
+  }
 }
 </script>
 
@@ -33,35 +59,35 @@ function save() {
       {{ t('creativeTeam.editStale') }}
     </p>
     <label :for="`${candidateId}-summary`">{{ t('creativeTeam.editSummary') }}</label>
-    <input :id="`${candidateId}-summary`" ref="summaryInput" v-model="draft.summary" class="candidate-editor__input" maxlength="1000" required :disabled="busy">
+    <input :id="`${candidateId}-summary`" ref="summaryInput" v-model="draft.summary" class="candidate-editor__input" maxlength="1000" required :disabled="working">
     <template v-if="draft.kind === 'characters'">
       <fieldset v-for="character in draft.characters" :key="character.id" class="candidate-editor__fieldset">
         <legend>{{ character.name }} · {{ character.id }}</legend>
         <label :for="`${candidateId}-${character.id}-name`">{{ t('creativeTeam.editName') }}</label>
-        <input :id="`${candidateId}-${character.id}-name`" v-model="character.name" class="candidate-editor__input" maxlength="80" required :disabled="busy">
+        <input :id="`${candidateId}-${character.id}-name`" v-model="character.name" class="candidate-editor__input" maxlength="80" required :disabled="working">
         <label :for="`${candidateId}-${character.id}-description`">{{ t('creativeTeam.editDescription') }}</label>
-        <textarea :id="`${candidateId}-${character.id}-description`" v-model="character.description" class="candidate-editor__input" rows="3" maxlength="4000" required :disabled="busy" />
+        <textarea :id="`${candidateId}-${character.id}-description`" v-model="character.description" class="candidate-editor__input" rows="3" maxlength="4000" required :disabled="working" />
         <label :for="`${candidateId}-${character.id}-motivation`">{{ t('creativeTeam.motivation') }}</label>
-        <textarea :id="`${candidateId}-${character.id}-motivation`" v-model="character.motivation" class="candidate-editor__input" rows="2" maxlength="4000" required :disabled="busy" />
+        <textarea :id="`${candidateId}-${character.id}-motivation`" v-model="character.motivation" class="candidate-editor__input" rows="2" maxlength="4000" required :disabled="working" />
         <label :for="`${candidateId}-${character.id}-speaking`">{{ t('creativeTeam.speaking') }}</label>
-        <textarea :id="`${candidateId}-${character.id}-speaking`" v-model="character.speakingStyle" class="candidate-editor__input" rows="2" maxlength="4000" required :disabled="busy" />
+        <textarea :id="`${candidateId}-${character.id}-speaking`" v-model="character.speakingStyle" class="candidate-editor__input" rows="2" maxlength="4000" required :disabled="working" />
         <label :for="`${candidateId}-${character.id}-visual`">{{ t('creativeTeam.visual') }} · {{ t('creativeTeam.onePerLine') }}</label>
-        <textarea :id="`${candidateId}-${character.id}-visual`" class="candidate-editor__input" rows="2" :value="character.visualConstraints.join('\n')" :disabled="busy" @input="character.visualConstraints = lines(($event.target as HTMLTextAreaElement).value)" />
+        <textarea :id="`${candidateId}-${character.id}-visual`" class="candidate-editor__input" rows="2" :value="character.visualConstraints.join('\n')" :disabled="working" @input="character.visualConstraints = lines(($event.target as HTMLTextAreaElement).value)" />
         <label :for="`${candidateId}-${character.id}-voice`">{{ t('creativeTeam.voice') }} · {{ t('creativeTeam.onePerLine') }}</label>
-        <textarea :id="`${candidateId}-${character.id}-voice`" class="candidate-editor__input" rows="2" :value="character.voiceConstraints.join('\n')" :disabled="busy" @input="character.voiceConstraints = lines(($event.target as HTMLTextAreaElement).value)" />
+        <textarea :id="`${candidateId}-${character.id}-voice`" class="candidate-editor__input" rows="2" :value="character.voiceConstraints.join('\n')" :disabled="working" @input="character.voiceConstraints = lines(($event.target as HTMLTextAreaElement).value)" />
         <fieldset v-for="(relation, index) in character.relationships" :key="index" class="candidate-editor__fieldset">
           <legend>{{ t('creativeTeam.relationships') }} {{ index + 1 }}</legend>
           <label :for="`${candidateId}-${character.id}-target-${index}`">{{ t('creativeTeam.relationTarget') }}</label>
-          <input :id="`${candidateId}-${character.id}-target-${index}`" v-model="relation.targetId" :list="`${candidateId}-known-characters`" class="candidate-editor__input" maxlength="64" required :disabled="busy">
+          <input :id="`${candidateId}-${character.id}-target-${index}`" v-model="relation.targetId" :list="`${candidateId}-known-characters`" class="candidate-editor__input" maxlength="64" required :disabled="working">
           <label :for="`${candidateId}-${character.id}-relation-${index}`">{{ t('creativeTeam.relationType') }}</label>
-          <input :id="`${candidateId}-${character.id}-relation-${index}`" v-model="relation.type" class="candidate-editor__input" maxlength="80" required :disabled="busy">
+          <input :id="`${candidateId}-${character.id}-relation-${index}`" v-model="relation.type" class="candidate-editor__input" maxlength="80" required :disabled="working">
           <label :for="`${candidateId}-${character.id}-relation-description-${index}`">{{ t('creativeTeam.editDescription') }}</label>
-          <textarea :id="`${candidateId}-${character.id}-relation-description-${index}`" v-model="relation.description" class="candidate-editor__input" maxlength="4000" required :disabled="busy" />
-          <SButton variant="ghost" size="lg" :disabled="busy" @click="character.relationships = character.relationships.filter((_, itemIndex) => itemIndex !== index)">
+          <textarea :id="`${candidateId}-${character.id}-relation-description-${index}`" v-model="relation.description" class="candidate-editor__input" maxlength="4000" required :disabled="working" />
+          <SButton variant="ghost" size="lg" :disabled="working" @click="character.relationships = character.relationships.filter((_, itemIndex) => itemIndex !== index)">
             {{ t('creativeTeam.removeRelation') }}
           </SButton>
         </fieldset>
-        <SButton variant="outline" size="lg" :disabled="busy || character.relationships.length >= 16" @click="character.relationships = [...character.relationships, { targetId: '', type: '', description: '' }]">
+        <SButton variant="outline" size="lg" :disabled="working || character.relationships.length >= 16" @click="character.relationships = [...character.relationships, { targetId: '', type: '', description: '' }]">
           {{ t('creativeTeam.addRelation') }}
         </SButton>
       </fieldset>
@@ -70,28 +96,40 @@ function save() {
       </datalist>
     </template>
     <template v-else>
+      <p class="candidate-editor__hint">
+        {{ t('creativeTeam.identityHint', { dialogueSyntax: '@character-id' }) }}
+      </p>
+      <SButton size="lg" variant="outline" :loading="preparing" :disabled="disabled || working" @click="prepareIdentities">
+        {{ t('creativeTeam.prepareIdentities') }}
+      </SButton>
+      <p v-if="currentIdentityResult" class="candidate-editor__notice" role="status">
+        {{ t('creativeTeam.identitiesPrepared', { added: currentIdentityResult.added, retained: currentIdentityResult.retained }) }}
+      </p>
+      <p v-if="identityError" class="candidate-editor__notice" role="alert">
+        {{ t('creativeTeam.identitiesError') }}
+      </p>
       <fieldset v-for="chapter in draft.chapters" :key="chapter.id" class="candidate-editor__fieldset">
         <legend>{{ chapter.id }}</legend>
         <label :for="`${candidateId}-${chapter.id}-title`">{{ t('creativeTeam.chapterTitle') }}</label>
-        <input :id="`${candidateId}-${chapter.id}-title`" v-model="chapter.title" class="candidate-editor__input" maxlength="160" required :disabled="busy">
+        <input :id="`${candidateId}-${chapter.id}-title`" v-model="chapter.title" class="candidate-editor__input" maxlength="160" required :disabled="working">
         <label :for="`${candidateId}-${chapter.id}-content`">AdvScript</label>
-        <textarea :id="`${candidateId}-${chapter.id}-content`" v-model="chapter.content" class="candidate-editor__input candidate-editor__script" rows="12" maxlength="32000" required :disabled="busy" />
+        <textarea :id="`${candidateId}-${chapter.id}-content`" v-model="chapter.content" class="candidate-editor__input candidate-editor__script" rows="12" maxlength="32000" required :disabled="working" />
       </fieldset>
       <label :for="`${candidateId}-entry`">{{ t('creativeTeam.entryChapter') }}</label>
-      <input :id="`${candidateId}-entry`" v-model="draft.entryChapterId" class="candidate-editor__input" maxlength="64" required :disabled="busy" :list="`${candidateId}-chapters`">
+      <input :id="`${candidateId}-entry`" v-model="draft.entryChapterId" class="candidate-editor__input" maxlength="64" required :disabled="working" :list="`${candidateId}-chapters`">
       <datalist :id="`${candidateId}-chapters`">
         <option v-for="id in originalIds" :key="id" :value="id" />
       </datalist>
       <label :for="`${candidateId}-endings`">{{ t('creativeTeam.endingAddresses') }} · {{ t('creativeTeam.onePerLine') }}</label>
-      <textarea :id="`${candidateId}-endings`" class="candidate-editor__input" rows="2" :value="draft.endingAddresses.join('\n')" required :disabled="busy" @input="draft.endingAddresses = lines(($event.target as HTMLTextAreaElement).value)" />
+      <textarea :id="`${candidateId}-endings`" class="candidate-editor__input" rows="2" :value="draft.endingAddresses.join('\n')" required :disabled="working" @input="draft.endingAddresses = lines(($event.target as HTMLTextAreaElement).value)" />
     </template>
     <label :for="`${candidateId}-reason`">{{ t('creativeTeam.editReason') }}</label>
-    <textarea :id="`${candidateId}-reason`" v-model="reason" class="candidate-editor__input" rows="2" maxlength="4000" required :disabled="busy" />
+    <textarea :id="`${candidateId}-reason`" v-model="reason" class="candidate-editor__input" rows="2" maxlength="4000" required :disabled="working" />
     <div class="candidate-editor__actions">
-      <SButton type="submit" size="lg" :loading="busy" :disabled="disabled || !reason.trim()">
+      <SButton type="submit" size="lg" :loading="working" :disabled="disabled || working || !reason.trim()">
         {{ t('creativeTeam.saveCandidate') }}
       </SButton>
-      <SButton size="lg" variant="ghost" :disabled="busy" @click="emit('close')">
+      <SButton size="lg" variant="ghost" :disabled="working" @click="emit('close')">
         {{ t('creativeTeam.closeEditor') }}
       </SButton>
     </div>
