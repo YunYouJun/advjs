@@ -1,5 +1,7 @@
 import type { CreativeFileChange, CreativeTeamLimits, CreativeTeamPlan } from './contracts'
+import type { CreativeDirectorSummaryEvidence, CreativeDirectorSummaryOutput } from './director-summary'
 import type { CreativeVoiceIntent } from './voice-direction'
+import { parseCreativeDirectorSummaryOutput } from './director-summary'
 import { assertCreativeSourcePath, parseCreativeTeamPlan } from './validation'
 import { assertCreativeDictionaryTerms, creativeVoiceDirectionFileChanges, creativeVoiceLocale, parseCreativeVoiceIntent } from './voice-direction'
 import { matchesCreativeVoiceLineSource } from './voice-lines'
@@ -53,7 +55,8 @@ export function parseCreativePlaytestScenarios(value: unknown): CreativePlaytest
 }
 
 export type CreativePartnerOutput
-  = | { kind: 'production-plan', summary: string, plan: CreativeTeamPlan }
+  = | CreativeDirectorSummaryOutput
+    | { kind: 'production-plan', summary: string, plan: CreativeTeamPlan }
     | { kind: 'characters', summary: string, characters: readonly CreativeCharacterProfile[] }
     | { kind: 'chapter', summary: string, chapters: readonly { id: string, title: string, content: string }[], entryChapterId: string, endingAddresses: readonly string[] }
     | { kind: 'art-direction', summary: string, style: string, requests: readonly CreativeArtRequest[] }
@@ -67,6 +70,7 @@ export interface CreativeOutputContext {
   files: Readonly<Record<string, string>>
   characterIds: readonly string[]
   limits: CreativeTeamLimits
+  directorSummary?: CreativeDirectorSummaryEvidence
 }
 
 function record(value: unknown): Record<string, unknown> {
@@ -126,7 +130,7 @@ export function parseCreativePartnerOutput(kind: CreativePartnerOutput['kind'], 
  */
 export function parseCreativePartnerOutputSnapshot(value: unknown, context: CreativeOutputContext): CreativePartnerOutput {
   const kind = record(value).kind
-  if (!['production-plan', 'characters', 'chapter', 'art-direction', 'voice-direction', 'playtest-plan'].includes(String(kind)))
+  if (!['production-plan', 'characters', 'chapter', 'art-direction', 'voice-direction', 'playtest-plan', 'delivery-summary'].includes(String(kind)))
     throw new TypeError('Unknown creative output kind')
   return parseOutput(kind as CreativePartnerOutput['kind'], value, context, false)
 }
@@ -136,6 +140,11 @@ function parseOutput(kind: CreativePartnerOutput['kind'], value: unknown, contex
   if (root.kind !== kind)
     throw new TypeError('Creative output kind mismatch')
   const summary = text(root.summary, 1000)
+  if (kind === 'delivery-summary') {
+    if (checkReferences && !context.directorSummary)
+      throw new TypeError('Director summary requires frozen Runtime evidence')
+    return parseCreativeDirectorSummaryOutput(value, checkReferences ? context.directorSummary : undefined)
+  }
   if (kind === 'production-plan') {
     const plan = parseCreativeTeamPlan(root.plan, context)
     for (const key of ['maxTasks', 'maxToolCalls', 'maxReworkRounds', 'maxMicroPoints'] as const) {

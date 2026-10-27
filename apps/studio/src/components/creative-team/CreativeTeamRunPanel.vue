@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import type { CreativeCandidateEditRequest, CreativeTeamDecisionInput, CreativeTeamRun } from '@advjs/agent'
+import { canRequestCreativeDirectorSummary } from '@advjs/agent'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import SButton from '../ui/SButton.vue'
 import CreativeTaskRework from './CreativeTaskRework.vue'
 import CreativeTeamArtifactCard from './CreativeTeamArtifactCard.vue'
 
-const props = defineProps<{ run: CreativeTeamRun, busy: boolean, enabled: boolean, authorEditsAvailable: boolean, voiceEditsAvailable?: boolean, savedEditArtifactId?: string, knownCharacterIds?: readonly string[] }>()
+const props = defineProps<{ run: CreativeTeamRun, busy: boolean, enabled: boolean, authorEditsAvailable: boolean, voiceEditsAvailable?: boolean, directorSummaryAvailable?: boolean, savedEditArtifactId?: string, knownCharacterIds?: readonly string[] }>()
 defineEmits<{ decide: [decision: CreativeTeamDecisionInput], syncFacts: [], edit: [request: CreativeCandidateEditRequest] }>()
 const { t, locale } = useI18n()
 const active = computed(() => props.run.tasks.some(task => ['running', 'reconcile_required'].includes(task.status)))
@@ -14,14 +15,17 @@ const stopped = computed(() => ['cancelled', 'cancel_requested', 'completed', 'r
 const costs = computed(() => props.run.tasks.reduce((sum, task) => sum + (task.history?.reduce((value, attempt) => value + attempt.usage.providerCostMicroCny, 0) ?? task.usage?.providerCostMicroCny ?? 0), 0))
 const tasks = computed(() => props.run.plan.tasks.map((task) => {
   const state = props.run.tasks.find(state => state.taskId === task.id)!
-  const canRework = props.enabled && !stopped.value && !active.value && ['failed', 'blocked', 'stale'].includes(state.status) && state.attempt < 1 + props.run.plan.limits.maxReworkRounds
+  const summaryAllowed = task.capability !== 'summarize-production' || (Boolean(props.directorSummaryAvailable) && canRequestCreativeDirectorSummary(props.run, task.id))
+  const canRework = props.enabled && summaryAllowed && !stopped.value && !active.value && ['failed', 'blocked', 'stale'].includes(state.status) && state.attempt < 1 + props.run.plan.limits.maxReworkRounds
   const reworkExhausted = !stopped.value && ['failed', 'blocked', 'stale'].includes(state.status) && state.attempt >= 1 + props.run.plan.limits.maxReworkRounds
-  return { ...task, state, canRework, reworkExhausted }
+  const canRequestSummary = props.enabled && Boolean(props.directorSummaryAvailable) && state.status === 'pending' && state.attempt === 0 && canRequestCreativeDirectorSummary(props.run, task.id)
+  return { ...task, state, canRework, reworkExhausted, canRequestSummary }
 }))
 const artifacts = computed(() => props.run.artifacts.map((artifact) => {
   const task = props.run.tasks.find(task => task.taskId === artifact.taskId)!
   const canSelect = props.enabled && !stopped.value && artifact.status === 'candidate' && task.status === 'awaiting_review'
-  const canRework = props.enabled && !stopped.value && !active.value && !['stale', 'rejected'].includes(artifact.status)
+  const summaryAllowed = artifact.kind !== 'delivery-summary' || (Boolean(props.directorSummaryAvailable) && canRequestCreativeDirectorSummary(props.run, artifact.taskId))
+  const canRework = props.enabled && summaryAllowed && !stopped.value && !active.value && !['stale', 'rejected'].includes(artifact.status)
     && ['awaiting_review', 'completed'].includes(task.status) && task.attempt < 1 + props.run.plan.limits.maxReworkRounds
     && !(artifact.output?.kind === 'production-plan' && artifact.status === 'selected')
   const canEdit = props.authorEditsAvailable && props.run.status !== 'completed' && ['candidate', 'selected'].includes(artifact.status) && ['awaiting_review', 'completed'].includes(task.status)
@@ -75,6 +79,14 @@ function points(value: number) {
           {{ task.expectedOutput }}
         </p>
         <small v-if="task.dependsOn.length">{{ t('creativeTeam.depends') }}: {{ task.dependsOn.join(', ') }}</small>
+        <template v-if="task.capability === 'summarize-production'">
+          <p class="team-run__hint">
+            {{ t(directorSummaryAvailable ? 'creativeTeam.directorSummary.requestHint' : 'creativeTeam.directorSummary.unavailable') }}
+          </p>
+          <SButton v-if="task.canRequestSummary" size="lg" variant="outline" :loading="busy" @click="$emit('decide', { type: 'request-rework', taskId: task.id, reason: t('creativeTeam.directorSummary.requestReason') })">
+            {{ t('creativeTeam.directorSummary.request') }}
+          </SButton>
+        </template>
         <CreativeTaskRework v-if="task.canRework" :task-id="task.id" :busy="busy" :attempt="task.state.attempt" :maximum="1 + run.plan.limits.maxReworkRounds" @request="$emit('decide', $event)" />
         <p v-else-if="task.reworkExhausted" class="team-run__hint" role="status">
           {{ t('creativeTeam.reworkExhausted') }}

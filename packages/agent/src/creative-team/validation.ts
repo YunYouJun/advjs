@@ -96,6 +96,21 @@ export function parseCreativeTeamPlan(value: unknown, boundary: { projectId: str
     visited.add(id)
   }
   tasks.forEach(task => visit(task.id))
+  const summaries = tasks.filter(task => task.capability === 'summarize-production')
+  if (summaries.length > 1)
+    throw new TypeError('A production plan supports one final director summary')
+  if (summaries[0]) {
+    const ancestors = new Set<string>()
+    const collect = (id: string): void => {
+      if (ancestors.has(id))
+        return
+      ancestors.add(id)
+      byId.get(id)!.dependsOn.forEach(collect)
+    }
+    summaries[0].dependsOn.forEach(collect)
+    if (tasks.some(task => task !== summaries[0] && !ancestors.has(task.id)))
+      throw new TypeError('A final director summary must follow every production task')
+  }
   return { protocolVersion: CREATIVE_TEAM_PROTOCOL_VERSION, ...boundary, goal: text(root.goal), tasks, limits: parsedLimits }
 }
 

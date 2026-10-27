@@ -1,5 +1,6 @@
 import type { AgentCapabilityId, AgentUsageSummary } from '../core/contracts'
 import type { CreativeDeliveryReceipt } from './delivery'
+import type { CreativeDirectorSummaryContext } from './director-summary'
 import type { CreativeMediaEvidence } from './media'
 import type { CreativePartnerOutput } from './outputs'
 import type { CreativePlaytestSummary } from './playtest-contracts'
@@ -11,7 +12,7 @@ export type CreativePartnerId = typeof CREATIVE_PARTNER_IDS[number]
 
 /** Additive crew protocol; the existing five-capability v1/v2 API stays unchanged. */
 export const CREATIVE_TEAM_PROTOCOL_VERSION = 1 as const
-export const CREATIVE_TEAM_CAPABILITIES = ['plan-production', 'write-chapters', 'design-characters', 'direct-art', 'direct-voice', 'playtest-project'] as const
+export const CREATIVE_TEAM_CAPABILITIES = ['plan-production', 'write-chapters', 'design-characters', 'direct-art', 'direct-voice', 'playtest-project', 'summarize-production'] as const
 export type CreativeTeamCapability = AgentCapabilityId | typeof CREATIVE_TEAM_CAPABILITIES[number]
 
 export const CREATIVE_PARTNER_DEFAULT_CAPABILITY = {
@@ -25,7 +26,7 @@ export const CREATIVE_PARTNER_DEFAULT_CAPABILITY = {
 
 /** Server-validated authority, independent of display names and avatars. */
 export const CREATIVE_PARTNER_CAPABILITIES: Readonly<Record<CreativePartnerId, readonly CreativeTeamCapability[]>> = {
-  'director': ['plan-production', 'generate-outline'],
+  'director': ['plan-production', 'generate-outline', 'summarize-production'],
   'writer': ['write-chapters', 'generate-chapter-draft', 'suggest-plot'],
   'character-designer': ['design-characters', 'simulate-roleplay'],
   'art-director': ['direct-art'],
@@ -213,5 +214,6 @@ export interface CreativeTeamHandoff {
   candidates: readonly CreativeArtifact[]
   constraints: readonly string[]
   repair?: CreativePlaytestRepairContext
+  directorSummary?: CreativeDirectorSummaryContext
   remainingMicroPoints: number
 }

@@ -1,9 +1,11 @@
 import type { CreativeArtifact, CreativeTeamHandoff, CreativeTeamRun } from './contracts'
+import { isCreativeDirectorSummaryCurrent } from './director-summary'
 import { creativeArtifactExpectedFiles } from './milestones'
 
 /** Propagate exact source/upstream changes without deleting independent candidates. */
 export function invalidateCreativeArtifacts(artifacts: readonly CreativeArtifact[], currentFiles: Readonly<Record<string, string>>, run?: CreativeTeamRun): CreativeArtifact[] {
-  const stale = new Set(artifacts.filter(artifact => Object.entries(creativeArtifactExpectedFiles(artifact, run)).some(([path, content]) => (currentFiles[path] ?? null) !== content)).map(artifact => artifact.id))
+  const stale = new Set(artifacts.filter(artifact => Object.entries(creativeArtifactExpectedFiles(artifact, run)).some(([path, content]) => (currentFiles[path] ?? null) !== content)
+    || (artifact.output?.kind === 'delivery-summary' && (Object.keys(currentFiles).sort().join('\n') !== Object.keys(artifact.source.files).sort().join('\n') || (run && !isCreativeDirectorSummaryCurrent(run, artifact))))).map(artifact => artifact.id))
   let changed = true
   while (changed) {
     changed = false

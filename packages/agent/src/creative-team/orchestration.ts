@@ -5,6 +5,7 @@ import type { CreativePlaytestReport } from './playtest-contracts'
 import type { CreativePlaytestRepairReference } from './playtest-repair'
 import { invalidateCreativeArtifacts } from './candidates'
 import { prepareCreativeDelivery } from './delivery'
+import { isCreativeDirectorSummaryCurrent } from './director-summary'
 import { creativeMergeInvalidations } from './merges'
 import { assertCreativeArtifactBoundary, parseCreativeTeamPlan } from './validation'
 
@@ -59,7 +60,24 @@ export function nextCreativeTeamTask(run: CreativeTeamRun): string | undefined {
   if (run.milestones?.some(item => item.status === 'prepared') || !['ready', 'awaiting_review', 'blocked'].includes(run.status) || run.tasks.some(task => task.status === 'running' || task.status === 'reconcile_required'))
     return undefined
   return run.plan.tasks.find(task => run.tasks.find(state => state.taskId === task.id)?.status === 'pending'
-    && task.dependsOn.every(id => run.tasks.find(state => state.taskId === id)?.status === 'completed'))?.id
+    && (task.capability === 'summarize-production'
+      ? run.tasks.find(state => state.taskId === task.id)?.error?.code === 'rework_requested' && directorSummaryReady(run, task.id)
+      : task.dependsOn.every(id => run.tasks.find(state => state.taskId === id)?.status === 'completed')))?.id
+}
+
+/** A final editorial call waits for an explicit author request and settled preceding work. */
+function directorSummaryReady(run: CreativeTeamRun, taskId: string): boolean {
+  return !run.tasks.some(task => ['running', 'reconcile_required'].includes(task.status) || (task.taskId !== taskId && task.status === 'awaiting_review'))
+    && !run.plan.tasks.some(task => task.id !== taskId && task.capability !== 'summarize-production' && run.tasks.find(state => state.taskId === task.id)?.status === 'pending' && task.dependsOn.every(id => run.tasks.find(state => state.taskId === id)?.status === 'completed'))
+    && !run.milestones?.some(item => item.status === 'prepared') && run.reservedMicroPoints === 0
+}
+export function canRequestCreativeDirectorSummary(run: CreativeTeamRun, taskId: string): boolean {
+  const task = run.plan.tasks.find(task => task.id === taskId)
+  const state = run.tasks.find(task => task.taskId === taskId)
+  return task?.capability === 'summarize-production' && Boolean(state)
+    && ['ready', 'awaiting_review', 'blocked'].includes(run.status) && directorSummaryReady(run, taskId)
+    && state!.attempt < 1 + run.plan.limits.maxReworkRounds
+    && (['failed', 'blocked', 'stale', 'awaiting_review', 'completed'].includes(state!.status) || (state!.status === 'pending' && !state!.error && state!.attempt === 0))
 }
 
 function deriveStatus(run: CreativeTeamRun): CreativeTeamRun['status'] {
@@ -75,6 +93,10 @@ function deriveStatus(run: CreativeTeamRun): CreativeTeamRun['status'] {
     return 'blocked'
   if (run.tasks.some(task => task.status === 'awaiting_review') || run.tasks.every(task => task.status === 'completed'))
     return 'awaiting_review'
+  if (run.plan.tasks.some(task => task.capability === 'summarize-production' && run.tasks.find(state => state.taskId === task.id)?.status === 'pending' && !run.tasks.find(state => state.taskId === task.id)?.error)
+    && !run.plan.tasks.some(task => task.capability !== 'summarize-production' && run.tasks.find(state => state.taskId === task.id)?.status === 'pending')) {
+    return 'awaiting_review'
+  }
   return 'ready'
 }
 
@@ -270,7 +292,8 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
       break
     }
     case 'request-rework': {
-      if (!['failed', 'blocked', 'stale', 'awaiting_review', 'completed'].includes(state!.status)
+      const directorSummary = run.plan.tasks.find(task => task.id === state!.taskId)?.capability === 'summarize-production'
+      if ((directorSummary ? !canRequestCreativeDirectorSummary(run, state!.taskId) : !['failed', 'blocked', 'stale', 'awaiting_review', 'completed'].includes(state!.status))
         || run.tasks.some(task => task.status === 'running' || task.status === 'reconcile_required')
         || ['cancel_requested', 'cancelled', 'reconcile_required'].includes(run.status)
         || state!.attempt >= 1 + run.plan.limits.maxReworkRounds) {
@@ -351,8 +374,9 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
       break
     }
     case 'refresh-facts': {
+      const previouslyStale = new Set(run.artifacts.filter(item => item.status === 'stale').map(item => item.id))
       run.artifacts = invalidateCreativeArtifacts(run.artifacts, action.files, run)
-      const stale = new Set(run.artifacts.filter(item => item.status === 'stale').map(item => item.id))
+      const stale = new Set(run.artifacts.filter(item => item.status === 'stale' && (item.kind !== 'delivery-summary' || !previouslyStale.has(item.id))).map(item => item.id))
       for (const task of run.tasks) {
         if (!['running', 'reconcile_required'].includes(task.status) && task.artifactIds.some(id => stale.has(id)))
           task.status = 'stale'
@@ -367,6 +391,14 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
       run.status = 'cancel_requested'
       decision(action.decisionId, 'stop', [], action.reason)
       break
+  }
+  const staleSummaries = new Set(run.artifacts.filter(artifact => !['stale', 'rejected'].includes(artifact.status) && !isCreativeDirectorSummaryCurrent(run, artifact)).map(artifact => artifact.id))
+  if (staleSummaries.size) {
+    run.artifacts = run.artifacts.map(artifact => staleSummaries.has(artifact.id) ? { ...artifact, status: 'stale' } : artifact)
+    for (const task of run.tasks) {
+      if (!['running', 'reconcile_required'].includes(task.status) && task.artifactIds.some(id => staleSummaries.has(id)))
+        task.status = 'stale'
+    }
   }
   if (action.type !== 'approve-plan' && run.status !== 'awaiting_plan_review')
     run.status = deriveStatus(run)

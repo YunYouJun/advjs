@@ -143,6 +143,12 @@ function artifact(value: unknown, run: Pick<CreativeTeamRun, 'id' | 'plan'>): Cr
       characterIds: [],
       limits: run.plan.limits,
     })
+    if (result.output.kind === 'delivery-summary' && (result.partner !== 'director' || result.kind !== 'delivery-summary'
+      || run.plan.tasks.find(task => task.id === result.taskId)?.capability !== 'summarize-production'
+      || result.output.evidence.taskId !== result.taskId || result.output.evidence.projectRevision !== result.source.revision
+      || result.output.evidence.state.playtests.some(item => item.projectId !== result.projectId) || result.changes.length)) {
+      throw new TypeError('Director summary response boundary mismatch')
+    }
   }
   requiredCreativeReviewCapabilities(result).forEach((capability) => {
     if (!result.reviewCapabilities.includes(capability))

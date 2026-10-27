@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CreativePartnerOutput } from '@advjs/agent'
 import { useI18n } from 'vue-i18n'
+import CreativeDirectorSummaryOutput from './CreativeDirectorSummaryOutput.vue'
 
 defineProps<{ output: CreativePartnerOutput }>()
 const { t } = useI18n()
@@ -8,7 +9,8 @@ const { t } = useI18n()
 
 <template>
   <div class="team-output">
-    <ol v-if="output.kind === 'production-plan'" class="team-output__list">
+    <CreativeDirectorSummaryOutput v-if="output.kind === 'delivery-summary'" :output="output" />
+    <ol v-else-if="output.kind === 'production-plan'" class="team-output__list">
       <li v-for="task in output.plan.tasks" :key="task.id">
         <strong>{{ t(`creativeTeam.roles.${task.partner}`) }}</strong> · {{ task.instruction }}
         <p>{{ task.expectedOutput }}</p>
