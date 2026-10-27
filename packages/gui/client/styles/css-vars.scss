@@ -47,6 +47,22 @@
   --agui-control-height: 24px;
   --agui-tab-list-height: 28px;
 
+  // Opt-in composition tokens. Existing controls keep their own size contracts.
+  --agui-space-1: 4px;
+  --agui-space-2: 8px;
+  --agui-space-3: 12px;
+  --agui-space-4: 16px;
+  --agui-radius-sm: 3px;
+  --agui-radius-md: 6px;
+  --agui-font-size-caption: 11px;
+  --agui-font-size-body: 12px;
+  --agui-font-size-title: 13px;
+  --agui-font-size-heading: 14px;
+  --agui-font-size-reading: 14px;
+  --agui-line-height: 1.5;
+  --agui-line-height-reading: 1.75;
+  --agui-motion-duration: 120ms;
+
   // Workspace, content, chrome, fields and floating surfaces.
   --agui-c-bg: var(--agui-c-white-mute);
   --agui-c-bg-soft: var(--agui-c-white-soft);
@@ -106,7 +122,9 @@
   --agui-c-danger-text: #a12c2c;
   --agui-c-danger-soft: #f6e5e5;
   --agui-c-success-text: #276b42;
+  --agui-c-success-soft: #e5f1e9;
   --agui-c-warning-text: #855600;
+  --agui-c-warning-soft: #f7edda;
   --agui-c-axis-x: #ab4141;
   --agui-c-axis-y: #477347;
   --agui-c-axis-z: #35639a;
@@ -163,7 +181,9 @@
   --agui-c-axis-z: #84ade0;
   --agui-c-axis-w: #d9b666;
   --agui-c-success-text: #9dd4af;
+  --agui-c-success-soft: #2e4336;
   --agui-c-warning-text: #e5c071;
+  --agui-c-warning-soft: #493e2a;
   --agui-c-control: #505050;
   --agui-c-control-hover: #5c5c5c;
   --agui-c-control-pressed: #454545;
@@ -200,4 +220,11 @@
   --agui-c-brand-light: var(--agui-c-primary-hover);
   --agui-c-brand-dark: var(--agui-c-primary-pressed);
   --agui-c-brand-highlight: var(--agui-c-link);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root,
+  .dark {
+    --agui-motion-duration: 0ms;
+  }
 }

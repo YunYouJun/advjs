@@ -12,6 +12,18 @@
   }
 }
 
+.agui-slider-container--media .agui-slider {
+  .agui-slider-track {
+    border-radius: 999px;
+  }
+
+  .agui-slider-thumb {
+    border-color: var(--agui-c-text-2);
+    border-radius: 50%;
+    background: var(--agui-c-field);
+  }
+}
+
 .agui-slider {
   position: relative;
   display: flex;

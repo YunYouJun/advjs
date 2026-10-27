@@ -12,7 +12,8 @@ const props = withDefaults(defineProps<{
   showInput?: boolean
   disabled?: boolean
   label?: string
-}>(), { step: 1, min: 0, max: 360, showInput: false })
+  variant?: 'default' | 'media'
+}>(), { step: 1, min: 0, max: 360, showInput: false, variant: 'default' })
 const emit = defineEmits<{ 'update:modelValue': [value: number], 'input': [value: number] }>()
 function update(value: number) {
   if (props.disabled || !Number.isFinite(value))
@@ -30,7 +31,7 @@ function slide(values: number[] | undefined) {
 </script>
 
 <template>
-  <div class="agui-slider-container" :class="$attrs.class" :style="$attrs.style">
+  <div class="agui-slider-container" :class="[$attrs.class, { 'agui-slider-container--media': variant === 'media' }]" :style="$attrs.style">
     <SliderRoot
       v-bind="{ ...$attrs, 'class': undefined, 'style': undefined, 'id': undefined, 'aria-label': undefined, 'aria-labelledby': undefined, 'aria-describedby': undefined }"
       class="agui-slider" thumb-alignment="overflow" :model-value="[modelValue]" :min="min" :max="max" :step="step" :disabled="disabled"

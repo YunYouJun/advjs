@@ -151,6 +151,30 @@ AGUI 通过 CSS 自定义属性（`--agui-c-*`）定义色彩。下表列出现�
 
 字体优先继承编辑器的系统无衬线字体栈，等宽字体用于源码、路径和日志。不要把所有创作资料强制显示成代码块。正文需达到 4.5:1 对比度；低对比 token 不用于必要说明和表单标签，按实际背景组合检查。
 
+### 分组与阅读 token
+
+新增分组、安装说明和媒体阅读区域按需使用以下共享 token；这些 token 不重置现有控件的默认尺寸、圆角或配色。控件仍保持紧凑的 3px 目标圆角，分组表面可以使用 6px，不把停靠面板整体改成卡片。
+
+| Token                                | 值与用途                                      |
+| ------------------------------------ | --------------------------------------------- |
+| `--agui-space-1/2/3/4`               | 4 / 8 / 12 / 16px，用于同级控件间距与分组留白 |
+| `--agui-radius-sm` / `md`            | 3px 基础控件与代码区；6px 分组表面            |
+| `--agui-font-size-caption` / `body`  | 11px 元信息；12px 控件与说明正文              |
+| `--agui-font-size-title` / `heading` | 13px 分组标题；14px 区域标题                  |
+| `--agui-font-size-reading`           | 14px 剧本、配音逐字文本等连续阅读内容         |
+| `--agui-line-height` / `reading`     | 1.5 普通内容；1.75 连续阅读                   |
+| `--agui-motion-duration`             | 120ms 状态过渡；减少动态效果偏好下为 0ms      |
+
+表面、字段、分隔线和正文继续使用既有 `bg-panel`、`bg-soft`、`field`、`divider-light`、`text-1/2`，不另造主题。状态标签补充 `--agui-c-success-soft` / `--agui-c-warning-soft` 的亮暗底色，分别配对既有成功／警告文字 token。
+
+### Section、CodeBlock 与 Tag
+
+`AGUISection` 用于一组明确的创作任务，提供必填 `title`、可选 `description` 与 `step: string | number`。只有存在真实操作顺序时才传入 `step`，不要给平行设置虚构步骤。标题与说明通过实例内自动 ID 关联 `section`；默认插槽承载内容，`actions` 放局部操作，`footer` 放下一步或审核提示。header 与 footer 使用轻分隔线，窄面板允许操作换行，不在分组内嵌套固定高度滚动区。
+
+`AGUICodeBlock` 用于可以执行或复制的完整命令、配置示例，接收 `code`、可选 `label`、`copyLabel`、`copiedLabel`、`copyErrorLabel`，并可注入 `copy(text): Promise<void>`；默认调用浏览器剪贴板。中文界面传入本地化标签及复制失败后的手动复制说明。保留完整可选择代码，不截断实际命令、不通过 `v-html` 渲染。复制成功反馈保留 2 秒；失败时聚焦并选中原始代码，用户可用键盘或上下文菜单手动复制，代码区也支持 Ctrl/Cmd+A。切换代码／复制回调或卸载后忽略迟到反馈并清理计时器；停止等待不能撤销已经开始的系统剪贴板写入。
+
+`AGUITag` 是共享状态标签，可用 `tone="neutral|info|success|warning|danger"`；状态必须包含可读文字，不仅靠颜色。显式 `tone` 优先于旧 `theme`，旧 `theme="default|primary|danger"`、`closable` 与 `close` 事件保持兼容。普通计数与元信息默认用中性标签，不为每个数据点分配状态色；不再为业务面板新增另一套状态徽标。
+
 ### Button
 
 文字及图标加文字的操作使用 `AGUIButton`，纯图标工具使用 `AGUIIconButton`，不在面板重新绘制按钮：
@@ -286,6 +310,8 @@ three-kingdoms · 已保存的创作资料
 `AGUINumberField` / `AGUINumberSlider` 共用数值编辑实现；默认 24px，保留有效数字、范围限制、禁用与取消编辑语义。字段中央可水平拖动，键盘上下步进；两侧步进按钮保持 24px 点击区。向量轴按可用宽度换行，不能通过压缩到不可读字号维持一行。
 
 `AGUISlider` 基于 Reka UI 的 Root、Track、Range 和 Thumb，继续使用单个数值的 `v-model` 与 `input` 事件；轨道区域默认 24px，轨道 4px、滑块 12px、圆角 2px。填充与滑块使用 AGUI 主色，未填充轨道使用控件边框色，焦点使用独立焦点 token。方向键按 `step` 调节，Home / End 到达边界，PageUp / PageDown 按十个步长调节。可选数值输入与滑块同步，清空草稿后失焦恢复当前值；禁用同时阻止拖动、键盘与输入框修改。滑块通过原生按钮承载 `role="slider"`，保留外部标签的 `for` 与 id 关联。
+
+音频进度与音量可以显式使用 `variant="media"`，圆形 field 色滑块、文字色轮廓与圆轨道服务真实媒体时钟，继续复用相同的焦点、禁用、ARIA 和键盘交互。属性面板默认滑块形状保持不变。媒体内容的主播放入口可以使用 40px 圆形按钮；该尺寸例外不扩散到全局工具栏。逐字文本使用阅读字号与行高 token。长篇试听正文最多显示约七行并允许键盘滚动；活跃字变化或跳转时仅滚动该阅读区，避免拖走整个工作区，播放与进度操作保留在正文之外。
 
 树行和资源列表默认最小 24px、名称 12px；每级缩进 12px，节点图标 14px，图标与名称间隔 2px。展开箭头靠近节点图标，点击区继续保持 24px，不通过压小点击区收紧视觉间距。选中使用 `--agui-c-selection` / `--agui-c-selection-text`，与焦点环分别表达选中和键盘位置；范围数值的进度也复用选择背景。轴提示使用 `--agui-c-axis-x/y/z/w`，必须同时显示 X/Y/Z/W 标签。图标通过遮罩继承文字颜色，避免白色图标在亮色面板消失。
 

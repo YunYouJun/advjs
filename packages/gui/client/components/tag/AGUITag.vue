@@ -2,6 +2,7 @@
 defineProps<{
   closable?: boolean
   theme?: 'default' | 'primary' | 'danger'
+  tone?: 'neutral' | 'info' | 'success' | 'warning' | 'danger'
 }>()
 
 defineEmits<{
@@ -14,11 +15,13 @@ defineEmits<{
     class="agui-tag"
     :class="{
       [`agui-tag--${theme || 'default'}`]: true,
+      [`agui-tag--tone-${tone}`]: tone !== undefined,
     }"
   >
     <slot />
     <button
       v-if="closable"
+      type="button"
       class="agui-tag__close"
       @click.stop="$emit('close')"
     >
@@ -54,6 +57,31 @@ defineEmits<{
     color: var(--agui-c-danger-text);
   }
 
+  &--tone-neutral {
+    background-color: var(--agui-c-control);
+    color: var(--agui-c-text-1);
+  }
+
+  &--tone-info {
+    background-color: var(--agui-c-selection);
+    color: var(--agui-c-selection-text);
+  }
+
+  &--tone-success {
+    background-color: var(--agui-c-success-soft);
+    color: var(--agui-c-success-text);
+  }
+
+  &--tone-warning {
+    background-color: var(--agui-c-warning-soft);
+    color: var(--agui-c-warning-text);
+  }
+
+  &--tone-danger {
+    background-color: var(--agui-c-danger-soft);
+    color: var(--agui-c-danger-text);
+  }
+
   .agui-tag__close {
     display: inline-flex;
     align-items: center;
@@ -70,6 +98,11 @@ defineEmits<{
 
     &:hover {
       opacity: 1;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--agui-c-focus);
+      outline-offset: 1px;
     }
   }
 }
