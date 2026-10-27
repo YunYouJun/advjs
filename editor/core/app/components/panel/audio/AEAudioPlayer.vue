@@ -3,12 +3,17 @@ import AGUISlider from '@advjs/gui/client/components/AGUISlider.vue'
 import AGUIButton from '@advjs/gui/client/components/button/AGUIButton.vue'
 import AGUISelect from '@advjs/gui/client/components/select/AGUISelect.vue'
 import AGUITag from '@advjs/gui/client/components/tag/AGUITag.vue'
-import { nextTick, reactive, useId, useTemplateRef, watch } from 'vue'
+import { useElementSize } from '@vueuse/core'
+import { computed, nextTick, reactive, useId, useTemplateRef, watch } from 'vue'
 import { useAudioTransport } from '../../../composables/useAudioTransport'
+import AEAudioVolume from './AEAudioVolume.vue'
 
 const props = withDefaults(defineProps<{ src: string, label: string, title?: string, autoplay?: boolean }>(), { title: '配音试听', autoplay: false })
 const emit = defineEmits<{ timeupdate: [seconds: number], error: [], playbackBlocked: [] }>()
 const audio = useTemplateRef<HTMLAudioElement>('audio')
+const surface = useTemplateRef<HTMLElement>('surface')
+const { width } = useElementSize(surface)
+const compact = computed(() => width.value <= 400)
 const transport = reactive(useAudioTransport(audio))
 const id = useId()
 const speeds = [0.75, 1, 1.25, 1.5, 2].map(value => ({ value, label: `${value}×` }))
@@ -35,7 +40,7 @@ defineExpose({ play, pause: transport.pause })
 </script>
 
 <template>
-  <section class="ae-audio-player" role="group" :aria-label="`${label}播放控制`">
+  <section ref="surface" class="ae-audio-player" role="group" :aria-label="`${label}播放控制`">
     <audio :id="id" ref="audio" :src="src" :aria-label="label" preload="metadata" @error="emit('error')" />
     <div class="ae-player-heading">
       <span class="ae-player-title">{{ title }}</span>
@@ -57,9 +62,8 @@ defineExpose({ play, pause: transport.pause })
         <AGUIButton class="ae-player-play" theme="primary" :icon="transport.paused ? 'i-ri-play-fill' : 'i-ri-pause-fill'" :aria-label="`${transport.paused ? '播放' : '暂停'}${label}`" :aria-controls="id" :disabled="!src" @click="toggle" />
         <AGUIButton variant="text" icon="i-ri-forward-5-line" :aria-label="`${label}前进5秒`" :disabled="!transport.duration" @click="transport.skip(5)" />
       </div>
-      <div class="ae-player-options">
-        <AGUIButton variant="text" :icon="transport.muted || transport.volume === 0 ? 'i-ri-volume-mute-line' : 'i-ri-volume-up-line'" :aria-label="`${transport.muted ? '取消静音' : '静音'}${label}`" :aria-pressed="transport.muted" @click="transport.toggleMute" />
-        <AGUISlider class="ae-player-volume" variant="media" :model-value="transport.muted ? 0 : transport.volume" :min="0" :max="1" :step="0.05" :label="`${label}音量`" @update:model-value="transport.setVolume" />
+      <div class="ae-player-options" :class="{ 'is-compact': compact }">
+        <AEAudioVolume class="ae-player-volume-control" :compact="compact" :label="label" :volume="transport.volume" :muted="transport.muted" :reset-key="src" @volume="transport.setVolume" @mute="transport.toggleMute" />
         <div class="ae-player-speed">
           <AGUISelect :model-value="transport.rate" :options="speeds" :label="`${label}播放速度`" @update:model-value="transport.setRate" />
         </div>
@@ -136,10 +140,15 @@ defineExpose({ play, pause: transport.pause })
   max-width: 320px;
   margin-inline-start: auto;
 }
-.ae-player-volume {
-  flex: 1 1 112px;
-  width: auto;
-  min-width: 112px;
+.ae-player-options.is-compact {
+  flex: 0 0 auto;
+  max-width: none;
+}
+.ae-player-volume-control {
+  flex: 1 1 144px;
+}
+.ae-player-options.is-compact .ae-player-volume-control {
+  flex: 0 0 auto;
 }
 .ae-player-speed {
   flex: 0 0 80px;
@@ -151,11 +160,5 @@ defineExpose({ play, pause: transport.pause })
   font-size: var(--agui-font-size-body);
   color: var(--agui-c-warning-text);
   margin: var(--agui-space-2) 0 0;
-}
-@container audio-player (max-width: 400px) {
-  .ae-player-options {
-    flex-basis: 100%;
-    max-width: none;
-  }
 }
 </style>

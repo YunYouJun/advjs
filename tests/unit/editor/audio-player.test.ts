@@ -3,6 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import AEAudioPlayer from '../../../editor/core/app/components/panel/audio/AEAudioPlayer.vue'
 import { mockResizeObserver } from '../../helpers/resize-observer'
 
+vi.mock('@vueuse/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@vueuse/core')>()
+  const { ref } = await import('vue')
+  return { ...actual, useElementSize: () => ({ width: ref(640), height: ref(200) }) }
+})
+
 let wrapper: ReturnType<typeof mount>
 let play: ReturnType<typeof vi.spyOn>
 let pause: ReturnType<typeof vi.spyOn>
