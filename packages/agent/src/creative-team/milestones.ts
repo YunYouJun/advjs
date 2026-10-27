@@ -139,6 +139,17 @@ export function prepareCreativeMilestone(run: CreativeTeamRun, request: Creative
         }
       }
     }
+    // Approved ancestors are part of this lineage too. Do not expand their other branches:
+    // an unrelated candidate reading the replaced source must still become stale.
+    const collectAncestors = (id: string): void => {
+      for (const reference of run.artifacts.find(item => item.id === id)?.source.upstream ?? []) {
+        if (!compatible.has(reference.artifactId)) {
+          compatible.add(reference.artifactId)
+          collectAncestors(reference.artifactId)
+        }
+      }
+    }
+    selected.forEach(item => collectAncestors(item.id))
     anchors = [...compatible]
   }
   else {

@@ -23,7 +23,7 @@ async function fixture() {
   const unavailable = async (): Promise<never> => {
     throw new Error('Unexpected generation')
   }
-  const client: CreativeTeamClient = { availability: unavailable, list: unavailable, start: unavailable, decide: unavailable, refreshFacts: unavailable, editCandidate: unavailable, get: async () => structuredClone(run), async milestone(_projectId, _runId, command, id) {
+  const client: CreativeTeamClient = { availability: unavailable, list: unavailable, start: unavailable, decide: unavailable, refreshFacts: unavailable, editCandidate: unavailable, recordPlaytest: unavailable, getPlaytest: unavailable, get: async () => structuredClone(run), async milestone(_projectId, _runId, command, id) {
     posts += 1
     if (command.type === 'prepare') {
       if (!run.milestones?.some(item => item.id === id)) {
@@ -194,5 +194,20 @@ describe('durable text milestone adoption and recovery', () => {
     cast.partner = 'art-director'
     cast.changes = [{ path: 'adv/assets.json', before: null, after: '{}' }]
     expect(() => prepareCreativeMilestone(run, h.request)).toThrow('CREATIVE_MEDIA_VERIFIER_REQUIRED')
+  })
+
+  it('retains approved plan ancestors across their own descendant adoption without anchoring unrelated branches', async () => {
+    const h = await fixture()
+    const run = h.getRun()
+    const cast = run.artifacts[0]
+    const plan = { ...cast, id: 'director-plan', fingerprint: 'director-fp', taskId: 'director', partner: 'director' as const, kind: 'production-brief' as const, changes: [] }
+    cast.source = { ...cast.source, upstream: [{ artifactId: plan.id, fingerprint: plan.fingerprint }] }
+    cast.changes = [{ path: 'adv/world.md', before: 'saved world', after: 'adopted world' }]
+    const independent = { ...plan, id: 'art', taskId: 'art', partner: 'art-director' as const, kind: 'art-direction' as const, source: { ...plan.source, upstream: [{ artifactId: plan.id, fingerprint: plan.fingerprint }] } }
+    run.artifacts = [plan, cast, independent]
+    const prepared = prepareCreativeMilestone(run, h.request)
+    const intent = { id: 'lineage', operation: 'adopt' as const, status: 'prepared' as const, artifacts: prepared.artifacts, anchors: prepared.anchors, beforeRevision: h.request.project.revision, afterRevision: await computeAgentProjectRevision(prepared.files), requestFingerprint: 'test', reason: 'adopt', at: 1 }
+    const adopted = reduceCreativeTeamRun(reduceCreativeTeamRun(run, { type: 'prepare-milestone', intent }, 1), { type: 'resolve-milestone', milestoneId: intent.id, status: 'confirmed', files: prepared.files }, 2)
+    expect(adopted.artifacts.map(item => item.status)).toEqual(['selected', 'adopted', 'stale'])
   })
 })

@@ -1,5 +1,6 @@
 import type { AgentCapabilityId, AgentUsageSummary } from '../core/contracts'
 import type { CreativePartnerOutput } from './outputs'
+import type { CreativePlaytestSummary } from './playtest-contracts'
 
 /** Creative partners are not in-game character identities. */
 export const CREATIVE_PARTNER_IDS = ['director', 'writer', 'character-designer', 'art-director', 'voice-director', 'playtester'] as const
@@ -140,6 +141,7 @@ export interface CreativeTeamRun {
   decisions: readonly CreativeTeamDecision[]
   /** Two-store adoption receipts contain references, never duplicate game source content. */
   milestones?: readonly CreativeMilestoneIntent[]
+  playtests?: readonly CreativePlaytestSummary[]
   chargedMicroPoints: number
   reservedMicroPoints: number
   toolCalls: number
@@ -181,7 +183,7 @@ export interface CreativeTeamAvailability {
   serviceVersion: string
   capabilities: readonly CreativeTeamCapability[]
   media: { image: 'unavailable' | 'manual-import' | 'verified-managed', voice: 'unavailable' | 'manual-import' | 'verified-author-host' | 'verified-managed' }
-  authoring?: { candidateEdits: boolean, milestoneAdoption: boolean }
+  authoring?: { candidateEdits: boolean, milestoneAdoption: boolean, playtestReports?: boolean }
   maxConcurrentTasks: 1
 }
 

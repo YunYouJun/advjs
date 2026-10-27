@@ -4,6 +4,7 @@ import type { CreativeTeamRunSummary } from './wire'
 import { AGENT_CAPABILITY_IDS } from '../core/contracts'
 import { CREATIVE_ARTIFACT_KINDS, CREATIVE_PARTNER_IDS } from './contracts'
 import { parseCreativePartnerOutputSnapshot } from './outputs'
+import { parseCreativePlaytestSummary } from './playtest-contracts'
 import { assertCreativeArtifactBoundary, assertCreativeSourcePath, parseCreativeTeamPlan, requiredCreativeReviewCapabilities } from './validation'
 
 const RUN_STATUSES = ['awaiting_plan_review', 'ready', 'running', 'awaiting_review', 'blocked', 'cancel_requested', 'cancelled', 'completed', 'reconcile_required'] as const
@@ -189,6 +190,7 @@ export function parseCreativeTeamRun(value: unknown, boundary: { accountId: stri
     chargedMicroPoints: integer(source.chargedMicroPoints),
     reservedMicroPoints: integer(source.reservedMicroPoints),
     toolCalls: integer(source.toolCalls),
+    ...(source.playtests === undefined ? {} : { playtests: array(source.playtests, 32).map(parseCreativePlaytestSummary) }),
     createdAt: integer(source.createdAt),
     updatedAt: integer(source.updatedAt),
   }
@@ -213,6 +215,8 @@ export function parseCreativeTeamRun(value: unknown, boundary: { accountId: stri
     if (task.artifactIds.some(id => !run.artifacts.some(item => item.id === id && item.taskId === task.taskId)))
       throw new TypeError('Creative task references an unavailable candidate')
   }
+  if (run.playtests?.some(item => item.projectId !== run.plan.projectId || item.artifacts.some(reference => !run.artifacts.some(artifact => artifact.id === reference.artifactId && artifact.fingerprint === reference.fingerprint))))
+    throw new TypeError('Invalid playtest report provenance')
   return run
 }
 

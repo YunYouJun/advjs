@@ -169,12 +169,12 @@ export function parseCreativeTeamAvailability(value: unknown): CreativeTeamAvail
     return value as CreativeTeamAvailability['capabilities'][number]
   })
   const media = record(source.media)
-  const authoring = source.authoring === undefined ? undefined : record(source.authoring, ['candidateEdits', 'milestoneAdoption'])
-  if (authoring && (typeof authoring.candidateEdits !== 'boolean' || typeof authoring.milestoneAdoption !== 'boolean'))
+  const authoring = source.authoring === undefined ? undefined : record(source.authoring, ['candidateEdits', 'milestoneAdoption', 'playtestReports'])
+  if (authoring && (typeof authoring.candidateEdits !== 'boolean' || typeof authoring.milestoneAdoption !== 'boolean' || (authoring.playtestReports !== undefined && typeof authoring.playtestReports !== 'boolean')))
     throw new TypeError('Unknown creative authoring availability')
   if (!['unavailable', 'manual-import', 'verified-managed'].includes(String(media.image))
     || !['unavailable', 'manual-import', 'verified-author-host', 'verified-managed'].includes(String(media.voice))) {
     throw new TypeError('Unknown creative media availability')
   }
-  return { protocolVersion: 1, enabled: source.enabled, serviceVersion: text(source.serviceVersion, 200), capabilities, maxConcurrentTasks: 1, media: { image: media.image as CreativeTeamAvailability['media']['image'], voice: media.voice as CreativeTeamAvailability['media']['voice'] }, ...(authoring ? { authoring: { candidateEdits: authoring.candidateEdits as boolean, milestoneAdoption: authoring.milestoneAdoption as boolean } } : {}) }
+  return { protocolVersion: 1, enabled: source.enabled, serviceVersion: text(source.serviceVersion, 200), capabilities, maxConcurrentTasks: 1, media: { image: media.image as CreativeTeamAvailability['media']['image'], voice: media.voice as CreativeTeamAvailability['media']['voice'] }, ...(authoring ? { authoring: { candidateEdits: authoring.candidateEdits as boolean, milestoneAdoption: authoring.milestoneAdoption as boolean, ...(authoring.playtestReports === undefined ? {} : { playtestReports: authoring.playtestReports as boolean }) } } : {}) }
 }

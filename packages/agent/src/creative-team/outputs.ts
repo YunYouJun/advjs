@@ -35,6 +35,15 @@ export interface CreativePlaytestScenario {
   expectedEnding: string
 }
 
+export function parseCreativePlaytestScenarios(value: unknown): CreativePlaytestScenario[] {
+  const scenarios = array(value, 12, 1).map((item) => {
+    const scenario = record(item)
+    return { id: id(scenario.id), choices: array(scenario.choices, 32).map(value => integer(value, 0, 31)), expectedEnding: address(scenario.expectedEnding) }
+  })
+  unique(scenarios.map(scenario => scenario.id))
+  return scenarios
+}
+
 export type CreativePartnerOutput
   = | { kind: 'production-plan', summary: string, plan: CreativeTeamPlan }
     | { kind: 'characters', summary: string, characters: readonly CreativeCharacterProfile[] }
@@ -89,7 +98,7 @@ function assetId(value: unknown): string {
 }
 function address(value: unknown): string {
   const result = text(value, 140)
-  if (!/^[a-z][\w-]*#[a-z][\w-]*$/i.test(result))
+  if (!/^(?!_)\w[\w.-]*#(?!_)\w[\w.-]*$/u.test(result))
     throw new TypeError('Invalid ending address')
   return result
 }
@@ -225,11 +234,7 @@ function parseOutput(kind: CreativePartnerOutput['kind'], value: unknown, contex
     })
     return { kind, summary, cast, dictionary, lines }
   }
-  const scenarios = array(root.scenarios, 12, 1).map((item) => {
-    const scenario = record(item)
-    return { id: id(scenario.id), choices: array(scenario.choices, 32).map(value => integer(value, 0, 31)), expectedEnding: address(scenario.expectedEnding) }
-  })
-  unique(scenarios.map(scenario => scenario.id))
+  const scenarios = parseCreativePlaytestScenarios(root.scenarios)
   const concerns = array(root.concerns, 32).map((item) => {
     const concern = record(item)
     const path = text(concern.path, 200)

@@ -2,10 +2,12 @@ import type { ManagedAgentTransportOptions } from '../managed/transport'
 import type { CreativeTeamAvailability, CreativeTeamRun } from './contracts'
 import type { CreativeCandidateEditRequest } from './edits'
 import type { CreativeMilestoneCommand } from './milestones'
+import type { CreativePlaytestReport } from './playtest-contracts'
 import type { CreativeTeamPublicDecision, CreativeTeamRunSummary, CreativeTeamStartRequest } from './wire'
 import { ManagedAgentTransport } from '../managed/transport'
 import { parseCreativeCandidateEditRequest } from './edits'
 import { parseCreativeMilestoneCommand } from './milestones'
+import { parseCreativePlaytestReport } from './playtest-contracts'
 import { parseCreativeTeamRun, parseCreativeTeamRunSummary } from './responses'
 import { parseCreativeProject, parseCreativeTeamAvailability, parseCreativeTeamPublicDecision, parseCreativeTeamStartRequest } from './wire'
 
@@ -19,6 +21,8 @@ export interface CreativeTeamClient {
   refreshFacts: (project: CreativeTeamStartRequest['project'], runId: string, idempotencyKey: string) => Promise<CreativeTeamRun>
   editCandidate: (projectId: string, runId: string, request: CreativeCandidateEditRequest, idempotencyKey: string) => Promise<CreativeTeamRun>
   milestone: (projectId: string, runId: string, command: CreativeMilestoneCommand, idempotencyKey: string) => Promise<CreativeTeamRun>
+  recordPlaytest: (project: CreativeTeamStartRequest['project'], runId: string, report: CreativePlaytestReport, idempotencyKey: string) => Promise<CreativeTeamRun>
+  getPlaytest: (projectId: string, runId: string, reportId: string) => Promise<CreativePlaytestReport>
 }
 function envelope(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || !('protocolVersion' in value) || value.protocolVersion !== 1)
@@ -94,5 +98,21 @@ export class ManagedCreativeTeamClient implements CreativeTeamClient {
   milestone(projectId: string, runId: string, command: CreativeMilestoneCommand, idempotencyKey: string): Promise<CreativeTeamRun> {
     const body = parseCreativeMilestoneCommand(command)
     return this.#transport.requestRaw(this.#path(projectId, runId, '/milestones'), value => this.#parse(value, projectId, runId), { method: 'POST', body, headers: { 'idempotency-key': key(idempotencyKey) } })
+  }
+
+  recordPlaytest(project: CreativeTeamStartRequest['project'], runId: string, report: CreativePlaytestReport, idempotencyKey: string): Promise<CreativeTeamRun> {
+    const body = { project: parseCreativeProject(project), report: parseCreativePlaytestReport(report) }
+    return this.#transport.requestRaw(this.#path(project.id, runId, '/playtests'), value => this.#parse(value, project.id, runId), { method: 'POST', body, headers: { 'idempotency-key': key(idempotencyKey) } })
+  }
+
+  getPlaytest(projectId: string, runId: string, reportId: string): Promise<CreativePlaytestReport> {
+    if (!/^[\w-]{1,120}$/.test(reportId))
+      throw new TypeError('Invalid playtest report identity')
+    return this.#transport.requestRaw(this.#path(projectId, runId, `/playtests/${reportId}`), (value) => {
+      const report = parseCreativePlaytestReport(envelope(value).report)
+      if (report.projectId !== projectId)
+        throw new TypeError('Playtest report project mismatch')
+      return report
+    })
   }
 }
