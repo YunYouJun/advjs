@@ -13,7 +13,8 @@ const props = withDefaults(defineProps<{
   disabled?: boolean
   label?: string
   variant?: 'default' | 'media'
-}>(), { step: 1, min: 0, max: 360, showInput: false, variant: 'default' })
+  orientation?: 'horizontal' | 'vertical'
+}>(), { step: 1, min: 0, max: 360, showInput: false, variant: 'default', orientation: 'horizontal' })
 const emit = defineEmits<{ 'update:modelValue': [value: number], 'input': [value: number] }>()
 function update(value: number) {
   if (props.disabled || !Number.isFinite(value))
@@ -31,10 +32,10 @@ function slide(values: number[] | undefined) {
 </script>
 
 <template>
-  <div class="agui-slider-container" :class="[$attrs.class, { 'agui-slider-container--media': variant === 'media' }]" :style="$attrs.style">
+  <div class="agui-slider-container" :class="[$attrs.class, { 'agui-slider-container--media': variant === 'media', 'agui-slider-container--with-input': showInput }]" :style="$attrs.style" :data-orientation="orientation">
     <SliderRoot
-      v-bind="{ ...$attrs, 'class': undefined, 'style': undefined, 'id': undefined, 'aria-label': undefined, 'aria-labelledby': undefined, 'aria-describedby': undefined }"
-      class="agui-slider" thumb-alignment="overflow" :model-value="[modelValue]" :min="min" :max="max" :step="step" :disabled="disabled"
+      v-bind="{ ...$attrs, 'class': undefined, 'style': undefined, 'id': undefined, 'aria-label': undefined, 'aria-labelledby': undefined, 'aria-describedby': undefined, 'aria-valuetext': undefined }"
+      class="agui-slider" thumb-alignment="overflow" :model-value="[modelValue]" :min="min" :max="max" :step="step" :disabled="disabled" :orientation="orientation"
       @update:model-value="slide"
     >
       <SliderTrack class="agui-slider-track">
@@ -45,6 +46,7 @@ function slide(values: number[] | undefined) {
         :aria-label="label || ($attrs['aria-label'] as string | undefined)"
         :aria-labelledby="($attrs['aria-labelledby'] as string | undefined)"
         :aria-describedby="($attrs['aria-describedby'] as string | undefined)"
+        :aria-valuetext="($attrs['aria-valuetext'] as string | undefined)"
         :aria-disabled="disabled || undefined"
       >
         <button type="button" :disabled="disabled" />

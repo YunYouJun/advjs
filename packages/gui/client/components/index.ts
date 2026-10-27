@@ -28,6 +28,7 @@ import AGUIInputVector from './input/AGUIInputVector.vue'
 import AGUILayout from './layout/AGUILayout.vue'
 import AGUILoading from './loading/AGUILoading.vue'
 import AGUIMenubar from './menu/AGUIMenubar.vue'
+import AGUIPopover from './popover/AGUIPopover.vue'
 
 import AGUISelect from './select/AGUISelect.vue'
 import AGUITabPanel from './tabs/AGUITabPanel.vue'
@@ -63,6 +64,7 @@ export {
   AGUIMenubar,
   AGUINumberField,
   AGUIPanel,
+  AGUIPopover,
   AGUIProperty,
   AGUISection,
   AGUISelect,

@@ -83,3 +83,41 @@
     }
   }
 }
+
+.agui-slider-container[data-orientation='vertical'] {
+  flex-direction: column;
+  width: var(--agui-control-height);
+  min-width: var(--agui-control-height);
+  height: 128px;
+  min-height: 0;
+
+  &.agui-slider-container--with-input {
+    width: 64px;
+  }
+
+  .agui-slider-input {
+    flex: 0 0 auto;
+  }
+
+  .agui-slider[data-orientation='vertical'] {
+    flex-direction: column;
+    width: var(--agui-control-height);
+    min-width: var(--agui-control-height);
+    height: auto;
+    min-height: 0;
+    margin-inline: 0;
+    // Preserve half-thumb room at both ends without rotating pointer coordinates.
+    margin-block: 6px;
+
+    .agui-slider-track {
+      flex: 1;
+      width: 4px;
+      height: 100%;
+    }
+
+    .agui-slider-range {
+      width: 100%;
+      height: auto;
+    }
+  }
+}
