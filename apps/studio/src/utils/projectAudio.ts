@@ -94,31 +94,39 @@ export function createStudioAudioService(fs: IFileSystem, synthesize?: VoiceAuth
             if (await fs.exists(path))
               throw new Error('VOICE_AUDIO_EXISTS: Immutable audio cannot be overwritten')
             options.validateAccess?.()
-            await fs.writeBlob(path, blob)
             imported.push(path)
+            await fs.writeBlob(path, blob)
             options.validateAccess?.()
           }
           for (const change of changes) {
             if (change.content === change.expected)
               continue
             options.validateAccess?.()
+            written.push(change)
             if (change.content === null)
               await fs.deleteFile(change.path)
             else
               await fs.writeFile(change.path, change.content)
-            written.push(change)
             options.validateAccess?.()
           }
+          await fs.flush?.()
+          options.validateAccess?.()
         }
         catch (error) {
           for (const change of written.reverse()) {
-            if (change.expected === null)
-              await fs.deleteFile(change.path)
-            else
+            if (change.expected === null) {
+              if (await fs.exists(change.path))
+                await fs.deleteFile(change.path)
+            }
+            else {
               await fs.writeFile(change.path, change.expected)
+            }
           }
-          for (const path of imported.reverse())
-            await fs.deleteFile(path)
+          for (const path of imported.reverse()) {
+            if (await fs.exists(path))
+              await fs.deleteFile(path)
+          }
+          await fs.flush?.()
           throw error
         }
       })

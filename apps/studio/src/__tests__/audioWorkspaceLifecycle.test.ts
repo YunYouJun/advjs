@@ -154,7 +154,7 @@ describe('studio audio workspace lifecycle', () => {
     store.currentProjectId = 'second'
     await flushPromises()
     old.resolve(documents)
-    await flushPromises()
+    await vi.waitFor(() => expect(api.snapshot.value?.catalog.id).toBe('second'))
     expect(api.error.value).toBe('')
     expect(api.snapshot.value?.catalog.id).toBe('second')
     expect(api.snapshot.value?.revision).toBe('voice-revision')

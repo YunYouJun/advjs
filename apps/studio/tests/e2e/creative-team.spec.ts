@@ -1,5 +1,7 @@
-import { writeFile } from 'node:fs/promises'
+import { createHash } from 'node:crypto'
+import { readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
+import process from 'node:process'
 import { expect, test } from '@playwright/test'
 
 test('executes actual core paths, retains private reports across reload and retests a repaired source', async ({ page }, info) => {
@@ -434,4 +436,124 @@ test('opens creative partners, prevents unavailable generation and preserves the
   expect(paidRequests).toEqual([])
   expect(errors).toEqual([])
   await writeFile(info.outputPath('browser-checks.json'), JSON.stringify({ url: page.url(), title: await page.title(), widths: [1280, 390, 320], errors, warnings, paidRequests, scope: 'real product entry; local project; no managed service execution' }, null, 2))
+})
+
+test('returns real external speech to a stable line, auditions and adopts it, and plays it through the product audio backend', async ({ page }, info) => {
+  const audioPath = process.env.STUDIO_CREATIVE_VOICE_WAV
+  test.skip(!audioPath, 'Requires a genuine spoken WAV supplied by STUDIO_CREATIVE_VOICE_WAV; no placeholder tone is substituted')
+  const errors: string[] = []
+  const warnings: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  page.on('console', (message) => {
+    if (message.type() === 'error')
+      errors.push(message.text())
+    if (message.type() === 'warning')
+      warnings.push(message.text())
+  })
+  await page.addInitScript(() => {
+    const records: any[] = []
+    const connections: any[] = []
+    Object.assign(window, { realVoicePlayback: { records, connections } })
+    const start = AudioBufferSourceNode.prototype.start
+    AudioBufferSourceNode.prototype.start = function (...args: Parameters<typeof start>) {
+      if (this.buffer && this.buffer.duration > 0.1) {
+        const row = { duration: this.buffer.duration, sampleRate: this.buffer.sampleRate, channels: this.buffer.numberOfChannels, state: this.context.state, startedAt: this.context.currentTime, wallStart: performance.now(), ended: false, elapsed: 0, wallElapsed: 0, trusted: false }
+        records.push(row)
+        this.addEventListener('ended', (event) => {
+          row.ended = true
+          row.elapsed = this.context.currentTime - row.startedAt
+          row.wallElapsed = performance.now() - row.wallStart
+          row.trusted = event.isTrusted
+        }, { once: true })
+      }
+      return start.apply(this, args)
+    }
+    const connect = AudioNode.prototype.connect
+    AudioNode.prototype.connect = function (...args: any[]) {
+      connections.push({ from: this.constructor.name, to: args[0]?.constructor.name, gain: this instanceof GainNode ? this.gain.value : undefined })
+      return (connect as any).apply(this, args)
+    }
+  })
+  const fixtureUrl = '/tests/fixtures/creative-team/voice-import.html'
+  const lineId = 'line_01900400-0000-7000-8000-000000000001'
+  const reviewUrl = `/tabs/workspace/audio?section=review&speaker=lin&line=${lineId}`
+  await page.goto(fixtureUrl)
+  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeVoiceFixture))).toBe(true)
+  const files = () => page.evaluate(async () => (window as any).creativeVoiceFixture.files())
+  const before = await files()
+  const panel = page.getByTestId('creative-voice-import')
+  await panel.getByRole('button', { name: '核对实际对白', exact: true }).click()
+  await expect(panel.getByText(lineId, { exact: true })).toBeVisible()
+  await panel.getByLabel('选择真实对白 WAV').setInputFiles(audioPath!)
+  await panel.getByLabel('制作来源、署名与使用说明').fill('本机 macOS say Tingting 175 wpm 外部制作，ffmpeg 转为 22050 Hz 单声道 PCM WAV，人工回流；没有托管媒体回执。')
+  await panel.getByRole('button', { name: '审阅未选配音候选', exact: true }).click()
+  await expect(panel.getByText('请核对原始字节、音色来源与文件变化。确认仅登记 VoiceTake，尚未采用到游戏。')).toBeVisible()
+  expect(await files()).toEqual(before)
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await panel.locator('.voice-import__review').scrollIntoViewIfNeeded()
+    await page.screenshot({ path: info.outputPath(`voice-import-review-${width}.png`), animations: 'disabled' })
+  }
+  await panel.getByRole('button', { name: '登记未选配音候选', exact: true }).click()
+  await expect(panel.getByText('已登记到项目对白账本，尚未采用。请试听并独立确认采用。')).toBeVisible()
+  const registered = await files()
+  const binding = JSON.parse(registered['adv/audio/voice-ledger.json']).lines[lineId].locales['zh-CN']
+  expect(binding.selectedTake).toBeNull()
+  expect(binding.takes).toHaveLength(1)
+  await page.reload()
+  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeVoiceFixture))).toBe(true)
+  expect(await files()).toEqual(registered)
+  const media = await page.evaluate(async () => (window as any).creativeVoiceFixture.media())
+  expect(media).toHaveLength(1)
+  expect(media[0].sha256).toBe(createHash('sha256').update(await readFile(audioPath!)).digest('hex'))
+  expect(media[0].sha256).toBe(media[0].expectedSha256)
+  expect(media[0].bytes).toBe(media[0].expectedBytes)
+  const calls = await page.evaluate(() => (window as any).creativeVoiceFixture.calls()) as string[]
+  expect(calls.filter(call => call.startsWith('POST'))).toEqual([])
+  await page.goto(reviewUrl)
+  const workspace = page.getByTestId('audio-workspace')
+  const take = workspace.locator('.voice-review__take')
+  await expect(take).toHaveCount(1)
+  await expect(take.locator('.voice-review__warning')).toHaveCount(0)
+  await take.getByRole('button', { name: '试听', exact: true }).click()
+  const player = workspace.locator('audio')
+  await expect.poll(() => player.evaluate((element: HTMLAudioElement) => element.currentTime)).toBeGreaterThan(0.4)
+  const audition = await player.evaluate((element: HTMLAudioElement) => ({ duration: element.duration, currentTime: element.currentTime, paused: element.paused, src: element.currentSrc, muted: element.muted, volume: element.volume }))
+  expect(audition.duration).toBeGreaterThan(1)
+  expect(audition.muted).toBe(false)
+  await take.getByRole('button', { name: '绑定此 take', exact: true }).click()
+  await workspace.getByRole('checkbox', { name: '我已试听并确认本次采用与替换范围' }).check()
+  await workspace.getByRole('button', { name: '确认采用', exact: true }).click()
+  await expect(take.locator('.voice-review__take-header')).toContainText('已选')
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await take.scrollIntoViewIfNeeded()
+    await page.screenshot({ path: info.outputPath(`voice-adopted-${width}.png`), animations: 'disabled' })
+  }
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/tabs/play')
+  await expect(page.locator('.game-player')).toContainText('列车还没有到，我们再等一会儿。')
+  // Real pointer activation unlocks the existing backend; restarting replays the adopted first line.
+  await page.locator('.game-player .adv-ui').click({ position: { x: 200, y: 300 } })
+  await page.getByTestId('play-toolbar-actions').getByRole('button', { name: '设置', exact: true }).click()
+  await page.locator('.adv-popover-menu:visible').getByText('重新开始', { exact: true }).click()
+  await expect.poll(() => page.evaluate(() => (window as any).realVoicePlayback.records.some((record: any) => record.ended && record.trusted && record.state === 'running' && record.elapsed >= record.duration - 0.15 && record.wallElapsed >= (record.duration - 0.2) * 1000)), { timeout: 12000 }).toBe(true)
+  const playback = await page.evaluate(() => (window as any).realVoicePlayback)
+  expect(playback.connections.some((connection: any) => connection.to === 'AudioDestinationNode' && connection.gain > 0)).toBe(true)
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await page.screenshot({ path: info.outputPath(`voice-product-player-${width}.png`), animations: 'allow' })
+  }
+  await page.goto(fixtureUrl)
+  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeVoiceFixture))).toBe(true)
+  const adopted = await files()
+  expect(JSON.parse(adopted['adv/audio/voice-ledger.json']).lines[lineId].locales['zh-CN'].selectedTake).toBe(binding.takes[0].id)
+  await page.evaluate(() => (window as any).creativeVoiceFixture.replaceDialogue())
+  await page.goto(reviewUrl)
+  await expect(workspace.locator('.voice-review__warning')).toContainText('文本已变化')
+  await expect(workspace.locator('.voice-review__text').first()).toContainText('列车已经到了，我们走吧。')
+  await page.screenshot({ path: info.outputPath('voice-stale-after-dialogue-edit-390.png'), animations: 'disabled' })
+  expect(errors).toEqual([])
+  expect(warnings).toEqual([])
+  await writeFile(info.outputPath('real-voice-evidence.json'), JSON.stringify({ scope: 'External macOS say speech manually imported, decoded, persisted, auditioned and explicitly adopted through actual Studio code. Actual GamePlayer Web Audio graph used original browser methods, running context, nonzero destination gain and a natural-duration trusted end event. No physical-speaker measurement, human quality score, hosted generation or final-team receipt.', media, before, registered, adopted, audition, playback, calls, errors, warnings }, null, 2))
 })
