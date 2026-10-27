@@ -768,6 +768,84 @@ async function stageUnifiedMedia(page: Page, audioPath: string) {
   return milestone
 }
 
+async function fillDeliveryReview(page: Page) {
+  const panel = page.getByTestId('creative-delivery')
+  for (const input of await panel.getByLabel('采用、保留或排除的理由', { exact: true }).all())
+    await input.fill('核对本次范围：已有素材保留采用；方案仅供参考，未选配音仍待处理。')
+  await panel.getByLabel('作者交付说明与剩余事项', { exact: true }).fill('作者结束本次事务验证。配音尚未选用；画面、表演与完整剧情仍须另行验收。')
+  await panel.getByRole('checkbox').check()
+  return panel
+}
+
+test('closes adopted real media through an independent author decision and reopens a lost receipt without rewriting files', async ({ page }, info) => {
+  const audioPath = process.env.STUDIO_CREATIVE_VOICE_WAV
+  test.skip(!audioPath, 'Requires genuine external speech; no placeholder is substituted')
+  await page.goto('/tests/fixtures/creative-team/media-milestones.html?case=delivery-receipt')
+  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeMediaFixture))).toBe(true)
+  const milestone = await stageUnifiedMedia(page, audioPath!)
+  await milestone.getByRole('button', { name: '确认写入项目', exact: true }).click()
+  await expect(milestone.getByText(/最近一次采用已确认/)).toBeVisible()
+  const before = await page.evaluate(async () => ({ run: (window as any).creativeMediaFixture.run(), files: await (window as any).creativeMediaFixture.files(), media: await (window as any).creativeMediaFixture.media(), writes: (window as any).creativeMediaFixture.writes() }))
+  expect(before.run.status).toBe('awaiting_review')
+  const panel = await fillDeliveryReview(page)
+  await panel.getByRole('button', { name: '审阅交付记录', exact: true }).click()
+  await expect(panel.getByText(/项目已编译/)).toBeVisible()
+  await expect(panel.getByText('尚无已采用且选定的实际素材：1 项请求', { exact: true })).toBeVisible()
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await panel.evaluate(element => element.scrollIntoView({ block: 'start' }))
+    await page.screenshot({ path: info.outputPath(`delivery-review-${width}.png`), animations: 'disabled' })
+    await panel.getByRole('button', { name: '确认记录并结束本次制作组', exact: true }).scrollIntoViewIfNeeded()
+    await page.screenshot({ path: info.outputPath(`delivery-confirm-${width}.png`), animations: 'disabled' })
+  }
+  await page.evaluate(() => (window as any).creativeMediaFixture.lose('delivery'))
+  await panel.getByRole('button', { name: '确认记录并结束本次制作组', exact: true }).click()
+  await expect(panel.getByRole('button', { name: '读取并重试收尾', exact: true })).toBeVisible()
+  await page.reload()
+  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeMediaFixture))).toBe(true)
+  await expect(panel.getByText(/作者已结束本次制作组。这是决定当时的历史记录/)).toBeVisible()
+  const after = await page.evaluate(async () => ({ run: (window as any).creativeMediaFixture.run(), files: await (window as any).creativeMediaFixture.files(), media: await (window as any).creativeMediaFixture.media(), writes: (window as any).creativeMediaFixture.writes(), calls: (window as any).creativeMediaFixture.calls() }))
+  expect(after.run.status).toBe('completed')
+  expect(after.run.delivery.dispositions.map((item: any) => item.disposition).sort()).toEqual(['adopted', 'adopted', 'reference', 'reference'])
+  expect(after.run.delivery.pendingMedia).toHaveLength(1)
+  expect(after.run.delivery.playtestIds).toEqual([])
+  expect(after.files).toEqual(before.files)
+  expect(after.media).toEqual(before.media)
+  expect(after.writes).toEqual([])
+  expect(after.calls.every((call: any) => call.method === 'GET')).toBe(true)
+  await expect(page.getByTestId('creative-milestone')).toHaveCount(0)
+  await expect(page.getByTestId('creative-art-import')).toHaveCount(0)
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await panel.evaluate(element => element.scrollIntoView({ block: 'start' }))
+    await page.screenshot({ path: info.outputPath(`delivery-receipt-${width}.png`), animations: 'disabled' })
+    await panel.locator('p').last().scrollIntoViewIfNeeded()
+    await page.screenshot({ path: info.outputPath(`delivery-remaining-${width}.png`), animations: 'disabled' })
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  }
+  await writeFile(info.outputPath('delivery-record.json'), JSON.stringify({ scope: 'explicit local service, real compiler/HTTP client/IndexedDB/media and project transaction; no model or billing', before, after }, null, 2))
+})
+
+test('blocks author closure for another run’s pending local write and a source changed after review', async ({ page }, info) => {
+  await page.goto('/tests/fixtures/creative-team/media-milestones.html?case=delivery-stale')
+  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeMediaFixture))).toBe(true)
+  const panel = await fillDeliveryReview(page)
+  await page.evaluate(() => (window as any).creativeMediaFixture.pendingDeliveryWrite(true))
+  await panel.getByRole('button', { name: '审阅交付记录', exact: true }).click()
+  await expect(panel.getByRole('alert')).toBeVisible()
+  await expect(panel.getByRole('button', { name: '确认记录并结束本次制作组', exact: true })).toHaveCount(0)
+  await page.evaluate(() => (window as any).creativeMediaFixture.pendingDeliveryWrite(false))
+  await panel.getByRole('button', { name: '审阅交付记录', exact: true }).click()
+  await expect(panel.getByText(/项目已编译/)).toBeVisible()
+  await page.evaluate(() => (window as any).creativeMediaFixture.editSource('adv/chapters/intro.adv.md', '# 作者改稿 {#start}\n\n交付审阅后发生的修改。'))
+  await panel.getByRole('button', { name: '确认记录并结束本次制作组', exact: true }).click()
+  await expect(panel.getByRole('alert')).toBeVisible()
+  const result = await page.evaluate(() => ({ run: (window as any).creativeMediaFixture.run(), calls: (window as any).creativeMediaFixture.calls() }))
+  expect(result.run.status).toBe('awaiting_review')
+  expect(result.calls.filter((call: any) => call.path.includes('/delivery'))).toEqual([])
+  await writeFile(info.outputPath('delivery-negative.json'), JSON.stringify({ scope: 'actual private IndexedDB across two run IDs; actual source edit after successful review', result }, null, 2))
+})
+
 test('adopts real image and speech in one shared milestone, recovers a lost confirmation and conditionally undoes both', async ({ page }, info) => {
   test.setTimeout(90000)
   const audioPath = process.env.STUDIO_CREATIVE_VOICE_WAV

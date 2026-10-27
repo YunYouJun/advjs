@@ -101,7 +101,7 @@ async function main() {
       throw new Error(`Fixture seed failed: ${await seeded.text()}`)
   }
   const calls: Array<{ method: string, path: string, body?: unknown, key?: string }> = []
-  let lose: 'register' | 'prepare' | 'confirm' | undefined
+  let lose: 'register' | 'prepare' | 'confirm' | 'delivery' | undefined
   const client = new ManagedCreativeTeamClient({ accountId, baseUrl: 'http://127.0.0.1:4198', getAccessToken: () => 'explicit-media-fixture-only', fetch: async (input, init) => {
     const url = new URL(String(input))
     // Availability is account-wide in production. This explicit local service
@@ -111,7 +111,7 @@ async function main() {
     const body = init?.body ? JSON.parse(String(init.body)) : undefined
     calls.push({ method: init?.method ?? 'GET', path: url.pathname, body, key: new Headers(init?.headers).get('idempotency-key') ?? undefined })
     const response = await fetch(url, init)
-    const phase = url.pathname.endsWith('/media-candidates') ? 'register' : body?.type
+    const phase = url.pathname.endsWith('/media-candidates') ? 'register' : url.pathname.endsWith('/delivery') ? 'delivery' : body?.type
     if (response.ok && lose && phase === lose) {
       lose = undefined
       throw new Error('Explicit fixture: response lost after local service commit')
@@ -157,6 +157,9 @@ async function main() {
   }
   Object.assign(window, { creativeMediaFixture: {
     originals,
+    async pendingDeliveryWrite(pending: boolean) {
+      await creativeAdoptionJournal.save({ ...scope, runId: 'other-run', intentId: 'pending-other-run', state: pending ? 'preparing' : 'abandoned', request: {} as never, review: {} as never })
+    },
     async editSource(path: string, content: string) {
       await projectFs.writeFile(path, content)
       await projectFs.flush?.()

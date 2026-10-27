@@ -119,7 +119,7 @@ export function overlayCreativeMilestone(files: Readonly<Record<string, string>>
 
 /** Pure validation; the trusted service stamps IDs, hashes and durable receipts. Media requires separate author-host evidence. */
 export function prepareCreativeMilestone(run: CreativeTeamRun, request: CreativeMilestoneRequest): { artifacts: CreativeMilestoneIntent['artifacts'], anchors: string[], changes: CreativeFileChange[], files: Record<string, string> } {
-  if (request.project.id !== run.plan.projectId || run.tasks.some(task => ['running', 'reconcile_required'].includes(task.status)) || run.reservedMicroPoints
+  if (run.status === 'completed' || request.project.id !== run.plan.projectId || run.tasks.some(task => ['running', 'reconcile_required'].includes(task.status)) || run.reservedMicroPoints
     || run.milestones?.some(item => item.status === 'prepared') || (run.milestones?.length ?? 0) >= 128) {
     throw new Error('CREATIVE_MILESTONE_CONFLICT')
   }

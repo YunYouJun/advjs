@@ -1,7 +1,10 @@
 import type { AgentUsageSummary } from '../core/contracts'
 import type { CreativeArtifact, CreativeMilestoneIntent, CreativeTeamPlan, CreativeTeamRun } from './contracts'
+import type { CreativeDeliveryRequest } from './delivery'
+import type { CreativePlaytestReport } from './playtest-contracts'
 import type { CreativePlaytestRepairReference } from './playtest-repair'
 import { invalidateCreativeArtifacts } from './candidates'
+import { prepareCreativeDelivery } from './delivery'
 import { creativeMergeInvalidations } from './merges'
 import { assertCreativeArtifactBoundary, parseCreativeTeamPlan } from './validation'
 
@@ -20,6 +23,7 @@ export type CreativeTeamAction
     | { type: 'register-media', artifact: CreativeArtifact, decisionId: string, reason: string, requestFingerprint: string }
     | { type: 'prepare-milestone', intent: CreativeMilestoneIntent }
     | { type: 'resolve-milestone', milestoneId: string, status: 'confirmed' | 'abandoned', files: Readonly<Record<string, string>> }
+    | { type: 'finish', request: CreativeDeliveryRequest, reports?: readonly CreativePlaytestReport[], decisionId: string, requestFingerprint: string }
     | { type: 'refresh-facts', files: Readonly<Record<string, string>> }
     | { type: 'cancel', decisionId: string, reason: string }
 
@@ -59,6 +63,8 @@ export function nextCreativeTeamTask(run: CreativeTeamRun): string | undefined {
 }
 
 function deriveStatus(run: CreativeTeamRun): CreativeTeamRun['status'] {
+  if (run.status === 'completed')
+    return 'completed'
   if (run.status === 'cancel_requested' || run.status === 'cancelled')
     return run.tasks.some(task => task.status === 'running' || task.status === 'reconcile_required') ? 'cancel_requested' : 'cancelled'
   if (run.tasks.some(task => task.status === 'reconcile_required'))
@@ -79,14 +85,24 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
     throw new Error('CREATIVE_MILESTONE_PENDING')
   if ('decisionId' in action && run.decisions.some(item => item.id === action.decisionId))
     return source
+  if (run.status === 'completed')
+    throw new Error('CREATIVE_RUN_FINISHED')
   const state = 'taskId' in action ? run.tasks.find(task => task.taskId === action.taskId) : undefined
   if ('taskId' in action && !state)
     throw new TypeError('Unknown task')
-  const decision = (id: string, operation: 'approve-plan' | 'select' | 'stop' | 'rework' | 'edit' | 'register-media', artifactIds: readonly string[], reason: string, projectRevision = run.plan.projectRevision): void => {
+  const decision = (id: string, operation: 'approve-plan' | 'select' | 'stop' | 'rework' | 'edit' | 'register-media' | 'finish', artifactIds: readonly string[], reason: string, projectRevision = run.plan.projectRevision): void => {
     run.decisions = [...run.decisions, { id, action: operation, artifactIds, reason, projectRevision, at: now }]
   }
 
   switch (action.type) {
+    case 'finish': {
+      const receipt = prepareCreativeDelivery(run, action.request, action.decisionId, now, action.reports)
+      run.delivery = receipt
+      run.status = 'completed'
+      decision(action.decisionId, 'finish', receipt.dispositions.map(item => item.artifactId), receipt.reason, receipt.projectRevision)
+      run.decisions = run.decisions.map(item => item.id === action.decisionId ? { ...item, requestFingerprint: action.requestFingerprint } : item)
+      break
+    }
     case 'prepare-milestone':
       if (action.intent.status !== 'prepared' || run.milestones?.some(item => item.id === action.intent.id) || run.tasks.some(task => ['running', 'reconcile_required'].includes(task.status)))
         throw new Error('CREATIVE_MILESTONE_CONFLICT')
@@ -308,7 +324,7 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
       const owner = run.tasks.find(task => task.taskId === original?.taskId)
       if (!original || !['candidate', 'selected'].includes(original.status) || !owner || !['awaiting_review', 'completed'].includes(owner.status)
         || edited.status !== 'candidate' || edited.taskId !== original.taskId || edited.kind !== original.kind
-        || run.artifacts.some(item => item.id === edited.id) || run.artifacts.length >= 256 || run.status === 'completed') {
+        || run.artifacts.some(item => item.id === edited.id) || run.artifacts.length >= 256) {
         throw new TypeError('Candidate is unavailable for author revision')
       }
       assertCreativeArtifactBoundary(edited, run)
@@ -344,8 +360,6 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
       break
     }
     case 'cancel':
-      if (run.status === 'completed')
-        throw new TypeError('Run is already adopted')
       for (const task of run.tasks) {
         if (task.status === 'pending')
           task.status = 'cancelled'

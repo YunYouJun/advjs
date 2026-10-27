@@ -1,11 +1,13 @@
 import type { ManagedAgentTransportOptions } from '../managed/transport'
 import type { CreativeTeamAvailability, CreativeTeamRun } from './contracts'
+import type { CreativeDeliveryRequest } from './delivery'
 import type { CreativeCandidateEditRequest } from './edits'
 import type { CreativeMediaCandidateRequest } from './media'
 import type { CreativeMilestoneCommand } from './milestones'
 import type { CreativePlaytestReport } from './playtest-contracts'
 import type { CreativeTeamPublicDecision, CreativeTeamRunSummary, CreativeTeamStartRequest } from './wire'
 import { ManagedAgentTransport } from '../managed/transport'
+import { parseCreativeDeliveryRequest } from './delivery'
 import { parseCreativeCandidateEditRequest } from './edits'
 import { parseCreativeMediaCandidateRequest } from './media'
 import { parseCreativeMilestoneCommand } from './milestones'
@@ -20,6 +22,7 @@ export interface CreativeTeamClient {
   get: (projectId: string, runId: string) => Promise<CreativeTeamRun>
   start: (request: CreativeTeamStartRequest, idempotencyKey: string) => Promise<CreativeTeamRun>
   decide: (projectId: string, runId: string, decision: CreativeTeamDecisionInput, idempotencyKey: string) => Promise<CreativeTeamRun>
+  finish?: (projectId: string, runId: string, request: CreativeDeliveryRequest, idempotencyKey: string) => Promise<CreativeTeamRun>
   refreshFacts: (project: CreativeTeamStartRequest['project'], runId: string, idempotencyKey: string) => Promise<CreativeTeamRun>
   editCandidate: (projectId: string, runId: string, request: CreativeCandidateEditRequest, idempotencyKey: string) => Promise<CreativeTeamRun>
   registerMediaCandidate?: (projectId: string, runId: string, request: CreativeMediaCandidateRequest, idempotencyKey: string) => Promise<CreativeTeamRun>
@@ -86,6 +89,11 @@ export class ManagedCreativeTeamClient implements CreativeTeamClient {
   decide(projectId: string, runId: string, decision: CreativeTeamDecisionInput, idempotencyKey: string): Promise<CreativeTeamRun> {
     const { decisionId: _, ...body } = parseCreativeTeamPublicDecision(decision, key(idempotencyKey))
     return this.#transport.requestRaw(this.#path(projectId, runId, '/decisions'), value => this.#parse(value, projectId, runId), { method: 'POST', body, headers: { 'idempotency-key': idempotencyKey } })
+  }
+
+  finish(projectId: string, runId: string, request: CreativeDeliveryRequest, idempotencyKey: string): Promise<CreativeTeamRun> {
+    const body = parseCreativeDeliveryRequest(request)
+    return this.#transport.requestRaw(this.#path(projectId, runId, '/delivery'), value => this.#parse(value, projectId, runId), { method: 'POST', body, headers: { 'idempotency-key': key(idempotencyKey) } })
   }
 
   refreshFacts(project: CreativeTeamStartRequest['project'], runId: string, idempotencyKey: string): Promise<CreativeTeamRun> {

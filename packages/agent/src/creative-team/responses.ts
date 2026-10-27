@@ -3,6 +3,7 @@ import type { CreativeArtifact, CreativeTeamAttempt, CreativeTeamRun, CreativeTe
 import type { CreativeTeamRunSummary } from './wire'
 import { AGENT_CAPABILITY_IDS } from '../core/contracts'
 import { CREATIVE_ARTIFACT_KINDS, CREATIVE_PARTNER_IDS } from './contracts'
+import { parseCreativeDeliveryReceipt } from './delivery'
 import { parseCreativeMediaEvidence } from './media'
 import { parseCreativeMilestoneMerges } from './merges'
 import { creativeMilestoneChanges } from './milestones'
@@ -52,6 +53,7 @@ function usage(value: unknown): AgentUsageSummary {
     outputTokens: integer(source.outputTokens),
     totalTokens: integer(source.totalTokens),
     providerCostMicroCny: integer(source.providerCostMicroCny),
+    ...(source.delivery === undefined ? {} : { delivery: parseCreativeDeliveryReceipt(source.delivery) }),
     chargedMicroPoints: integer(source.chargedMicroPoints),
     ...(source.cachedInputTokens === undefined ? {} : { cachedInputTokens: integer(source.cachedInputTokens) }),
     ...(source.reasoningTokens === undefined ? {} : { reasoningTokens: integer(source.reasoningTokens) }),
@@ -168,7 +170,7 @@ export function parseCreativeTeamRun(value: unknown, boundary: { accountId: stri
       return {
         id: identity(decision.id),
         artifactIds: ids(decision.artifactIds),
-        action: member(decision.action, ['approve-plan', 'select', 'reject', 'adopt', 'undo', 'stop', 'rework', 'edit', 'register-media']),
+        action: member(decision.action, ['approve-plan', 'select', 'reject', 'adopt', 'undo', 'stop', 'rework', 'edit', 'register-media', 'finish']),
         reason: text(decision.reason),
         projectRevision: identity(decision.projectRevision),
         at: integer(decision.at),
@@ -196,6 +198,7 @@ export function parseCreativeTeamRun(value: unknown, boundary: { accountId: stri
             ...(intent.confirmedAt === undefined ? {} : { confirmedAt: integer(intent.confirmedAt) }),
           }
         }) }),
+    ...(source.delivery === undefined ? {} : { delivery: parseCreativeDeliveryReceipt(source.delivery) }),
     chargedMicroPoints: integer(source.chargedMicroPoints),
     reservedMicroPoints: integer(source.reservedMicroPoints),
     toolCalls: integer(source.toolCalls),
@@ -204,6 +207,19 @@ export function parseCreativeTeamRun(value: unknown, boundary: { accountId: stri
     updatedAt: integer(source.updatedAt),
   }
   run.artifacts = array(source.artifacts, 256).map(item => artifact(item, run))
+  if (run.delivery) {
+    const receipt = run.delivery
+    if (run.status !== 'completed' || run.revision !== receipt.runRevision + 1 || run.tasks.some(task => task.status !== 'completed') || run.reservedMicroPoints
+      || receipt.chargedMicroPoints !== run.chargedMicroPoints || receipt.toolCalls !== run.toolCalls
+      || !run.decisions.some(item => item.id === receipt.id && item.action === 'finish' && item.projectRevision === receipt.projectRevision && item.reason === receipt.reason && item.at === receipt.at && JSON.stringify([...item.artifactIds].sort()) === JSON.stringify(receipt.dispositions.map(item => item.artifactId).sort()))
+      || receipt.dispositions.length !== run.artifacts.filter(item => ['selected', 'adopted'].includes(item.status)).length
+      || receipt.dispositions.some(item => !run.artifacts.some(artifact => artifact.id === item.artifactId && artifact.fingerprint === item.fingerprint && (item.disposition === 'adopted' ? artifact.status === 'adopted' : artifact.status === 'selected' && (item.disposition === 'excluded' || !artifact.changes.length))))
+      || receipt.pendingMedia.some(item => !run.artifacts.some(artifact => artifact.id === item.artifactId && ['selected', 'adopted'].includes(artifact.status) && ['art-direction', 'voice-direction'].includes(artifact.output?.kind ?? '')))
+      || receipt.milestoneIds.some(id => !run.milestones?.some(item => item.id === id && item.status === 'confirmed'))
+      || receipt.playtestIds.some(id => !run.playtests?.some(item => item.id === id && item.scope === 'saved' && item.snapshotRevision === receipt.projectRevision))) {
+      throw new TypeError('Invalid creative delivery provenance')
+    }
+  }
   for (const decision of run.decisions) {
     if (decision.playtestRepair && (decision.action !== 'rework' || !run.tasks.some(item => item.taskId === decision.playtestRepair!.taskId)
       || !run.playtests?.some(item => item.id === decision.playtestRepair!.reference.reportId && item.snapshotRevision === decision.playtestRepair!.reference.snapshotRevision))) {
@@ -253,6 +269,7 @@ export function parseCreativeTeamRunSummary(value: unknown, projectId: string): 
     goal: text(source.goal),
     status: member(source.status, RUN_STATUSES),
     revision: integer(source.revision),
+    ...(source.delivery === undefined ? {} : { delivery: parseCreativeDeliveryReceipt(source.delivery) }),
     chargedMicroPoints: integer(source.chargedMicroPoints),
     reservedMicroPoints: integer(source.reservedMicroPoints),
     updatedAt: integer(source.updatedAt),

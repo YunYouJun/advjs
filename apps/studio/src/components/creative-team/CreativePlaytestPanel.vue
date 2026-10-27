@@ -24,6 +24,7 @@ const plan = computed(() => props.run.artifacts.findLast(item => ['candidate', '
 const suggested = computed(() => plan.value?.kind === 'playtest-plan' ? plan.value : undefined)
 const hasCandidates = computed(() => props.run.artifacts.some(item => item.status === 'selected' && item.changes.length))
 const pending = computed(() => entries.value.filter(item => !item.synced))
+const closed = computed(() => props.run.status === 'completed')
 const blocked = computed(() => props.busy || busy.value || repairBusy.value)
 watch(() => busy.value || repairBusy.value, value => emit('busy', value))
 onBeforeUnmount(() => emit('busy', false))
@@ -38,6 +39,8 @@ function reuseInputs() {
   }
 }
 async function execute() {
+  if (closed.value)
+    return
   inputError.value = false
   const previous = report.value
   try {
@@ -94,7 +97,7 @@ async function checkVersion() {
     </div>
     <CreativePlaytestScenarios :scenarios="scenarios" :disabled="blocked" @update="scenarios = $event" />
     <div class="playtest__actions">
-      <SButton size="lg" :disabled="blocked" :loading="busy" @click="execute">
+      <SButton size="lg" :disabled="blocked || closed" :loading="busy" @click="execute">
         {{ t('creativeTeam.playtest.execute') }}
       </SButton>
       <SButton v-if="busy" size="lg" variant="outline" @click="session.stop">
@@ -110,7 +113,7 @@ async function checkVersion() {
     <p v-if="activeEntry" role="status">
       {{ t(activeEntry.synced ? 'creativeTeam.playtest.synced' : 'creativeTeam.playtest.local') }}
     </p>
-    <SButton v-if="activeEntry && !activeEntry.synced && store.availability?.authoring?.playtestReports" variant="outline" size="lg" :disabled="blocked || stale" @click="session.sync()">
+    <SButton v-if="activeEntry && !activeEntry.synced && store.availability?.authoring?.playtestReports" variant="outline" size="lg" :disabled="blocked || closed || stale" @click="session.sync()">
       {{ t('creativeTeam.playtest.sync') }}
     </SButton>
     <details v-if="pending.length || run.playtests?.length" class="playtest__history">
@@ -128,7 +131,7 @@ async function checkVersion() {
         </li>
       </ul>
     </details>
-    <CreativePlaytestRepairForm v-if="report" :report="report" :report-id="storedReportId" :run="run" :busy="blocked" :stale="stale" :enabled="Boolean(store.availability?.enabled && store.availability.authoring?.playtestRepair)" :capabilities="store.availability?.capabilities ?? []" @request="({ taskId, findingId }) => session.requestRepair(taskId, findingId)" />
+    <CreativePlaytestRepairForm v-if="report" :report="report" :report-id="storedReportId" :run="run" :busy="blocked" :stale="stale" :enabled="Boolean(!closed && store.availability?.enabled && store.availability.authoring?.playtestRepair)" :capabilities="store.availability?.capabilities ?? []" @request="({ taskId, findingId }) => session.requestRepair(taskId, findingId)" />
     <div ref="reportRoot">
       <CreativePlaytestReport v-if="report" :report="report" :stale="stale" @source="(path, line) => emit('source', path, line)" />
     </div>

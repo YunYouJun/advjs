@@ -2,7 +2,7 @@ import type { CreativeTeamRun } from '@advjs/agent'
 import type { Plugin } from 'vite'
 import { Buffer } from 'node:buffer'
 import { createHash } from 'node:crypto'
-import { computeAgentProjectRevision, creativeMediaCanonical, creativeMilestoneChanges, overlayCreativeMilestone, parseCreativeCandidateEditRequest, parseCreativeMediaCandidateRequest, parseCreativeMilestoneCommand, parseCreativeProject, parseCreativeTeamPublicDecision, parseCreativeTeamRun, prepareCreativeCandidateEdit, prepareCreativeMediaCandidate, prepareCreativeMilestone, reduceCreativeTeamRun } from '@advjs/agent'
+import { computeAgentProjectRevision, creativeMediaCanonical, creativeMilestoneChanges, overlayCreativeMilestone, parseCreativeCandidateEditRequest, parseCreativeDeliveryRequest, parseCreativeMediaCandidateRequest, parseCreativeMilestoneCommand, parseCreativeProject, parseCreativeTeamPublicDecision, parseCreativeTeamRun, prepareCreativeCandidateEdit, prepareCreativeMediaCandidate, prepareCreativeMilestone, reduceCreativeTeamRun } from '@advjs/agent'
 
 /** Explicit local service substitute. Uses the shared validators/reducer; no models, billing or cloud DB. */
 export function creativeMediaMilestoneFixtureService(): Plugin {
@@ -44,7 +44,7 @@ export function creativeMediaMilestoneFixtureService(): Plugin {
           if (url.pathname === '/__creative-media-fixture/exists')
             return send(200, { exists: Boolean(record) })
           if (url.pathname.endsWith('/capabilities'))
-            return send(200, { protocolVersion: 1, enabled: projectId.startsWith('creative-media-voice-plan'), authoring: { candidateEdits: true, voiceDirectionEdits: true, milestoneAdoption: true, milestoneMerges: true, mediaCandidates: true }, serviceVersion: 'explicit local authoring service fixture; no models', capabilities: [], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } })
+            return send(200, { protocolVersion: 1, enabled: projectId.startsWith('creative-media-voice-plan'), authoring: { candidateEdits: true, voiceDirectionEdits: true, milestoneAdoption: true, milestoneMerges: true, mediaCandidates: true, delivery: projectId.startsWith('creative-media-delivery-') }, serviceVersion: 'explicit local authoring service fixture; no models', capabilities: [], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } })
           if (!record)
             return send(404, { error: { code: 'CREATIVE_NOT_FOUND', message: 'Explicit fixture project not found' } })
           const run = record.run
@@ -61,6 +61,16 @@ export function creativeMediaMilestoneFixtureService(): Plugin {
               record.run = reduceCreativeTeamRun(run, { type: 'refresh-facts', files: project.files }, Date.now())
             record.revision = project.revision
             record.files = project.files
+          }
+          else if (url.pathname.endsWith('/delivery') && request.method === 'POST') {
+            const input = parseCreativeDeliveryRequest(body)
+            if (input.project.id !== projectId || input.project.revision !== record.revision || await computeAgentProjectRevision(input.project.files) !== input.project.revision)
+              throw new Error('CREATIVE_DELIVERY_CONFLICT')
+            const previous = run.decisions.find(item => item.id === key)
+            if (previous && (previous.action !== 'finish' || previous.requestFingerprint !== hash(input)))
+              throw new Error('CREATIVE_IDEMPOTENCY_CONFLICT')
+            if (!previous)
+              record.run = reduceCreativeTeamRun(run, { type: 'finish', request: input, decisionId: key, requestFingerprint: hash(input) }, Date.now())
           }
           else if (url.pathname.endsWith('/candidate-edits') && request.method === 'POST') {
             const input = parseCreativeCandidateEditRequest(body)

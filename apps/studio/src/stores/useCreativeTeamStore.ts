@@ -1,4 +1,4 @@
-import type { CreativeAdoptionJournal, CreativeCandidateEditRequest, CreativeMediaCandidateRequest, CreativePlaytestReport, CreativeProjectWorkspace, CreativeTeamAvailability, CreativeTeamClient, CreativeTeamDecisionInput, CreativeTeamRun, CreativeTeamRunSummary, CreativeTeamStartRequest } from '@advjs/agent'
+import type { CreativeAdoptionJournal, CreativeCandidateEditRequest, CreativeDeliveryRequest, CreativeMediaCandidateRequest, CreativePlaytestReport, CreativeProjectWorkspace, CreativeTeamAvailability, CreativeTeamClient, CreativeTeamDecisionInput, CreativeTeamRun, CreativeTeamRunSummary, CreativeTeamStartRequest } from '@advjs/agent'
 import { CreativeMilestoneCoordinator, normalizeAgentRuntimeError } from '@advjs/agent'
 import { defineStore } from 'pinia'
 import { computed, shallowRef } from 'vue'
@@ -182,6 +182,13 @@ export const useCreativeTeamStore = defineStore('creative-team', () => {
       return current.client.decide(current.projectId, runId, decision, intent)
     })
   }
+  async function finish(request: CreativeDeliveryRequest, intent: string): Promise<boolean> {
+    const runId = run.value?.id
+    if (!connection || !runId || !availability.value?.authoring?.delivery || !connection.client.finish || request.project.id !== connection.projectId)
+      return false
+    return mutate(current => current.client.finish!(current.projectId, runId, request, intent))
+  }
+
   async function refreshFacts(project: CreativeTeamStartRequest['project']): Promise<void> {
     const runId = run.value?.id
     if (!runId || project.id !== connection?.projectId)
@@ -255,5 +262,5 @@ export const useCreativeTeamStore = defineStore('creative-team', () => {
     return epoch === generation && run.value?.id === runId ? report : undefined
   }
 
-  return { availability, runs, run, loading, mutating, error, connected, canStart, needsPolling, configure, disconnect, refresh, open, start, decide, refreshFacts, editCandidate, registerMediaCandidate, milestoneCoordinator, performMilestone, recordPlaytest, getPlaytest, requestPlaytestRepair }
+  return { availability, runs, run, loading, mutating, error, connected, canStart, needsPolling, configure, disconnect, refresh, open, start, decide, finish, refreshFacts, editCandidate, registerMediaCandidate, milestoneCoordinator, performMilestone, recordPlaytest, getPlaytest, requestPlaytestRepair }
 })

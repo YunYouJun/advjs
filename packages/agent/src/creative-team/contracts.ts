@@ -1,4 +1,5 @@
 import type { AgentCapabilityId, AgentUsageSummary } from '../core/contracts'
+import type { CreativeDeliveryReceipt } from './delivery'
 import type { CreativeMediaEvidence } from './media'
 import type { CreativePartnerOutput } from './outputs'
 import type { CreativePlaytestSummary } from './playtest-contracts'
@@ -148,6 +149,7 @@ export interface CreativeTeamRun {
   /** Two-store receipts reference immutable inputs and retain explicit author merge results. */
   milestones?: readonly CreativeMilestoneIntent[]
   playtests?: readonly CreativePlaytestSummary[]
+  delivery?: CreativeDeliveryReceipt
   chargedMicroPoints: number
   reservedMicroPoints: number
   toolCalls: number
@@ -182,7 +184,7 @@ export interface CreativeMilestoneMerge {
 export interface CreativeTeamDecision {
   id: string
   artifactIds: readonly string[]
-  action: 'approve-plan' | 'select' | 'reject' | 'adopt' | 'undo' | 'stop' | 'rework' | 'edit' | 'register-media'
+  action: 'approve-plan' | 'select' | 'reject' | 'adopt' | 'undo' | 'stop' | 'rework' | 'edit' | 'register-media' | 'finish'
   reason: string
   projectRevision: string
   at: number
@@ -197,7 +199,7 @@ export interface CreativeTeamAvailability {
   serviceVersion: string
   capabilities: readonly CreativeTeamCapability[]
   media: { image: 'unavailable' | 'manual-import' | 'verified-managed', voice: 'unavailable' | 'manual-import' | 'verified-author-host' | 'verified-managed' }
-  authoring?: { candidateEdits: boolean, milestoneAdoption: boolean, milestoneMerges?: boolean, playtestReports?: boolean, playtestRepair?: boolean, mediaCandidates?: boolean, voiceDirectionEdits?: boolean }
+  authoring?: { candidateEdits: boolean, milestoneAdoption: boolean, milestoneMerges?: boolean, playtestReports?: boolean, playtestRepair?: boolean, mediaCandidates?: boolean, voiceDirectionEdits?: boolean, delivery?: boolean }
   maxConcurrentTasks: 1
 }
 
