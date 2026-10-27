@@ -142,6 +142,7 @@ const vNumberDrag = numberDrag({
 
 <style lang="scss">
 .agui-numeric-control {
+  font-family: var(--agui-font-family-ui);
   position: relative;
   box-sizing: border-box;
   min-width: 0;

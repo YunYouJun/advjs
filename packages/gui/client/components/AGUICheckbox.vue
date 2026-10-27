@@ -58,9 +58,7 @@ function onChange(e: Event) {
   color: var(--agui-c-text-1);
   align-items: center;
   user-select: none;
-  font:
-    12px system-ui,
-    sans-serif;
+  font: 12px var(--agui-font-family-ui);
   cursor: pointer;
   min-height: var(--agui-control-height);
 

@@ -36,6 +36,7 @@ defineProps<{
 
 <style lang="scss">
 .agui-label {
+  font-family: var(--agui-font-family-ui);
   font-size: 12px;
   color: var(--agui-c-label, #999);
 }

@@ -19,6 +19,7 @@ defineProps<{
 
 <style lang="scss">
 .agui-sidebar-item {
+  font-family: var(--agui-font-family-ui);
   &:focus,
   &:active,
   &.active {

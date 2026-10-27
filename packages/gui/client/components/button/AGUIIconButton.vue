@@ -39,7 +39,7 @@ withDefaults(defineProps<{
   color: var(--agui-c-text-1);
   background: transparent;
   appearance: none;
-  font-family: inherit;
+  font-family: var(--agui-font-family-ui);
   font-size: 14px;
   line-height: 1;
   cursor: pointer;

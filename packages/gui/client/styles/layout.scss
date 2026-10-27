@@ -13,7 +13,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: Helvetica, Arial, sans-serif;
+  font-family: var(--agui-font-family-ui);
   color: var(--agui-c-text-1);
   font-size: 1em;
 }

@@ -26,6 +26,7 @@ const switchState = defineModel({ type: Boolean, default: false })
 
 <style scoped>
 .agui-switch-field {
+  font-family: var(--agui-font-family-ui);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -33,6 +34,7 @@ const switchState = defineModel({ type: Boolean, default: false })
   color: var(--agui-c-text-1);
 }
 .agui-switch {
+  font-family: var(--agui-font-family-ui);
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;

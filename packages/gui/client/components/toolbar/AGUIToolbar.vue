@@ -67,6 +67,7 @@ withDefaults(defineProps<{
 
 <style lang="scss">
 .agui-toolbar {
+  font-family: var(--agui-font-family-ui);
   box-sizing: border-box;
   display: flex;
   flex-wrap: wrap;

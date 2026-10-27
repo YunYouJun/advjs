@@ -1,5 +1,6 @@
 .agui-dropdown-menu-content,
 .agui-dropdown-menu-sub-content {
+  font-family: var(--agui-font-family-ui);
   min-width: 220px;
   background-color: var(--agui-c-popup);
   border: 1px solid var(--agui-c-border);
@@ -16,6 +17,7 @@
 
 .agui-dropdown-menu-item {
   all: unset;
+  font-family: var(--agui-font-family-ui);
   color: var(--agui-c-text-1);
   font-size: 12px;
   line-height: 1;

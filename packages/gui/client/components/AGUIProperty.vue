@@ -38,6 +38,7 @@ defineProps<{
   }
 
   > .label {
+    font-family: var(--agui-font-family-ui);
     min-width: 0;
     color: var(--agui-c-text-2);
     text-align: right;

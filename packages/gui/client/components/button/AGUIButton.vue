@@ -62,7 +62,7 @@ const classes = computed(() => {
   min-height: var(--agui-control-height);
   min-width: var(--agui-control-height);
   padding: 2px 6px;
-  font-family: inherit;
+  font-family: var(--agui-font-family-ui);
   font-size: 12px;
   font-weight: 400;
   line-height: 16px;

@@ -41,6 +41,7 @@ const id = useId()
   line-height: var(--agui-line-height);
 }
 .agui-section__header {
+  font-family: var(--agui-font-family-ui);
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
@@ -97,6 +98,7 @@ const id = useId()
   padding: var(--agui-space-3);
 }
 .agui-section__footer {
+  font-family: var(--agui-font-family-ui);
   border-top: 1px solid var(--agui-c-divider-light);
 }
 </style>

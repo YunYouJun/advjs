@@ -68,7 +68,7 @@ useEventListener(areaRef, 'drop', async (e) => {
 <template>
   <div
     ref="areaRef"
-    class="rounded flex h-20px items-center justify-center"
+    class="agui-file-handler rounded flex h-20px items-center justify-center"
     :class="{
       'bg-$agui-c-active': isDraggingOver,
       'bg-dark': !isDraggingOver,
@@ -82,3 +82,9 @@ useEventListener(areaRef, 'drop', async (e) => {
     </span>
   </div>
 </template>
+
+<style scoped>
+.agui-file-handler {
+  font-family: var(--agui-font-family-ui);
+}
+</style>

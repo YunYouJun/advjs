@@ -119,6 +119,7 @@ onBeforeUnmount(() => {
   line-height: var(--agui-line-height);
 }
 .agui-code-block__header {
+  font-family: var(--agui-font-family-ui);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -162,6 +163,7 @@ onBeforeUnmount(() => {
   color: inherit;
 }
 .agui-code-block__status {
+  font-family: var(--agui-font-family-ui);
   margin: 0;
   padding: 0 var(--agui-space-2) var(--agui-space-2);
   color: var(--agui-c-success-text);

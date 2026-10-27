@@ -98,6 +98,7 @@ function getIconFromType(type: ToastOptions['type']) {
 }
 
 .ToastRoot {
+  font-family: var(--agui-font-family-ui);
   pointer-events: auto;
   flex-shrink: 0;
   --toast-accent: var(--agui-c-text-2);

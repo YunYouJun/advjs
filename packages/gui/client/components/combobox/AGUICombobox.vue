@@ -85,12 +85,14 @@ function onUpdateModelValue(value: string) {
 }
 
 .agui-combobox-input {
+  font-family: var(--agui-font-family-ui);
   width: 100%;
   padding: 0 4px;
   box-sizing: border-box;
 }
 
 .agui-combobox-content {
+  font-family: var(--agui-font-family-ui);
   overflow: hidden;
   color: var(--agui-c-text-1);
   background-color: var(--agui-c-popup);

@@ -173,6 +173,7 @@ withDefaults(defineProps<{
 
 .ContextMenuContent,
 .ContextMenuSubContent {
+  font-family: var(--agui-font-family-ui);
   min-width: 220px;
   background-color: var(--agui-c-popup);
   border: 1px solid var(--agui-c-border);

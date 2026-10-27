@@ -129,6 +129,7 @@ function onUpdateModelValue(value: AcceptableValue) {
 <style lang="scss">
 .agui-select-trigger {
   font: inherit;
+  font-family: var(--agui-font-family-ui);
   font-size: 13px;
   appearance: none;
   box-sizing: border-box;
@@ -168,6 +169,7 @@ function onUpdateModelValue(value: AcceptableValue) {
   }
 }
 .agui-select-content {
+  font-family: var(--agui-font-family-ui);
   overflow: hidden;
   color: var(--agui-c-text-1);
   background: var(--agui-c-popup);

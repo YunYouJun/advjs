@@ -66,6 +66,7 @@ const open = defineModel('open', {
   background: var(--agui-c-overlay);
 }
 .agui-dialog-content {
+  font-family: var(--agui-font-family-ui);
   position: fixed;
   left: 50%;
   top: 50%;

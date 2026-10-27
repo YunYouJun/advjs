@@ -34,6 +34,7 @@ defineProps<{
   }
 
   > .agui-summary {
+    font-family: var(--agui-font-family-ui);
     box-sizing: border-box;
     min-height: 28px;
     margin: 0;
