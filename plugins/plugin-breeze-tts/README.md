@@ -4,7 +4,26 @@
 
 ## 接入现有项目
 
-在本工作区执行 `pnpm --filter @advjs/plugin-breeze-tts build` 后链接该包到作者项目。此处不声明 npm 已发布。
+当前集成按源码构建与本地链接使用，不声明 npm 已发布。共享包、CLI、Editor 与插件必须来自同一份包含本功能的源码，避免旧版 `@advjs/audio` 缺少对齐接口。把下列绝对路径替换为实际目录：
+
+```bash
+cd /absolute/path/to/advjs
+pnpm install
+pnpm build:advjs
+pnpm editor:build
+pnpm --filter @advjs/plugin-breeze-tts build
+
+cd /absolute/path/to/game
+pnpm add -D "link:/absolute/path/to/advjs/plugins/plugin-breeze-tts"
+```
+
+完成下方 `adv.config.ts` 与 JSON 预设配置后，用同一源码的 Node CLI 打开项目：
+
+```bash
+node /absolute/path/to/advjs/packages/advjs/bin/adv.mjs editor /absolute/path/to/game
+```
+
+Editor「插件 → 官方插件目录」可以查看要求并显式「检查状态」；检查只读取已配置供应商的诊断，不安装环境、下载权重或生成音频。包已链接但未注册到项目时仍显示「项目未配置」。
 
 将 [examples/breeze.json](./examples/breeze.json) 复制到项目的 `authoring/voices/breeze.json`，再把 [examples/adv.config.ts](./examples/adv.config.ts) 中的 `authoring.voice` 合入项目现有配置。已有供应商时，追加到 `providers`，并用 `presetProviders: { breeze: 'breeze-tts' }` 指定新预设的归属；保留其他供应商及其映射。
 

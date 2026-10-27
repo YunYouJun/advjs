@@ -47,6 +47,7 @@ export interface ProjectWorkspace {
   voiceJobs?: EditorVoiceJobsPort
   voiceDesign?: VoiceDesignPort
   voiceMaintenance?: import('@advjs/types').VoiceProviderMaintenancePort
+  voiceProviderStatus?: import('@advjs/types').VoiceProviderStatusPort
   voiceAlignment?: import('@advjs/types').VoiceAlignmentPort
   commit: (patches: readonly ProjectSourcePatch[]) => Promise<ProjectWorkspaceSnapshot>
   snapshot: () => Promise<ProjectWorkspaceSnapshot>

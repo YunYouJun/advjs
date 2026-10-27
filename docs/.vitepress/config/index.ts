@@ -418,6 +418,10 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
               link: '/guide/editor/ui-plugins',
             },
             {
+              text: '官方插件目录',
+              link: '/guide/editor/plugins',
+            },
+            {
               text: 'Electron 桌面客户端',
               link: '/guide/editor/desktop',
             },

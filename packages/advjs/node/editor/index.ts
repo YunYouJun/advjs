@@ -16,6 +16,7 @@ import { createRequire } from 'node:module'
 import { dirname, extname, isAbsolute, relative, resolve, sep } from 'pathe'
 
 import { createVoiceProviderMaintenance } from '../audio/provider-maintenance'
+import { createVoiceProviderStatus } from '../audio/provider-status'
 import { createNodeVoiceAuthoringService } from '../audio/voice'
 import { createNodeVoiceDesignHost } from '../audio/voice-design'
 import { AdvCommandError } from '../commands/errors'
@@ -330,6 +331,35 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
       throw new EditorHttpError(403, 'Editor request origin is not allowed')
     if (!tokenMatches(request.headers.authorization, token))
       throw new EditorHttpError(401, 'Editor session token is required')
+    if (url.pathname === `${API_PREFIX}audio/provider-status` || url.pathname === `${API_PREFIX}audio/provider-status/doctor`) {
+      await options.validateProjectAccess?.()
+      const controller = new AbortController()
+      const cancel = () => controller.abort()
+      response.once('close', cancel)
+      try {
+        if (url.search)
+          throw new Error('VOICE_PROVIDER_STATUS_INPUT_INVALID')
+        const service = createVoiceProviderStatus({ root: projectRoot, config: options.audioJobs?.config })
+        if (request.method === 'GET' && url.pathname.endsWith('/provider-status')) {
+          writeJson(response, 200, await service.read(controller.signal))
+          return
+        }
+        if (request.method !== 'POST' || !url.pathname.endsWith('/doctor'))
+          throw new Error('VOICE_PROVIDER_STATUS_INPUT_INVALID')
+        const input = JSON.parse((await readRequestBytes(request, 1024)).toString())
+        if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).length !== 1 || typeof input.providerId !== 'string')
+          throw new Error('VOICE_PROVIDER_STATUS_INPUT_INVALID')
+        writeJson(response, 200, await service.doctor(input.providerId, controller.signal))
+        return
+      }
+      catch (error) {
+        const code = error instanceof Error && /^VOICE_PROVIDER_(?:STATUS_INPUT_INVALID|DIAGNOSTICS_FAILED)$/u.test(error.message) ? error.message : 'VOICE_PROVIDER_STATUS_FAILED'
+        throw new EditorHttpError(409, code)
+      }
+      finally {
+        response.removeListener('close', cancel)
+      }
+    }
     if (url.pathname === `${API_PREFIX}audio/alignment`) {
       await options.validateProjectAccess?.()
       if (request.method !== 'POST' || url.search)
