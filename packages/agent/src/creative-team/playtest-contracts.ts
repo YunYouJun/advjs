@@ -54,6 +54,8 @@ export interface CreativePlaytestReport {
 
 export interface CreativePlaytestSummary {
   id: string
+  /** Links a local durable report intent to its server summary. Older history may omit it. */
+  intentId?: string
   projectId: string
   baselineRevision: string
   snapshotRevision: string
@@ -185,6 +187,6 @@ export function parseCreativePlaytestReport(value: unknown): CreativePlaytestRep
 }
 
 export function parseCreativePlaytestSummary(value: unknown): CreativePlaytestSummary {
-  const item = object(value, ['id', 'projectId', 'baselineRevision', 'snapshotRevision', 'scope', 'artifacts', 'runnerVersion', 'verification', 'passed', 'failed', 'blocked', 'cancelled', 'createdAt'])
-  return { id: text(item.id), projectId: text(item.projectId), baselineRevision: text(item.baselineRevision), snapshotRevision: text(item.snapshotRevision), scope: member(item.scope, ['saved', 'candidate']), artifacts: references(item.artifacts), runnerVersion: member(item.runnerVersion, ['creative-headless-v1']), verification: member(item.verification, ['author-host']), passed: integer(item.passed, 12), failed: integer(item.failed, 12), blocked: integer(item.blocked, 12), cancelled: integer(item.cancelled, 12), createdAt: integer(item.createdAt) }
+  const item = object(value, ['id', 'intentId', 'projectId', 'baselineRevision', 'snapshotRevision', 'scope', 'artifacts', 'runnerVersion', 'verification', 'passed', 'failed', 'blocked', 'cancelled', 'createdAt'])
+  return { id: text(item.id), ...(item.intentId === undefined ? {} : { intentId: text(item.intentId, 128) }), projectId: text(item.projectId), baselineRevision: text(item.baselineRevision), snapshotRevision: text(item.snapshotRevision), scope: member(item.scope, ['saved', 'candidate']), artifacts: references(item.artifacts), runnerVersion: member(item.runnerVersion, ['creative-headless-v1']), verification: member(item.verification, ['author-host']), passed: integer(item.passed, 12), failed: integer(item.failed, 12), blocked: integer(item.blocked, 12), cancelled: integer(item.cancelled, 12), createdAt: integer(item.createdAt) }
 }

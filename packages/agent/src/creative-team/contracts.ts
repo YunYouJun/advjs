@@ -1,6 +1,7 @@
 import type { AgentCapabilityId, AgentUsageSummary } from '../core/contracts'
 import type { CreativePartnerOutput } from './outputs'
 import type { CreativePlaytestSummary } from './playtest-contracts'
+import type { CreativePlaytestRepairContext, CreativePlaytestRepairReference } from './playtest-repair'
 
 /** Creative partners are not in-game character identities. */
 export const CREATIVE_PARTNER_IDS = ['director', 'writer', 'character-designer', 'art-director', 'voice-director', 'playtester'] as const
@@ -111,6 +112,7 @@ export interface CreativeTeamAttempt {
   usage: AgentUsageSummary
   artifactIds: readonly string[]
   error?: { code: string, message: string }
+  playtestRepair?: { decisionId: string, reference: CreativePlaytestRepairReference }
 }
 
 /** The latest attempt is convenient for UI; history retains every confirmed bill and tool result. */
@@ -127,6 +129,7 @@ export interface CreativeTeamTaskState {
   usage?: AgentUsageSummary
   history?: readonly CreativeTeamAttempt[]
   error?: { code: string, message: string }
+  playtestRepair?: { decisionId: string, reference: CreativePlaytestRepairReference }
 }
 
 /** Persisted by Runtime under an account/project boundary. */
@@ -174,6 +177,7 @@ export interface CreativeTeamDecision {
   projectRevision: string
   at: number
   requestFingerprint?: string
+  playtestRepair?: { taskId: string, reference: CreativePlaytestRepairReference }
 }
 
 /** Availability is a verified Runtime claim, never inferred from a local adapter. */
@@ -183,7 +187,7 @@ export interface CreativeTeamAvailability {
   serviceVersion: string
   capabilities: readonly CreativeTeamCapability[]
   media: { image: 'unavailable' | 'manual-import' | 'verified-managed', voice: 'unavailable' | 'manual-import' | 'verified-author-host' | 'verified-managed' }
-  authoring?: { candidateEdits: boolean, milestoneAdoption: boolean, playtestReports?: boolean }
+  authoring?: { candidateEdits: boolean, milestoneAdoption: boolean, playtestReports?: boolean, playtestRepair?: boolean }
   maxConcurrentTasks: 1
 }
 
@@ -196,5 +200,6 @@ export interface CreativeTeamHandoff {
   facts: { revision: string, files: Readonly<Record<string, string>> }
   candidates: readonly CreativeArtifact[]
   constraints: readonly string[]
+  repair?: CreativePlaytestRepairContext
   remainingMicroPoints: number
 }

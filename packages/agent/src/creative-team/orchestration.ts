@@ -1,5 +1,6 @@
 import type { AgentUsageSummary } from '../core/contracts'
 import type { CreativeArtifact, CreativeMilestoneIntent, CreativeTeamPlan, CreativeTeamRun } from './contracts'
+import type { CreativePlaytestRepairReference } from './playtest-repair'
 import { invalidateCreativeArtifacts } from './candidates'
 import { assertCreativeArtifactBoundary, parseCreativeTeamPlan } from './validation'
 
@@ -13,7 +14,7 @@ export type CreativeTeamAction
     | { type: 'attach-runtime-task', taskId: string, dispatchKey: string, runtimeTaskId: string }
     | { type: 'settle-task', taskId: string, dispatchKey: string, status: 'completed' | 'failed' | 'cancelled' | 'reconcile_required', usage?: AgentUsageSummary, artifacts: readonly CreativeArtifact[], error?: { code: string, message: string } }
     | { type: 'select', taskId: string, artifactIds: readonly string[], decisionId: string, reason: string }
-    | { type: 'request-rework', taskId: string, reason: string, decisionId?: string }
+    | { type: 'request-rework', taskId: string, reason: string, decisionId?: string, playtestRepair?: CreativePlaytestRepairReference }
     | { type: 'edit-candidate', artifact: CreativeArtifact, decisionId: string, reason: string, requestFingerprint: string }
     | { type: 'prepare-milestone', intent: CreativeMilestoneIntent }
     | { type: 'resolve-milestone', milestoneId: string, status: 'confirmed' | 'abandoned', files: Readonly<Record<string, string>> }
@@ -222,6 +223,7 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
         status: action.status,
         usage: action.usage,
         artifactIds: action.artifacts.map(artifact => artifact.id),
+        ...(state!.playtestRepair ? { playtestRepair: state!.playtestRepair } : {}),
         ...(action.error ? { error: action.error } : {}),
       }]
       run.chargedMicroPoints += action.usage.chargedMicroPoints
@@ -275,8 +277,13 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
       }
       state!.status = 'pending'
       state!.error = { code: 'rework_requested', message: action.reason }
+      if (action.playtestRepair && !action.decisionId)
+        throw new TypeError('Repair evidence requires an author decision identity')
+      state!.playtestRepair = action.playtestRepair ? { decisionId: action.decisionId!, reference: action.playtestRepair } : undefined
       if (action.decisionId)
         decision(action.decisionId, 'rework', state!.artifactIds, action.reason)
+      if (action.playtestRepair)
+        run.decisions = run.decisions.map(item => item.id === action.decisionId ? { ...item, playtestRepair: { taskId: state!.taskId, reference: action.playtestRepair! } } : item)
       break
     }
     case 'edit-candidate': {

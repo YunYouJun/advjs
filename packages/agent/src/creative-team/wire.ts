@@ -2,6 +2,7 @@ import type { CreativePartnerId, CreativeTeamAvailability, CreativeTeamLimits, C
 import type { CreativeTeamAction } from './orchestration'
 import { AGENT_CAPABILITY_IDS } from '../core/contracts'
 import { CREATIVE_PARTNER_DEFAULT_CAPABILITY, CREATIVE_PARTNER_IDS, CREATIVE_TEAM_CAPABILITIES } from './contracts'
+import { parseCreativePlaytestRepairReference } from './playtest-repair'
 import { assertCreativeSourcePath, parseCreativeTeamPlan } from './validation'
 
 /** A finite request contains project data and author ceilings, never model or provider settings. */
@@ -143,7 +144,9 @@ export function createCreativeBootstrapPlan(request: CreativeTeamStartRequest): 
 
 /** Reject runtime mutations even when the caller has a valid account token. */
 export function parseCreativeTeamPublicDecision(value: unknown, idempotencyKey: string): CreativeTeamPublicDecision {
-  const source = record(value, ['type', 'artifactId', 'taskId', 'artifactIds', 'reason'])
+  const source = record(value, ['type', 'artifactId', 'taskId', 'artifactIds', 'reason', 'playtestRepair'])
+  if (source.playtestRepair !== undefined && source.type !== 'request-rework')
+    throw new TypeError('Playtest repair requires a rework decision')
   const decisionId = text(idempotencyKey, 128)
   switch (source.type) {
     case 'approve-plan': return { type: source.type, decisionId }
@@ -152,7 +155,7 @@ export function parseCreativeTeamPublicDecision(value: unknown, idempotencyKey: 
       if (!Array.isArray(source.artifactIds) || !source.artifactIds.length || source.artifactIds.length > 64)
         throw new TypeError('Invalid selected artifacts')
       return { type: source.type, taskId: text(source.taskId, 64), artifactIds: source.artifactIds.map(value => text(value, 200)), decisionId, reason: text(source.reason) }
-    case 'request-rework': return { type: source.type, taskId: text(source.taskId, 64), reason: text(source.reason), decisionId }
+    case 'request-rework': return { type: source.type, taskId: text(source.taskId, 64), reason: text(source.reason), decisionId, ...(source.playtestRepair === undefined ? {} : { playtestRepair: parseCreativePlaytestRepairReference(source.playtestRepair) }) }
     case 'cancel': return { type: source.type, decisionId, reason: text(source.reason) }
     default: throw new TypeError('This creative team mutation is not an author decision')
   }
@@ -169,12 +172,12 @@ export function parseCreativeTeamAvailability(value: unknown): CreativeTeamAvail
     return value as CreativeTeamAvailability['capabilities'][number]
   })
   const media = record(source.media)
-  const authoring = source.authoring === undefined ? undefined : record(source.authoring, ['candidateEdits', 'milestoneAdoption', 'playtestReports'])
-  if (authoring && (typeof authoring.candidateEdits !== 'boolean' || typeof authoring.milestoneAdoption !== 'boolean' || (authoring.playtestReports !== undefined && typeof authoring.playtestReports !== 'boolean')))
+  const authoring = source.authoring === undefined ? undefined : record(source.authoring, ['candidateEdits', 'milestoneAdoption', 'playtestReports', 'playtestRepair'])
+  if (authoring && (typeof authoring.candidateEdits !== 'boolean' || typeof authoring.milestoneAdoption !== 'boolean' || (authoring.playtestReports !== undefined && typeof authoring.playtestReports !== 'boolean') || (authoring.playtestRepair !== undefined && typeof authoring.playtestRepair !== 'boolean')))
     throw new TypeError('Unknown creative authoring availability')
   if (!['unavailable', 'manual-import', 'verified-managed'].includes(String(media.image))
     || !['unavailable', 'manual-import', 'verified-author-host', 'verified-managed'].includes(String(media.voice))) {
     throw new TypeError('Unknown creative media availability')
   }
-  return { protocolVersion: 1, enabled: source.enabled, serviceVersion: text(source.serviceVersion, 200), capabilities, maxConcurrentTasks: 1, media: { image: media.image as CreativeTeamAvailability['media']['image'], voice: media.voice as CreativeTeamAvailability['media']['voice'] }, ...(authoring ? { authoring: { candidateEdits: authoring.candidateEdits as boolean, milestoneAdoption: authoring.milestoneAdoption as boolean, ...(authoring.playtestReports === undefined ? {} : { playtestReports: authoring.playtestReports as boolean }) } } : {}) }
+  return { protocolVersion: 1, enabled: source.enabled, serviceVersion: text(source.serviceVersion, 200), capabilities, maxConcurrentTasks: 1, media: { image: media.image as CreativeTeamAvailability['media']['image'], voice: media.voice as CreativeTeamAvailability['media']['voice'] }, ...(authoring ? { authoring: { candidateEdits: authoring.candidateEdits as boolean, milestoneAdoption: authoring.milestoneAdoption as boolean, ...(authoring.playtestReports === undefined ? {} : { playtestReports: authoring.playtestReports as boolean }), ...(authoring.playtestRepair === undefined ? {} : { playtestRepair: authoring.playtestRepair as boolean }) } } : {}) }
 }

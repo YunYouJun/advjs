@@ -5,6 +5,7 @@ import { AGENT_CAPABILITY_IDS } from '../core/contracts'
 import { CREATIVE_ARTIFACT_KINDS, CREATIVE_PARTNER_IDS } from './contracts'
 import { parseCreativePartnerOutputSnapshot } from './outputs'
 import { parseCreativePlaytestSummary } from './playtest-contracts'
+import { parseCreativePlaytestRepairReference } from './playtest-repair'
 import { assertCreativeArtifactBoundary, assertCreativeSourcePath, parseCreativeTeamPlan, requiredCreativeReviewCapabilities } from './validation'
 
 const RUN_STATUSES = ['awaiting_plan_review', 'ready', 'running', 'awaiting_review', 'blocked', 'cancel_requested', 'cancelled', 'completed', 'reconcile_required'] as const
@@ -68,6 +69,7 @@ function attempt(value: unknown): CreativeTeamAttempt {
     usage: usage(source.usage),
     artifactIds: ids(source.artifactIds),
     ...(source.error === undefined ? {} : { error: error(source.error) }),
+    ...(source.playtestRepair === undefined ? {} : { playtestRepair: { decisionId: identity(object(source.playtestRepair).decisionId), reference: parseCreativePlaytestRepairReference(object(source.playtestRepair).reference) } }),
   }
 }
 function taskState(value: unknown): CreativeTeamTaskState {
@@ -87,6 +89,7 @@ function taskState(value: unknown): CreativeTeamTaskState {
     ...(source.usage === undefined ? {} : { usage: usage(source.usage) }),
     ...(source.history === undefined ? {} : { history: array(source.history, 3).map(attempt) }),
     ...(source.error === undefined ? {} : { error: error(source.error) }),
+    ...(source.playtestRepair === undefined ? {} : { playtestRepair: { decisionId: identity(object(source.playtestRepair).decisionId), reference: parseCreativePlaytestRepairReference(object(source.playtestRepair).reference) } }),
   }
 }
 function artifact(value: unknown, run: Pick<CreativeTeamRun, 'id' | 'plan'>): CreativeArtifact {
@@ -166,6 +169,7 @@ export function parseCreativeTeamRun(value: unknown, boundary: { accountId: stri
         projectRevision: identity(decision.projectRevision),
         at: integer(decision.at),
         ...(decision.requestFingerprint === undefined ? {} : { requestFingerprint: identity(decision.requestFingerprint) }),
+        ...(decision.playtestRepair === undefined ? {} : { playtestRepair: { taskId: identity(object(decision.playtestRepair).taskId), reference: parseCreativePlaytestRepairReference(object(decision.playtestRepair).reference) } }),
       }
     }),
     ...(source.milestones === undefined
@@ -195,6 +199,19 @@ export function parseCreativeTeamRun(value: unknown, boundary: { accountId: stri
     updatedAt: integer(source.updatedAt),
   }
   run.artifacts = array(source.artifacts, 256).map(item => artifact(item, run))
+  for (const decision of run.decisions) {
+    if (decision.playtestRepair && (decision.action !== 'rework' || !run.tasks.some(item => item.taskId === decision.playtestRepair!.taskId)
+      || !run.playtests?.some(item => item.id === decision.playtestRepair!.reference.reportId && item.snapshotRevision === decision.playtestRepair!.reference.snapshotRevision))) {
+      throw new TypeError('Invalid repair report provenance')
+    }
+  }
+  for (const task of run.tasks) {
+    for (const repair of [task.playtestRepair, ...(task.history ?? []).map(item => item.playtestRepair)].filter(item => item !== undefined)) {
+      if (!run.decisions.some(item => item.id === repair.decisionId && item.playtestRepair?.taskId === task.taskId && JSON.stringify(item.playtestRepair.reference) === JSON.stringify(repair.reference)))
+        throw new TypeError('Invalid repair decision provenance')
+    }
+  }
+
   if (new Set(run.tasks.map(task => task.taskId)).size !== run.tasks.length || run.tasks.length !== run.plan.tasks.length
     || run.tasks.some(task => !run.plan.tasks.some(definition => definition.id === task.taskId))
     || new Set(run.artifacts.map(item => item.id)).size !== run.artifacts.length) {
