@@ -1,10 +1,12 @@
 import type { CreativeArtifact, CreativeTeamRun } from '@advjs/agent'
 import type { AdvAssetEntry } from '@advjs/types'
 import type { CreativeArtImportEntry, CreativeArtImportReview } from './creativeArtImportCache'
+import type { CreativeMediaProjectState } from './creativeMediaRecovery'
 import type { IFileSystem } from './fs'
 import { computeAgentProjectRevision, creativeArtifactExpectedFiles, parseCreativeProject } from '@advjs/agent'
 import { compileProject, planAdvAssetManifestUpsert } from '@advjs/core'
 import * as yaml from 'js-yaml'
+import { inspectCreativeMediaWrite, recoverCreativeMediaWrite } from './creativeMediaRecovery'
 import { createStudioCreativeWorkspace } from './creativeTeamWorkspace'
 import { dumpYamlFrontmatter } from './mdFrontmatter'
 import { commitStudioProjectFiles } from './nativeProjectMutation'
@@ -118,20 +120,19 @@ export async function reviewCreativeArtImport(fs: IFileSystem, run: CreativeTeam
 }
 
 /** Inspect durable files and bytes without resubmitting an import or changing any source. */
-export async function inspectCreativeArtImport(fs: IFileSystem, entry: CreativeArtImportEntry, assertCurrent: () => void): Promise<'before' | 'after' | 'conflict'> {
-  const review = entry.review
-  if (!review)
+export async function inspectCreativeArtImport(fs: IFileSystem, entry: CreativeArtImportEntry, assertCurrent: () => void): Promise<CreativeMediaProjectState> {
+  if (!entry.review)
     return 'before'
-  const snapshot = await createStudioCreativeWorkspace(fs, entry.projectId, { assertCurrent }).snapshot()
-  if (snapshot.revision === review.beforeRevision)
-    return 'before'
-  if (snapshot.revision !== review.afterRevision || !await fs.exists(review.mediaPath))
-    return 'conflict'
-  const blob = await fs.readBlob(review.mediaPath)
-  const data = await blob.arrayBuffer()
-  const sha256 = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', data)), byte => byte.toString(16).padStart(2, '0')).join('')
-  assertCurrent()
-  return sha256 === entry.image.sha256 && data.byteLength === entry.image.bytes ? 'after' : 'conflict'
+  return inspectCreativeMediaWrite(fs, entry.projectId, entry.review, entry.image, assertCurrent)
+}
+
+/** A crashed partial import can finish or restore only its reviewed files; reusable image bytes remain. */
+export async function recoverCreativeArtImport(fs: IFileSystem, run: CreativeTeamRun, entry: CreativeArtImportEntry, destination: 'before' | 'after', assertCurrent: () => void) {
+  if (!entry.review)
+    throw new Error('CREATIVE_IMAGE_RECOVERY_REQUIRED')
+  if (destination === 'after')
+    assertCreativeArtImport(run, entry)
+  await recoverCreativeMediaWrite({ fs, projectId: entry.projectId, review: entry.review, media: entry.image, destination, data: entry.data, mimeType: entry.image.mimeType, assertCurrent, acceptsPath: path => /^adv\/(?:assets(?:\.json|\/[\w./-]+\.json)|scenes\/[\w-]+\.md)$/.test(path) && !path.split('/').some(part => ['.', '..', ''].includes(part)) })
 }
 
 /** Commit binary, catalog and binding under Studio's existing project lock with rollback. */

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import type { CreativeArtImportHost } from '../../composables/useCreativeArtImport'
 import type { CreativeArtImportEntry } from '../../utils/creativeArtImportCache'
+import type { CreativeMediaProjectState } from '../../utils/creativeMediaRecovery'
 import { onBeforeUnmount, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import SButton from '../ui/SButton.vue'
 
-const props = defineProps<{ entry: CreativeArtImportEntry, disabled: boolean, stale: boolean, actual?: 'before' | 'after' | 'conflict', host: () => Promise<CreativeArtImportHost> }>()
-defineEmits<{ review: [replace: boolean], adopt: [], undo: [], reconcile: [], discard: [], abandon: [] }>()
+const props = defineProps<{ entry: CreativeArtImportEntry, disabled: boolean, stale: boolean, actual?: CreativeMediaProjectState, host: () => Promise<CreativeArtImportHost> }>()
+defineEmits<{ review: [replace: boolean], adopt: [], undo: [], reconcile: [], restore: [], discard: [], abandon: [] }>()
 const { t } = useI18n()
 const src = shallowRef('')
 const previewError = shallowRef(false)
@@ -55,6 +56,9 @@ onBeforeUnmount(() => {
     <p v-if="actual === 'conflict'" role="status">
       {{ t('creativeTeam.artImport.conflict') }}
     </p>
+    <p v-if="actual === 'partial'" role="status">
+      {{ t('creativeTeam.mediaRecovery.partial') }}
+    </p>
     <img v-if="src" class="art-candidate__image" :src="src" :alt="entry.request.assetId" @error="previewError = true">
     <p v-if="previewError" role="status">
       {{ t('creativeTeam.artImport.previewError') }}
@@ -93,19 +97,22 @@ onBeforeUnmount(() => {
       <SButton v-if="entry.state === 'candidate' && entry.review" size="lg" :disabled="disabled || stale" @click="$emit('adopt')">
         {{ t('creativeTeam.artImport.adopt') }}
       </SButton>
-      <SButton v-if="entry.state === 'adopted' && actual === 'after'" size="lg" variant="outline" :disabled="disabled" @click="$emit('undo')">
+      <SButton v-if="entry.state === 'adopted' && ['after', 'partial'].includes(actual ?? '')" size="lg" variant="outline" :disabled="disabled" @click="$emit('undo')">
         {{ t('creativeTeam.artImport.undo') }}
       </SButton>
       <SButton v-if="['adopting', 'undoing', 'adopted'].includes(entry.state)" size="lg" variant="outline" :disabled="disabled" @click="$emit('reconcile')">
         {{ t('creativeTeam.artImport.reconcile') }}
       </SButton>
-      <SButton v-if="entry.state === 'adopting' && actual === 'before'" size="lg" :disabled="disabled || stale" @click="$emit('adopt')">
+      <SButton v-if="entry.state === 'adopting' && ['before', 'partial'].includes(actual ?? '')" size="lg" :disabled="disabled || stale" @click="$emit('adopt')">
         {{ t('creativeTeam.artImport.resume') }}
       </SButton>
-      <SButton v-if="entry.state === 'undoing' && actual === 'after'" size="lg" variant="outline" :disabled="disabled" @click="$emit('undo')">
+      <SButton v-if="entry.state === 'undoing' && ['after', 'partial'].includes(actual ?? '')" size="lg" variant="outline" :disabled="disabled" @click="$emit('undo')">
         {{ t('creativeTeam.artImport.resumeUndo') }}
       </SButton>
-      <SButton v-if="(entry.state === 'adopting' && actual === 'before') || (entry.state === 'undoing' && actual === 'after')" size="lg" variant="ghost" :disabled="disabled" @click="$emit('abandon')">
+      <SButton v-if="entry.state === 'adopting' && actual === 'partial'" size="lg" variant="outline" :disabled="disabled" @click="$emit('restore')">
+        {{ t('creativeTeam.mediaRecovery.restoreImage') }}
+      </SButton>
+      <SButton v-if="(entry.state === 'adopting' && ['before', 'conflict'].includes(actual ?? '')) || (entry.state === 'undoing' && ['after', 'conflict'].includes(actual ?? ''))" size="lg" variant="ghost" :disabled="disabled" @click="$emit('abandon')">
         {{ t('creativeTeam.artImport.abandon') }}
       </SButton>
       <SButton v-if="['candidate', 'undone'].includes(entry.state)" size="lg" variant="ghost" :disabled="disabled" @click="$emit('discard')">

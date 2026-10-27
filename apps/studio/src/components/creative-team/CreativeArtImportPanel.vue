@@ -40,7 +40,7 @@ onBeforeUnmount(() => emit('busy', false))
       {{ t(`creativeTeam.artImport.error.${error}`) }}
     </p>
     <CreativeArtImportForm :run="run" :disabled="blocked" @stage="session.stage" />
-    <CreativeArtImportCandidate v-for="candidate in candidates" :key="candidate.entry.id" v-bind="candidate" :disabled="blocked" :actual="inspections[candidate.entry.id]" :host="host" @review="session.review(candidate.entry.id, $event)" @adopt="session.adopt(candidate.entry.id)" @undo="session.undo(candidate.entry.id)" @reconcile="session.reconcile(candidate.entry.id)" @abandon="session.abandon(candidate.entry.id)" @discard="session.discard(candidate.entry.id)" />
+    <CreativeArtImportCandidate v-for="candidate in candidates" :key="candidate.entry.id" v-bind="candidate" :disabled="blocked" :actual="inspections[candidate.entry.id]" :host="host" @review="session.review(candidate.entry.id, $event)" @adopt="session.adopt(candidate.entry.id)" @undo="session.undo(candidate.entry.id)" @reconcile="session.reconcile(candidate.entry.id)" @abandon="session.abandon(candidate.entry.id)" @restore="session.restore(candidate.entry.id)" @discard="session.discard(candidate.entry.id)" />
   </section>
 </template>
 

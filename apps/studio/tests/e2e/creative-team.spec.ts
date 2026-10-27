@@ -1,8 +1,38 @@
+import type { Page } from '@playwright/test'
 import { createHash } from 'node:crypto'
 import { readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import process from 'node:process'
 import { expect, test } from '@playwright/test'
+
+const consoleEvidence = new WeakMap<Page, { errors: string[], warnings: string[] }>()
+test.beforeEach(({ page }) => {
+  const evidence = { errors: [] as string[], warnings: [] as string[] }
+  consoleEvidence.set(page, evidence)
+  page.on('pageerror', error => evidence.errors.push(error.message))
+  page.on('console', (message) => {
+    if (message.type() === 'error')
+      evidence.errors.push(message.text())
+    if (message.type() === 'warning')
+      evidence.warnings.push(message.text())
+  })
+})
+test.afterEach(async ({ page }, info) => {
+  const evidence = consoleEvidence.get(page)!
+  await writeFile(info.outputPath('browser-console.json'), JSON.stringify(evidence, null, 2))
+  expect(evidence.errors).toEqual([])
+  expect(evidence.warnings).toEqual([])
+})
+
+async function stageRealRecoveryVoice(page: Page, audioPath: string) {
+  const panel = page.getByTestId('creative-voice-import')
+  await panel.getByRole('button', { name: '核对实际对白', exact: true }).click()
+  await panel.getByLabel('选择真实对白 WAV').setInputFiles(audioPath)
+  await panel.getByLabel('制作来源、署名与使用说明').fill('本机真实 Tingting 外部制作；用于中断恢复验证，未调用托管服务。')
+  await panel.getByRole('button', { name: '审阅未选配音候选', exact: true }).click()
+  await expect(panel.getByText('请核对原始字节、音色来源与文件变化。确认仅登记 VoiceTake，尚未采用到游戏。')).toBeVisible()
+  return panel
+}
 
 test('executes actual core paths, retains private reports across reload and retests a repaired source', async ({ page }, info) => {
   const errors: string[] = []
@@ -556,4 +586,160 @@ test('returns real external speech to a stable line, auditions and adopts it, an
   expect(errors).toEqual([])
   expect(warnings).toEqual([])
   await writeFile(info.outputPath('real-voice-evidence.json'), JSON.stringify({ scope: 'External macOS say speech manually imported, decoded, persisted, auditioned and explicitly adopted through actual Studio code. Actual GamePlayer Web Audio graph used original browser methods, running context, nonzero destination gain and a natural-duration trusted end event. No physical-speaker measurement, human quality score, hosted generation or final-team receipt.', media, before, registered, adopted, audition, playback, calls, errors, warnings }, null, 2))
+})
+
+for (const destination of ['after', 'before'] as const) {
+  test(`recovers a real interrupted voice registration to ${destination} through the durable media journal`, async ({ page }, info) => {
+    const audioPath = process.env.STUDIO_CREATIVE_VOICE_WAV
+    test.skip(!audioPath, 'Requires genuine external speech; no test waveform substitute')
+    await page.goto('/tests/fixtures/creative-team/voice-import.html')
+    await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeVoiceFixture))).toBe(true)
+    const files = () => page.evaluate(async () => (window as any).creativeVoiceFixture.files())
+    const before = await files()
+    const panel = await stageRealRecoveryVoice(page, audioPath!)
+    await page.reload()
+    await expect(panel.getByRole('button', { name: '登记未选配音候选', exact: true })).toBeVisible()
+    expect(await files()).toEqual(before)
+    await page.evaluate(() => (window as any).creativeVoiceFixture.crashAfterText(1))
+    await panel.getByRole('button', { name: '登记未选配音候选', exact: true }).click()
+    await expect.poll(() => page.evaluate(() => (window as any).creativeVoiceFixture.crashed())).toBe(true)
+    const interrupted = await files()
+    expect(interrupted).not.toEqual(before)
+    const pending = await page.evaluate(async () => (window as any).creativeVoiceFixture.journal())
+    expect(pending[0].state).toBe('registering')
+    expect(pending[0].retainedBytes).toBeGreaterThan(0)
+    await page.reload()
+    await expect(panel.getByText('检测到本次操作的部分写入。已核对其余源文件未变；请审阅原始变化后，明确继续或恢复写前文件。')).toBeVisible()
+    expect(await files()).toEqual(interrupted)
+    expect(await page.evaluate(() => (window as any).creativeVoiceFixture.writes())).toEqual([])
+    for (const width of [1280, 390]) {
+      await page.setViewportSize({ width, height: 900 })
+      await panel.getByTestId('creative-voice-candidate').scrollIntoViewIfNeeded()
+      await page.screenshot({ path: info.outputPath(`partial-voice-${destination}-${width}.png`), animations: 'disabled' })
+    }
+    await panel.getByRole('button', { name: destination === 'after' ? '继续已审阅配音登记' : '恢复配音登记前文件', exact: true }).click()
+    await expect(panel.getByText(destination === 'after' ? '已登记，采用状态见配音审阅' : '登记文件已恢复，原始音频保留', { exact: false })).toBeVisible()
+    const result = await files()
+    if (destination === 'before') {
+      expect(result).toEqual(before)
+    }
+    else {
+      const ledger = JSON.parse(result['adv/audio/voice-ledger.json'])
+      expect(ledger.lines[pending[0].target].locales['zh-CN'].selectedTake).toBeNull()
+      expect(ledger.lines[pending[0].target].locales['zh-CN'].takes.map((take: any) => take.id)).toEqual([pending[0].takeId])
+    }
+    const journal = await page.evaluate(async () => (window as any).creativeVoiceFixture.journal())
+    expect(journal[0].mediaHash).toBe(pending[0].mediaHash)
+    expect(journal[0].mediaBytes).toBe(pending[0].mediaBytes)
+    await page.reload()
+    await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeVoiceFixture))).toBe(true)
+    expect(await files()).toEqual(result)
+    expect(await page.evaluate(() => (window as any).creativeVoiceFixture.writes())).toEqual([])
+    await writeFile(info.outputPath('partial-voice-recovery.json'), JSON.stringify({ scope: 'Actual browser navigation interrupts a live native transaction after durable binary and first text write; actual private journal, filesystem recovery and original genuine speech bytes.', destination, before, interrupted, result, pending, journal }, null, 2))
+  })
+}
+
+test('reopens an unacknowledged voice registration and confirms its local journal without another file write', async ({ page }, info) => {
+  const audioPath = process.env.STUDIO_CREATIVE_VOICE_WAV
+  test.skip(!audioPath, 'Requires genuine external speech')
+  await page.goto('/tests/fixtures/creative-team/voice-import.html')
+  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeVoiceFixture))).toBe(true)
+  const panel = await stageRealRecoveryVoice(page, audioPath!)
+  await page.evaluate(() => (window as any).creativeVoiceFixture.loseRegistrationAck())
+  await panel.getByRole('button', { name: '登记未选配音候选', exact: true }).click()
+  await expect(panel.getByRole('alert')).toBeVisible()
+  const written = await page.evaluate(async () => (window as any).creativeVoiceFixture.files())
+  await page.reload()
+  await expect(panel.getByText('登记待核对', { exact: false })).toBeVisible()
+  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeVoiceFixture))).toBe(true)
+  expect(await page.evaluate(() => (window as any).creativeVoiceFixture.writes())).toEqual([])
+  await panel.getByRole('button', { name: '核对媒体操作记录', exact: true }).click()
+  await expect(panel.getByText('已登记，采用状态见配音审阅', { exact: false })).toBeVisible()
+  expect(await page.evaluate(() => (window as any).creativeVoiceFixture.writes())).toEqual([])
+  expect(await page.evaluate(async () => (window as any).creativeVoiceFixture.files())).toEqual(written)
+  const journal = await page.evaluate(async () => (window as any).creativeVoiceFixture.journal())
+  expect(journal[0].retainedBytes).toBe(0)
+  await writeFile(info.outputPath('voice-registration-ack-recovery.json'), JSON.stringify({ scope: 'Real completed project write; explicit local journal acknowledgement fault; reopen and reconciliation perform no project writes.', written, journal }, null, 2))
+})
+
+test('blocks another media write while an image is partially adopted and restores its reviewed source', async ({ page }, info) => {
+  const audioPath = process.env.STUDIO_CREATIVE_VOICE_WAV
+  test.skip(!audioPath, 'Requires genuine external speech')
+  await page.goto('/tests/fixtures/creative-team/voice-import.html')
+  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeVoiceFixture))).toBe(true)
+  const files = () => page.evaluate(async () => (window as any).creativeVoiceFixture.files())
+  const before = await files()
+  const art = page.getByTestId('creative-art-import')
+  await art.getByRole('combobox', { name: '美术素材需求', exact: true }).selectOption({ label: 'character/lin/default · 619 × 619' })
+  await art.getByLabel('选择图片文件').setInputFiles(resolve(import.meta.dirname, '../../../../demo/starter/public/img/characters/xiaoyun.webp'))
+  await art.getByLabel('素材来源与署名').fill('仓库现有小云图片，仅验证图片与配音的共同恢复互斥。')
+  await art.getByRole('button', { name: '保存图片候选', exact: true }).click()
+  await art.getByRole('button', { name: '审阅导入', exact: true }).click()
+  await page.evaluate(() => (window as any).creativeVoiceFixture.crashAfterText(1))
+  await art.getByRole('button', { name: '确认采用此图片', exact: true }).click()
+  await expect.poll(() => page.evaluate(() => (window as any).creativeVoiceFixture.crashed())).toBe(true)
+  await page.reload()
+  await expect(art.getByText('检测到本次操作的部分写入。已核对其余源文件未变；请审阅原始变化后，明确继续或恢复写前文件。')).toBeVisible()
+  const partial = await files()
+  const voice = await stageRealRecoveryVoice(page, audioPath!)
+  await voice.getByRole('button', { name: '登记未选配音候选', exact: true }).click()
+  await expect(voice.getByRole('alert')).toBeVisible()
+  expect(await files()).toEqual(partial)
+  expect(await page.evaluate(() => (window as any).creativeVoiceFixture.writes())).toEqual([])
+  await art.getByRole('button', { name: '恢复图片采用前文件', exact: true }).click()
+  await expect(art.getByText('图片候选，未写入项目', { exact: false })).toBeVisible()
+  expect(await files()).toEqual(before)
+  await writeFile(info.outputPath('cross-media-pending-recovery.json'), JSON.stringify({ scope: 'Actual image transaction interrupted after durable first text file; common IndexedDB intent guard refuses a new voice write; explicit original-file restoration preserves image bytes.', before, partial }, null, 2))
+})
+
+test('upgrades the original image journal without losing its pending candidate bytes', async ({ page }, info) => {
+  const bytes = await readFile(resolve(import.meta.dirname, '../../../../demo/starter/public/img/characters/xiaoyun.webp'))
+  const sha256 = createHash('sha256').update(bytes).digest('hex')
+  const fixtureUrl = '/tests/fixtures/creative-team/art-import.html'
+  await page.route(url => url.searchParams.get('legacySeed') === '1', route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><html><body>Explicit v1 journal migration seed</body></html>' }))
+  await page.goto(`${fixtureUrl}?legacySeed=1`)
+  await page.evaluate(async ({ bytes, sha256 }) => {
+    const request = indexedDB.open('advjs-studio-creative-art-imports', 10)
+    request.onupgradeneeded = () => {
+      const table = request.result.createObjectStore('entries', { keyPath: ['accountId', 'projectId', 'runId', 'id'] })
+      table.createIndex('[accountId+projectId+runId]', ['accountId', 'projectId', 'runId'])
+    }
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result)
+      request.onerror = () => reject(request.error)
+    })
+    const transaction = database.transaction('entries', 'readwrite')
+    transaction.objectStore('entries').put({ accountId: 'art-fixture-author', projectId: 'creative-art-ui-fixture', runId: 'art_fixture_run', id: 'legacy-image', artifactId: 'art-fixture-proposal', artifactFingerprint: 'art-fixture-proposal-v1', request: { assetId: 'character/xiaoyun/default', kind: 'portrait', characterId: 'xiaoyun', width: 619, height: 619, prompt: '将仓库已有小云图片按原样导入对应角色，保留来源。', constraints: ['使用现有图片验证回流，不代表雨夜车站最终美术质量'] }, fileName: 'xiaoyun.webp', attribution: 'Existing v1 private image candidate; retain original bytes during schema upgrade', license: '', image: { mimeType: 'image/webp', sha256, bytes: bytes.length, width: 619, height: 619 }, data: new Uint8Array(bytes).buffer, createdAt: 0, state: 'candidate' })
+    await new Promise<void>((resolve, reject) => {
+      transaction.oncomplete = () => resolve()
+      transaction.onerror = () => reject(transaction.error)
+    })
+    database.close()
+  }, { bytes: [...bytes], sha256 })
+  await page.goto(fixtureUrl)
+  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeArtFixture))).toBe(true)
+  const candidate = page.getByTestId('creative-art-candidate')
+  await expect(candidate).toContainText('Existing v1 private image candidate')
+  await expect(candidate.getByRole('img')).toBeVisible()
+  const before = await page.evaluate(async () => (window as any).creativeArtFixture.files())
+  await candidate.getByRole('button', { name: '审阅导入', exact: true }).click()
+  expect(await page.evaluate(async () => (window as any).creativeArtFixture.files())).toEqual(before)
+  await candidate.getByRole('button', { name: '确认采用此图片', exact: true }).click()
+  await expect(candidate).toContainText('已采用到本机项目')
+  const media = await page.evaluate(async () => (window as any).creativeArtFixture.media())
+  expect(media[0].sha256).toBe(sha256)
+  expect(media[0].bytes).toBe(bytes.length)
+  const schema = await page.evaluate(async () => {
+    const request = indexedDB.open('advjs-studio-creative-art-imports')
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result)
+      request.onerror = () => reject(request.error)
+    })
+    const result = { version: database.version, stores: [...database.objectStoreNames] }
+    database.close()
+    return result
+  })
+  expect(schema.version).toBe(20)
+  expect(schema.stores).toContain('voiceEntries')
+  await writeFile(info.outputPath('media-journal-v1-upgrade.json'), JSON.stringify({ scope: 'Actual native IndexedDB v1 schema and genuine retained image bytes; real Dexie v2 upgrade, canonical review and native image adoption.', schema, media }, null, 2))
 })

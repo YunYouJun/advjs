@@ -10,6 +10,7 @@ import { creativeTeamMessages } from '../../../src/i18n/locales/creativeTeam'
 import { useAuthStore } from '../../../src/stores/useAuthStore'
 import { useCreativeTeamStore } from '../../../src/stores/useCreativeTeamStore'
 import { useStudioStore } from '../../../src/stores/useStudioStore'
+import { creativeVoiceImportCache } from '../../../src/utils/creativeVoiceImportCache'
 import { MemoryFsAdapter } from '../../../src/utils/fs/MemoryFsAdapter'
 import '@ionic/vue/css/core.css'
 import '@ionic/vue/css/normalize.css'
@@ -40,9 +41,13 @@ async function main() {
   }
   const baselineRevision = await computeAgentProjectRevision(originals)
   const run = createCreativeTeamRun({ id: 'voice_fixture_run', accountId, now: 0, plan: { protocolVersion: 1, projectId, projectRevision: baselineRevision, goal: '本地配音方案 fixture：真实系统语音人工回流', limits: { maxTasks: 4, maxToolCalls: 4, maxReworkRounds: 2, maxMicroPoints: 0 }, tasks: [{ id: 'voice', partner: 'voice-director', capability: 'direct-voice', dependsOn: [], sourcePaths: Object.keys(originals), instruction: '独立音频回流示例', expectedOutput: '音频与稳定台词绑定' }] } })
+  const artTask = { id: 'art', partner: 'art-director' as const, capability: 'direct-art' as const, dependsOn: [], sourcePaths: Object.keys(originals), instruction: 'Existing-image recovery fixture', expectedOutput: 'Image binding' }
+  run.plan = { ...run.plan, tasks: [...run.plan.tasks, artTask] }
   run.status = 'awaiting_review'
   run.tasks = [{ taskId: 'voice', status: 'completed', attempt: 1, artifactIds: ['voice-fixture-proposal'] }]
   run.artifacts = [{ id: 'voice-fixture-proposal', runId: run.id, taskId: 'voice', partner: 'voice-director', projectId, kind: 'voice-direction', source: { projectId, revision: baselineRevision, files: originals, upstream: [] }, fingerprint: 'voice-fixture-proposal-v1', summary: '已选定配音交接 fixture', output: { kind: 'voice-direction', summary: '已选定配音交接 fixture', cast: [{ speakerId: 'lin', designBrief: '本机 Tingting 系统语音', performance: '以现成系统音色验证回流，不代表最终角色表演' }, { speakerId: 'narrator', designBrief: '独立旁白，尚未制作', performance: '中性' }], dictionary: [], lines: [{ path: 'adv/chapters/intro.adv.md', line: 4, speakerId: 'lin', text: '列车还没有到，我们再等一会儿。', instruction: '平静地邀请同伴继续等待' }] }, changes: [], reviewCapabilities: ['voice-take'], status: 'selected' }]
+  run.tasks = [...run.tasks, { taskId: 'art', status: 'completed', attempt: 1, artifactIds: ['voice-fixture-art'] }]
+  run.artifacts = [...run.artifacts, { id: 'voice-fixture-art', runId: run.id, taskId: 'art', partner: 'art-director', projectId, kind: 'art-direction', source: { projectId, revision: baselineRevision, files: originals, upstream: [] }, fingerprint: 'voice-fixture-art-v1', summary: '图片中断恢复 fixture', output: { kind: 'art-direction', summary: '图片中断恢复 fixture', style: 'Use existing repository image only', requests: [{ assetId: 'character/lin/default', kind: 'portrait', characterId: 'lin', width: 619, height: 619, prompt: 'Existing image for recovery verification', constraints: [] }] }, changes: [], reviewCapabilities: [], status: 'selected' }]
   const calls: string[] = []
   const client = new ManagedCreativeTeamClient({ accountId, baseUrl: 'http://127.0.0.1:4198', getAccessToken: () => 'voice-fixture-only', fetch: async (input, init) => {
     const url = new URL(String(input))
@@ -51,7 +56,7 @@ async function main() {
     if (method !== 'GET')
       return new Response('{}', { status: 405 })
     const value = url.pathname.endsWith('/capabilities')
-      ? { protocolVersion: 1, enabled: false, authoring: { candidateEdits: true, milestoneAdoption: false }, serviceVersion: 'explicit voice proposal fixture; no models', capabilities: [], maxConcurrentTasks: 1, media: { image: 'unavailable', voice: 'manual-import' } }
+      ? { protocolVersion: 1, enabled: false, authoring: { candidateEdits: true, milestoneAdoption: false }, serviceVersion: 'explicit voice proposal fixture; no models', capabilities: [], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } }
       : url.pathname.endsWith('/runs')
         ? { protocolVersion: 1, items: [{ id: run.id, projectId, goal: run.plan.goal, status: run.status, revision: run.revision, chargedMicroPoints: 0, reservedMicroPoints: 0, updatedAt: 0 }] }
         : { protocolVersion: 1, run }
@@ -74,9 +79,51 @@ async function main() {
   app.mount('#app')
   await store.refresh()
   const content = app.runWithContext(() => useProjectContent())
+  await content.whenReady()
+  const projectFs = content.getFs()!
+  const writes: string[] = []
+  let crashAfterText = 0
+  let crashed = false
+  const writeFile = projectFs.writeFile.bind(projectFs)
+  const writeBlob = projectFs.writeBlob.bind(projectFs)
+  projectFs.writeFile = async (path, value) => {
+    writes.push(path)
+    await writeFile(path, value)
+    if (crashAfterText > 0 && --crashAfterText === 0) {
+      await projectFs.flush?.()
+      crashed = true
+      // The test navigates away with an operation still alive, simulating process loss.
+      await new Promise<void>(() => {})
+    }
+  }
+  projectFs.writeBlob = async (path, value) => {
+    writes.push(path)
+    await writeBlob(path, value)
+  }
   Object.assign(window, { creativeVoiceFixture: {
     calls: () => [...calls],
     originals,
+    writes: () => [...writes],
+    crashAfterText: (count: number) => { crashAfterText = count },
+    crashed: () => crashed,
+    loseRegistrationAck() {
+      const save = creativeVoiceImportCache.save.bind(creativeVoiceImportCache)
+      let lost = false
+      creativeVoiceImportCache.save = async (entry) => {
+        if (!lost && entry.state === 'registered') {
+          lost = true
+          throw new Error('Explicit fixture: local registration acknowledgement lost')
+        }
+        await save(entry)
+      }
+    },
+    async journal() {
+      return Promise.all((await creativeVoiceImportCache.list({ accountId, projectId, runId: run.id })).map(async (entry) => {
+        const exists = await projectFs.exists(entry.review.mediaPath)
+        const bytes = exists ? await (await projectFs.readBlob(entry.review.mediaPath)).arrayBuffer() : undefined
+        return { id: entry.id, state: entry.state, target: entry.review.target.lineId, takeId: entry.review.takeId, mediaPath: entry.review.mediaPath, retainedBytes: entry.review.data?.byteLength ?? 0, mediaBytes: bytes?.byteLength, mediaHash: bytes ? Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), value => value.toString(16).padStart(2, '0')).join('') : undefined }
+      }))
+    },
     async files() {
       await content.whenReady()
       return Object.fromEntries((await content.getFs()!.collectAllFiles()).map(file => [file.path, file.content]))

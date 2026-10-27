@@ -1,10 +1,12 @@
 import type { CreativeTeamRun } from '@advjs/agent'
 import type { CreativeArtImportCache, CreativeArtImportEntry, CreativeArtImportScope } from '../utils/creativeArtImportCache'
+import type { CreativeMediaProjectState } from '../utils/creativeMediaRecovery'
 import type { IFileSystem } from '../utils/fs'
 import { onBeforeUnmount, shallowRef, watch } from 'vue'
-import { assertCreativeArtImport, commitCreativeArtImport, inspectCreativeArtImport, reviewCreativeArtImport } from '../utils/creativeArtImport'
+import { assertCreativeArtImport, commitCreativeArtImport, inspectCreativeArtImport, recoverCreativeArtImport, reviewCreativeArtImport } from '../utils/creativeArtImport'
 import { creativeArtImportCache } from '../utils/creativeArtImportCache'
 import { inspectCreativeImage } from '../utils/creativeImage'
+import { assertCreativeMediaFilesUnchanged } from '../utils/creativeMediaRecovery'
 
 export interface CreativeArtImportHost { fs: IFileSystem, assertCurrent: () => void }
 
@@ -20,7 +22,7 @@ export function useCreativeArtImport(options: {
   const rows = shallowRef<CreativeArtImportEntry[]>([])
   const busy = shallowRef(false)
   const error = shallowRef<'image' | 'storage' | 'source' | 'write'>()
-  const inspections = shallowRef<Record<string, 'before' | 'after' | 'conflict'>>({})
+  const inspections = shallowRef<Record<string, CreativeMediaProjectState>>({})
   let epoch = 0
   const scope = (): CreativeArtImportScope => ({ accountId: options.run().accountId, projectId: options.run().plan.projectId, runId: options.run().id })
   const sameScope = (before: CreativeArtImportScope) => JSON.stringify(before) === JSON.stringify(scope())
@@ -133,10 +135,15 @@ export function useCreativeArtImport(options: {
         host.assertCurrent()
         assertCreativeArtImport(options.run(), entry)
       }
+      if (entry.state === 'candidate' && await inspectCreativeArtImport(host.fs, entry, assertCurrent) !== 'before')
+        throw new Error('CREATIVE_IMAGE_SOURCE_CHANGED')
       const pending = { ...entry, state: 'adopting' as const }
       await save(pending, turn)
       assertCurrent()
-      await commitCreativeArtImport(host.fs, pending, assertCurrent)
+      if (entry.state === 'adopting')
+        await recoverCreativeArtImport(host.fs, options.run(), pending, 'after', assertCurrent)
+      else
+        await commitCreativeArtImport(host.fs, pending, assertCurrent)
       if (await inspectCreativeArtImport(host.fs, pending, host.assertCurrent) !== 'after')
         throw new Error('CREATIVE_IMAGE_WRITE_INCOMPLETE')
       await save({ ...pending, state: 'adopted', data: undefined }, turn)
@@ -149,12 +156,12 @@ export function useCreativeArtImport(options: {
   async function undo(id: string) {
     await work('write', async (host, turn) => {
       const entry = rows.value.find(item => item.id === id && ['adopted', 'undoing'].includes(item.state))
-      if (!entry || await inspectCreativeArtImport(host.fs, entry, host.assertCurrent) !== 'after')
+      if (!entry || !['after', 'partial'].includes(await inspectCreativeArtImport(host.fs, entry, host.assertCurrent)))
         throw new Error('CREATIVE_IMAGE_SOURCE_CHANGED')
       const pending = { ...entry, state: 'undoing' as const }
       await save(pending, turn)
       host.assertCurrent()
-      await commitCreativeArtImport(host.fs, pending, host.assertCurrent, true)
+      await recoverCreativeArtImport(host.fs, options.run(), pending, 'before', host.assertCurrent)
       if (await inspectCreativeArtImport(host.fs, pending, host.assertCurrent) !== 'before')
         throw new Error('CREATIVE_IMAGE_WRITE_INCOMPLETE')
       await save({ ...pending, state: 'undone' }, turn)
@@ -192,12 +199,34 @@ export function useCreativeArtImport(options: {
         return
       const actual = await inspectCreativeArtImport(host.fs, entry, host.assertCurrent)
       host.assertCurrent()
-      if (entry.state === 'adopting' && actual === 'before')
+      if (entry.state === 'adopting' && ['before', 'conflict'].includes(actual)) {
+        if (entry.review)
+          await assertCreativeMediaFilesUnchanged(host.fs, entry.projectId, entry.review, 'before', host.assertCurrent)
         await save({ ...entry, state: 'candidate', review: undefined }, turn)
-      else if (entry.state === 'undoing' && actual === 'after')
+      }
+      else if (entry.state === 'undoing' && ['after', 'conflict'].includes(actual)) {
+        if (entry.review)
+          await assertCreativeMediaFilesUnchanged(host.fs, entry.projectId, entry.review, 'after', host.assertCurrent)
         await save({ ...entry, state: 'adopted' }, turn)
-      else
+      }
+      else {
         throw new Error('CREATIVE_IMAGE_RECOVERY_REQUIRED')
+      }
+      host.assertCurrent()
+    })
+  }
+
+  async function restore(id: string) {
+    await work('write', async (host, turn) => {
+      const entry = rows.value.find(item => item.id === id && item.state === 'adopting')
+      if (!entry)
+        throw new Error('CREATIVE_IMAGE_RECOVERY_REQUIRED')
+      await recoverCreativeArtImport(host.fs, options.run(), entry, 'before', host.assertCurrent)
+      host.assertCurrent()
+      await save({ ...entry, state: 'candidate', review: undefined }, turn)
+      host.assertCurrent()
+      inspections.value = { ...inspections.value, [id]: 'before' }
+      options.changed()
     })
   }
 
@@ -213,5 +242,5 @@ export function useCreativeArtImport(options: {
     })
   }
 
-  return { rows, busy, error, inspections, reload, stage, review, adopt, undo, reconcile, abandon, discard }
+  return { rows, busy, error, inspections, reload, stage, review, adopt, undo, reconcile, abandon, restore, discard }
 }

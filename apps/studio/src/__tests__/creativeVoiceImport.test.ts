@@ -1,10 +1,14 @@
+import type { CreativeVoiceImportCache, CreativeVoiceImportEntry } from '../utils/creativeVoiceImportCache'
 import type { IFileSystem } from '../utils/fs'
 import { Blob as NodeBlob, File as NodeFile } from 'node:buffer'
 import { webcrypto } from 'node:crypto'
 import { computeAgentProjectRevision, createCreativeTeamRun } from '@advjs/agent'
 import { resolveVoiceReviewRows, voiceReviewContextFromProgram } from '@advjs/audio'
 import { compileProject } from '@advjs/core'
+import { flushPromises, mount } from '@vue/test-utils'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import { defineComponent, h, shallowRef } from 'vue'
+import { useCreativeVoiceImport } from '../composables/useCreativeVoiceImport'
 import { commitCreativeVoiceImport, inspectCreativeVoice, readCreativeVoiceTargets, reviewCreativeVoiceImport } from '../utils/creativeVoiceImport'
 import { createStudioAudioService } from '../utils/projectAudio'
 
@@ -13,9 +17,126 @@ beforeAll(() => {
   vi.stubGlobal('Blob', NodeBlob)
   vi.stubGlobal('File', NodeFile)
 })
-afterAll(() => vi.unstubAllGlobals())
+
 const lineId = 'line_01900400-0000-7000-8000-000000000001'
+
 const text = '列车还没有到，我们再等一会儿。'
+
+describe('durable creative voice registration', () => {
+  async function sessionFixture() {
+    const f = await fixture()
+    const run = shallowRef(f.run)
+    const saved = new Map<string, CreativeVoiceImportEntry>()
+    const cache: CreativeVoiceImportCache = {
+      list: vi.fn(async scope => [...saved.values()].filter(item => item.accountId === scope.accountId && item.projectId === scope.projectId && item.runId === scope.runId).map(item => structuredClone(item))),
+      save: vi.fn(async (entry) => { saved.set(entry.id, structuredClone(entry)) }),
+      discard: vi.fn(async (entry) => { saved.delete(entry.id) }),
+    }
+    let session!: ReturnType<typeof useCreativeVoiceImport>
+    const changed = vi.fn()
+    async function open() {
+      const wrapper = mount(defineComponent({ setup() {
+        session = useCreativeVoiceImport({ run: () => run.value, host: async () => ({ fs: f.fs, assertCurrent: current }), cache, changed })
+        return () => h('div')
+      } }))
+      await flushPromises()
+      await vi.waitFor(() => expect(session.loading.value).toBe(false))
+      return wrapper
+    }
+    const target = (await readCreativeVoiceTargets(f.fs, f.run, 'voice1', current))[0]!
+    const review = await reviewCreativeVoiceImport(f.fs, f.run, target, f.audio, 'local-system', 'source', current)
+    return { ...f, run, saved, cache, changed, open, review, session: () => session }
+  }
+  it('keeps a reviewed candidate across reopen, then acknowledges an uncertain completed write without registering again', async () => {
+    const f = await sessionFixture()
+    let page = await f.open()
+    expect(await f.session().stage(f.review)).toBe(true)
+    const id = f.session().rows.value[0]!.id
+    expect(f.files).toEqual(f.before)
+    page.unmount()
+    page = await f.open()
+    expect(f.session().rows.value[0]!.review.data).toEqual(f.audio.data)
+    vi.mocked(f.cache.save).mockImplementationOnce(async (entry) => {
+      f.saved.set(entry.id, structuredClone(entry))
+    }).mockRejectedValueOnce(new Error('ack failed'))
+    expect(await f.session().register(id)).toBe(false)
+    expect(f.saved.get(id)!.state).toBe('registering')
+    const writes = vi.mocked(f.fs.writeFile).mock.calls.length
+    page.unmount()
+    page = await f.open()
+    expect(f.session().inspections.value[id]).toBe('after')
+    expect(f.fs.writeFile).toHaveBeenCalledTimes(writes)
+    expect(await f.session().reconcile(id)).toBe(true)
+    expect(f.saved.get(id)).toMatchObject({ state: 'registered', review: { data: undefined } })
+    expect(f.fs.writeFile).toHaveBeenCalledTimes(writes)
+    expect((await createStudioAudioService(f.fs).read()).ledger.lines[lineId]!.locales['zh-CN']!.takes).toHaveLength(1)
+    page.unmount()
+  })
+  it('recovers a durably partial registration or restores the exact original files while keeping the audio', async () => {
+    for (const destination of ['after', 'before'] as const) {
+      const f = await sessionFixture()
+      let page = await f.open()
+      await f.session().stage(f.review)
+      const id = f.session().rows.value[0]!.id
+      const row = f.saved.get(id)!
+      f.saved.set(id, { ...row, state: 'registering' })
+      f.files[f.review.changes[0]!.path] = f.review.changes[0]!.content!
+      f.blobs.set(f.review.mediaPath, new Blob([f.audio.data]))
+      page.unmount()
+      const writes = vi.mocked(f.fs.writeFile).mock.calls.length
+      page = await f.open()
+      expect(f.session().inspections.value[id]).toBe('partial')
+      expect(f.fs.writeFile).toHaveBeenCalledTimes(writes)
+      expect(await (destination === 'after' ? f.session().register(id) : f.session().restore(id))).toBe(true)
+      if (destination === 'after')
+        expect((await createStudioAudioService(f.fs).read()).ledger.lines[lineId]!.locales['zh-CN']!.selectedTake).toBeNull()
+      else
+        expect(f.files).toEqual(f.before)
+      expect(f.blobs.size).toBe(1)
+      page.unmount()
+    }
+  })
+  it('does not write project bytes if the intent cannot be saved or a late scope no longer owns the operation', async () => {
+    const f = await sessionFixture()
+    const page = await f.open()
+    await f.session().stage(f.review)
+    const id = f.session().rows.value[0]!.id
+    vi.mocked(f.cache.save).mockRejectedValueOnce(new Error('private storage full'))
+    expect(await f.session().register(id)).toBe(false)
+    expect(f.files).toEqual(f.before)
+    expect(f.blobs.size).toBe(0)
+    vi.mocked(f.cache.save).mockImplementationOnce(async (entry) => {
+      f.saved.set(entry.id, structuredClone(entry))
+      f.run.value = { ...f.run.value, accountId: 'another-account' }
+      await flushPromises()
+    })
+    expect(await f.session().register(id)).toBe(false)
+    expect(f.files).toEqual(f.before)
+    expect(f.blobs.size).toBe(0)
+    expect(f.session().rows.value).toEqual([])
+    page.unmount()
+  })
+  it('abandons an unwritten intent without overwriting unrelated edits and refuses to abandon changed binding files', async () => {
+    for (const bindingChanged of [false, true]) {
+      const f = await sessionFixture()
+      let page = await f.open()
+      await f.session().stage(f.review)
+      const id = f.session().rows.value[0]!.id
+      f.saved.set(id, { ...f.saved.get(id)!, state: 'registering' })
+      f.files[bindingChanged ? f.review.changes[0]!.path : 'adv/chapters/intro.adv.md'] = 'author edit'
+      const edited = { ...f.files }
+      page.unmount()
+      page = await f.open()
+      expect(f.session().inspections.value[id]).toBe('conflict')
+      expect(await f.session().abandon(id)).toBe(!bindingChanged)
+      expect(f.saved.get(id)!.state).toBe(bindingChanged ? 'registering' : 'abandoned')
+      expect(f.files).toEqual(edited)
+      expect(f.fs.writeFile).not.toHaveBeenCalled()
+      page.unmount()
+    }
+  })
+})
+afterAll(() => vi.unstubAllGlobals())
 async function fixture() {
   const files: Record<string, string> = {
     'adv.config.json': '{"schemaVersion":1,"id":"voice-import","root":"adv","format":"adv-md"}',

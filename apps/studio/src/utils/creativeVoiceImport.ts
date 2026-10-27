@@ -4,6 +4,7 @@ import type { IFileSystem } from './fs'
 import { computeAgentProjectRevision, creativeArtifactExpectedFiles } from '@advjs/agent'
 import { audioFingerprint, audioProjectMediaPath, createVoiceTakeEditPlan, resolveVoiceSpokenText, serializeVoiceLedger } from '@advjs/audio'
 import { compileProject, planAdvAssetManifestUpsert } from '@advjs/core'
+import { recoverCreativeMediaWrite } from './creativeMediaRecovery'
 import { createStudioCreativeWorkspace } from './creativeTeamWorkspace'
 import { commitStudioProjectFiles } from './nativeProjectMutation'
 import { createStudioAudioService } from './projectAudio'
@@ -22,12 +23,13 @@ export interface CreativeVoiceTarget {
   providers: Array<{ id: string, voiceId: string, model: string, source: 'system' | 'recorded', rights?: VoiceRights }>
 }
 export interface CreativeVoiceReview {
-  target: CreativeVoiceTarget
+  target: Pick<CreativeVoiceTarget, 'artifactId' | 'artifactFingerprint' | 'request' | 'lineId' | 'sourceRevision' | 'locale' | 'profileRevision'>
   beforeRevision: string
   afterRevision: string
   mediaPath: string
   data: ArrayBuffer
   sha256: string
+  bytes: number
   duration: number
   sampleRate: number
   takeId: string
@@ -35,15 +37,28 @@ export interface CreativeVoiceReview {
   changes: Array<{ path: string, expected: string | null, content: string | null }>
 }
 
-function assertProposal(run: CreativeTeamRun, artifact: CreativeArtifact, files: Readonly<Record<string, string>>) {
+function assertProposal(run: CreativeTeamRun, artifact: CreativeArtifact, files?: Readonly<Record<string, string>>) {
   if (run.tasks.some(task => ['running', 'reconcile_required'].includes(task.status)) || run.milestones?.some(item => item.status === 'prepared'))
     throw new Error('CREATIVE_VOICE_RECOVERY_REQUIRED')
   if (artifact.output?.kind !== 'voice-direction' || !['selected', 'adopted'].includes(artifact.status))
     throw new Error('CREATIVE_VOICE_PROPOSAL_CHANGED')
-  for (const [path, expected] of Object.entries(creativeArtifactExpectedFiles(artifact, run))) {
-    if ((files[path] ?? null) !== expected)
+  for (const [path, expected] of Object.entries(files ? creativeArtifactExpectedFiles(artifact, run) : {})) {
+    if ((files![path] ?? null) !== expected)
       throw new Error('CREATIVE_VOICE_SOURCE_CHANGED')
   }
+}
+
+export function assertCreativeVoiceReview(run: CreativeTeamRun, review: Omit<CreativeVoiceReview, 'data'>) {
+  const artifact = run.artifacts.find(item => item.id === review.target.artifactId && item.fingerprint === review.target.artifactFingerprint)
+  if (!artifact)
+    throw new Error('CREATIVE_VOICE_PROPOSAL_CHANGED')
+  assertProposal(run, artifact)
+}
+
+export async function recoverCreativeVoiceImport(fs: IFileSystem, run: CreativeTeamRun, review: Omit<CreativeVoiceReview, 'data'> & { data?: ArrayBuffer }, destination: 'before' | 'after', assertCurrent: () => void) {
+  if (destination === 'after')
+    assertCreativeVoiceReview(run, review)
+  await recoverCreativeMediaWrite({ fs, projectId: run.plan.projectId, review, media: { sha256: review.sha256, bytes: review.bytes }, data: review.data, destination, mimeType: 'audio/wav', assertCurrent, acceptsPath: path => /^adv\/(?:assets(?:\.json|\/[\w./-]+\.json)|audio\/voice-ledger\.json)$/.test(path) && !path.split('/').some(part => ['.', '..', ''].includes(part)) })
 }
 
 /** Match the compiler's actual source location and stable line identity, never an inferred prose index. */
@@ -152,7 +167,8 @@ export async function reviewCreativeVoiceImport(fs: IFileSystem, run: CreativeTe
   const catalog = planAdvAssetManifestUpsert({ files: source.files, rootPath: 'adv/assets.json', catalogId: run.plan.projectId, asset, replaceExisting: false })
   const writes = { ...catalog.writes, 'adv/audio/voice-ledger.json': serializeVoiceLedger(plan.ledger) }
   assertCurrent()
-  return { target: current, beforeRevision: source.revision, afterRevision: await computeAgentProjectRevision({ ...source.files, ...writes }), mediaPath: audioProjectMediaPath(catalog.manifest, asset), ...audio, takeId: plan.addedTakes[0]!.id, attribution: attribution.trim(), changes: Object.entries(writes).map(([path, content]) => ({ path, expected: source.files[path] ?? null, content })) }
+  const targetReference = { artifactId: current.artifactId, artifactFingerprint: current.artifactFingerprint, request: current.request, lineId: current.lineId, sourceRevision: current.sourceRevision, locale: current.locale, profileRevision: current.profileRevision }
+  return { target: targetReference, beforeRevision: source.revision, afterRevision: await computeAgentProjectRevision({ ...source.files, ...writes }), mediaPath: audioProjectMediaPath(catalog.manifest, asset), ...audio, bytes: audio.data.byteLength, takeId: plan.addedTakes[0]!.id, attribution: attribution.trim(), changes: Object.entries(writes).map(([path, content]) => ({ path, expected: source.files[path] ?? null, content })) }
 }
 
 /** The candidate remains unselected; audition and adoption use the existing voice review workspace. */
