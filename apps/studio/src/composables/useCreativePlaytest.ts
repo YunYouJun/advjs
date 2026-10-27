@@ -1,6 +1,6 @@
 import type { CreativePlaytestReport, CreativePlaytestScenario, CreativeProjectWorkspace, CreativeTeamRun } from '@advjs/agent'
 import type { CreativePlaytestCache, CreativePlaytestCacheEntry } from '../utils/creativePlaytestCache'
-import { runCreativePlaytest } from '@advjs/agent'
+import { computeAgentProjectRevision, creativePlaytestFindings, runCreativePlaytest } from '@advjs/agent'
 import { computed, onBeforeUnmount, shallowRef, watch } from 'vue'
 import { useCreativeTeamStore } from '../stores/useCreativeTeamStore'
 import { creativePlaytestCache } from '../utils/creativePlaytestCache'
@@ -11,8 +11,11 @@ export function useCreativePlaytest(options: { run: () => CreativeTeamRun, works
   const report = shallowRef<CreativePlaytestReport>()
   const entries = shallowRef<CreativePlaytestCacheEntry[]>([])
   const activeEntry = shallowRef<CreativePlaytestCacheEntry>()
+  const remoteReportId = shallowRef<string>()
+  const storedReportId = computed(() => activeEntry.value ? options.run().playtests?.find(item => item.intentId === activeEntry.value?.id)?.id : remoteReportId.value)
   const busy = shallowRef(false)
-  const error = shallowRef<'execution' | 'storage' | 'sync' | 'scope'>()
+  const repairBusy = shallowRef(false)
+  const error = shallowRef<'execution' | 'storage' | 'sync' | 'scope' | 'repair'>()
   const currentRevision = shallowRef<string>()
   let epoch = 0
   let selection = 0
@@ -52,11 +55,13 @@ export function useCreativePlaytest(options: { run: () => CreativeTeamRun, works
     epoch += 1
     controller?.abort()
     report.value = undefined
+    remoteReportId.value = undefined
     activeEntry.value = undefined
     entries.value = []
     currentRevision.value = undefined
     error.value = undefined
     busy.value = false
+    repairBusy.value = false
     void reload()
   }, { immediate: true })
   onBeforeUnmount(() => {
@@ -90,7 +95,7 @@ export function useCreativePlaytest(options: { run: () => CreativeTeamRun, works
   }
 
   async function execute(scenarios: readonly CreativePlaytestScenario[], candidate: boolean) {
-    if (busy.value || store.mutating)
+    if (busy.value || repairBusy.value || store.mutating)
       return
     const turn = epoch
     selection += 1
@@ -112,6 +117,7 @@ export function useCreativePlaytest(options: { run: () => CreativeTeamRun, works
       if (turn !== epoch || !currentScope(before))
         return
       report.value = result
+      remoteReportId.value = undefined
       activeEntry.value = undefined
       const entry: CreativePlaytestCacheEntry = { ...before, id: crypto.randomUUID(), project, report: result, synced: false }
       try {
@@ -146,12 +152,14 @@ export function useCreativePlaytest(options: { run: () => CreativeTeamRun, works
       const entry = entries.value.find(item => item.id === id)
       if (entry) {
         activeEntry.value = entry
+        remoteReportId.value = undefined
         report.value = entry.report
       }
       else {
         const value = await store.getPlaytest(id)
         if (turn === epoch && selected === selection && value) {
           activeEntry.value = undefined
+          remoteReportId.value = id
           report.value = value
         }
       }
@@ -164,5 +172,41 @@ export function useCreativePlaytest(options: { run: () => CreativeTeamRun, works
     }
   }
 
-  return { report, entries, activeEntry, busy, error, stale, execute, sync, open, checkVersion, stop: () => controller?.abort() }
+  async function requestRepair(taskId: string, findingId: string) {
+    if (busy.value || repairBusy.value || store.mutating || !report.value || !storedReportId.value)
+      return false
+    const turn = epoch
+    const before = scope()
+    const evidence = report.value
+    const reportId = storedReportId.value
+    const finding = creativePlaytestFindings(evidence).find(item => item.id === findingId)
+    repairBusy.value = true
+    error.value = undefined
+    try {
+      const snapshot = await (await options.workspace()).snapshot()
+      if (turn !== epoch || !currentScope(before))
+        return false
+      currentRevision.value = snapshot.revision
+      if (!finding || stale.value || snapshot.revision !== evidence.baselineRevision)
+        throw new Error('Repair source changed')
+      const intent = `repair_${(await computeAgentProjectRevision({ reference: JSON.stringify([reportId, taskId, findingId]) })).slice(7)}`
+      if (turn !== epoch || !currentScope(before))
+        return false
+      const result = await store.requestPlaytestRepair({ type: 'request-rework', taskId, reason: `Author requested repair of ${findingId} from author-host report ${reportId}`, playtestRepair: { reportId, snapshotRevision: evidence.snapshotRevision, findingId } }, { id: snapshot.projectId, revision: snapshot.revision, files: snapshot.files }, intent)
+      if (!result && turn === epoch)
+        error.value = 'repair'
+      return result
+    }
+    catch {
+      if (turn === epoch)
+        error.value = 'repair'
+      return false
+    }
+    finally {
+      if (turn === epoch)
+        repairBusy.value = false
+    }
+  }
+
+  return { report, repairBusy, storedReportId, requestRepair, entries, activeEntry, busy, error, stale, execute, sync, open, checkVersion, stop: () => controller?.abort() }
 }

@@ -225,6 +225,18 @@ export const useCreativeTeamStore = defineStore('creative-team', () => {
     return mutate(current => current.client.recordPlaytest(project, runId, report, intent))
   }
 
+  async function requestPlaytestRepair(decision: Extract<CreativeTeamDecisionInput, { type: 'request-rework' }>, project: CreativeTeamStartRequest['project'], intent: string): Promise<boolean> {
+    const runId = run.value?.id
+    if (!runId || !decision.playtestRepair || project.id !== connection?.projectId || !availability.value?.enabled || !availability.value.authoring?.playtestRepair)
+      return false
+    return mutate(async (current) => {
+      await current.client.refreshFacts(project, runId, `${intent}:facts`)
+      if (current !== connection || run.value?.id !== runId)
+        throw new Error('Creative scope changed')
+      return current.client.decide(current.projectId, runId, decision, intent)
+    })
+  }
+
   async function getPlaytest(reportId: string): Promise<CreativePlaytestReport | undefined> {
     const current = connection
     const runId = run.value?.id
@@ -235,5 +247,5 @@ export const useCreativeTeamStore = defineStore('creative-team', () => {
     return epoch === generation && run.value?.id === runId ? report : undefined
   }
 
-  return { availability, runs, run, loading, mutating, error, connected, canStart, needsPolling, configure, disconnect, refresh, open, start, decide, refreshFacts, editCandidate, milestoneCoordinator, performMilestone, recordPlaytest, getPlaytest }
+  return { availability, runs, run, loading, mutating, error, connected, canStart, needsPolling, configure, disconnect, refresh, open, start, decide, refreshFacts, editCandidate, milestoneCoordinator, performMilestone, recordPlaytest, getPlaytest, requestPlaytestRepair }
 })

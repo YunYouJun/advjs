@@ -1,6 +1,6 @@
-import type { CreativePlaytestReport, CreativeTeamClient } from '@advjs/agent'
+import type { CreativePlaytestReport, CreativeTeamClient, CreativeTeamStartRequest } from '@advjs/agent'
 import type { CreativePlaytestCacheEntry } from '../utils/creativePlaytestCache'
-import { computeAgentProjectRevision, createCreativeBootstrapPlan, createCreativeTeamRun, parseCreativeTeamStartRequest } from '@advjs/agent'
+import { computeAgentProjectRevision, createCreativeBootstrapPlan, createCreativeTeamRun, creativePlaytestFindings, parseCreativeTeamStartRequest } from '@advjs/agent'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -19,7 +19,7 @@ async function fixture() {
   const unavailable = vi.fn(async (): Promise<never> => {
     throw new Error('Unexpected model call')
   })
-  const client: CreativeTeamClient = { availability: async () => ({ protocolVersion: 1, enabled: false, serviceVersion: 'test-only', capabilities: [], maxConcurrentTasks: 1, authoring: { candidateEdits: true, milestoneAdoption: true, playtestReports: true }, media: { image: 'unavailable', voice: 'unavailable' } }), list: async () => [], get: async () => structuredClone(run), start: unavailable, decide: unavailable, refreshFacts: unavailable, editCandidate: unavailable, milestone: unavailable, recordPlaytest: vi.fn(async () => ({ ...structuredClone(run), revision: 2 })), getPlaytest: vi.fn() }
+  const client: CreativeTeamClient = { availability: async () => ({ protocolVersion: 1, enabled: false, serviceVersion: 'test-only', capabilities: [], maxConcurrentTasks: 1, authoring: { candidateEdits: true, milestoneAdoption: true, playtestReports: true }, media: { image: 'unavailable', voice: 'unavailable' } }), list: async () => [], get: async () => structuredClone(run), start: unavailable, decide: vi.fn(async () => unavailable()), refreshFacts: vi.fn(async () => unavailable()), editCandidate: unavailable, milestone: unavailable, recordPlaytest: vi.fn(async (_project: CreativeTeamStartRequest['project'], _runId: string, report: CreativePlaytestReport, intentId: string) => ({ ...structuredClone(run), revision: 2, playtests: [{ id: 'report1', intentId, projectId: report.projectId, baselineRevision: report.baselineRevision, snapshotRevision: report.snapshotRevision, artifacts: report.artifacts, scope: report.scope, runnerVersion: report.runnerVersion, verification: 'author-host' as const, passed: report.executions.filter(item => item.status === 'passed').length, failed: report.executions.filter(item => item.status === 'failed').length, blocked: report.executions.filter(item => item.status === 'blocked').length, cancelled: 0, createdAt: 1 }] })), getPlaytest: vi.fn() }
   const store = useCreativeTeamStore()
   store.configure({ client, accountId: 'author1', projectId: 'station' })
   await store.refresh()
@@ -38,7 +38,7 @@ async function fixture() {
     } }))
     return wrapper
   }
-  return { store, client, rows, snapshot, cache, current, open, session: () => session, unavailable, edit: () => files = { ...files, 'adv/world.md': '作者修改了世界设定。' } }
+  return { store, client, rows, snapshot, cache, current, open, session: () => session, unavailable, breakSource: () => files = { ...files, 'adv/chapters/station.adv.md': '# 车站 {#arrival}\n\n- [坏链接](missing#ending)' }, edit: () => files = { ...files, 'adv/world.md': '作者修改了世界设定。' } }
 }
 const scenarios = [{ id: 'stay', choices: [0], expectedEnding: 'stay#ending-stay' }, { id: 'leave', choices: [1], expectedEnding: 'leave#ending-leave' }]
 
@@ -94,6 +94,49 @@ describe('creative path execution, persistence and scope', () => {
     expect(f.session().error.value).toBe('storage')
     expect(f.session().activeEntry.value).toBeUndefined()
     expect(f.client.recordPlaytest).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
+  it('links a synced real finding to an explicit repair and reuses its stable intent after an unknown result and reopen', async () => {
+    const f = await fixture()
+    f.breakSource()
+    const available = await f.client.availability()
+    vi.spyOn(f.client, 'availability').mockResolvedValue({ ...available, enabled: true, authoring: { ...available.authoring!, playtestRepair: true } })
+    vi.mocked(f.client.refreshFacts).mockResolvedValue(f.current.value)
+    vi.mocked(f.client.decide).mockRejectedValueOnce(new Error('response lost')).mockResolvedValue(f.current.value)
+    await f.store.refresh()
+    const first = f.open()
+    await flushPromises()
+    await f.session().execute(scenarios, false)
+    expect(f.session().storedReportId.value).toBe('report1')
+    const finding = creativePlaytestFindings(f.session().report.value!).find(item => item.code === 'ADV_RUNTIME_UNKNOWN_TARGET')!
+    expect(await f.session().requestRepair('initial', finding.id)).toBe(false)
+    expect(f.session().error.value).toBe('repair')
+    const [projectId, runId, decision, key] = vi.mocked(f.client.decide).mock.calls[0]
+    expect([projectId, runId]).toEqual(['station', 'run1'])
+    expect(decision).toMatchObject({ type: 'request-rework', taskId: 'initial', playtestRepair: { reportId: 'report1', findingId: finding.id, snapshotRevision: f.session().report.value!.snapshotRevision } })
+    first.unmount()
+    const reopened = f.open()
+    await flushPromises()
+    expect(f.client.decide).toHaveBeenCalledTimes(1)
+    expect(await f.session().requestRepair('initial', finding.id)).toBe(true)
+    expect(vi.mocked(f.client.decide).mock.calls.map(item => item[3])).toEqual([key, key])
+    expect(f.client.refreshFacts).toHaveBeenCalledTimes(2)
+    reopened.unmount()
+  })
+
+  it('does not request repair from a changed local source or from a service without repair availability', async () => {
+    const f = await fixture()
+    f.breakSource()
+    const wrapper = f.open()
+    await flushPromises()
+    await f.session().execute(scenarios, false)
+    const finding = creativePlaytestFindings(f.session().report.value!)[0]
+    expect(await f.session().requestRepair('initial', finding.id)).toBe(false)
+    f.edit()
+    expect(await f.session().requestRepair('initial', finding.id)).toBe(false)
+    expect(f.client.decide).not.toHaveBeenCalled()
+    expect(f.client.refreshFacts).not.toHaveBeenCalled()
     wrapper.unmount()
   })
 

@@ -68,6 +68,9 @@ function points(value: number) {
           <strong>{{ t(`creativeTeam.roles.${task.partner}`) }}</strong><span>{{ t(task.state.status === 'completed' ? 'creativeTeam.taskSelected' : `creativeTeam.status.${task.state.status}`) }}</span>
         </div>
         <p>{{ task.instruction }}</p>
+        <p v-if="task.state.playtestRepair" class="team-run__hint" data-testid="creative-repair-reference">
+          {{ t('creativeTeam.repair.reference') }} · {{ task.state.playtestRepair.reference.reportId }} · {{ task.state.playtestRepair.reference.findingId }}
+        </p>
         <p class="team-run__hint">
           {{ task.expectedOutput }}
         </p>

@@ -1,5 +1,5 @@
 import type { CreativeArtifact, CreativePartnerOutput, CreativePlaytestReport, CreativeTeamRun } from '@advjs/agent'
-import { computeAgentProjectRevision, createCreativeTeamRun, creativeMilestoneChanges, creativeOutputFileChanges, creativePlaytestCandidateFiles, ManagedCreativeTeamClient, nextCreativeTeamTask, overlayCreativeChanges, parseCreativeCandidateEditRequest, parseCreativeMilestoneCommand, parseCreativePlaytestReport, parseCreativeProject, parseCreativeTeamPublicDecision, parseCreativeTeamRun, prepareCreativeCandidateEdit, prepareCreativeMilestone, reduceCreativeTeamRun, requiredCreativeReviewCapabilities } from '@advjs/agent'
+import { computeAgentProjectRevision, createCreativeTeamRun, creativeMilestoneChanges, creativeOutputFileChanges, creativePlaytestCandidateFiles, ManagedCreativeTeamClient, nextCreativeTeamTask, overlayCreativeChanges, parseCreativeCandidateEditRequest, parseCreativeMilestoneCommand, parseCreativePlaytestReport, parseCreativeProject, parseCreativeTeamPublicDecision, parseCreativeTeamRun, prepareCreativeCandidateEdit, prepareCreativeMilestone, prepareCreativePlaytestRepair, reduceCreativeTeamRun, requiredCreativeReviewCapabilities } from '@advjs/agent'
 import { IonApp, IonContent, IonHeader, IonicVue, IonPage, IonTitle, IonToolbar } from '@ionic/vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { createApp, defineComponent, h } from 'vue'
@@ -39,6 +39,7 @@ async function main() {
   const calls: string[] = []
   let loseMilestoneResponse: 'prepare' | 'confirm' | undefined
   const cacheKey = 'creative-team-authoring-ui-fixture'
+  const repairHandoffs: unknown[] = []
   const playtests: Record<string, CreativePlaytestReport> = JSON.parse(localStorage.getItem(`${cacheKey}-playtests`) || '{}')
   let run: CreativeTeamRun
   async function artifact(taskId: string, output: CreativePartnerOutput): Promise<CreativeArtifact> {
@@ -115,7 +116,7 @@ async function main() {
     let value: unknown
     try {
       if (url.pathname.endsWith('/capabilities')) {
-        value = { protocolVersion: 1, enabled: true, serviceVersion: 'UI fixture; no model calls', authoring: { candidateEdits: true, milestoneAdoption: true, playtestReports: true }, capabilities: ['design-characters', 'write-chapters'], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } }
+        value = { protocolVersion: 1, enabled: true, serviceVersion: 'UI fixture; no model calls', authoring: { candidateEdits: true, milestoneAdoption: true, playtestReports: true, playtestRepair: true }, capabilities: ['design-characters', 'write-chapters'], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } }
       }
       else if (method === 'GET' && url.pathname.endsWith('/runs')) {
         value = { protocolVersion: 1, items: [{ id: run.id, projectId, goal: run.plan.goal, status: run.status, revision: run.revision, chargedMicroPoints: 0, reservedMicroPoints: 0, updatedAt: run.updatedAt }] }
@@ -138,7 +139,7 @@ async function main() {
         const id = `fixture_playtest_${key.replaceAll('-', '')}`
         if (!playtests[id]) {
           playtests[id] = report
-          run = { ...run, playtests: [...(run.playtests ?? []), { id, projectId, baselineRevision: report.baselineRevision, snapshotRevision: report.snapshotRevision, scope: report.scope, artifacts: report.artifacts, runnerVersion: report.runnerVersion, verification: 'author-host', passed: report.executions.filter(item => item.status === 'passed').length, failed: report.executions.filter(item => item.status === 'failed').length, blocked: report.executions.filter(item => item.status === 'blocked').length, cancelled: report.executions.filter(item => item.status === 'cancelled').length, createdAt: Date.now() }], revision: run.revision + 1, updatedAt: Date.now() }
+          run = { ...run, playtests: [...(run.playtests ?? []), { id, intentId: key, projectId, baselineRevision: report.baselineRevision, snapshotRevision: report.snapshotRevision, scope: report.scope, artifacts: report.artifacts, runnerVersion: report.runnerVersion, verification: 'author-host', passed: report.executions.filter(item => item.status === 'passed').length, failed: report.executions.filter(item => item.status === 'failed').length, blocked: report.executions.filter(item => item.status === 'blocked').length, cancelled: report.executions.filter(item => item.status === 'cancelled').length, createdAt: Date.now() }], revision: run.revision + 1, updatedAt: Date.now() }
           localStorage.setItem(`${cacheKey}-playtests`, JSON.stringify(playtests))
         }
         value = { protocolVersion: 1, run }
@@ -184,7 +185,14 @@ async function main() {
         value = { protocolVersion: 1, run }
       }
       else if (url.pathname.endsWith('/decisions')) {
-        act(parseCreativeTeamPublicDecision(body, key))
+        const action = parseCreativeTeamPublicDecision(body, key)
+        if (action.type === 'request-rework' && action.playtestRepair && !run.decisions.some(item => item.id === key)) {
+          const report = playtests[action.playtestRepair.reportId]
+          if (!report)
+            throw new Error('fixture report not found')
+          repairHandoffs.push(prepareCreativePlaytestRepair({ run, taskId: action.taskId, reference: action.playtestRepair, report, project: { id: projectId, ...facts } }))
+        }
+        act(action)
         await fixtureChapter()
         value = { protocolVersion: 1, run }
       }
@@ -221,6 +229,7 @@ async function main() {
     run: () => structuredClone(run),
     calls: () => [...calls],
     playtests: () => structuredClone(playtests),
+    repairHandoffs: () => structuredClone(repairHandoffs),
     route: () => router.currentRoute.value.fullPath,
     async editSource(path: string, value: string) {
       await content.whenReady()

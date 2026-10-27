@@ -72,6 +72,69 @@ test('executes actual core paths, retains private reports across reload and rete
   await writeFile(info.outputPath('executed-path-evidence.json'), JSON.stringify({ scope: 'Actual ADV.JS core runtime execution and private IndexedDB cache; explicitly mocked auth/history transport, no model, media playback or production service certification', records, viewports, errors, warnings }, null, 2))
 })
 
+test('returns an actual candidate compiler finding to the writer, reviews a repair and retests the same inputs', async ({ page }, info) => {
+  const errors: string[] = []
+  const warnings: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  page.on('console', (message) => {
+    if (message.type() === 'error')
+      errors.push(message.text())
+    if (message.type() === 'warning')
+      warnings.push(message.text())
+  })
+  await page.goto('/tests/fixtures/creative-team/authoring.html')
+  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeAuthorFixture))).toBe(true)
+  const before = await page.evaluate(() => (window as any).creativeAuthorFixture.files())
+  await page.locator('.team-artifact').filter({ hasText: '本地 fixture 人物初稿' }).getByRole('button', { name: '选定候选并继续' }).click()
+  const original = page.locator('.team-artifact').filter({ hasText: '本地 fixture 章节初稿' }).first()
+  await original.getByRole('button', { name: '编辑候选', exact: true }).click()
+  const form = page.getByTestId('creative-candidate-editor')
+  await form.getByLabel('AdvScript', { exact: true }).fill('# 车站 {#arrival}\n\n- [悬空引用](missing#ending)')
+  await form.getByLabel('本次修改的原因').fill('明确植入一个用于修复流程验收的悬空引用')
+  await form.getByRole('button', { name: '保存候选修订' }).click()
+  await page.locator('.team-artifact').filter({ hasText: '作者修订 · 尚未写入项目' }).getByRole('button', { name: '选定候选并继续' }).click()
+  const panel = page.getByTestId('creative-playtest')
+  await panel.getByRole('combobox', { name: '执行快照', exact: true }).selectOption('candidate')
+  await panel.getByLabel('预期结局地址', { exact: true }).fill('stay#ending-stay')
+  await panel.getByLabel('选择序列（从 0 开始，以英文逗号分隔）', { exact: true }).fill('0')
+  await panel.getByRole('button', { name: '执行这些路径', exact: true }).click()
+  await expect(panel.getByText('已同步作者宿主报告，服务端未重放', { exact: true })).toBeVisible()
+  const repair = page.getByTestId('creative-playtest-repair')
+  await repair.getByRole('combobox', { name: '报告问题', exact: true }).selectOption({ label: 'ADV_RUNTIME_UNKNOWN_TARGET · adv/chapters/station.adv.md' })
+  await repair.getByRole('combobox', { name: '负责任务', exact: true }).selectOption('script')
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await repair.scrollIntoViewIfNeeded()
+    await page.screenshot({ path: info.outputPath(`repair-review-${width}.png`), animations: 'disabled' })
+  }
+  await repair.getByRole('button', { name: '按此报告返工', exact: true }).click()
+  await expect(page.getByTestId('creative-repair-reference')).toContainText('diagnostic:')
+  const fixed = page.locator('.team-artifact').filter({ hasText: '本地 fixture 章节初稿' }).filter({ hasText: '待审阅' }).last()
+  await expect(fixed.getByRole('button', { name: '选定候选并继续' })).toBeVisible()
+  const handoffs = await page.evaluate(() => (window as any).creativeAuthorFixture.repairHandoffs()) as any[]
+  expect(handoffs).toHaveLength(1)
+  expect(handoffs[0].repair.finding.code).toBe('ADV_RUNTIME_UNKNOWN_TARGET')
+  expect(handoffs[0].repair.files['adv/chapters/station.adv.md']).toContain('missing#ending')
+  expect(handoffs[0].facts.files['adv/chapters/station.adv.md']).toBe(before['adv/chapters/station.adv.md'])
+  expect(await page.evaluate(() => (window as any).creativeAuthorFixture.files())).toEqual(before)
+  await fixed.getByRole('button', { name: '选定候选并继续' }).click()
+  await panel.getByRole('button', { name: '载入这份报告的复现输入' }).click()
+  await panel.getByRole('button', { name: '执行这些路径', exact: true }).click()
+  await expect(page.getByTestId('creative-playtest-report').getByRole('heading', { name: /指定路径通过/ })).toHaveCount(1)
+  const run = await page.evaluate(() => (window as any).creativeAuthorFixture.run()) as any
+  expect(run.tasks.find((item: any) => item.taskId === 'script').attempt).toBe(2)
+  expect(run.decisions.filter((item: any) => item.playtestRepair)).toHaveLength(1)
+  const reports = await page.evaluate(() => (window as any).creativeAuthorFixture.playtests()) as any
+  expect(Object.values(reports).map((item: any) => item.executions[0].code)).toEqual(['compile_failed', 'completed'])
+  expect(Object.values(reports).map((item: any) => item.executions[0].scenario)).toEqual([{ id: 'path-1', expectedEnding: 'stay#ending-stay', choices: [0] }, { id: 'path-1', expectedEnding: 'stay#ending-stay', choices: [0] }])
+  await page.reload()
+  await expect(page.getByTestId('creative-repair-reference')).toBeVisible()
+  expect((await page.evaluate(() => (window as any).creativeAuthorFixture.calls()) as string[]).filter(call => call.startsWith('POST'))).toEqual([])
+  expect(errors).toEqual([])
+  expect(warnings).toEqual([])
+  await writeFile(info.outputPath('owner-repair-evidence.json'), JSON.stringify({ scope: 'Actual compiler, candidate editing, isolated execution and report persistence. Explicit fixture owner response/auth/history; no model quality or billing claim.', run, handoffs, reports, errors, warnings }, null, 2))
+})
+
 test('writes reviewed text through the project transaction, recovers a lost receipt after reload and conditionally undoes', async ({ page }, info) => {
   const errors: string[] = []
   const warnings: string[] = []

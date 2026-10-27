@@ -1,5 +1,14 @@
 export const creativeTeamMessages = {
   'zh-CN': {
+    repair: {
+      title: '交还负责人修复',
+      hint: '选择报告中的问题与负责伙伴。确认后在原预算及返工次数内执行，相关下游候选会过期；结果仍需审阅与复测。',
+      finding: '报告问题',
+      owner: '负责任务',
+      submit: '按此报告返工',
+      unavailable: '需要已同步的当前报告和可用的负责任务。请先同步、核对版本或重新执行。',
+      reference: '关联试玩问题',
+    },
     playtest: {
       title: '执行指定路径',
       hint: '使用本机 ADV.JS 核心逐步执行，不调用模型，不改项目文件。报告先保存在本机；服务支持时同步任务记录。',
@@ -54,6 +63,7 @@ export const creativeTeamMessages = {
         cancelled: '作者停止了本次执行。',
       },
       error: {
+        repair: '报告返工尚未确认。读取最新状态后可按原问题重试；项目变更时请先复测。',
         execution: '未完成执行，请检查源版本、候选依赖和冲突。',
         storage: '报告未能持久化，请检查本机存储；当前显示不能作为重开恢复的依据。',
         sync: '任务记录同步尚未确认。本机报告保留，可用同一请求键再次同步。',
@@ -194,6 +204,15 @@ export const creativeTeamMessages = {
     oldTask: '账号已有托管任务，完成或停止后再发起新的制作组任务。',
   },
   'en': {
+    repair: {
+      title: 'Return a finding to its owner',
+      hint: 'Choose a report finding and responsible task. Runs within the original budget and rework limit, marks related downstream candidates stale, and returns a candidate for review and retesting.',
+      finding: 'Report finding',
+      owner: 'Responsible task',
+      submit: 'Rework from this report',
+      unavailable: 'A synced current report and an available owner task are required. Sync, check the version, or execute again first.',
+      reference: 'Linked playtest finding',
+    },
     playtest: {
       title: 'Execute specified paths',
       hint: 'Runs the local ADV.JS core step by step without model calls or project writes. Reports are saved locally and synced when the service supports it.',
@@ -248,6 +267,7 @@ export const creativeTeamMessages = {
         cancelled: 'The author stopped execution.',
       },
       error: {
+        repair: 'Repair is unconfirmed. Read the latest state, then retry the same finding; retest if the project changed.',
         execution: 'Execution did not complete. Check source versions, candidate dependencies and conflicts.',
         storage: 'The report could not be persisted. The visible result does not prove reload recovery.',
         sync: 'Task history sync is unconfirmed. The local report remains available for retry with the same request key.',

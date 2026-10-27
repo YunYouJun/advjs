@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { useCreativePlaytest } from '../../composables/useCreativePlaytest'
 import { useCreativeTeamStore } from '../../stores/useCreativeTeamStore'
 import SButton from '../ui/SButton.vue'
+import CreativePlaytestRepairForm from './CreativePlaytestRepairForm.vue'
 import CreativePlaytestReport from './CreativePlaytestReport.vue'
 import CreativePlaytestScenarios from './CreativePlaytestScenarios.vue'
 
@@ -14,7 +15,7 @@ const emit = defineEmits<{ busy: [value: boolean], source: [path: string, line?:
 const { t } = useI18n()
 const store = useCreativeTeamStore()
 const session = useCreativePlaytest({ run: () => props.run, workspace: () => props.workspace() })
-const { report, entries, activeEntry, busy, error, stale } = session
+const { report, entries, activeEntry, busy, repairBusy, error, stale, storedReportId } = session
 const scope = shallowRef<'saved' | 'candidate'>('saved')
 const scenarios = shallowRef([{ id: 'path-1', expectedEnding: '', choices: '' }])
 const inputError = shallowRef(false)
@@ -23,8 +24,8 @@ const plan = computed(() => props.run.artifacts.findLast(item => ['candidate', '
 const suggested = computed(() => plan.value?.kind === 'playtest-plan' ? plan.value : undefined)
 const hasCandidates = computed(() => props.run.artifacts.some(item => item.status === 'selected' && item.changes.length))
 const pending = computed(() => entries.value.filter(item => !item.synced))
-const blocked = computed(() => props.busy || busy.value)
-watch(busy, value => emit('busy', value))
+const blocked = computed(() => props.busy || busy.value || repairBusy.value)
+watch(() => busy.value || repairBusy.value, value => emit('busy', value))
 onBeforeUnmount(() => emit('busy', false))
 function loadPlan() {
   if (suggested.value)
@@ -127,6 +128,7 @@ async function checkVersion() {
         </li>
       </ul>
     </details>
+    <CreativePlaytestRepairForm v-if="report" :report="report" :report-id="storedReportId" :run="run" :busy="blocked" :stale="stale" :enabled="Boolean(store.availability?.enabled && store.availability.authoring?.playtestRepair)" :capabilities="store.availability?.capabilities ?? []" @request="({ taskId, findingId }) => session.requestRepair(taskId, findingId)" />
     <div ref="reportRoot">
       <CreativePlaytestReport v-if="report" :report="report" :stale="stale" @source="(path, line) => emit('source', path, line)" />
     </div>
