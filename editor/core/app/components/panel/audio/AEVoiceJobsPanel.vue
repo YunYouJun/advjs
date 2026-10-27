@@ -35,7 +35,7 @@ const jobs = reactive(useVoiceJobs(() => props.visible))
         {{ jobs.unboundCount }} 句没有稳定 lineId，需先在剧本中登记才能生成配音。
       </p>
       <AGUIDetails title="创建与审核计划" open>
-        <AEVoiceJobPlanForm v-model="jobs.draft" :providers="jobs.providerOptions" :locales="jobs.localeOptions" :lines="jobs.lines" :disabled="jobs.pending || !jobs.available" />
+        <AEVoiceJobPlanForm v-model="jobs.draft" :providers="jobs.providerOptions" :locales="jobs.localeOptions" :lines="jobs.lines" :chapters="jobs.chapterOptions" :max-lines="jobs.maxLines" :batch-size="jobs.batchSize" :disabled="jobs.pending || !jobs.available" />
         <div class="ae-resource-actions">
           <AGUIButton :loading="jobs.pending" :disabled="!jobs.canPlan" data-testid="jobs-plan" @click="jobs.plan">
             创建审核计划
@@ -45,6 +45,11 @@ const jobs = reactive(useVoiceJobs(() => props.visible))
       <div v-if="jobs.review" class="ae-job-review" data-testid="jobs-plan-review">
         <p>
           {{ jobs.review.plan.summary.lines }} 句 · {{ jobs.review.plan.summary.characters }} 新生成字符 · {{ jobs.review.plan.summary.cacheHits }} 个缓存命中 · {{ jobs.review.plan.summary.newGenerations }} 次新生成
+        </p>
+        <p v-if="jobs.review.selection" class="ae-resource-caption">
+          从 {{ jobs.review.selection.requestedLines }} 句中筛出 {{ jobs.review.plan.summary.lines }} 句，跳过 {{ jobs.review.selection.skippedLines }} 句。<template v-if="jobs.batchSize">
+            共 {{ Math.ceil(jobs.review.plan.tasks.length / jobs.batchSize) }} 批，按同一份总预算执行。
+          </template>
         </p>
         <p class="ae-resource-caption">
           费用：{{ jobs.review.plan.summary.estimatedCost ? `${jobs.review.plan.summary.estimatedCost.currency} ${jobs.review.plan.summary.estimatedCost.amountMicros / 1000000}` : '无法估算' }} · 字符上限 {{ jobs.review.plan.budget.maxCharacters }} · 并发上限 {{ jobs.review.plan.budget.concurrency }}
@@ -62,7 +67,7 @@ const jobs = reactive(useVoiceJobs(() => props.visible))
       <p v-if="jobs.status" class="ae-resource-caption" role="status">
         {{ jobs.status }}
       </p>
-      <AEVoiceJobList :jobs="jobs.jobs" :pending="jobs.pending" @command="jobs.command" />
+      <AEVoiceJobList :jobs="jobs.jobs" :pending="jobs.pending" :batch-size="jobs.batchSize" @command="jobs.command" />
     </div>
   </section>
 </template>

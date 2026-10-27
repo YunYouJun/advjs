@@ -1,5 +1,8 @@
 import type { AdvVoiceCandidate, AudioPronunciationDictionary, VoiceAuthoringService, VoiceAuthoringSnapshot, VoiceTakeBindingInput } from '@advjs/types'
 
+/** Hosts can reserve this bounded recovery receipt before dispatching synthesis. */
+export const VOICE_GENERATION_RECEIPT_MAX_BYTES = 1024 * 1024
+
 export interface AudioGenerationCost {
   currency: string
   /** Integer millionths of a currency unit, avoiding floating point budgets. */
@@ -89,6 +92,8 @@ export interface VoiceGenerationStoreDocument {
 export interface VoiceGenerationStore {
   read: () => Promise<VoiceGenerationStoreDocument>
   mutate: <T>(mutation: (document: VoiceGenerationStoreDocument) => T) => Promise<T>
+  /** Optional durable-host preflight; atomic mutate must also enforce its limit. */
+  assertCapacity?: (plan?: VoiceGenerationJob) => Promise<void>
 }
 
 /** Rehydrated from current project documents, never persisted in the job store. */
@@ -115,5 +120,7 @@ export interface VoiceGenerationRunnerOptions {
   /** Optional transport forwards the durable key to an existing provider. */
   execute?: (input: VoiceGenerationResolvedInput, context: { idempotencyKey: string, signal: AbortSignal }) => ReturnType<VoiceAuthoringService['synthesize']>
   providerConcurrency?: Record<string, number>
+  /** Optional trusted-host windows; each window must commit before the next starts. */
+  batchSize?: number
   now?: () => number
 }

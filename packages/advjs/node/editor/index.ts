@@ -468,7 +468,7 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
         }
         if (request.method !== 'POST' || apiPath === 'audio/jobs')
           throw new EditorHttpError(405, 'ADV_AUDIO_JOB_METHOD_INVALID')
-        const input = JSON.parse((await readRequestBytes(request, 64 * 1024)).toString('utf8'))
+        const input = JSON.parse((await readRequestBytes(request, apiPath === 'audio/jobs/plan' ? 512 * 1024 : 64 * 1024)).toString('utf8'))
         const result = apiPath === 'audio/jobs/plan' ? await service.plan(input) : apiPath === 'audio/jobs/enqueue' ? await service.enqueue(input) : await service.command(input)
         writeJson(response, 200, result)
       }
