@@ -61,7 +61,7 @@ export interface VoiceGenerationJob {
   tasks: VoiceGenerationTask[]
 }
 
-export type StoredVoiceCandidate = Omit<AdvVoiceCandidate, 'text' | 'characterId' | 'inputFingerprint'>
+export type StoredVoiceCandidate = Omit<AdvVoiceCandidate, 'text' | 'characterId' | 'inputFingerprint' | 'alignment'> & { alignment?: Omit<NonNullable<AdvVoiceCandidate['alignment']>, 'text'> }
 
 export interface VoiceGenerationIdempotency {
   key: string

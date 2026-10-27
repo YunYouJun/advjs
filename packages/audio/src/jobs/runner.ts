@@ -4,6 +4,7 @@ import { canonicalAudioJson } from '../fingerprint'
 import { createAudioId } from '../ids'
 import { audioProjectMediaPath } from '../project-media'
 import { resolveVoiceSpokenText } from '../spoken-text'
+import { parseVoiceAlignment } from '../voice-alignment'
 import { findVoiceTakeByFingerprint, validateVoiceRights } from '../voice-ledger'
 import { voiceGenerationInputFingerprint } from './planner'
 import { reduceVoiceGenerationJob } from './reducer'
@@ -17,7 +18,11 @@ export class VoiceGenerationNotDispatchedError extends Error {
 }
 
 function storedCandidate(candidate: AdvVoiceCandidate): StoredVoiceCandidate {
-  const { text: _text, characterId: _speaker, inputFingerprint: _fingerprint, ...safe } = candidate
+  const { text: _text, characterId: _speaker, inputFingerprint: _fingerprint, alignment, ...safe } = candidate
+  if (alignment) {
+    const { text: _prose, ...timing } = parseVoiceAlignment(alignment, { text: candidate.text, sha256: candidate.sha256, durationSeconds: candidate.durationSeconds })
+    Object.assign(safe, { alignment: timing })
+  }
   canonicalAudioJson(JSON.parse(JSON.stringify(safe)))
   return JSON.parse(JSON.stringify(safe)) as StoredVoiceCandidate
 }
@@ -114,7 +119,9 @@ export function createVoiceGenerationRunner(options: VoiceGenerationRunnerOption
     let take = existing
     let catalog = snapshot.catalog
     if (!take) {
-      const candidate: AdvVoiceCandidate = { ...safe, characterId: input.speakerId, text: resolveVoiceSpokenText(input.displayText, { override: input.spokenText, locale: input.locale, pronunciation: input.pronunciation }) }
+      const text = resolveVoiceSpokenText(input.displayText, { override: input.spokenText, locale: input.locale, pronunciation: input.pronunciation })
+      const { alignment, ...receipt } = safe
+      const candidate: AdvVoiceCandidate = { ...receipt, characterId: input.speakerId, text, ...(alignment ? { alignment: parseVoiceAlignment({ ...alignment, text }, { text, sha256: safe.sha256, durationSeconds: safe.durationSeconds }) } : {}) }
       const registered = await options.authoring.register({ ...input, candidate, providerVoiceId: input.voiceId, expectedRevision: snapshot.revision })
       catalog = registered.catalog
       take = findVoiceTakeByFingerprint(registered.ledger, task.lineId, task.locale, task.inputFingerprint)

@@ -9,13 +9,16 @@ import AGUITextarea from '@advjs/gui/client/components/textarea/AGUITextarea.vue
 import AGUIToolbar from '@advjs/gui/client/components/toolbar/AGUIToolbar.vue'
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, reactive, shallowRef, useId, useTemplateRef, watch } from 'vue'
 import { useAudioLedger } from '../../../composables/useAudioLedger'
+import AEAudioPlayer from './AEAudioPlayer.vue'
 import AEVoiceComparePanel from './AEVoiceComparePanel.vue'
 import AEVoiceTakeReview from './AEVoiceTakeReview.vue'
+import AEVoiceTranscript from './AEVoiceTranscript.vue'
 
 const props = withDefaults(defineProps<{ visible?: boolean }>(), { visible: true })
 const ledger = reactive(useAudioLedger())
 const id = useId()
-const player = useTemplateRef<HTMLAudioElement>('player')
+const player = useTemplateRef<InstanceType<typeof AEAudioPlayer>>('player')
+const playbackTime = shallowRef(0)
 const advancedButton = useTemplateRef<InstanceType<typeof AGUIButton>>('advancedButton')
 const advanced = shallowRef(false)
 const AdvancedListening = defineAsyncComponent(() => import('./listening/AEVoiceListeningPanel.vue'))
@@ -101,7 +104,13 @@ function playbackError() {
         <AEVoiceTakeReview v-model:replace="ledger.replaceSelected" v-model:reviewed="ledger.staleReviewed" :take="ledger.take" :selected-take="ledger.binding?.selectedTake" :stale="ledger.takeReview?.stale" :kept="ledger.staleKept" :unavailable="ledger.takeReview?.unavailable" :pending="ledger.pending || ledger.reviewLoading" :writable="ledger.writable" :can-select="ledger.canSelect" :preview-loading="ledger.previewLoading" @preview="ledger.preview()" @select="ledger.select()" @clear="ledger.select(true)" @keep="ledger.confirmCurrent">
           <template #listening>
             <AEVoiceComparePanel :row="ledger.reviewRow" :take-id="ledger.takeId" :preview-take-id="ledger.previewTakeId" :loading="ledger.previewLoading" :pending="ledger.pending || ledger.reviewLoading || advanced" @preview="ledger.preview" @inspect="ledger.takeId = $event" @stop="ledger.clearPreview" />
-            <audio v-if="ledger.previewSource" ref="player" :src="ledger.previewSource" controls preload="none" aria-label="对白配音试听" class="ae-ledger-player" @error="playbackError" />
+            <AEAudioPlayer v-if="ledger.previewSource" ref="player" :src="ledger.previewSource" label="对白配音试听" title="对白试听" @timeupdate="playbackTime = $event" @error="playbackError" />
+            <AEVoiceTranscript v-if="ledger.previewSource && ledger.previewTake" :text="ledger.previewTake.spokenText" :alignment="ledger.previewTake.alignment" :time="playbackTime" />
+            <div v-if="ledger.take" class="ae-resource-actions">
+              <AGUIButton :disabled="!ledger.canAlign" :loading="ledger.pending" data-testid="take-align" @click="ledger.alignTake">
+                {{ ledger.take.alignment ? '重新对齐逐字时间轴' : '生成逐字时间轴' }}
+              </AGUIButton>
+            </div>
           </template>
         </AEVoiceTakeReview>
         <AGUIDetails title="生成新的配音候选">
@@ -159,11 +168,5 @@ function playbackError() {
   gap: 8px;
   padding: 8px;
   container: agui-properties / inline-size;
-}
-.ae-ledger-player {
-  max-width: 100%;
-  width: 100%;
-  height: 32px;
-  color-scheme: inherit;
 }
 </style>

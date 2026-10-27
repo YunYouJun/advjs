@@ -64,6 +64,7 @@ export function createBrowserAudioBackend(options: BrowserAudioBackendOptions = 
   }
 
   function commonPlayback(gain: GainNode, implementation: {
+    currentTime?: () => number
     play: () => void | Promise<void>
     pause: () => void
     stop: () => void
@@ -79,6 +80,7 @@ export function createBrowserAudioBackend(options: BrowserAudioBackendOptions = 
       }
     }
     const playback: AudioPlayback = {
+      currentTime: implementation.currentTime,
       play() {
         if (!stopped)
           return implementation.play()
@@ -151,6 +153,7 @@ export function createBrowserAudioBackend(options: BrowserAudioBackendOptions = 
     const source = current.createMediaElementSource(media)
     source.connect(gain)
     const mediaPlayback = commonPlayback(gain, {
+      currentTime: () => media.currentTime,
       play: () => media.play(),
       pause: () => media.pause(),
       stop() {
@@ -297,6 +300,7 @@ export function createBrowserAudioBackend(options: BrowserAudioBackendOptions = 
       }
     }
     const bufferPlayback = commonPlayback(gain, {
+      currentTime: () => Math.min(buffer.duration, completed ? buffer.duration : offset + (source ? current.currentTime - startedAt : 0)),
       play() {
         if (source || completed)
           return

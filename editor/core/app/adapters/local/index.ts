@@ -354,6 +354,16 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
     origin: options.origin,
     readFile,
     voiceLibrary: async (signal?: AbortSignal) => await (await request('voice-library', { signal })).json() as AdvVoiceLibrarySnapshot,
+    voiceMaintenance: {
+      read: async signal => await (await request('audio/providers', { signal })).json(),
+      plan: async (input, signal) => await (await request('audio/providers/plan', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input), signal })).json(),
+      execute: async (input, signal) => await (await request('audio/providers/execute', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input), signal })).json(),
+      stop: async (providerId, signal) => { await request('audio/providers/stop', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ providerId }), signal }) },
+      enable: async (providerId, signal) => { await request('audio/providers/enable', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ providerId }), signal }) },
+    } satisfies import('@advjs/types').VoiceProviderMaintenancePort,
+    voiceAlignment: {
+      alignTake: async (input, signal) => await (await request('audio/alignment', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input), signal })).json(),
+    } satisfies import('@advjs/types').VoiceAlignmentPort,
     voiceDesign: {
       read: async signal => await (await request('audio/voice-design', { signal })).json(),
       saveVersion: async (input, signal) => await (await request('audio/voice-design/save', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input), signal })).json(),

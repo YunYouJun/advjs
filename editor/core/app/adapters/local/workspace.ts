@@ -53,6 +53,8 @@ export function createLocalProjectWorkspace(adapter: LocalBridgeAdapter): Projec
     voiceLibrary: signal => adapter.voiceLibrary(signal),
     voiceJobs: adapter.voiceJobs,
     voiceDesign: adapter.voiceDesign,
+    voiceMaintenance: adapter.voiceMaintenance,
+    voiceAlignment: adapter.voiceAlignment,
     selectVoiceSample: input => adapter.selectVoiceSample(input),
     readVoiceAudio: (assetId, signal) => adapter.readVoiceAudio(assetId, signal),
     dispose: adapter.dispose,

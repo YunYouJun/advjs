@@ -203,6 +203,26 @@ describe('reviewed durable generation jobs', () => {
     expect(project.synthesize).toHaveBeenCalledTimes(4)
   })
 
+  it('keeps alignment timings without prose in durable receipts and restores exact text when registering', async () => {
+    const project = await fixture()
+    project.handler(async (candidate) => {
+      candidate.alignment = { schemaVersion: 1, text: candidate.text, audioSha256: candidate.sha256, durationSeconds: 1, engine: 'fixture', model: 'fixture', units: [{ start: 0, end: 1, startTime: 0.1, endTime: 0.5 }] }
+    })
+    const line = project.input(0, 'Private dialogue alignment.')
+    const plan = await project.plan([line])
+    await project.runner.enqueue(plan)
+    expect((await project.runner.run(plan.id)).tasks[0]!.status).toBe('committed')
+    const saved = await project.store.read()
+    expect(JSON.stringify(saved)).not.toContain('Private dialogue')
+    const receipt = Object.values(saved.idempotency)[0]!.candidate!
+    expect(receipt.alignment).toMatchObject({ audioSha256: receipt.sha256, units: [{ start: 0, end: 1, startTime: 0.1, endTime: 0.5 }] })
+    const take = (await project.authoring.read()).ledger.lines[line.lineId]!.locales.en!.takes[0]!
+    expect(take.alignment).toMatchObject({ text: line.displayText, audioSha256: receipt.sha256 })
+    const malicious = structuredClone(saved)
+    Object.assign(Object.values(malicious.idempotency)[0]!.candidate!.alignment!, { text: 'Never persist prose' })
+    expect(() => parseVoiceGenerationStore(malicious)).toThrow('VOICE_ALIGNMENT_INVALID')
+  })
+
   it('uses one paid result across duplicate fingerprints and future jobs while scoping reuse by account/project', async () => {
     const project = await fixture()
     const first = await project.plan([project.input(0, 'Identical.'), project.input(1, 'Identical.')])

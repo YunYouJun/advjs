@@ -1,7 +1,7 @@
 import type { AdvAssetEntry, AdvConfig, AdvVoiceCandidate, AdvVoiceProfile, AdvVoiceSynthesisProvider, JsonObject, VoiceDesignDraft, VoiceDesignFileChange, VoiceDesignMutation, VoiceDesignPort, VoiceDesignPreview, VoiceDesignPreviewInput, VoiceDesignPreviewReview, VoiceDesignProviderInfo, VoiceDesignSample, VoiceDesignSnapshot } from '@advjs/types'
 import { createHash, randomUUID } from 'node:crypto'
 import { copyFile, mkdir, readFile, realpath, rm, stat } from 'node:fs/promises'
-import { addVoiceDesignVersion, applyDesignedVoiceProfile, audioFingerprint, audioProjectMediaPath, canonicalAudioJson, createAudioId, normalizeAudioLocale, parseVoiceDesignDraft, parseVoiceDesignLibrary, VOICE_DESIGN_LIBRARY_PATH, VOICE_DESIGN_PRESET_ROOT, voiceDesignVersion } from '@advjs/audio'
+import { addVoiceDesignVersion, applyDesignedVoiceProfile, audioFingerprint, audioProjectMediaPath, canonicalAudioJson, createAudioId, normalizeAudioLocale, parseVoiceAlignment, parseVoiceDesignDraft, parseVoiceDesignLibrary, VOICE_DESIGN_LIBRARY_PATH, VOICE_DESIGN_PRESET_ROOT, voiceDesignVersion } from '@advjs/audio'
 import { applyProjectPatches } from '@advjs/core'
 import { isAbsolute, relative, resolve } from 'pathe'
 import { resolveAuthoringVoiceContext } from '../commands/voice'
@@ -10,6 +10,7 @@ import { loadProject } from '../project'
 import { withProjectWriteLock } from '../project/write-lock'
 import { defaultVoiceGenerationStoreDirectory } from './job-store'
 import { withVoiceProviderPermit } from './provider-permit'
+import { readVoiceProviderState } from './provider-state'
 import { createNodeVoiceAuthoringService } from './voice'
 import { createVoiceDesignMirrorValidator } from './voice-design-sync'
 
@@ -104,8 +105,8 @@ export async function createNodeVoiceDesignHost(options: NodeVoiceDesignOptions)
       fail('VOICE_DESIGN_PATH_INVALID')
     return { path, bytes: await readFile(path) }
   }
-  async function configured(providerId?: string) {
-    const loaded = await resolveAuthoringVoiceContext({ root, config: options.config, provider: providerId })
+  async function configured(providerId?: string, allowDisabled = false) {
+    const loaded = await resolveAuthoringVoiceContext({ root, config: options.config, provider: providerId, allowDisabled })
     if (loaded.voice.library && loaded.voice.library !== VOICE_DESIGN_LIBRARY_PATH)
       fail('VOICE_DESIGN_LIBRARY_PATH_UNSUPPORTED')
     return loaded
@@ -161,9 +162,12 @@ export async function createNodeVoiceDesignHost(options: NodeVoiceDesignOptions)
     return { referenceHash: digest(media.bytes), consentHash: digest(consent.bytes) }
   }
   async function providerInfos(): Promise<VoiceDesignProviderInfo[]> {
-    const configuredVoice = await configured()
+    const configuredVoice = await configured(undefined, true)
+    const disabled = await readVoiceProviderState(root)
     const result: VoiceDesignProviderInfo[] = []
     for (const item of configuredVoice.providers) {
+      if (disabled.includes(item.id))
+        continue
       if (!('synthesize' in item) || !item.buildDesignPreset || !item.capabilities.designSources?.length)
         continue
       const sources = item.capabilities.designSources
@@ -175,7 +179,7 @@ export async function createNodeVoiceDesignHost(options: NodeVoiceDesignOptions)
         const supported: VoiceDesignProviderInfo['sources'] = []
         for (const source of sources) {
           try {
-            await item.buildDesignPreset({ template, characterId: 'narrator', text: '试听', locale: 'zh-CN', intent: {}, definition: { preset: id, source, ...(source === 'system' ? { providerVoiceId: (await item.listVoices?.())?.[0]?.id } : source === 'designed' ? { description: '平静清晰的声音' } : { reference: { assetId: 'reference/inspection', sha256: 'a'.repeat(64), mode: 'embedding-only' }, rights: { license: 'inspection', subject: 'inspection', consentRecord: 'authoring/rights/inspection.json' } }) } })
+            await item.buildDesignPreset({ template, characterId: 'narrator', text: '试听', locale: 'zh-CN', intent: {}, definition: { preset: id, source, ...(source === 'system' ? { providerVoiceId: (await item.listVoices?.())?.[0]?.id } : source === 'designed' ? { description: '平静清晰的声音' } : { reference: { assetId: 'reference/inspection', sha256: 'a'.repeat(64), mode: item.capabilities.referenceModes?.[0] ?? 'embedding-only', text: '参考音频的完整逐字稿。' }, rights: { license: 'inspection', subject: 'inspection', consentRecord: 'authoring/rights/inspection.json' } }) } })
             supported.push(source)
           }
           catch { /* Unsupported template/source combinations are unavailable. */ }
@@ -183,7 +187,7 @@ export async function createNodeVoiceDesignHost(options: NodeVoiceDesignOptions)
         if (typeof template.model === 'string' && supported.length)
           presets.push({ id, model: template.model, sources: supported })
       }
-      result.push({ id: item.id, backend: item.capabilities.backend, sources, builtInVoices: await item.listVoices?.() ?? [], presets })
+      result.push({ id: item.id, backend: item.capabilities.backend, sources, ...(item.capabilities.referenceModes ? { referenceModes: item.capabilities.referenceModes } : {}), builtInVoices: await item.listVoices?.() ?? [], presets })
     }
     return result
   }
@@ -231,6 +235,8 @@ export async function createNodeVoiceDesignHost(options: NodeVoiceDesignOptions)
     const bytes = (await file(candidate.path, MAX_MEDIA)).bytes
     if (!HASH.test(candidate.sha256) || !Number.isSafeInteger(candidate.bytes) || bytes.length !== candidate.bytes || digest(bytes) !== candidate.sha256 || !Number.isFinite(candidate.durationSeconds) || candidate.durationSeconds <= 0 || !Number.isSafeInteger(candidate.sampleRate) || candidate.sampleRate <= 0)
       fail('VOICE_DESIGN_MEDIA_CHANGED')
+    if (candidate.alignment)
+      parseVoiceAlignment(candidate.alignment, { text: candidate.text, sha256: candidate.sha256, durationSeconds: candidate.durationSeconds })
     return bytes
   }
   async function execute(id: string) {
@@ -266,7 +272,7 @@ export async function createNodeVoiceDesignHost(options: NodeVoiceDesignOptions)
         })
         controller.signal.throwIfAborted()
         dispatched = true
-        return await selected.synthesize({ root, configPath, preset: `design-${review.review.voiceId}`, character: review.review.characterId, text: review.review.text, assetManifestPath: resolve(root, 'adv/assets.json'), ...(review.review.source === 'cloned' ? { referenceMode: verified.definition.reference?.mode ?? 'embedding-only' } : {}), signal: controller.signal, voiceId: review.review.voiceId, voiceVersion: review.voiceVersion })
+        return await selected.synthesize({ root, configPath, preset: `design-${review.review.voiceId}`, character: review.review.characterId, text: review.review.text, assetManifestPath: resolve(root, 'adv/assets.json'), ...(review.review.source === 'cloned' ? { referenceMode: verified.definition.reference?.mode ?? selected.capabilities.referenceModes?.[0] ?? 'embedding-only' } : {}), signal: controller.signal, voiceId: review.review.voiceId, voiceVersion: review.voiceVersion })
       }
       const result = options.withProviderPermit ? await options.withProviderPermit(selected.id, controller.signal, operation) : await withVoiceProviderPermit(selected.id, selected.capabilities.backend === 'local' ? 1 : 3, controller.signal, operation)
       const candidate = result.candidates[0]
@@ -303,7 +309,7 @@ export async function createNodeVoiceDesignHost(options: NodeVoiceDesignOptions)
           fail('VOICE_DESIGN_SPEAKER_INVALID')
         const implementations: AdvVoiceProfile['implementations'] = {}
         const edits: VoiceDesignFileChange[] = []
-        const configuredVoice = await configured()
+        const configuredVoice = await configured(undefined, true)
         for (const [locale, binding] of Object.entries(draft.locales)) {
           for (const [providerId, definition] of Object.entries(binding.providers)) {
             const selected = await provider(providerId)
@@ -460,6 +466,8 @@ export async function createNodeVoiceDesignHost(options: NodeVoiceDesignOptions)
         if (existingMedia && (!recovered || !existingMedia.isFile() || existingMedia.size !== bytes.length || digest(await readFile(target)) !== saved.candidate!.sha256))
           fail('VOICE_DESIGN_MEDIA_EXISTS')
         const sample: VoiceDesignSample = recovered?.sample ?? { assetId: id, sha256: saved.candidate!.sha256, bytes: bytes.length, locale: saved.preview.locale, providerId: saved.preview.providerId, providerVoiceId: review.review.providerVoiceId, model: review.review.model, source: review.review.source, text: review.review.text, presetSha256: review.review.presetSha256, createdAt: String(asset.source!.createdAt) }
+        if (!recovered && saved.candidate!.alignment)
+          sample.alignment = saved.candidate!.alignment
         voiceDesignVersion(current.library, voice.id).design.samples.push(sample)
         const rootCatalog = JSON.parse(current.project.files['adv/assets.json']!)
         const changes: VoiceDesignFileChange[] = [{ path: VOICE_DESIGN_LIBRARY_PATH, expected: current.raw, content: encode(parseVoiceDesignLibrary(current.library)) }]
