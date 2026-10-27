@@ -23,6 +23,8 @@ export interface CompileDiagnostic {
 export interface CompileResult<T> {
   program?: T
   diagnostics: CompileDiagnostic[]
+  /** Authoring metadata stays outside the executable program and its content hash. */
+  sourceMap?: Record<string, CompileSourceLocation>
 }
 
 export type RuntimeTargetInput = RuntimeAddress | string

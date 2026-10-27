@@ -598,5 +598,6 @@ export async function compileMarkdownProgram(source: MarkdownProgramSource): Pro
   return {
     program: diagnostics.some(item => item.severity === 'error' || item.certainty === 'uncertain') ? undefined : linked.program,
     diagnostics: [...diagnostics, ...linked.diagnostics],
+    sourceMap: linked.sourceMap,
   }
 }
