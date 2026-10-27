@@ -9,6 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { markRaw, reactive } from 'vue'
 import { createLocalBridgeAdapter } from '../../../editor/core/app/adapters/local'
 import { createLocalProjectWorkspace } from '../../../editor/core/app/adapters/local/workspace'
+import AEVoiceJobItem from '../../../editor/core/app/components/panel/audio/AEVoiceJobItem.vue'
 import AEVoiceJobPlanForm from '../../../editor/core/app/components/panel/audio/AEVoiceJobPlanForm.vue'
 import AEVoiceJobsPanel from '../../../editor/core/app/components/panel/audio/AEVoiceJobsPanel.vue'
 import { useAudioStore } from '../../../editor/core/app/stores/useAudioStore'
@@ -62,6 +63,79 @@ async function open() {
 }
 
 describe('editor durable voice job authoring UI', () => {
+  it('groups scope, budget review and generation progress in workflow order with an explicit next action', async () => {
+    const wrapper = await open()
+    const sections = ['jobs-scope-section', 'jobs-budget-section', 'jobs-progress-section']
+    expect(wrapper.findAll('.agui-section').map(section => section.attributes('data-testid'))).toEqual(sections)
+    expect(wrapper.get('[data-testid="jobs-scope-section"]').findAll('select')).toHaveLength(4)
+    expect(wrapper.get('[data-testid="jobs-budget-section"]').find('[data-testid="jobs-character-budget"]').exists()).toBe(true)
+    expect(wrapper.get('[data-testid="jobs-next-step"]').text()).toContain('先在上方勾选台词')
+    expect(wrapper.get('[data-testid="jobs-scope-section"]').text()).toContain('最多 5000 句')
+    expect(wrapper.get('[data-testid="jobs-scope-section"]').text()).toContain('每批 200 句')
+    expect(wrapper.get('[data-testid="jobs-progress-section"]').text()).toContain('关闭面板后仍可恢复')
+    expect(fixture.calls).toHaveLength(0)
+  })
+
+  it('keeps long-job progress and recovery actions visible while lazily expanding paginated results', async () => {
+    const reviewed = await workspace.voiceJobs!.plan({ lineIds: [editorJobLineIds[0]!], locale: 'zh-CN', providerId: 'fixture-tts', budget: { maxCharacters: 100, concurrency: 1, allowUnknownCost: true } })
+    const job = structuredClone(reviewed.plan)
+    job.tasks = Array.from({ length: 201 }, (_, index) => ({ ...job.tasks[0]!, id: `job_019d137e-7abc-7000-8000-${String(index + 1).padStart(12, '0')}`, lineId: `line_019d137e-7abc-7000-8000-${String(index + 1).padStart(12, '0')}` }))
+    job.tasks[0]!.status = 'running'
+    job.tasks[1]!.status = 'generated'
+    job.tasks[150]!.status = 'failed'
+    job.summary.lines = 201
+    const wrapper = mount(AEVoiceJobItem, { props: { job, pending: false, batchSize: 200 } })
+    mounted.push(wrapper)
+    expect(wrapper.get('[data-testid="jobs-batch-progress"]').text()).toContain('第 1 / 2 批')
+    expect(wrapper.text()).toContain('1 句失败')
+    expect(wrapper.text()).toContain('fixture-tts · zh-CN')
+    expect(wrapper.get('[aria-label="任务执行状态"]').text()).toContain('生成中 1 句')
+    expect(wrapper.get('[aria-label="任务执行状态"]').text()).toContain('待登记 1 句')
+    expect(wrapper.get('[aria-label="任务执行状态"]').text()).toContain('排队 198 句')
+    expect(wrapper.get('progress').attributes('value')).toBe('0')
+    expect(wrapper.get('progress').attributes('max')).toBe('201')
+    expect(wrapper.get('[data-testid="jobs-run"]').attributes('disabled')).toBeDefined()
+    expect(wrapper.get('[data-testid="jobs-retry"]').attributes('disabled')).toBeUndefined()
+    expect(wrapper.findAll('[data-task-status]')).toHaveLength(0)
+    const results = wrapper.get('[data-testid="jobs-results"]')
+    expect(results.attributes('open')).toBeUndefined()
+    ;(results.element as HTMLDetailsElement).open = true
+    await results.trigger('toggle')
+    expect(wrapper.findAll('[data-task-status]')).toHaveLength(100)
+    await wrapper.findAll('button').find(button => button.text() === '下一页结果')!.trigger('click')
+    expect(wrapper.findAll('[data-task-status="failed"]')).toHaveLength(1)
+    expect(wrapper.findAll('.ae-job-task-order')[0]!.text()).toBe('第 101 句')
+    expect(wrapper.findAll('[aria-label="稳定台词 ID"]')[0]!.text()).toBe(job.tasks[100]!.lineId)
+    await wrapper.get('[data-testid="jobs-retry"]').trigger('click')
+    expect(wrapper.emitted('command')![0]![1]).toBe('retry')
+    await wrapper.setProps({ job: { ...job, cancelled: true } })
+    await wrapper.get('[data-testid="jobs-resume"]').trigger('click')
+    expect(wrapper.emitted('command')![1]![1]).toBe('resume')
+    expect(fixture.calls).toHaveLength(0)
+  })
+
+  it('shows a long-job capacity block and its safe reason outside collapsed result pages', async () => {
+    const reviewed = await workspace.voiceJobs!.plan({ lineIds: [editorJobLineIds[0]!], locale: 'zh-CN', providerId: 'fixture-tts', budget: { maxCharacters: 100, concurrency: 1, allowUnknownCost: true } })
+    const job = structuredClone(reviewed.plan)
+    job.tasks = Array.from({ length: 201 }, (_, index) => ({ ...job.tasks[0]!, id: `job_019d137e-7abc-7000-8000-${String(index + 1).padStart(12, '0')}` }))
+    job.tasks[150]!.status = 'blocked'
+    job.tasks[150]!.errorCode = 'STORE_CAPACITY_EXCEEDED'
+    job.summary.lines = 201
+    const wrapper = mount(AEVoiceJobItem, { props: { job, pending: false, batchSize: 200 } })
+    mounted.push(wrapper)
+    expect(wrapper.get('[data-testid="jobs-results"]').attributes('open')).toBeUndefined()
+    expect(wrapper.findAll('[data-task-status]')).toHaveLength(0)
+    expect(wrapper.text()).toContain('1 句已阻断')
+    expect(wrapper.get('[data-testid="jobs-blocked-reason"]').text()).toBe('恢复记录空间不足，尚未调用模型')
+    expect(wrapper.get('[data-testid="jobs-batch-progress"]').text()).toContain('第 1 / 2 批')
+    const unknown = structuredClone(job)
+    unknown.tasks[150]!.errorCode = 'sensitive provider /private/path'
+    await wrapper.setProps({ job: unknown })
+    expect(wrapper.get('[data-testid="jobs-blocked-reason"]').text()).toContain('请检查项目配置或输入')
+    expect(wrapper.text()).not.toContain('sensitive provider')
+    expect(fixture.calls).toHaveLength(0)
+  })
+
   it('stops polling when the host has no active promise, even if queued tasks remain after a run command', async () => {
     const port = workspace.voiceJobs!
     const initial = await port.read()

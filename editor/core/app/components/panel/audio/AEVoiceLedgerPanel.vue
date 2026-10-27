@@ -101,11 +101,12 @@ function playbackError() {
         <p v-else class="ae-resource-caption" role="status">
           此语言尚无配音 take；生成候选后，登记和选用分别执行。
         </p>
-        <AEVoiceTakeReview v-model:replace="ledger.replaceSelected" v-model:reviewed="ledger.staleReviewed" :take="ledger.take" :selected-take="ledger.binding?.selectedTake" :stale="ledger.takeReview?.stale" :kept="ledger.staleKept" :unavailable="ledger.takeReview?.unavailable" :pending="ledger.pending || ledger.reviewLoading" :writable="ledger.writable" :can-select="ledger.canSelect" :preview-loading="ledger.previewLoading" @preview="ledger.preview()" @select="ledger.select()" @clear="ledger.select(true)" @keep="ledger.confirmCurrent">
+        <AEVoiceTakeReview v-model:replace="ledger.replaceSelected" v-model:reviewed="ledger.staleReviewed" :take="ledger.take" :show-text="!ledger.previewSource || ledger.previewTake?.spokenText !== ledger.take?.spokenText" :selected-take="ledger.binding?.selectedTake" :stale="ledger.takeReview?.stale" :kept="ledger.staleKept" :unavailable="ledger.takeReview?.unavailable" :pending="ledger.pending || ledger.reviewLoading" :writable="ledger.writable" :can-select="ledger.canSelect" :preview-loading="ledger.previewLoading" @preview="ledger.preview()" @select="ledger.select()" @clear="ledger.select(true)" @keep="ledger.confirmCurrent">
           <template #listening>
             <AEVoiceComparePanel :row="ledger.reviewRow" :take-id="ledger.takeId" :preview-take-id="ledger.previewTakeId" :loading="ledger.previewLoading" :pending="ledger.pending || ledger.reviewLoading || advanced" @preview="ledger.preview" @inspect="ledger.takeId = $event" @stop="ledger.clearPreview" />
-            <AEAudioPlayer v-if="ledger.previewSource" ref="player" :src="ledger.previewSource" label="对白配音试听" title="对白试听" @timeupdate="playbackTime = $event" @error="playbackError" />
-            <AEVoiceTranscript v-if="ledger.previewSource && ledger.previewTake" :text="ledger.previewTake.spokenText" :alignment="ledger.previewTake.alignment" :time="playbackTime" />
+            <AEAudioPlayer v-if="ledger.previewSource" ref="player" :src="ledger.previewSource" label="对白配音试听" :title="ledger.previewTakeId === ledger.takeId ? '当前审核配音试听' : '对比候选试听'" @timeupdate="playbackTime = $event" @error="playbackError">
+              <AEVoiceTranscript v-if="ledger.previewTake" :text="ledger.previewTake.spokenText" :alignment="ledger.previewTake.alignment" :time="playbackTime" follow />
+            </AEAudioPlayer>
             <div v-if="ledger.take" class="ae-resource-actions">
               <AGUIButton :disabled="!ledger.canAlign" :loading="ledger.pending" data-testid="take-align" @click="ledger.alignTake">
                 {{ ledger.take.alignment ? '重新对齐逐字时间轴' : '生成逐字时间轴' }}

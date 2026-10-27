@@ -2,6 +2,7 @@
 import AGUISlider from '@advjs/gui/client/components/AGUISlider.vue'
 import AGUIButton from '@advjs/gui/client/components/button/AGUIButton.vue'
 import AGUISelect from '@advjs/gui/client/components/select/AGUISelect.vue'
+import AGUITag from '@advjs/gui/client/components/tag/AGUITag.vue'
 import { nextTick, reactive, useId, useTemplateRef, watch } from 'vue'
 import { useAudioTransport } from '../../../composables/useAudioTransport'
 
@@ -38,9 +39,14 @@ defineExpose({ play, pause: transport.pause })
     <audio :id="id" ref="audio" :src="src" :aria-label="label" preload="metadata" @error="emit('error')" />
     <div class="ae-player-heading">
       <span class="ae-player-title">{{ title }}</span>
-      <span class="ae-player-state">{{ transport.waiting ? '正在载入' : transport.paused ? '已暂停' : '正在播放' }}</span>
+      <AGUITag :tone="transport.waiting || !transport.paused ? 'info' : 'neutral'">
+        {{ transport.waiting ? '正在载入' : transport.paused ? '已暂停' : '正在播放' }}
+      </AGUITag>
     </div>
-    <AGUISlider :model-value="transport.time" :min="0" :max="transport.duration || 1" :step="0.01" :disabled="!transport.duration" :label="`${label}播放进度（秒）`" :aria-describedby="`${id}-time`" @update:model-value="transport.seek" />
+    <div v-if="$slots.default" class="ae-player-transcript">
+      <slot />
+    </div>
+    <AGUISlider variant="media" :model-value="transport.time" :min="0" :max="transport.duration || 1" :step="0.01" :disabled="!transport.duration" :label="`${label}播放进度（秒）`" :aria-describedby="`${id}-time`" @update:model-value="transport.seek" />
     <div :id="`${id}-time`" class="ae-player-time">
       <span>{{ formatTime(transport.time) }}</span>
       <span>{{ transport.duration ? formatTime(transport.duration) : '—:—' }}</span>
@@ -53,7 +59,7 @@ defineExpose({ play, pause: transport.pause })
       </div>
       <div class="ae-player-options">
         <AGUIButton variant="text" :icon="transport.muted || transport.volume === 0 ? 'i-ri-volume-mute-line' : 'i-ri-volume-up-line'" :aria-label="`${transport.muted ? '取消静音' : '静音'}${label}`" :aria-pressed="transport.muted" @click="transport.toggleMute" />
-        <AGUISlider class="ae-player-volume" :model-value="transport.muted ? 0 : transport.volume" :min="0" :max="1" :step="0.05" :label="`${label}音量`" @update:model-value="transport.setVolume" />
+        <AGUISlider class="ae-player-volume" variant="media" :model-value="transport.muted ? 0 : transport.volume" :min="0" :max="1" :step="0.05" :label="`${label}音量`" @update:model-value="transport.setVolume" />
         <AGUISelect class="ae-player-speed" :model-value="transport.rate" :options="speeds" :label="`${label}播放速度`" @update:model-value="transport.setRate" />
       </div>
     </div>
@@ -67,10 +73,10 @@ defineExpose({ play, pause: transport.pause })
 .ae-audio-player {
   container: audio-player / inline-size;
   min-width: 0;
-  padding: 10px 12px;
+  padding: var(--agui-space-3);
   border: 1px solid var(--agui-c-divider-light);
-  border-radius: 4px;
-  background: var(--agui-c-bg-soft);
+  border-radius: var(--agui-radius-md);
+  background: var(--agui-c-field);
   color: var(--agui-c-text-1);
 }
 .ae-player-heading,
@@ -85,40 +91,42 @@ defineExpose({ play, pause: transport.pause })
 .ae-player-time,
 .ae-player-controls {
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--agui-space-2);
 }
 .ae-player-title {
-  font-size: 12px;
+  font-size: var(--agui-font-size-title);
   font-weight: 600;
 }
-.ae-player-state,
+.ae-player-transcript {
+  margin-block: var(--agui-space-3) var(--agui-space-2);
+}
 .ae-player-time {
   color: var(--agui-c-text-2);
-  font-size: 11px;
+  font-size: var(--agui-font-size-caption);
 }
 .ae-player-time {
   font-variant-numeric: tabular-nums;
   margin-top: -2px;
 }
 .ae-player-controls {
-  margin-top: 6px;
+  margin-top: var(--agui-space-2);
   flex-wrap: wrap;
 }
 .ae-player-transport {
-  gap: 6px;
+  gap: var(--agui-space-2);
 }
 .ae-player-play {
   --border-radius: 50%;
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   padding: 0;
 }
 .ae-player-play :deep(.agui-button-icon) {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
 }
 .ae-player-options {
-  gap: 4px;
+  gap: var(--agui-space-1);
 }
 .ae-player-volume {
   width: 72px;
@@ -128,9 +136,9 @@ defineExpose({ play, pause: transport.pause })
   min-width: 62px;
 }
 .ae-player-error {
-  font-size: 12px;
+  font-size: var(--agui-font-size-body);
   color: var(--agui-c-warning-text);
-  margin: 8px 0 0;
+  margin: var(--agui-space-2) 0 0;
 }
 @container audio-player (max-width: 300px) {
   .ae-player-volume {

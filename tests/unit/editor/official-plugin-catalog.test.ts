@@ -3,12 +3,18 @@ import type { App } from 'vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createApp, defineComponent, h, nextTick, shallowRef } from 'vue'
 import OfficialPluginCatalog from '../../../editor/core/app/components/extensions/OfficialPluginCatalog.vue'
+import { officialPluginInstallCommands, officialPlugins } from '../../../editor/core/app/extensions/official-plugins'
 
 let app: App | undefined
+const clipboardDescriptor = Object.getOwnPropertyDescriptor(navigator, 'clipboard')
 afterEach(() => {
   app?.unmount()
   app = undefined
   document.body.innerHTML = ''
+  if (clipboardDescriptor)
+    Object.defineProperty(navigator, 'clipboard', clipboardDescriptor)
+  else
+    Reflect.deleteProperty(navigator, 'clipboard')
 })
 
 function fixture(snapshot: VoiceProviderStatusSnapshot = { configured: true, providers: [{ id: 'breeze-tts', enabled: true, diagnostics: true }] }) {
@@ -23,7 +29,12 @@ function fixture(snapshot: VoiceProviderStatusSnapshot = { configured: true, pro
   }
   const button = (id = 'breeze-tts') => element.querySelector<HTMLButtonElement>(`[data-testid="official-plugin-check-${id}"]`)!
   const state = (id = 'breeze-tts') => element.querySelector(`[data-testid="official-plugin-state-${id}"]`)!.textContent
-  return { port, locale, visible, element, mount, button, state }
+  const choice = (id: string) => element.querySelector<HTMLButtonElement>(`[data-testid="official-plugin-select-${id}"]`)!
+  async function select(id: string) {
+    choice(id).click()
+    await nextTick()
+  }
+  return { port, locale, visible, element, mount, button, state, choice, select }
 }
 
 describe('official audio plugin catalog', () => {
@@ -33,10 +44,18 @@ describe('official audio plugin catalog', () => {
     await vi.waitFor(() => expect(f.state()).toBe('已配置 · 尚未检查'))
     expect(f.port.value!.doctor).not.toHaveBeenCalled()
     expect(f.state('openai-tts')).toBe('项目未配置')
+    expect(f.element.querySelectorAll('[data-testid="official-plugin-details"]')).toHaveLength(1)
+    expect(f.element.querySelectorAll('[data-testid^="official-plugin-check-"]')).toHaveLength(1)
     expect(f.element.textContent).toContain('pnpm add -D "link:/absolute/path/to/advjs/plugins/plugin-breeze-tts"')
-    expect(f.element.textContent).toContain('Node 宿主')
+    expect(f.element.querySelector<HTMLDetailsElement>('[data-testid="official-plugin-setup-breeze-tts"]')!.open).toBe(false)
+    await f.select('qwen-tts')
     expect(f.element.textContent).toContain('16 GB')
+    await f.select('openai-tts')
+    expect(f.element.textContent).toContain('Node 宿主')
     expect(f.element.textContent).toContain('未验证远端服务')
+    expect(f.button('openai-tts').disabled).toBe(true)
+    expect(f.port.value!.doctor).not.toHaveBeenCalled()
+    await f.select('breeze-tts')
     f.button().click()
     await vi.waitFor(() => expect(f.state()).toBe('检查通过'))
     expect(f.port.value!.doctor).toHaveBeenCalledOnce()
@@ -46,6 +65,7 @@ describe('official audio plugin catalog', () => {
     await nextTick()
     expect(f.state()).toBe('Check passed')
     expect(f.button().getAttribute('aria-label')).toBe('Check status Breeze TTS 2')
+    await f.select('openai-tts')
     expect(f.element.textContent).toContain('remote service')
   })
 
@@ -55,11 +75,48 @@ describe('official audio plugin catalog', () => {
     await vi.waitFor(() => expect(f.state()).toBe('未提供检测接口'))
     expect(f.button().disabled).toBe(true)
     expect(f.state('qwen-tts')).toBe('项目已停用')
+    await f.select('qwen-tts')
     expect(f.button('qwen-tts').disabled).toBe(true)
     f.port.value = undefined
     await nextTick()
     expect(f.state()).toBe('未连接状态接口')
     expect(f.element.querySelector('[data-testid="official-catalog-no-host"]')).not.toBeNull()
+  })
+
+  it('selects every plugin with roving native buttons and Arrow/Home/End keys without running diagnostics', async () => {
+    const f = fixture({ configured: false, providers: [] })
+    f.mount()
+    await vi.waitFor(() => expect(f.state()).toBe('项目未配置'))
+    const current = () => f.element.querySelector<HTMLButtonElement>('button[data-plugin-choice][aria-pressed="true"]')!
+    expect(current()).toBe(f.choice('breeze-tts'))
+    current().focus()
+    for (const [key, id] of [['ArrowDown', 'qwen-tts'], ['End', 'openai-tts'], ['ArrowUp', 'qwen-tts'], ['Home', 'breeze-tts'], ['ArrowUp', 'breeze-tts']] as const) {
+      current().dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }))
+      await nextTick()
+      expect(current()).toBe(f.choice(id))
+      expect(document.activeElement).toBe(f.choice(id))
+      expect(f.element.querySelectorAll('button[data-plugin-choice][tabindex="0"]')).toHaveLength(1)
+      expect(f.element.querySelector('[data-testid="official-plugin-details"]')?.getAttribute('data-selected-plugin')).toBe(id)
+      expect(document.getElementById(current().getAttribute('aria-controls')!)).not.toBeNull()
+    }
+    expect(f.port.value!.doctor).not.toHaveBeenCalled()
+  })
+
+  it('copies the selected adapter source commands without changing configuration or invoking its provider', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
+    const f = fixture()
+    f.mount()
+    await vi.waitFor(() => expect(f.state()).toBe('已配置 · 尚未检查'))
+    const setup = f.element.querySelector<HTMLDetailsElement>('[data-testid="official-plugin-setup-breeze-tts"]')!
+    setup.querySelector('summary')!.click()
+    expect(setup.open).toBe(true)
+    setup.querySelector<HTMLButtonElement>('button[aria-label="复制命令"]')!.click()
+    await vi.waitFor(() => expect(writeText).toHaveBeenCalledWith(officialPluginInstallCommands(officialPlugins[0]!)))
+    await vi.waitFor(() => expect(setup.textContent).toContain('已复制'))
+    await f.select('qwen-tts')
+    expect(f.element.querySelector('[data-testid="official-plugin-setup-qwen-tts"]')?.textContent).not.toContain('已复制')
+    expect(f.port.value!.doctor).not.toHaveBeenCalled()
   })
 
   it('aborts hidden checks, ignores late results and clears outcomes on project switch', async () => {

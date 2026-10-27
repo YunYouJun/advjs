@@ -1,6 +1,6 @@
 import type { VoiceAlignment } from '@advjs/types'
 import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import AEVoiceTranscript from '../../../editor/core/app/components/panel/audio/AEVoiceTranscript.vue'
 import PrintWords from '../../../packages/client/components/animation/PrintWords.vue'
 
@@ -24,6 +24,23 @@ describe('voice transcript rendering', () => {
     const wrapper = mount(PrintWords, { props: { words: alignment.text, animation: false, highlight: { text: alignment.text, unit: alignment.units[0] } } })
     expect(wrapper.text()).toBe(alignment.text)
     expect(wrapper.find('[data-voice-active]').text()).toBe('你')
+    wrapper.unmount()
+  })
+  it('keeps the active word inside its own reading area when seeking, without scrolling the page', async () => {
+    const wrapper = mount(AEVoiceTranscript, { props: { text: alignment.text, alignment, time: 0.6, follow: true } })
+    const area = wrapper.element as HTMLParagraphElement
+    Object.defineProperty(area, 'clientHeight', { value: 100 })
+    vi.spyOn(area, 'getBoundingClientRect').mockReturnValue({ top: 100, bottom: 200 } as DOMRect)
+    const words = wrapper.findAll('span')
+    vi.spyOn(words[3]!.element, 'getBoundingClientRect').mockReturnValue({ top: 250, bottom: 275 } as DOMRect)
+    await wrapper.setProps({ time: 0.85 })
+    expect(area.scrollTop).toBe(75)
+    vi.spyOn(words[0]!.element, 'getBoundingClientRect').mockReturnValue({ top: 25, bottom: 50 } as DOMRect)
+    await wrapper.setProps({ time: 0.2 })
+    expect(area.scrollTop).toBe(0)
+    await wrapper.setProps({ follow: false, time: 0.85 })
+    expect(area.scrollTop).toBe(0)
+    expect(area.hasAttribute('tabindex')).toBe(false)
     wrapper.unmount()
   })
   it('highlights one character within a glossary button while preserving its interaction', async () => {

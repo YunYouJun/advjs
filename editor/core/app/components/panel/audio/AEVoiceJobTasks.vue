@@ -2,40 +2,26 @@
 import type { VoiceGenerationJob } from '@advjs/audio'
 import AGUIButton from '@advjs/gui/client/components/button/AGUIButton.vue'
 import { computed, shallowRef } from 'vue'
+import { voiceJobErrorLabels } from './voice-job-labels'
 
-const props = defineProps<{ job: VoiceGenerationJob, batchSize?: number }>()
+const props = defineProps<{ job: VoiceGenerationJob }>()
 const page = shallowRef(0)
 const pageSize = 100
 const pageCount = computed(() => Math.max(1, Math.ceil(props.job.tasks.length / pageSize)))
 const visibleTasks = computed(() => props.job.tasks.slice(page.value * pageSize, (page.value + 1) * pageSize))
 const statusLabels: Record<string, string> = { queued: '已排队', running: '生成中', generated: '待登记', committed: '已登记 · 未自动选用', unknown: '结果未知', failed: '失败', blocked: '已阻断', cancelled: '已取消' }
-const errorLabels: Record<string, string> = { STORE_CAPACITY_EXCEEDED: '恢复记录空间不足，尚未调用模型' }
-const batches = computed(() => {
-  if (!props.batchSize)
-    return undefined
-  const total = Math.ceil(props.job.tasks.length / props.batchSize)
-  const incomplete = props.job.tasks.findIndex(task => task.status !== 'committed')
-  const completed = incomplete < 0 ? total : Math.floor(incomplete / props.batchSize)
-  const window = props.job.tasks.slice(completed * props.batchSize, (completed + 1) * props.batchSize)
-  return { total, completed, current: Math.min(completed + 1, total), stopped: window.some(task => ['failed', 'unknown', 'blocked'].includes(task.status)) && !window.some(task => ['running', 'generated'].includes(task.status)) }
-})
 </script>
 
 <template>
   <div>
-    <p v-if="batches" class="ae-resource-caption" data-testid="jobs-batch-progress">
-      第 {{ batches.current }} / {{ batches.total }} 批 · 已完成 {{ batches.completed }} 批 · 每批最多 {{ batchSize }} 句
-    </p>
-    <p v-if="batches?.stopped && !job.cancelled" class="ae-resource-caption" role="status">
-      当前批次尚未完成，后续批次保持排队。先处理失败或未知结果，再继续执行。
-    </p>
     <ul class="ae-job-tasks">
-      <li v-for="task in visibleTasks" :key="task.id" :data-task-status="task.status">
-        <span>{{ task.speakerId }} · {{ task.locale }} · {{ task.model }}</span>
-        <span>{{ statusLabels[task.status] }}<template v-if="task.errorCode"> · {{ errorLabels[task.errorCode] ?? task.errorCode }}</template></span>
+      <li v-for="(task, index) in visibleTasks" :key="task.id" class="ae-job-task" :data-task-status="task.status">
+        <span class="ae-job-task-identity"><span><strong class="ae-job-task-order">第 {{ page * pageSize + index + 1 }} 句</strong><span>{{ task.speakerId }}</span></span><span>{{ task.locale }} · {{ task.model }}</span></span>
+        <span class="ae-job-task-state" :class="{ 'is-warning': task.status === 'unknown' || task.status === 'blocked', 'is-error': task.status === 'failed' }">{{ statusLabels[task.status] }}<template v-if="task.errorCode"> · {{ voiceJobErrorLabels[task.errorCode] ?? task.errorCode }}</template></span>
+        <span class="ae-job-task-coordinate">行 ID <code class="ae-job-task-line-id" aria-label="稳定台词 ID">{{ task.lineId }}</code></span>
       </li>
     </ul>
-    <div v-if="pageCount > 1" class="ae-resource-actions" aria-label="任务结果分页">
+    <div v-if="pageCount > 1" class="ae-job-result-pagination" aria-label="任务结果分页">
       <AGUIButton :disabled="page === 0" @click="page--">
         上一页结果
       </AGUIButton>
@@ -50,19 +36,66 @@ const batches = computed(() => {
 <style scoped>
 .ae-job-tasks {
   display: grid;
-  gap: 6px;
+  gap: var(--agui-space-2);
   list-style: none;
-  margin: 8px 0;
+  margin: 0;
   padding: 0;
 }
-.ae-job-tasks li {
+.ae-job-task {
   display: grid;
-  gap: 2px;
-  padding-bottom: 4px;
-  border-bottom: 1px solid var(--agui-c-divider-light);
+  gap: var(--agui-space-1);
+  min-width: 0;
+  padding-bottom: var(--agui-space-2);
 }
-.ae-job-tasks li > span:last-child {
+.ae-job-task + .ae-job-task {
+  border-top: 1px solid var(--agui-c-divider-light);
+  padding-top: var(--agui-space-2);
+}
+.ae-job-task-identity {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--agui-space-1) var(--agui-space-2);
+  overflow-wrap: anywhere;
+}
+.ae-job-task-identity > span:last-child,
+.ae-job-task-coordinate,
+.ae-job-task-state {
   color: var(--agui-c-text-2);
-  font-size: 12px;
+  font-size: var(--agui-font-size-caption);
+  overflow-wrap: anywhere;
+}
+.ae-job-task-order {
+  margin-right: var(--agui-space-2);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.ae-job-task-coordinate {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--agui-space-1);
+  align-items: baseline;
+}
+.ae-job-task-line-id {
+  color: var(--agui-c-text-2);
+  font-family: var(--agui-font-mono, monospace);
+  font-size: var(--agui-font-size-caption);
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+.ae-job-task-state.is-warning {
+  color: var(--agui-c-warning-text);
+}
+.ae-job-task-state.is-error {
+  color: var(--agui-c-danger-text);
+}
+.ae-job-result-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--agui-space-1);
+  color: var(--agui-c-text-2);
+  font-size: var(--agui-font-size-caption);
 }
 </style>
