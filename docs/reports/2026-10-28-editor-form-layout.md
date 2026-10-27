@@ -2,7 +2,7 @@
 
 日期：2026-10-28。状态：已验证。
 
-范围：桌面 Editor Core 的表单和属性控件，以及 AGUI 共享实现。规范入口为 [AGUI 设计规范](../agui/design.md)，实施记录见 [表单布局统一计划](../plans/2026-10-28-editor-form-layout.md)。本轮调整 17 个共享组件及 29 个 Editor 文件，不改 Studio 与游戏 UI。
+范围：桌面 Editor Core 的表单和属性控件，以及 AGUI 共享实现。规范入口为 [AGUI 设计规范](../agui/design.md)，实施记录见 [表单布局统一计划](../plans/2026-10-28-editor-form-layout.md)。本轮调整 17 个共享组件及 30 个 Editor 文件（含合并前控制台复核），不改 Studio 与游戏 UI。
 
 ## 发现与修复
 
@@ -44,6 +44,12 @@
 - 新增回归验证公共表单的原生提交、标签焦点与说明插槽，组合框实际字段的 ARIA／禁用转发，以及禁用拖放不消费文件、启用后正常投递。
 - GUI 与 Editor Core 类型检查通过；GUI Vite 库构建及 Editor Core Nuxt 生产构建通过。
 - `pnpm docs:check` 与 `pnpm docs:build` 通过。构建保留原有 Vite 配置／分块及 Typedoc 提示，未为通过检查修改依赖或检查配置。
+
+## 合并前控制台复核
+
+[PR #86](https://github.com/YunYouJun/advjs/pull/86) 首轮 CI 的 Editor 生命周期测试发现控制台工具栏与日志行的复制按钮相差 2px：共享工具栏已使用 8px 内边距，日志行仍为 6px。本地生产构建复现相同失败后，将日志行间距及操作列高度改为共享 token，保留原有几何断言。
+
+复用现有 `editor-local.spec.ts` 控制台测试，在 1100×224、1100×84、320×132、320×64 及强制 12px 传统滚动条下，五次复制按钮列偏差均为 0px；固定工具栏、日志滚动、复制失败弹窗、关闭后焦点返回、英文亮色、筛选与清空均通过。临时测试入口只替换生产构建路径、仓库路径与导入位置，并增加测量日志，未放宽断言。修复后的 Editor Nuxt 生产构建和受影响文件 ESLint 通过；此前补查的全仓库 `pnpm lint` 也已通过。
 
 ## 证据与边界
 
