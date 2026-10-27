@@ -67,6 +67,11 @@
   --agui-line-height: 1.5;
   --agui-line-height-reading: 1.75;
   --agui-motion-duration: 120ms;
+  --agui-motion-popup-duration: 150ms;
+  --agui-motion-dialog-duration: 180ms;
+  --agui-motion-exit-duration: 100ms;
+  --agui-motion-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --agui-motion-exit-ease: cubic-bezier(0.4, 0, 1, 1);
 
   // Workspace, content, chrome, fields and floating surfaces.
   --agui-c-bg: var(--agui-c-white-mute);
@@ -231,5 +236,8 @@
   :root,
   .dark {
     --agui-motion-duration: 0ms;
+    --agui-motion-popup-duration: 0ms;
+    --agui-motion-dialog-duration: 0ms;
+    --agui-motion-exit-duration: 0ms;
   }
 }

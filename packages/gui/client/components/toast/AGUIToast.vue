@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ToastOptions } from '../../composables'
+import { usePreferredReducedMotion } from '@vueuse/core'
 import { ToastClose, ToastDescription, ToastProvider, ToastRoot, ToastTitle, ToastViewport } from 'reka-ui'
 import { ref } from 'vue'
 import AGUIIconButton from '../button/AGUIIconButton.vue'
@@ -11,7 +12,8 @@ const toastOptions = ref<ToastOptions>({
   type: 'default',
 })
 
-const toastList = ref<ToastOptions[]>([])
+const toastList = ref<Array<ToastOptions & { open: boolean }>>([])
+const reducedMotion = usePreferredReducedMotion()
 let sequence = 0
 
 function add(options: ToastOptions) {
@@ -20,10 +22,17 @@ function add(options: ToastOptions) {
   toastList.value.push({
     ...toastOptions.value,
     ...options,
+    open: true,
     id: options.id ?? `toast-${++sequence}`,
   })
   if (toastList.value.length > 3)
     toastList.value.shift()
+}
+
+// Presence owns the exit. Content unmount also covers animation:none and
+// interrupted exits without an animation-event handler or a cleanup timer.
+function remove(item: ToastOptions) {
+  toastList.value = toastList.value.filter(toast => toast !== item)
 }
 
 defineExpose({
@@ -49,27 +58,29 @@ function getIconFromType(type: ToastOptions['type']) {
 
 <template>
   <div class="fixed z-999">
-    <ToastProvider>
+    <ToastProvider v-if="toastList.length">
       <ToastRoot
-        v-for="item in toastList" :key="item.id"
+        v-for="item in toastList" :key="`${item.id}:${!item.open && reducedMotion === 'reduce'}`"
+        v-model:open="item.open"
         class="ToastRoot flex flex-col relative"
         :class="`agui-toast--${item.type || 'default'}`"
         :duration="item.duration"
-        @update:open="open => { if (!open) toastList = toastList.filter(toast => toast !== item) }"
       >
-        <ToastTitle v-if="item.title" class="ToastTitle flex items-center">
-          <div mr-1 :class="getIconFromType(item.type)" />
-          {{ item.title || '' }}
-        </ToastTitle>
-        <ToastDescription v-if="item.description" class="ToastDescription text-xs ml-21px flex">
-          {{ item.description || '' }}
-        </ToastDescription>
-        <div v-if="$slots.actions" class="ToastActions">
-          <slot name="actions" :item="item" />
+        <div class="ToastContent" @vue:unmounted="remove(item)">
+          <ToastTitle v-if="item.title" class="ToastTitle flex items-center">
+            <div mr-1 :class="getIconFromType(item.type)" />
+            {{ item.title || '' }}
+          </ToastTitle>
+          <ToastDescription v-if="item.description" class="ToastDescription text-xs ml-21px flex">
+            {{ item.description || '' }}
+          </ToastDescription>
+          <div v-if="$slots.actions" class="ToastActions">
+            <slot name="actions" :item="item" />
+          </div>
+          <ToastClose as-child>
+            <AGUIIconButton icon="i-ri-close-fill" title="Close" class="right-2 top-3.5 absolute" />
+          </ToastClose>
         </div>
-        <ToastClose as-child>
-          <AGUIIconButton icon="i-ri-close-fill" title="Close" class="right-2 top-3.5 absolute" />
-        </ToastClose>
       </ToastRoot>
       <ToastViewport class="ToastViewport" />
     </ToastProvider>
@@ -124,23 +135,24 @@ function getIconFromType(type: ToastOptions['type']) {
 }
 
 .ToastRoot[data-state='open'] {
-  animation: slideIn 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  animation: agui-toast-in var(--agui-motion-popup-duration) var(--agui-motion-ease);
 }
 .ToastRoot[data-state='closed'] {
-  animation: hide 100ms ease-in;
+  pointer-events: none;
+  animation: agui-toast-out var(--agui-motion-exit-duration) var(--agui-motion-exit-ease);
 }
 .ToastRoot[data-swipe='move'] {
-  transform: translateX(var(--radix-toast-swipe-move-x));
+  transform: translateX(var(--reka-toast-swipe-move-x));
 }
 .ToastRoot[data-swipe='cancel'] {
   transform: translateX(0);
-  transition: transform 200ms ease-out;
+  transition: transform var(--agui-motion-duration) var(--agui-motion-ease);
 }
 .ToastRoot[data-swipe='end'] {
-  animation: swipeOut 100ms ease-out;
+  animation: agui-toast-swipe-out var(--agui-motion-exit-duration) var(--agui-motion-exit-ease);
 }
 
-@keyframes hide {
+@keyframes agui-toast-out {
   from {
     opacity: 1;
   }
@@ -149,18 +161,20 @@ function getIconFromType(type: ToastOptions['type']) {
   }
 }
 
-@keyframes slideIn {
+@keyframes agui-toast-in {
   from {
-    transform: translateX(calc(100% + var(--viewport-padding)));
+    opacity: 0;
+    transform: translateX(3px);
   }
   to {
+    opacity: 1;
     transform: translateX(0);
   }
 }
 
-@keyframes swipeOut {
+@keyframes agui-toast-swipe-out {
   from {
-    transform: translateX(var(--radix-toast-swipe-end-x));
+    transform: translateX(var(--reka-toast-swipe-end-x));
   }
   to {
     transform: translateX(calc(100% + var(--viewport-padding)));
@@ -199,5 +213,19 @@ function getIconFromType(type: ToastOptions['type']) {
 
 .ToastAction {
   grid-area: action;
+}
+.ToastContent {
+  display: contents;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ToastRoot[data-state],
+  .ToastRoot[data-swipe] {
+    animation: none;
+    transition: none;
+  }
+  .ToastRoot[data-swipe='cancel'] {
+    transform: none;
+  }
 }
 </style>

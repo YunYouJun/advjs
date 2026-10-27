@@ -45,7 +45,7 @@ const switchState = defineModel({ type: Boolean, default: false })
   border: 1px solid var(--agui-c-control-border);
   border-radius: 12px;
   cursor: pointer;
-  transition: background-color 150ms ease;
+  transition: background-color var(--agui-motion-duration) var(--agui-motion-ease);
 }
 .agui-switch[data-state='checked'] {
   background: var(--agui-c-primary);
@@ -64,7 +64,7 @@ const switchState = defineModel({ type: Boolean, default: false })
   height: 16px;
   background: var(--agui-c-text-2);
   border-radius: 50%;
-  transition: transform 150ms ease;
+  transition: transform var(--agui-motion-duration) var(--agui-motion-ease);
 }
 .agui-switch-thumb[data-state='checked'] {
   transform: translateX(12px);

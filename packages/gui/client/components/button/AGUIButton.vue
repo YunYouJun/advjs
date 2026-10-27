@@ -73,8 +73,8 @@ const classes = computed(() => {
   border: 1px solid var(--button-border);
   border-radius: var(--border-radius);
   transition:
-    background-color 150ms ease,
-    border-color 150ms ease;
+    background-color var(--agui-motion-duration) var(--agui-motion-ease),
+    border-color var(--agui-motion-duration) var(--agui-motion-ease);
 
   .agui-button-icon {
     flex-shrink: 0;

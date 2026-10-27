@@ -24,6 +24,26 @@ function mount(render: () => ReturnType<typeof h>) {
 }
 
 describe('aGUI control contracts', () => {
+  it('returns a programmatic dialog to its surviving menu trigger', async () => {
+    const open = ref(false)
+    const language = ref('Edit')
+    const container = mount(() => h('div', [
+      h('div', { role: 'menubar' }, [h('button', { id: 'edit-menu', role: 'menuitem', key: language.value }, language.value)]),
+      h('div', { 'role': 'menu', 'aria-labelledby': 'edit-menu' }, [h('button', {}, 'Preferences')]),
+      h(AGUIDialog, { 'title': 'Preferences', 'open': open.value, 'onUpdate:open': value => open.value = value }, () => h('button', {}, 'Theme')),
+    ]))
+    container.querySelector<HTMLButtonElement>('[role=menu] button')!.focus()
+    open.value = true
+    await vi.waitFor(() => expect(document.querySelector('[role=dialog]')).not.toBeNull())
+    await vi.waitFor(() => expect(document.activeElement?.closest('[role=dialog]')).not.toBeNull())
+    container.querySelector('[role=menu]')!.remove()
+    language.value = '编辑'
+    await nextTick()
+    document.querySelector<HTMLButtonElement>('[role=dialog] button')!.click()
+    await vi.waitFor(() => expect(document.querySelector('[role=dialog]')).toBeNull())
+    await vi.waitFor(() => expect(document.activeElement).toBe(container.querySelector('#edit-menu')))
+  })
+
   it('forwards field attributes and model updates to a prefixed input', async () => {
     const disabled = ref(true)
     const update = vi.fn()

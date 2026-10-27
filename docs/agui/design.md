@@ -234,10 +234,28 @@ AGUI 通过 CSS 自定义属性（`--agui-c-*`）定义色彩。下表列出现�
 
 ### 动画与焦点
 
-- hover、展开与状态过渡控制在 100–200ms，尊重 `prefers-reduced-motion`。
+动效只表达操作与状态变化，使用 Vue、Reka UI Presence／Portal 和 CSS，不新增运行时依赖。参数是 ADV.JS 的设计值，参考 [Apple Motion 指南](https://developer.apple.com/design/human-interface-guidelines/motion) 的目的性与及时反馈原则，不代表 Apple 系统精确参数。
+
+| Token                           | 值                               | 用途                                       |
+| ------------------------------- | -------------------------------- | ------------------------------------------ |
+| `--agui-motion-duration`        | 120ms                            | 按钮、字段、Switch 与 Accordion 的既有反馈 |
+| `--agui-motion-popup-duration`  | 150ms                            | Popover、Select、菜单与 Toast 入场         |
+| `--agui-motion-dialog-duration` | 180ms                            | Dialog 与遮罩入场                          |
+| `--agui-motion-exit-duration`   | 100ms                            | 浮层、Dialog 与 Toast 退出                 |
+| `--agui-motion-ease`            | `cubic-bezier(0.2, 0.8, 0.2, 1)` | 入场与状态减速                             |
+| `--agui-motion-exit-ease`       | `cubic-bezier(0.4, 0, 1, 1)`     | 退出                                       |
+
+- Popover、Select、DropdownMenu、Menubar 及子菜单在实际 Content 根消费 `agui-motion-popup`。淡入最多位移 3px，按 Reka 的 `data-side` 跟随碰撞方向；没有方向的 item-aligned Select 只淡入。改变定位不重启动画，不对 Popper 定位 wrapper 应用 transform。
+- Dialog 遮罩淡入，内容从 `scale: 0.98` 到 `1`；独立 scale 属性保留既有居中 transform。Portal 样式绑定显式 AGUI 类，不能依赖父级 DOM 或作用域属性。
+- 浮层依据 `data-state` 开始入退场，由 [Reka Presence](https://reka-ui.com/docs/guides/animation) 保留退出节点并卸载。关闭态立即停止接收指针，交互状态不等待动画结束；不增加业务计时器或重复维护 open。
+- Toast 的 open 状态立即更新，内容被 Presence 卸载后释放列表记录；自动超时、手动关闭和滑动关闭共享该生命周期。滑动跟手读取 `--reka-toast-swipe-*`；超过三条时即时回收最旧项，宿主卸载同样优先即时回收，不为退场延迟通知上限或布局切换。
+- `prefers-reduced-motion: reduce` 下所有时长 token 为 `0ms`，浮层、Dialog、Toast 与 Accordion 显式 `animation: none`，控件 `transition: none`。首帧前取消动画可能没有 animationend／animationcancel；运行中切换偏好时只重建已关闭的 Presence 边界，保留打开控件和它们的输入状态。Menubar 为根菜单提供稳定 value，子菜单与 Select 使用 Reka 暴露的 open，不另存一份开合状态。
+- Editor 的 `AELazyDialog` 在首次打开时异步加载，关闭后等 `AGUIDialog` 内容卸载事件 `after-close` 再回收实例；异步加载期间取消、快速重开和整个宿主卸载仍安全。事件只回收呈现层实例，业务 open 不等待动画。带项目草稿的创建对话框仍在草稿撤销时即时卸载。
+- 懒加载宿主在开始打开时捕获 `returnFocus`，共享 Dialog 通过 Reka 自动焦点事件记住真实按钮，或所属菜单的触发器；语言切换重建菜单项时退回同一菜单位置。另一个 Dialog 已打开时不抢回焦点，不添加全局焦点监听。
+- Toast 队列清空时卸载 Provider，清理原语的暂停计时和滑动状态，下一条通知重新计时；悬停、键盘焦点或窗口失焦时仍沿用 Reka 的暂停语义。
 - 不使用卡片悬浮位移、弹跳或循环装饰动画。
 - 保留清晰的 `:focus-visible` 指示，禁止无替代地使用 `outline: none`。
-- 分割面板拖动时不对尺寸应用动画，避免指针与布局脱节。
+- 分割面板尺寸、音量／进度滑块、数值拖动与逐字高亮保持即时同步，不应用位移或数值插值。
 
 ## 布局
 

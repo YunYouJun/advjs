@@ -4,6 +4,7 @@
 
 ## Editor 与桌面客户端
 
+- [Editor 共享微动效](./2026-10-27-editor-motion)：共享动效 token、浮层、对话框与通知的轻量反馈及减少动态效果验收。
 - [Editor 真实项目分支图与源码定位](./2026-10-09-editor-project-flow)。
 - [Editor 世界观、场景与章节创建](./2026-10-09-editor-content-creation)。
 - [Editor 内嵌预览与通用游戏操作栏](./2026-10-07-editor-preview)。

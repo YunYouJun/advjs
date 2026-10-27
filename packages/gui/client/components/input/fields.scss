@@ -12,7 +12,7 @@
   font-family: var(--agui-font-family-ui);
   font-size: 13px;
   line-height: 18px;
-  transition: border-color 150ms ease;
+  transition: border-color var(--agui-motion-duration) var(--agui-motion-ease);
 
   &::placeholder {
     color: var(--agui-c-text-2);

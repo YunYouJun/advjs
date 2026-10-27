@@ -43,10 +43,10 @@
   overflow: hidden;
 }
 .AccordionContent[data-state='open'] {
-  animation: agui-slide-down 150ms ease-out;
+  animation: agui-slide-down var(--agui-motion-duration) var(--agui-motion-ease);
 }
 .AccordionContent[data-state='closed'] {
-  animation: agui-slide-up 150ms ease-out;
+  animation: agui-slide-up var(--agui-motion-duration) var(--agui-motion-ease);
 }
 .AccordionContentText {
   padding: 12px;
@@ -54,7 +54,7 @@
 .AccordionChevron {
   flex-shrink: 0;
   color: var(--agui-c-text-2);
-  transition: transform 150ms ease;
+  transition: transform var(--agui-motion-duration) var(--agui-motion-ease);
 }
 .AccordionIcon {
   flex-shrink: 0;

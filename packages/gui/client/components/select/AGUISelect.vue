@@ -2,6 +2,7 @@
 import type {
   AcceptableValue,
 } from 'reka-ui'
+import { usePreferredReducedMotion } from '@vueuse/core'
 import {
   SelectContent,
   SelectGroup,
@@ -19,6 +20,7 @@ import {
   SelectViewport,
 } from 'reka-ui'
 import { computed } from 'vue'
+import '../../styles/motion.scss'
 
 type OptionType = string | { value: string | number, label?: string, icon?: string }
 
@@ -49,10 +51,12 @@ function onUpdateModelValue(value: AcceptableValue) {
   emit('update:modelValue', value)
   emit('change', value)
 }
+const reducedMotion = usePreferredReducedMotion()
 </script>
 
 <template>
   <SelectRoot
+    v-slot="{ open }"
     :model-value="modelValue"
     :multiple="multiple"
     :disabled="disabled"
@@ -70,10 +74,11 @@ function onUpdateModelValue(value: AcceptableValue) {
       <div class="i-radix-icons:chevron-down" op="60" />
     </SelectTrigger>
 
-    <SelectPortal>
+    <SelectPortal :key="Number(!open && reducedMotion === 'reduce')">
       <SelectContent
-        class="agui-select-content z-100"
+        class="agui-select-content agui-motion-popup z-100"
         side="bottom"
+        :disable-outside-pointer-events="open"
       >
         <SelectScrollUpButton class="agui-select-scroll-button">
           <div class="i-radix-icons:chevron-up" />

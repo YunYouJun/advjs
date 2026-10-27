@@ -43,7 +43,7 @@ withDefaults(defineProps<{
   font-size: 14px;
   line-height: 1;
   cursor: pointer;
-  transition: background-color 100ms ease;
+  transition: background-color var(--agui-motion-duration) var(--agui-motion-ease);
 
   .agui-icon-button-icon {
     flex-shrink: 0;

@@ -8,9 +8,6 @@
   border-radius: 4px;
   padding: 5px;
   box-shadow: var(--agui-shadow-popup);
-  animation-duration: 150ms;
-  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform, opacity;
 
   z-index: 1000;
 }
@@ -39,11 +36,5 @@
   &[data-highlighted] {
     background-color: var(--agui-c-active);
     color: var(--agui-c-on-accent);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .agui-dropdown-menu-content {
-    animation-duration: 0ms;
   }
 }

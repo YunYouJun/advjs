@@ -27,7 +27,7 @@
   position: absolute;
   left: 0;
   top: 0;
-  transition: opacity 0.4s;
+  transition: opacity var(--agui-motion-duration) var(--agui-motion-ease);
   background-color: var(--agui-layout-splitter-hover-color);
   opacity: 0;
   z-index: 1;
