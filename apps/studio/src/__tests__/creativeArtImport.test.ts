@@ -59,6 +59,9 @@ async function fixture(request: CreativeArtRequest = { assetId: 'character/xiaoy
   return { run, entry, files, before, blobs, fs }
 }
 function current() {}
+async function freezeFixtureSource(f: Awaited<ReturnType<typeof fixture>>) {
+  f.run.artifacts[0]!.source = { ...f.run.artifacts[0]!.source, files: structuredClone(f.files), revision: await computeAgentProjectRevision(f.files) }
+}
 
 describe('creative image candidates and native adoption', () => {
   it('sniffs and hashes real bytes independently of filename MIME and requires the host decoder', async () => {
@@ -94,6 +97,7 @@ describe('creative image candidates and native adoption', () => {
     const f = await fixture({ assetId: 'background/station', kind: 'background', sceneId: 'station', locationId: 'station-location', width: 1920, height: 1080, prompt: '已有场景图回流', constraints: [] })
     f.files['adv/scenes/station.md'] = '---\nid: station\nname: 车站\ncustom: 42\nsrc: old.webp\n---\n原始说明。\n'
     f.files['adv/assets.json'] = JSON.stringify({ schemaVersion: 2, id: 'art-project', defaultProfile: 'production', profiles: { local: { provider: 'project', root: 'art.media/v1' }, production: { provider: 'http', baseUrl: 'https://example.test/media/' } }, assets: [] })
+    await freezeFixtureSource(f)
     const review = await reviewCreativeArtImport(f.fs, f.run, f.entry, false, current)
     expect(review.mediaPath).toMatch(/^art.media\/v1\/images\/creative\/[a-f0-9]{64}\.webp$/)
     const scene = review.changes.find(item => item.path === 'adv/scenes/station.md')!.content!
@@ -116,10 +120,14 @@ describe('creative image candidates and native adoption', () => {
     f.files['adv/chapters/intro.adv.md'] = f.before['adv/chapters/intro.adv.md']
     const old = { id: f.entry.request.assetId, kind: 'character', type: 'image', characterId: 'xiaoyun', expression: 'default', path: 'old.webp', sha256: 'a'.repeat(64) }
     f.files['adv/assets.json'] = JSON.stringify({ schemaVersion: 2, id: 'art-project', defaultProfile: 'local', profiles: { local: { provider: 'project', root: 'adv/assets' } }, assets: [old] })
+    await expect(reviewCreativeArtImport(f.fs, f.run, f.entry, false, current)).rejects.toThrow('SOURCE_CHANGED')
+    // The replacement/binding cases below start with directions frozen after that catalog existed.
+    await freezeFixtureSource(f)
     await expect(reviewCreativeArtImport(f.fs, f.run, f.entry, false, current)).rejects.toThrow('asset id already exists')
     await expect(reviewCreativeArtImport(f.fs, f.run, f.entry, true, current)).resolves.toMatchObject({ binding: 'character:xiaoyun:default' })
     old.id = 'other/portrait'
     f.files['adv/assets.json'] = JSON.stringify({ schemaVersion: 2, id: 'art-project', defaultProfile: 'local', profiles: { local: { provider: 'project', root: 'adv/assets' } }, assets: [old] })
+    await freezeFixtureSource(f)
     await expect(reviewCreativeArtImport(f.fs, f.run, f.entry, true, current)).rejects.toThrow('BINDING_CONFLICT')
   })
 

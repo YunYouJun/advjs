@@ -23,7 +23,8 @@ export interface CreativeAdoptionJournal {
 export interface CreativeAdoptionRecovery {
   entry: CreativeAdoptionJournalEntry
   run: CreativeTeamRun
-  projectState: 'before' | 'after' | 'conflict'
+  projectState: 'before' | 'after' | 'partial' | 'conflict'
+  sourceState: 'before' | 'after' | 'conflict'
 }
 
 /** Compiles an isolated, exact snapshot. Re-review explicitly accepts unrelated source updates. */
@@ -31,7 +32,7 @@ export async function reviewCreativeMilestone(run: CreativeTeamRun, request: Cre
   if (await computeAgentProjectRevision(request.project.files) !== request.project.revision)
     throw new Error('CREATIVE_SOURCE_CONFLICT')
   const prepared = prepareCreativeMilestone(run, request)
-  const compiled = await compileProject({ id: request.project.id, files: prepared.files })
+  const compiled = await compileProject({ id: request.project.id, files: prepared.files }, { allowEmptyAssetManifest: true })
   if (compiled.diagnostics.some(item => item.severity === 'error'))
     throw new Error('CREATIVE_COMPILE_FAILED')
   const candidateRevision = await computeAgentProjectRevision(prepared.files)
@@ -78,7 +79,10 @@ export class CreativeMilestoneCoordinator {
     this.assertEntry(entry)
     const snapshot = await this.options.workspace.snapshot()
     this.assertEntry(entry)
-    return { entry, run, projectState: snapshot.revision === entry.review.candidateRevision ? 'after' : snapshot.revision === entry.review.baselineRevision ? 'before' : 'conflict' }
+    const sourceState = snapshot.revision === entry.review.candidateRevision ? 'after' : snapshot.revision === entry.review.baselineRevision ? 'before' : 'conflict'
+    const projectState = this.options.workspace.inspectRecovery ? await this.options.workspace.inspectRecovery(entry.review) : sourceState
+    this.assertEntry(entry)
+    return { entry, run, projectState, sourceState }
   }
 
   async begin(run: CreativeTeamRun, request: CreativeMilestoneRequest, review: CreativeMilestoneReview): Promise<CreativeTeamRun> {
@@ -125,12 +129,31 @@ export class CreativeMilestoneCoordinator {
       || JSON.stringify(intent.artifacts.map(item => item.artifactId)) !== JSON.stringify(entry.review.artifactIds) || intent.status === 'abandoned') {
       throw new Error('CREATIVE_MILESTONE_CONFLICT')
     }
+    const actual = await this.options.workspace.inspectRecovery?.(entry.review)
+    this.assertEntry(entry)
+    if (actual === 'conflict')
+      throw new Error('CREATIVE_SOURCE_CONFLICT')
+    if (actual === 'partial') {
+      if (!this.options.workspace.recover || (intent.status === 'confirmed' && snapshot.revision !== intent.afterRevision))
+        throw new Error('CREATIVE_SOURCE_CONFLICT')
+      const changes = creativeMilestoneChanges(run, intent)
+      if (JSON.stringify(changes) !== JSON.stringify(entry.review.changes) || await computeAgentProjectRevision(entry.review.files) !== intent.afterRevision)
+        throw new Error('CREATIVE_REVIEW_CHANGED')
+      const result = await compileProject({ id: entry.projectId, files: entry.review.files }, { allowEmptyAssetManifest: true })
+      if (result.diagnostics.some(item => item.severity === 'error'))
+        throw new Error('CREATIVE_COMPILE_FAILED')
+      this.assertEntry(entry)
+      snapshot = await this.options.workspace.recover(entry.review, 'after', intent)
+      this.assertEntry(entry)
+    }
     if (snapshot.revision !== intent.beforeRevision && snapshot.revision !== intent.afterRevision)
       throw new Error('CREATIVE_SOURCE_CONFLICT')
     if (intent.status === 'confirmed') {
       if (snapshot.revision !== intent.afterRevision)
         throw new Error('CREATIVE_MILESTONE_CONFLICT')
       await this.verifyMedia(run, intent, snapshot.files)
+      await this.options.workspace.acknowledge?.(intent)
+      this.assertEntry(entry)
       await this.options.journal.save({ ...entry, state: 'confirmed' })
       return run
     }
@@ -144,11 +167,11 @@ export class CreativeMilestoneCoordinator {
       this.assertEntry(entry)
       if (await computeAgentProjectRevision(entry.review.files) !== intent.afterRevision)
         throw new Error('CREATIVE_REVIEW_CHANGED')
-      const result = await compileProject({ id: entry.projectId, files: entry.review.files })
+      const result = await compileProject({ id: entry.projectId, files: entry.review.files }, { allowEmptyAssetManifest: true })
       if (result.diagnostics.some(item => item.severity === 'error'))
         throw new Error('CREATIVE_COMPILE_FAILED')
       this.assertEntry(entry)
-      await this.options.workspace.commit(entry.review.changes, intent.beforeRevision)
+      await this.options.workspace.commit(entry.review.changes, intent.beforeRevision, intent)
       // Hosts may write then throw; never infer the actual project from that promise alone.
       snapshot = await this.options.workspace.snapshot()
       this.assertEntry(entry)
@@ -170,8 +193,28 @@ export class CreativeMilestoneCoordinator {
     this.assertEntry(entry)
     if (run.milestones?.find(item => item.id === intent!.id)?.status !== 'confirmed')
       throw new Error('CREATIVE_MILESTONE_CONFLICT')
+    await this.options.workspace.acknowledge?.(run.milestones!.find(item => item.id === intent!.id)!)
+    this.assertEntry(entry)
     await this.options.journal.save({ ...entry, state: 'confirmed' })
     return run
+  }
+
+  async restore(entry: CreativeAdoptionJournalEntry): Promise<CreativeTeamRun> {
+    this.assertEntry(entry)
+    const run = await this.options.client.get(entry.projectId, entry.runId)
+    this.assertEntry(entry)
+    const intent = run.milestones?.find(item => item.id === entry.intentId)
+    if (!intent || intent.status !== 'prepared' || intent.beforeRevision !== entry.review.baselineRevision || intent.afterRevision !== entry.review.candidateRevision
+      || intent.operation !== entry.request.operation || JSON.stringify(creativeMilestoneChanges(run, intent)) !== JSON.stringify(entry.review.changes) || !this.options.workspace.recover) {
+      throw new Error('CREATIVE_MILESTONE_CONFLICT')
+    }
+    const actual = await this.options.workspace.inspectRecovery?.(entry.review)
+    this.assertEntry(entry)
+    if (!actual || !['before', 'after', 'partial'].includes(actual))
+      throw new Error('CREATIVE_SOURCE_CONFLICT')
+    await this.options.workspace.recover(entry.review, 'before', intent)
+    this.assertEntry(entry)
+    return this.abandon(entry)
   }
 
   async abandon(entry: CreativeAdoptionJournalEntry): Promise<CreativeTeamRun> {
@@ -188,6 +231,10 @@ export class CreativeMilestoneCoordinator {
       throw new Error('CREATIVE_SOURCE_CONFLICT')
     if (run.milestones?.some(item => item.id === entry.intentId))
       run = await this.options.client.milestone(entry.projectId, entry.runId, { type: 'abandon', milestoneId: entry.intentId, project: { id: entry.projectId, revision: snapshot.revision, files: snapshot.files } }, `${entry.intentId}:abandon`)
+    this.assertEntry(entry)
+    const intent = run.milestones?.find(item => item.id === entry.intentId)
+    if (intent?.status === 'abandoned')
+      await this.options.workspace.acknowledge?.(intent)
     this.assertEntry(entry)
     await this.options.journal.save({ ...entry, state: 'abandoned' })
     return run

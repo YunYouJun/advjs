@@ -4,6 +4,7 @@ import { computed, nextTick, shallowRef, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import SButton from '../ui/SButton.vue'
 import CreativeCandidateEditor from './CreativeCandidateEditor.vue'
+import CreativeTeamMedia from './CreativeTeamMedia.vue'
 import CreativeTeamOutput from './CreativeTeamOutput.vue'
 
 const props = defineProps<{ artifact: CreativeArtifact, busy: boolean, canSelect: boolean, canRework: boolean, canEdit: boolean, editSaved?: boolean, knownCharacterIds?: readonly string[] }>()
@@ -57,6 +58,7 @@ function select() {
     <details class="team-artifact__details">
       <summary>{{ t('creativeTeam.details') }}</summary>
       <CreativeTeamOutput v-if="artifact.output" :output="artifact.output" />
+      <CreativeTeamMedia v-else-if="artifact.media" :media="artifact.media" />
       <pre v-else-if="artifact.legacyResult" class="team-artifact__text">{{ artifact.legacyResult.streamText }}</pre>
     </details>
     <details v-if="artifact.changes.length" class="team-artifact__details">

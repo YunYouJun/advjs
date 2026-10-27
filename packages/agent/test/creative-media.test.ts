@@ -8,6 +8,7 @@ import { planAdvAssetManifestUpsert } from '@advjs/core'
 import { dump } from 'js-yaml'
 import { describe, expect, it } from 'vitest'
 import { CreativeMilestoneCoordinator, reviewCreativeMilestone } from '../src/creative-team/adoption'
+import { invalidateCreativeArtifacts } from '../src/creative-team/candidates'
 import { compatibleCreativeMediaArtifacts, creativeMediaCanonical, parseCreativeMediaCandidateRequest, prepareCreativeMediaCandidate } from '../src/creative-team/media'
 import { creativeArtifactExpectedFiles, overlayCreativeMilestone, prepareCreativeMilestone } from '../src/creative-team/milestones'
 import { createCreativeTeamRun, reduceCreativeTeamRun } from '../src/creative-team/orchestration'
@@ -74,6 +75,10 @@ describe('immutable author-host media and shared milestone anchors', () => {
     const second = await adopt(register(first.run, secondRequest, 'media-two'), first.project, 'media-two')
     expect(second.run.artifacts.filter(item => item.kind === 'media-adoption').map(item => item.status)).toEqual(['adopted', 'adopted'])
     expect(second.run.milestones!.at(-1)!.anchors).toContain('media-one')
+    const unrelatedFiles = { ...second.project.files, 'adv/audio/pronunciation.json': '{"schemaVersion":1,"revision":1,"replacements":{},"locales":{}}' }
+    const unrelated = invalidateCreativeArtifacts(second.run.artifacts, unrelatedFiles, second.run)
+    expect(unrelated.filter(item => item.media).map(item => item.status)).toEqual(['adopted', 'adopted'])
+    expect(compatibleCreativeMediaArtifacts(second.run, unrelatedFiles)).toEqual(['media-one', 'media-two'])
     const altered = JSON.parse(second.project.files['adv/assets/other.json']!)
     altered.assets.find((item: { id: string }) => item.id === f.input.assetId).characterId = 'another-character'
     expect(compatibleCreativeMediaArtifacts(second.run, { ...second.project.files, 'adv/assets/other.json': JSON.stringify(altered) })).not.toContain('media-one')
@@ -105,6 +110,10 @@ describe('immutable author-host media and shared milestone anchors', () => {
     expect(second.run.artifacts.find(item => item.id === 'media-one')!.status).toBe('adopted')
     expect(second.run.artifacts.find(item => item.id === 'voice-selection')!.media?.target).toMatchObject({ kind: 'voice', phase: 'selected' })
     expect(second.run.milestones!.at(-1)!.anchors).toContain('media-one')
+    const changedFiles = { ...second.project.files, 'adv/audio/pronunciation.json': '{"schemaVersion":1,"revision":1,"replacements":{"列车":"火车"},"locales":{}}' }
+    const changed = invalidateCreativeArtifacts(second.run.artifacts, changedFiles, second.run)
+    expect(changed.map(item => item.status)).toEqual(['stale', 'stale', 'stale'])
+    expect(compatibleCreativeMediaArtifacts(second.run, changedFiles)).toEqual([])
   })
   it('requires binary host authority at adoption and after-snapshot recovery', async () => {
     const f = await fixture('image')

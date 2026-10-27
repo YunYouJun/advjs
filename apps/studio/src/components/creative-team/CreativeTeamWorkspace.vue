@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CreativeCandidateEditRequest, CreativePartnerId, CreativeTeamDecisionInput } from '@advjs/agent'
+import type { CreativeMediaSubmit } from '../../utils/creativeMediaCandidate'
 import { CREATIVE_PARTNER_DEFAULT_CAPABILITY, parseCreativeProject } from '@advjs/agent'
 import { storeToRefs } from 'pinia'
 import { computed, nextTick, shallowRef, useTemplateRef, watch } from 'vue'
@@ -10,6 +11,7 @@ import { useAuthStore } from '../../stores/useAuthStore'
 import { useCreativeTeamStore } from '../../stores/useCreativeTeamStore'
 import { useManagedAgentStore } from '../../stores/useManagedAgentStore'
 import { useStudioStore } from '../../stores/useStudioStore'
+import { createStudioCreativeMediaWorkspace } from '../../utils/creativeMediaMilestoneWorkspace'
 import { createStudioCreativeWorkspace } from '../../utils/creativeTeamWorkspace'
 import SButton from '../ui/SButton.vue'
 import CreativeArtImportPanel from './CreativeArtImportPanel.vue'
@@ -63,7 +65,22 @@ async function projectHost() {
 }
 async function projectWorkspace() {
   const { fs, projectId, assertCurrent } = await projectHost()
+  const current = store.run
+  if (availability.value?.authoring?.mediaCandidates && current && current.plan.projectId === projectId) {
+    const scope = { accountId: current.accountId, projectId, runId: current.id }
+    return createStudioCreativeMediaWorkspace({ fs, scope, run: () => store.run!, assertCurrent() {
+      assertCurrent()
+      if (store.run?.id !== scope.runId || store.run.accountId !== scope.accountId)
+        throw new Error('Creative run changed')
+    } })
+  }
   return createStudioCreativeWorkspace(fs, projectId, { assertCurrent })
+}
+const submitMedia: CreativeMediaSubmit = async (request, intent) => {
+  const next = await store.registerMediaCandidate(request, intent)
+  if (!next)
+    throw new Error('Creative media candidate registration failed')
+  return next
 }
 async function projectSnapshot() {
   const snapshot = await (await projectWorkspace()).snapshot()
@@ -172,8 +189,8 @@ async function editCandidate(request: CreativeCandidateEditRequest) {
         </p>
         <CreativeTeamRunPanel v-if="run" :run="run" :busy="mutating || preparing || milestoneBusy || playtestBusy || artBusy || voiceBusy || Boolean(run.milestones?.some(item => item.status === 'prepared'))" :enabled="Boolean(availability?.enabled)" :known-character-ids="knownCharacterIds" :author-edits-available="Boolean(availability?.authoring?.candidateEdits)" :saved-edit-artifact-id="savedEditArtifactId" @decide="decide" @sync-facts="withSnapshot(store.refreshFacts)" @edit="editCandidate" />
         <CreativeMilestonePanel v-if="run" :key="`${run.accountId}:${run.plan.projectId}:${run.id}`" :run="run" :enabled="Boolean(availability?.authoring?.milestoneAdoption)" :busy="mutating || preparing || playtestBusy || artBusy || voiceBusy" :workspace="projectWorkspace" @busy="milestoneBusy = $event" @changed="content.reload()" />
-        <CreativeArtImportPanel v-if="run" :key="`art:${run.accountId}:${run.plan.projectId}:${run.id}`" :run="run" :busy="mutating || preparing || milestoneBusy || playtestBusy || voiceBusy" :host="projectHost" @busy="artBusy = $event" @changed="content.reload()" />
-        <CreativeVoiceImportPanel v-if="run" :key="`voice:${run.accountId}:${run.plan.projectId}:${run.id}`" :run="run" :busy="mutating || preparing || milestoneBusy || playtestBusy || artBusy" :host="projectHost" @busy="voiceBusy = $event" @changed="content.reload()" />
+        <CreativeArtImportPanel v-if="run" :key="`art:${run.accountId}:${run.plan.projectId}:${run.id}`" :run="run" :busy="mutating || preparing || milestoneBusy || playtestBusy || voiceBusy" :host="projectHost" :submit-media="availability?.authoring?.mediaCandidates ? submitMedia : undefined" @busy="artBusy = $event" @changed="content.reload()" />
+        <CreativeVoiceImportPanel v-if="run" :key="`voice:${run.accountId}:${run.plan.projectId}:${run.id}`" :run="run" :busy="mutating || preparing || milestoneBusy || playtestBusy || artBusy" :host="projectHost" :submit-media="availability?.authoring?.mediaCandidates ? submitMedia : undefined" @busy="voiceBusy = $event" @changed="content.reload()" />
         <CreativePlaytestPanel v-if="run" :key="`playtest:${run.accountId}:${run.plan.projectId}:${run.id}`" :run="run" :busy="mutating || preparing || milestoneBusy || artBusy || voiceBusy" :workspace="projectWorkspace" @busy="playtestBusy = $event" @source="(path, line) => router.push({ path: '/editor', query: { file: path, line: String(line || 1), column: '1' } })" />
       </div>
     </div>

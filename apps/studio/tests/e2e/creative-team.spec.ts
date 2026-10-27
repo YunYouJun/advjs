@@ -743,3 +743,286 @@ test('upgrades the original image journal without losing its pending candidate b
   expect(schema.stores).toContain('voiceEntries')
   await writeFile(info.outputPath('media-journal-v1-upgrade.json'), JSON.stringify({ scope: 'Actual native IndexedDB v1 schema and genuine retained image bytes; real Dexie v2 upgrade, canonical review and native image adoption.', schema, media }, null, 2))
 })
+
+async function stageUnifiedMedia(page: Page, audioPath: string) {
+  const art = page.getByTestId('creative-art-import')
+  await art.getByRole('combobox', { name: '美术素材需求', exact: true }).selectOption({ label: 'character/lin/default · 619 × 619' })
+  await art.getByLabel('选择图片文件', { exact: true }).setInputFiles(resolve(import.meta.dirname, '../../../../demo/starter/public/img/characters/xiaoyun.webp'))
+  await art.getByLabel('素材来源与署名', { exact: true }).fill('ADV.JS 既有小云 WebP，仅用于真实媒体事务验证，不代表角色美术质量。')
+  await art.getByRole('button', { name: '保存图片候选', exact: true }).click()
+  const image = page.getByTestId('creative-art-candidate')
+  await image.getByRole('button', { name: '审阅导入', exact: true }).click()
+  await image.getByRole('button', { name: '登记制作组候选（项目未变）', exact: true }).click()
+  await expect(image.getByRole('heading', { name: /制作组候选已登记，项目未变/ })).toBeVisible()
+  const voice = await stageRealRecoveryVoice(page, audioPath)
+  await voice.getByRole('button', { name: '登记制作组候选（项目未变）', exact: true }).click()
+  await expect(voice.getByRole('heading', { name: /制作组候选已登记，项目未变/ })).toBeVisible()
+  const milestone = page.getByTestId('creative-milestone')
+  await expect(milestone.getByRole('checkbox')).toHaveCount(2)
+  for (const checkbox of await milestone.getByRole('checkbox').all())
+    await checkbox.check()
+  await milestone.getByLabel('采用或撤销的原因', { exact: true }).fill('将已核验的真实图片与未选 VoiceTake 一同写入；不选用配音，不调用模型。')
+  await milestone.getByRole('button', { name: '审阅采用', exact: true }).click()
+  await expect(milestone.getByRole('button', { name: '确认写入项目', exact: true })).toBeVisible()
+  return milestone
+}
+
+test('adopts real image and speech in one shared milestone, recovers a lost confirmation and conditionally undoes both', async ({ page }, info) => {
+  test.setTimeout(90000)
+  const audioPath = process.env.STUDIO_CREATIVE_VOICE_WAV
+  test.skip(!audioPath, 'Requires a real externally produced spoken WAV; no substitute tone is used')
+  await page.goto('/tests/fixtures/creative-team/media-milestones.html?case=batch-receipt')
+  await expect(page).toHaveTitle('Creative media milestone UI fixture')
+  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeMediaFixture))).toBe(true)
+  await expect(page.locator('vite-error-overlay')).toHaveCount(0)
+  const before = await page.evaluate(() => (window as any).creativeMediaFixture.files())
+  const milestone = await stageUnifiedMedia(page, audioPath!)
+  expect(await page.evaluate(() => (window as any).creativeMediaFixture.files())).toEqual(before)
+  expect(await page.evaluate(() => (window as any).creativeMediaFixture.writes())).toEqual([])
+  const reviewed = await page.evaluate(() => (window as any).creativeMediaFixture.candidates())
+  expect(reviewed.image[0].retainedBytes).toBe(39460)
+  expect(reviewed.voice[0].retainedBytes).toBeGreaterThan(100000)
+  const mediaArtifacts = await page.evaluate(() => (window as any).creativeMediaFixture.run().artifacts.filter((item: any) => item.kind === 'media-adoption').map((item: any) => ({ id: item.id, kind: item.media.target.kind, sha256: item.media.sha256 })))
+  for (const artifact of mediaArtifacts) {
+    const card = page.locator(`[data-creative-artifact="${artifact.id}"]`)
+    await card.getByText('查看完整内容', { exact: true }).click()
+    await expect(card.getByText('核验来源：作者宿主', { exact: true })).toBeVisible()
+    await expect(card.getByText(artifact.sha256, { exact: true })).toBeVisible()
+    if (artifact.kind === 'voice')
+      await expect(card.getByText('登记 VoiceTake，尚未选用', { exact: true })).toBeVisible()
+    for (const width of [1280, 390]) {
+      await page.setViewportSize({ width, height: 900 })
+      await card.scrollIntoViewIfNeeded()
+      await page.screenshot({ path: info.outputPath(`shared-media-${artifact.kind}-details-${width}.png`), animations: 'disabled' })
+    }
+  }
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await milestone.scrollIntoViewIfNeeded()
+    await page.screenshot({ path: info.outputPath(`shared-media-review-${width}.png`), animations: 'disabled' })
+  }
+  await page.evaluate(() => (window as any).creativeMediaFixture.lose('confirm'))
+  await milestone.getByRole('button', { name: '确认写入项目', exact: true }).click()
+  await expect(milestone.getByRole('button', { name: '同步采用回执', exact: true })).toBeVisible()
+  const after = await page.evaluate(() => (window as any).creativeMediaFixture.files())
+  const ledger = JSON.parse(after['adv/audio/voice-ledger.json'])
+  expect(ledger.lines['line_01900400-0000-7000-8000-000000000001'].locales['zh-CN'].selectedTake).toBeNull()
+  await page.reload()
+  await expect(milestone.getByRole('button', { name: '同步采用回执', exact: true })).toBeVisible()
+  expect(await page.evaluate(() => (window as any).creativeMediaFixture.writes())).toEqual([])
+  expect((await page.evaluate(() => (window as any).creativeMediaFixture.calls()) as any[]).filter(item => item.method === 'POST')).toEqual([])
+  await milestone.getByRole('button', { name: '同步采用回执', exact: true }).click()
+  await expect(milestone.getByText(/最近一次采用已确认/)).toBeVisible()
+  const adopted = await page.evaluate(async () => ({ files: await (window as any).creativeMediaFixture.files(), media: await (window as any).creativeMediaFixture.media(), candidates: await (window as any).creativeMediaFixture.candidates(), journal: await (window as any).creativeMediaFixture.journal(), run: (window as any).creativeMediaFixture.run(), writes: (window as any).creativeMediaFixture.writes() }))
+  expect(adopted.files).toEqual(after)
+  expect(adopted.media).toHaveLength(2)
+  for (const item of adopted.media) {
+    expect(item.sha256).toBe(item.expectedSha256)
+    expect(item.bytes).toBe(item.expectedBytes)
+  }
+  expect(adopted.candidates.image[0].retainedBytes).toBe(0)
+  expect(adopted.candidates.voice[0].retainedBytes).toBe(0)
+  expect(adopted.candidates.image[0].state).toBe('adopted')
+  expect(adopted.candidates.voice[0].state).toBe('registered')
+  expect(adopted.journal.state).toBe('confirmed')
+  expect(adopted.writes).toEqual([])
+  expect(adopted.run.artifacts.filter((item: any) => item.kind.endsWith('direction')).map((item: any) => item.status)).toEqual(['selected', 'selected'])
+  expect(adopted.run.status).not.toBe('completed')
+  await milestone.getByLabel('采用或撤销的原因', { exact: true }).fill('条件撤销这次图片与配音登记，保留两个原始媒体文件。')
+  await milestone.getByRole('button', { name: '审阅最近一次撤销', exact: true }).click()
+  await milestone.getByRole('button', { name: '确认撤销本次采用', exact: true }).click()
+  await expect(milestone.getByText(/最近一次撤销已确认/)).toBeVisible()
+  expect(await page.evaluate(() => (window as any).creativeMediaFixture.files())).toEqual(before)
+  const undone = await page.evaluate(async () => ({ candidates: await (window as any).creativeMediaFixture.candidates(), journal: await (window as any).creativeMediaFixture.journal(), run: (window as any).creativeMediaFixture.run() }))
+  expect(undone.candidates.image[0].state).toBe('undone')
+  expect(undone.candidates.voice[0].state).toBe('restored')
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await milestone.scrollIntoViewIfNeeded()
+    await page.screenshot({ path: info.outputPath(`shared-media-undo-${width}.png`), animations: 'disabled' })
+  }
+  await writeFile(info.outputPath('shared-media-evidence.json'), JSON.stringify({ before, reviewed, adopted, undone }, null, 2))
+})
+
+for (const destination of ['resume', 'restore'] as const) {
+  test(`recovers a genuinely interrupted shared image/voice milestone through explicit ${destination}`, async ({ page }, info) => {
+    test.setTimeout(60000)
+    const audioPath = process.env.STUDIO_CREATIVE_VOICE_WAV
+    test.skip(!audioPath, 'Requires a real externally produced spoken WAV; no substitute tone is used')
+    await page.goto(`/tests/fixtures/creative-team/media-milestones.html?case=partial-${destination}`)
+    await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeMediaFixture))).toBe(true)
+    const before = await page.evaluate(() => (window as any).creativeMediaFixture.files())
+    const milestone = await stageUnifiedMedia(page, audioPath!)
+    await page.evaluate(() => (window as any).creativeMediaFixture.crashAfterText(1))
+    await milestone.getByRole('button', { name: '确认写入项目', exact: true }).click()
+    await expect.poll(() => page.evaluate(() => (window as any).creativeMediaFixture.crashed())).toBe(true)
+    const partial = await page.evaluate(async () => ({ files: await (window as any).creativeMediaFixture.files(), candidates: await (window as any).creativeMediaFixture.candidates(), journal: await (window as any).creativeMediaFixture.journal() }))
+    expect(partial.files).not.toEqual(before)
+    expect(partial.journal.state).toBe('prepared')
+    await page.reload()
+    await expect(milestone.getByText(/项目仅写入了一部分/)).toBeVisible()
+    expect(await page.evaluate(() => (window as any).creativeMediaFixture.files())).toEqual(partial.files)
+    expect(await page.evaluate(() => (window as any).creativeMediaFixture.writes())).toEqual([])
+    expect((await page.evaluate(() => (window as any).creativeMediaFixture.calls()) as any[]).filter(item => item.method === 'POST')).toEqual([])
+    for (const width of [1280, 390]) {
+      await page.setViewportSize({ width, height: 900 })
+      await milestone.getByText(/项目仅写入了一部分/).scrollIntoViewIfNeeded()
+      await page.screenshot({ path: info.outputPath(`shared-partial-pending-${destination}-${width}.png`), animations: 'disabled' })
+    }
+    await milestone.getByRole('button', { name: destination === 'resume' ? '恢复这次写入' : '恢复写前项目并放弃此意图', exact: true }).click()
+    await expect.poll(() => page.evaluate(async () => (await (window as any).creativeMediaFixture.journal()).state)).toBe(destination === 'resume' ? 'confirmed' : 'abandoned')
+    const recovered = await page.evaluate(async () => ({ files: await (window as any).creativeMediaFixture.files(), candidates: await (window as any).creativeMediaFixture.candidates(), journal: await (window as any).creativeMediaFixture.journal(), run: (window as any).creativeMediaFixture.run() }))
+    expect(recovered.journal.state).toBe(destination === 'resume' ? 'confirmed' : 'abandoned')
+    if (destination === 'restore') {
+      expect(recovered.files).toEqual(before)
+      expect(recovered.candidates.image[0].retainedBytes).toBe(39460)
+      expect(recovered.candidates.voice[0].retainedBytes).toBeGreaterThan(100000)
+    }
+    else {
+      const media = await page.evaluate(() => (window as any).creativeMediaFixture.media())
+      expect(media).toHaveLength(2)
+      expect(media.every((item: any) => item.sha256 === item.expectedSha256 && item.bytes === item.expectedBytes)).toBe(true)
+    }
+    for (const width of [1280, 390]) {
+      await page.setViewportSize({ width, height: 900 })
+      await milestone.scrollIntoViewIfNeeded()
+      await page.screenshot({ path: info.outputPath(`shared-partial-${destination}-${width}.png`), animations: 'disabled' })
+    }
+    await writeFile(info.outputPath('shared-partial-evidence.json'), JSON.stringify({ destination, before, partial, recovered }, null, 2))
+  })
+}
+
+test('retries an image candidate registration with the original durable request after its HTTP response is lost', async ({ page }, info) => {
+  await page.goto('/tests/fixtures/creative-team/media-milestones.html?case=lost-registration')
+  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeMediaFixture))).toBe(true)
+  const before = await page.evaluate(() => (window as any).creativeMediaFixture.files())
+  const art = page.getByTestId('creative-art-import')
+  await art.getByRole('combobox', { name: '美术素材需求', exact: true }).selectOption({ label: 'character/lin/default · 619 × 619' })
+  await art.getByLabel('选择图片文件', { exact: true }).setInputFiles(resolve(import.meta.dirname, '../../../../demo/starter/public/img/characters/xiaoyun.webp'))
+  await art.getByLabel('素材来源与署名', { exact: true }).fill('既有图片；本次仅验证登记 HTTP 响应丢失，不写正式项目。')
+  await art.getByRole('button', { name: '保存图片候选', exact: true }).click()
+  const candidate = page.getByTestId('creative-art-candidate')
+  await candidate.getByRole('button', { name: '审阅导入', exact: true }).click()
+  await page.evaluate(() => (window as any).creativeMediaFixture.lose('register'))
+  await candidate.getByRole('button', { name: '登记制作组候选（项目未变）', exact: true }).click()
+  await expect(candidate.getByRole('button', { name: '核对并重试原登记', exact: true })).toBeVisible()
+  const pending = await page.evaluate(() => (window as any).creativeMediaFixture.candidates())
+  await page.reload()
+  await expect(candidate.getByRole('button', { name: '核对并重试原登记', exact: true })).toBeVisible()
+  expect((await page.evaluate(() => (window as any).creativeMediaFixture.calls()) as any[]).filter(item => item.method === 'POST')).toEqual([])
+  await candidate.getByRole('button', { name: '核对并重试原登记', exact: true }).click()
+  await expect(candidate.getByRole('heading', { name: /制作组候选已登记，项目未变/ })).toBeVisible()
+  const final = await page.evaluate(async () => ({ files: await (window as any).creativeMediaFixture.files(), candidates: await (window as any).creativeMediaFixture.candidates(), calls: (window as any).creativeMediaFixture.calls(), run: (window as any).creativeMediaFixture.run() }))
+  expect(final.files).toEqual(before)
+  expect(final.candidates.image[0].managed.id).toBe(pending.image[0].managed.id)
+  const posts = final.calls.filter((item: any) => item.method === 'POST')
+  expect(posts).toHaveLength(1)
+  expect(posts[0].key).toBe(pending.image[0].managed.id)
+  expect(posts[0].body).toEqual(pending.image[0].managed.request)
+  expect(final.run.artifacts.filter((item: any) => item.kind === 'media-adoption')).toHaveLength(1)
+  await writeFile(info.outputPath('shared-registration-evidence.json'), JSON.stringify({ before, pending, final }, null, 2))
+})
+
+test('auditions the registered real take, adopts its separate team selection and plays it with the imported image in the actual game', async ({ page }, info) => {
+  test.setTimeout(90000)
+  const audioPath = process.env.STUDIO_CREATIVE_VOICE_WAV
+  test.skip(!audioPath, 'Requires a real externally produced spoken WAV; no substitute tone is used')
+  await page.addInitScript(() => {
+    const records: any[] = []
+    const gains: any[] = []
+    Object.assign(window, { unifiedMediaPlayback: { records, gains } })
+    const start = AudioBufferSourceNode.prototype.start
+    AudioBufferSourceNode.prototype.start = function (...args: Parameters<typeof start>) {
+      if (this.buffer && this.buffer.duration > 0.1) {
+        const row = { duration: this.buffer.duration, rate: this.buffer.sampleRate, channels: this.buffer.numberOfChannels, state: this.context.state, start: this.context.currentTime, wallStart: performance.now(), ended: false, elapsed: 0, wallElapsed: 0, trusted: false }
+        records.push(row)
+        this.addEventListener('ended', (event) => {
+          row.ended = true
+          row.elapsed = this.context.currentTime - row.start
+          row.wallElapsed = performance.now() - row.wallStart
+          row.trusted = event.isTrusted
+        }, { once: true })
+      }
+      return start.apply(this, args)
+    }
+    const connect = AudioNode.prototype.connect
+    AudioNode.prototype.connect = function (...args: any[]) {
+      if (args[0] instanceof AudioDestinationNode)
+        gains.push({ from: this.constructor.name, gain: this instanceof GainNode ? this.gain.value : undefined })
+      return (connect as any).apply(this, args)
+    }
+  })
+  const fixture = '/tests/fixtures/creative-team/media-milestones.html?case=selected-playback'
+  await page.goto(fixture)
+  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeMediaFixture))).toBe(true)
+  const milestone = await stageUnifiedMedia(page, audioPath!)
+  await milestone.getByRole('button', { name: '确认写入项目', exact: true }).click()
+  await expect(milestone.getByText(/最近一次采用已确认/)).toBeVisible()
+  await page.goto('/tabs/workspace/audio?section=review&speaker=lin&line=line_01900400-0000-7000-8000-000000000001')
+  const audioWorkspace = page.getByTestId('audio-workspace')
+  const take = audioWorkspace.locator('.voice-review__take')
+  await expect(take).toHaveCount(1)
+  await take.getByRole('button', { name: '试听', exact: true }).click()
+  const player = audioWorkspace.locator('audio')
+  await expect.poll(() => player.evaluate((element: HTMLAudioElement) => element.currentTime)).toBeGreaterThan(0.4)
+  const audition = await player.evaluate((element: HTMLAudioElement) => ({ duration: element.duration, time: element.currentTime, muted: element.muted, volume: element.volume }))
+  expect(audition.duration).toBeGreaterThan(1)
+  expect(audition.muted).toBe(false)
+  await page.goto(fixture)
+  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeMediaFixture))).toBe(true)
+  const original = page.getByTestId('creative-voice-candidate')
+  await original.getByRole('checkbox', { name: '我已试听，并确认将此候选设为当前选用（如有旧选择，将替换它）', exact: true }).check()
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await original.getByRole('checkbox').scrollIntoViewIfNeeded()
+    await page.screenshot({ path: info.outputPath(`shared-voice-selection-${width}.png`), animations: 'disabled' })
+  }
+  await original.getByRole('button', { name: '审阅此配音的选用绑定', exact: true }).click()
+  const selection = page.getByTestId('creative-voice-candidate').filter({ hasText: '本候选只改变当前台词的选用绑定' })
+  await expect(selection.getByRole('button', { name: '登记制作组候选（项目未变）', exact: true })).toBeVisible()
+  const before = await page.evaluate(() => (window as any).creativeMediaFixture.files())
+  await selection.getByRole('button', { name: '登记制作组候选（项目未变）', exact: true }).click()
+  await expect(milestone.getByRole('checkbox')).toHaveCount(1)
+  expect(await page.evaluate(() => (window as any).creativeMediaFixture.files())).toEqual(before)
+  await milestone.getByRole('checkbox').check()
+  await milestone.getByLabel('采用或撤销的原因', { exact: true }).fill('已通过正式音频工作区试听；本次只改变原 take 的选用绑定。')
+  await milestone.getByRole('button', { name: '审阅采用', exact: true }).click()
+  await milestone.getByRole('button', { name: '确认写入项目', exact: true }).click()
+  await expect(selection.getByRole('heading', { name: /选用绑定已确认/ })).toBeVisible()
+  const adopted = await page.evaluate(async () => ({ files: await (window as any).creativeMediaFixture.files(), media: await (window as any).creativeMediaFixture.media(), candidates: await (window as any).creativeMediaFixture.candidates(), run: (window as any).creativeMediaFixture.run() }))
+  const binding = JSON.parse(adopted.files['adv/audio/voice-ledger.json']).lines['line_01900400-0000-7000-8000-000000000001'].locales['zh-CN']
+  expect(binding.selectedTake).toBe(binding.takes[0].id)
+  expect(adopted.run.artifacts.filter((item: any) => item.media?.target.kind === 'voice').map((item: any) => [item.media.target.phase, item.status])).toEqual([['registered', 'adopted'], ['selected', 'adopted']])
+  expect(adopted.run.artifacts.filter((item: any) => item.kind.endsWith('direction')).map((item: any) => item.status)).toEqual(['selected', 'selected'])
+  expect(adopted.media).toHaveLength(2)
+  expect(adopted.media.every((item: any) => item.sha256 === item.expectedSha256 && item.bytes === item.expectedBytes)).toBe(true)
+  await writeFile(info.outputPath('shared-selected-input.json'), JSON.stringify({ audition, before, adopted }, null, 2))
+  await page.goto('/tabs/play')
+  try {
+    await expect(page.locator('.game-player')).toContainText('列车还没有到，我们再等一会儿。', { timeout: 15000 })
+  }
+  catch (cause) {
+    const diagnostics = await page.evaluate(() => {
+      const adv = (window as any).$adv
+      const component = (document.querySelector('.game-player') as any)?.__vueParentComponent
+      return { url: location.href, title: document.title, body: document.body.textContent, componentKeys: Object.keys(component?.setupState ?? {}), ready: component?.setupState?.ready, error: component?.setupState?.error, runtime: adv ? { cursor: adv.store?.state?.cursor, status: adv.store?.state?.status, title: adv.gameConfig?.value?.title } : null, resources: performance.getEntriesByType('resource').map((item: any) => ({ name: item.name, duration: item.duration, size: item.transferSize })) }
+    })
+    await writeFile(info.outputPath('shared-game-load-diagnostic.json'), JSON.stringify(diagnostics, null, 2))
+    throw cause
+  }
+  const avatar = page.locator('.dialog-avatar-wrap img')
+  await expect(avatar).toBeVisible()
+  await expect.poll(() => avatar.evaluate((element: HTMLImageElement) => element.naturalWidth)).toBe(619)
+  await page.locator('.game-player .adv-ui').click({ position: { x: 200, y: 300 } })
+  await page.getByTestId('play-toolbar-actions').getByRole('button', { name: '设置', exact: true }).click()
+  await page.locator('.adv-popover-menu:visible').getByText('重新开始', { exact: true }).click()
+  await expect.poll(() => page.evaluate(() => (window as any).unifiedMediaPlayback.records.some((item: any) => item.ended && item.trusted && item.state === 'running' && item.elapsed >= item.duration - 0.15 && item.wallElapsed >= (item.duration - 0.2) * 1000)), { timeout: 12000 }).toBe(true)
+  const playback = await page.evaluate(() => (window as any).unifiedMediaPlayback)
+  expect(playback.gains.some((item: any) => item.gain > 0)).toBe(true)
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await expect(avatar).toBeInViewport()
+    await page.screenshot({ path: info.outputPath(`shared-selected-game-${width}.png`), animations: 'allow' })
+  }
+  await writeFile(info.outputPath('shared-selected-playback.json'), JSON.stringify({ scope: 'Actual WebP + external system speech; direction, identity and local service storage remain explicit fixtures. Native methods are observed, not replaced with fake playback. No physical speaker measurement or performance-quality claim.', audition, before, adopted, playback }, null, 2))
+})

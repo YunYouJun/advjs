@@ -32,7 +32,7 @@ function assertReview(review: CreativeMediaWriteReview, media: CreativeMediaByte
 }
 
 /** Reconstruct both complete versions from the actual files; every touched byte must be reviewed. */
-async function sourceState(files: Readonly<Record<string, string>>, revision: string, review: CreativeMediaWriteReview): Promise<CreativeMediaProjectState> {
+export async function creativeMediaSourceState(files: Readonly<Record<string, string>>, revision: string, review: Pick<CreativeMediaWriteReview, 'beforeRevision' | 'afterRevision' | 'changes'>): Promise<CreativeMediaProjectState> {
   const before = { ...files }
   const after = { ...files }
   for (const change of review.changes) {
@@ -57,7 +57,7 @@ async function sourceState(files: Readonly<Record<string, string>>, revision: st
 export async function inspectCreativeMediaWrite(fs: IFileSystem, projectId: string, review: CreativeMediaWriteReview, media: CreativeMediaBytes, assertCurrent: () => void): Promise<CreativeMediaProjectState> {
   assertReview(review, media)
   const snapshot = await createStudioCreativeWorkspace(fs, projectId, { assertCurrent }).snapshot()
-  const state = await sourceState(snapshot.files, snapshot.revision, review)
+  const state = await creativeMediaSourceState(snapshot.files, snapshot.revision, review)
   if (state === 'conflict')
     return state
   if (await fs.exists(review.mediaPath)) {
@@ -97,7 +97,7 @@ export async function recoverCreativeMediaWrite(options: {
   if (state === 'conflict')
     throw new Error('CREATIVE_MEDIA_RECOVERY_CONFLICT')
   const snapshot = await createStudioCreativeWorkspace(fs, projectId, { assertCurrent }).snapshot()
-  if (await sourceState(snapshot.files, snapshot.revision, review) === 'conflict')
+  if (await creativeMediaSourceState(snapshot.files, snapshot.revision, review) === 'conflict')
     throw new Error('CREATIVE_MEDIA_RECOVERY_CONFLICT')
   let blob: Blob | undefined
   if (options.destination === 'after') {

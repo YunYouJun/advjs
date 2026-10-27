@@ -6,7 +6,7 @@ import { onBeforeUnmount, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import SButton from '../ui/SButton.vue'
 
-const props = defineProps<{ entry: CreativeArtImportEntry, disabled: boolean, stale: boolean, actual?: CreativeMediaProjectState, host: () => Promise<CreativeArtImportHost> }>()
+const props = defineProps<{ entry: CreativeArtImportEntry, disabled: boolean, stale: boolean, actual?: CreativeMediaProjectState, host: () => Promise<CreativeArtImportHost>, managedAvailable?: boolean }>()
 defineEmits<{ review: [replace: boolean], adopt: [], undo: [], reconcile: [], restore: [], discard: [], abandon: [] }>()
 const { t } = useI18n()
 const src = shallowRef('')
@@ -95,30 +95,38 @@ onBeforeUnmount(() => {
     </details>
     <div class="art-candidate__actions">
       <SButton v-if="entry.state === 'candidate' && entry.review" size="lg" :disabled="disabled || stale" @click="$emit('adopt')">
-        {{ t('creativeTeam.artImport.adopt') }}
+        {{ t(managedAvailable ? 'creativeTeam.mediaMilestone.submit' : 'creativeTeam.artImport.adopt') }}
       </SButton>
-      <SButton v-if="entry.state === 'adopted' && ['after', 'partial'].includes(actual ?? '')" size="lg" variant="outline" :disabled="disabled" @click="$emit('undo')">
-        {{ t('creativeTeam.artImport.undo') }}
+      <SButton v-if="entry.state === 'submitting'" size="lg" :disabled="disabled" @click="$emit('adopt')">
+        {{ t('creativeTeam.mediaMilestone.retry') }}
       </SButton>
-      <SButton v-if="['adopting', 'undoing', 'adopted'].includes(entry.state)" size="lg" variant="outline" :disabled="disabled" @click="$emit('reconcile')">
-        {{ t('creativeTeam.artImport.reconcile') }}
-      </SButton>
-      <SButton v-if="entry.state === 'adopting' && ['before', 'partial'].includes(actual ?? '')" size="lg" :disabled="disabled || stale" @click="$emit('adopt')">
-        {{ t('creativeTeam.artImport.resume') }}
-      </SButton>
-      <SButton v-if="entry.state === 'undoing' && ['after', 'partial'].includes(actual ?? '')" size="lg" variant="outline" :disabled="disabled" @click="$emit('undo')">
-        {{ t('creativeTeam.artImport.resumeUndo') }}
-      </SButton>
-      <SButton v-if="entry.state === 'adopting' && actual === 'partial'" size="lg" variant="outline" :disabled="disabled" @click="$emit('restore')">
-        {{ t('creativeTeam.mediaRecovery.restoreImage') }}
-      </SButton>
-      <SButton v-if="(entry.state === 'adopting' && ['before', 'conflict'].includes(actual ?? '')) || (entry.state === 'undoing' && ['after', 'conflict'].includes(actual ?? ''))" size="lg" variant="ghost" :disabled="disabled" @click="$emit('abandon')">
-        {{ t('creativeTeam.artImport.abandon') }}
-      </SButton>
-      <SButton v-if="['candidate', 'undone'].includes(entry.state)" size="lg" variant="ghost" :disabled="disabled" @click="$emit('discard')">
-        {{ t('creativeTeam.artImport.discard') }}
-      </SButton>
+      <template v-if="!entry.managed">
+        <SButton v-if="entry.state === 'adopted' && ['after', 'partial'].includes(actual ?? '')" size="lg" variant="outline" :disabled="disabled" @click="$emit('undo')">
+          {{ t('creativeTeam.artImport.undo') }}
+        </SButton>
+        <SButton v-if="['adopting', 'undoing', 'adopted'].includes(entry.state)" size="lg" variant="outline" :disabled="disabled" @click="$emit('reconcile')">
+          {{ t('creativeTeam.artImport.reconcile') }}
+        </SButton>
+        <SButton v-if="entry.state === 'adopting' && ['before', 'partial'].includes(actual ?? '')" size="lg" :disabled="disabled || stale" @click="$emit('adopt')">
+          {{ t('creativeTeam.artImport.resume') }}
+        </SButton>
+        <SButton v-if="entry.state === 'undoing' && ['after', 'partial'].includes(actual ?? '')" size="lg" variant="outline" :disabled="disabled" @click="$emit('undo')">
+          {{ t('creativeTeam.artImport.resumeUndo') }}
+        </SButton>
+        <SButton v-if="entry.state === 'adopting' && actual === 'partial'" size="lg" variant="outline" :disabled="disabled" @click="$emit('restore')">
+          {{ t('creativeTeam.mediaRecovery.restoreImage') }}
+        </SButton>
+        <SButton v-if="(entry.state === 'adopting' && ['before', 'conflict'].includes(actual ?? '')) || (entry.state === 'undoing' && ['after', 'conflict'].includes(actual ?? ''))" size="lg" variant="ghost" :disabled="disabled" @click="$emit('abandon')">
+          {{ t('creativeTeam.artImport.abandon') }}
+        </SButton>
+        <SButton v-if="['candidate', 'undone'].includes(entry.state)" size="lg" variant="ghost" :disabled="disabled" @click="$emit('discard')">
+          {{ t('creativeTeam.artImport.discard') }}
+        </SButton>
+      </template>
     </div>
+    <p v-if="entry.managed?.artifact" role="status">
+      {{ t('creativeTeam.mediaMilestone.review') }} · <code>{{ entry.managed.artifact.artifactId }}</code>
+    </p>
   </article>
 </template>
 

@@ -1,15 +1,17 @@
 import type { CreativeTeamRun } from '@advjs/agent'
+import type { CreativeMediaSubmit } from '../utils/creativeMediaCandidate'
 import type { CreativeMediaProjectState } from '../utils/creativeMediaRecovery'
 import type { CreativeVoiceReview } from '../utils/creativeVoiceImport'
 import type { CreativeVoiceImportCache, CreativeVoiceImportEntry } from '../utils/creativeVoiceImportCache'
 import type { CreativeArtImportHost } from './useCreativeArtImport'
 import { onBeforeUnmount, shallowRef, watch } from 'vue'
+import { creativeVoiceMediaTarget, submitCreativeMediaCandidate } from '../utils/creativeMediaCandidate'
 import { assertCreativeMediaFilesUnchanged, inspectCreativeMediaWrite } from '../utils/creativeMediaRecovery'
-import { assertCreativeVoiceReview, commitCreativeVoiceImport, recoverCreativeVoiceImport } from '../utils/creativeVoiceImport'
+import { assertCreativeVoiceReview, commitCreativeVoiceImport, recoverCreativeVoiceImport, reviewCreativeVoiceSelection } from '../utils/creativeVoiceImport'
 import { creativeVoiceImportCache } from '../utils/creativeVoiceImportCache'
 
 /** Persist intent before the first project write; reopening never registers or selects a take. */
-export function useCreativeVoiceImport(options: { run: () => CreativeTeamRun, host: () => Promise<CreativeArtImportHost>, changed: () => void, cache?: CreativeVoiceImportCache }) {
+export function useCreativeVoiceImport(options: { run: () => CreativeTeamRun, host: () => Promise<CreativeArtImportHost>, changed: () => void, cache?: CreativeVoiceImportCache, submitMedia?: () => CreativeMediaSubmit | undefined }) {
   const cache = options.cache ?? creativeVoiceImportCache
   const rows = shallowRef<CreativeVoiceImportEntry[]>([])
   const inspections = shallowRef<Record<string, CreativeMediaProjectState>>({})
@@ -33,7 +35,7 @@ export function useCreativeVoiceImport(options: { run: () => CreativeTeamRun, ho
       rows.value = entries
       const host = await options.host()
       const result: Record<string, CreativeMediaProjectState> = {}
-      for (const entry of entries)
+      for (const entry of entries.filter(item => !item.managed))
         result[entry.id] = await inspect(host, entry)
       host.assertCurrent()
       if (turn === epoch && key === scopeKey())
@@ -56,6 +58,10 @@ export function useCreativeVoiceImport(options: { run: () => CreativeTeamRun, ho
     error.value = false
     void reload()
   }, { immediate: true })
+  watch(() => options.run(), () => {
+    if (!busy.value)
+      void reload()
+  })
   onBeforeUnmount(() => epoch++)
   async function save(entry: CreativeVoiceImportEntry, turn: number) {
     await cache.save(entry)
@@ -102,12 +108,41 @@ export function useCreativeVoiceImport(options: { run: () => CreativeTeamRun, ho
       inspections.value = { ...inspections.value, [entry.id]: 'before' }
     })
   }
+  async function select(id: string) {
+    return work(async (host, turn) => {
+      const entry = rows.value.find(item => item.id === id && item.state === 'registered' && item.phase !== 'selected' && item.managed?.artifact)
+      if (!entry || !options.submitMedia?.())
+        throw new Error('CREATIVE_MEDIA_MILESTONE_REQUIRED')
+      const registered = options.run().artifacts.find(item => item.id === entry.managed!.artifact!.artifactId && item.status === 'adopted')
+      if (!registered)
+        throw new Error('CREATIVE_MEDIA_REGISTRATION_REQUIRED')
+      const review = await reviewCreativeVoiceSelection(host.fs, options.run(), entry.review, host.assertCurrent)
+      host.assertCurrent()
+      const selected: CreativeVoiceImportEntry = { ...scope(), id: crypto.randomUUID(), createdAt: Date.now(), state: 'reviewed', phase: 'selected', review: { ...review, data: undefined } }
+      await save(selected, turn)
+      host.assertCurrent()
+      inspections.value = { ...inspections.value, [selected.id]: 'before' }
+    })
+  }
   async function register(id: string) {
     return work(async (host, turn) => {
-      const entry = rows.value.find(item => item.id === id && ['reviewed', 'registering'].includes(item.state))
+      const entry = rows.value.find(item => item.id === id && ['reviewed', 'submitting', 'registering'].includes(item.state))
       if (!entry)
         throw new Error('CREATIVE_MEDIA_RECOVERY_REQUIRED')
+      const submit = options.submitMedia?.()
+      if (entry.managed || submit) {
+        if (!submit || (entry.state !== 'reviewed' && entry.state !== 'submitting'))
+          throw new Error('CREATIVE_MEDIA_MILESTONE_REQUIRED')
+        if (!entry.managed)
+          assertCreativeVoiceReview(options.run(), entry.review)
+        const managed = await submitCreativeMediaCandidate({ fs: host.fs, scope: entry, parent: { artifactId: entry.review.target.artifactId, fingerprint: entry.review.target.artifactFingerprint }, target: { ...creativeVoiceMediaTarget(entry.review), kind: 'voice', phase: entry.phase ?? 'registered' }, review: entry.review, reason: entry.review.attribution, registration: entry.managed, submit, assertCurrent: host.assertCurrent, save: managed => save({ ...entry, state: 'submitting', managed }, turn) })
+        await save({ ...entry, state: 'submitted', managed }, turn)
+        host.assertCurrent()
+        return
+      }
       assertCreativeVoiceReview(options.run(), entry.review)
+      if (entry.managed)
+        throw new Error('CREATIVE_MEDIA_MILESTONE_REQUIRED')
       const actual = await inspect(host, entry)
       host.assertCurrent()
       inspections.value = { ...inspections.value, [id]: actual }
@@ -142,6 +177,8 @@ export function useCreativeVoiceImport(options: { run: () => CreativeTeamRun, ho
       const entry = rows.value.find(item => item.id === id)
       if (!entry)
         return
+      if (entry.managed)
+        throw new Error('CREATIVE_MEDIA_MILESTONE_REQUIRED')
       const actual = await inspect(host, entry)
       host.assertCurrent()
       inspections.value = { ...inspections.value, [id]: actual }
@@ -157,7 +194,7 @@ export function useCreativeVoiceImport(options: { run: () => CreativeTeamRun, ho
   async function restore(id: string) {
     return work(async (host, turn) => {
       const entry = rows.value.find(item => item.id === id && ['registering', 'restoring'].includes(item.state))
-      if (!entry)
+      if (!entry || entry.managed)
         throw new Error('CREATIVE_MEDIA_RECOVERY_REQUIRED')
       await save({ ...entry, state: 'restoring' }, turn)
       host.assertCurrent()
@@ -183,12 +220,12 @@ export function useCreativeVoiceImport(options: { run: () => CreativeTeamRun, ho
   async function abandon(id: string) {
     return work(async (host, turn) => {
       const entry = rows.value.find(item => item.id === id && ['registering', 'restoring'].includes(item.state))
-      if (!entry)
+      if (!entry || entry.managed)
         throw new Error('CREATIVE_MEDIA_RECOVERY_REQUIRED')
       await assertCreativeMediaFilesUnchanged(host.fs, entry.projectId, entry.review, 'before', host.assertCurrent)
       await save({ ...entry, state: 'abandoned' }, turn)
       host.assertCurrent()
     })
   }
-  return { rows, inspections, busy, loading, error, reload, stage, register, reconcile, restore, abandon, discard }
+  return { rows, inspections, busy, loading, error, reload, stage, select, register, reconcile, restore, abandon, discard }
 }

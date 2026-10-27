@@ -13,12 +13,13 @@ export const creativeImageJournalEntries = creativeMediaJournalDatabase.table<Cr
 export const creativeVoiceJournalEntries = creativeMediaJournalDatabase.table<CreativeVoiceImportEntry, [string, string, string, string]>('voiceEntries')
 
 /** Called inside the same database transaction that persists a new write intent. */
-export async function assertCreativeMediaJournalCapacity(entry: CreativeArtImportScope & { id: string }, kind: 'image' | 'voice', dataBytes: number, pending: boolean) {
+export async function assertCreativeMediaJournalCapacity(entry: CreativeArtImportScope & { id: string, managed?: { milestoneId?: string } }, kind: 'image' | 'voice', dataBytes: number, pending: boolean) {
   const key = [entry.accountId, entry.projectId]
   const images = await creativeImageJournalEntries.where('[accountId+projectId]').equals(key).toArray()
   const voices = await creativeVoiceJournalEntries.where('[accountId+projectId]').equals(key).toArray()
   const same = (item: CreativeArtImportScope & { id: string }, type: string) => type === kind && item.runId === entry.runId && item.id === entry.id
-  if (pending && (images.some(item => !same(item, 'image') && ['adopting', 'undoing'].includes(item.state)) || voices.some(item => !same(item, 'voice') && ['registering', 'restoring'].includes(item.state))))
+  const otherIntent = (item: { managed?: { milestoneId?: string } }) => !entry.managed?.milestoneId || entry.managed.milestoneId !== item.managed?.milestoneId
+  if (pending && (images.some(item => !same(item, 'image') && otherIntent(item) && ['submitting', 'adopting', 'undoing'].includes(item.state)) || voices.some(item => !same(item, 'voice') && otherIntent(item) && ['submitting', 'registering', 'restoring'].includes(item.state))))
     throw new Error('CREATIVE_MEDIA_RECOVERY_REQUIRED')
   const scopeImages = images.filter(item => item.runId === entry.runId && !same(item, 'image'))
   const scopeVoices = voices.filter(item => item.runId === entry.runId && !same(item, 'voice'))

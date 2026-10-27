@@ -1,11 +1,13 @@
 import { resolve } from 'node:path'
 import createStudioConfig from '../../../vite.config'
+import { creativeMediaMilestoneFixtureService } from './media-milestone-service'
 
 /** The real Studio app, with paid services disabled and dependency watchers off for isolated QA. */
 export default async function configuration() {
   const base = await createStudioConfig({ command: 'serve' })
   return {
     ...base,
+    plugins: [...base.plugins, creativeMediaMilestoneFixtureService()],
     root: resolve(import.meta.dirname, '../../..'),
     define: {
       ...base.define,

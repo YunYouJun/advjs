@@ -1,6 +1,6 @@
 import type { AdvProjectDiagnostic, AdvProjectFileMap } from '@advjs/types'
 import type { AgentProjectWorkspaceSnapshot } from '../proposals/review'
-import type { CreativeArtifact, CreativeFileChange, CreativeReviewCapability, CreativeTeamRun } from './contracts'
+import type { CreativeArtifact, CreativeFileChange, CreativeMilestoneIntent, CreativeReviewCapability, CreativeTeamRun } from './contracts'
 import type { CreativeMediaEvidence } from './media'
 import { compileProject } from '@advjs/core'
 import { computeAgentProjectRevision } from '../proposals/review'
@@ -10,10 +10,16 @@ import { requiredCreativeReviewCapabilities } from './validation'
 /** Host adapter uses the existing project write transaction, including binary staging. */
 export interface CreativeProjectWorkspace {
   snapshot: () => Promise<AgentProjectWorkspaceSnapshot>
-  commit: (changes: readonly CreativeFileChange[], expectedRevision: string) => Promise<AgentProjectWorkspaceSnapshot>
+  commit: (changes: readonly CreativeFileChange[], expectedRevision: string, intent?: CreativeMilestoneIntent) => Promise<AgentProjectWorkspaceSnapshot>
   capabilities: readonly CreativeReviewCapability[]
   /** Re-read current binary bytes and verify every supplied immutable hash, size and binding. */
   verifyMedia?: (files: Readonly<AdvProjectFileMap>, evidence: readonly CreativeMediaEvidence[]) => Promise<void>
+  /** Inspect actual source and binary bytes without writing or contacting a service. */
+  inspectRecovery?: (review: CreativeMilestoneReview) => Promise<'before' | 'after' | 'partial' | 'conflict'>
+  /** Explicit author recovery; every affected file must equal one of the two reviewed versions. */
+  recover?: (review: CreativeMilestoneReview, destination: 'before' | 'after', intent: CreativeMilestoneIntent) => Promise<AgentProjectWorkspaceSnapshot>
+  /** Private local receipt only, after the server confirmed or abandoned this exact intent. */
+  acknowledge?: (intent: CreativeMilestoneIntent) => Promise<void>
 }
 
 /** Immutable review contains the full candidate snapshot for isolated compilation/playtest. */
@@ -79,7 +85,7 @@ export class CreativeMilestoneReviewService {
     }
     const changes = structuredClone(artifacts.flatMap(artifact => [...artifact.changes]))
     const files = overlayCreativeChanges(baseline.files, changes)
-    const result = await compileProject({ id: baseline.projectId, files })
+    const result = await compileProject({ id: baseline.projectId, files }, { allowEmptyAssetManifest: true })
     if (result.diagnostics.some(item => item.severity === 'error'))
       throw new Error(`CREATIVE_COMPILE_FAILED:${JSON.stringify(result.diagnostics)}`)
     return {
@@ -100,7 +106,7 @@ export class CreativeMilestoneReviewService {
     const files = overlayCreativeChanges(baseline.files, review.changes)
     if (await computeAgentProjectRevision(files) !== review.candidateRevision)
       throw new Error('CREATIVE_REVIEW_CHANGED')
-    const result = await compileProject({ id: baseline.projectId, files })
+    const result = await compileProject({ id: baseline.projectId, files }, { allowEmptyAssetManifest: true })
     if (result.diagnostics.some(item => item.severity === 'error'))
       throw new Error('CREATIVE_COMPILE_FAILED')
     const after = await this.workspace.commit(review.changes, review.baselineRevision)

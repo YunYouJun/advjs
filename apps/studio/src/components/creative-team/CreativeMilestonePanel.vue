@@ -112,7 +112,7 @@ async function apply() {
     await inspect()
   })
 }
-async function resolve(operation: 'resume' | 'abandon') {
+async function resolve(operation: 'resume' | 'abandon' | 'restore') {
   const entry = recovery.value?.entry
   if (!entry)
     return
@@ -142,7 +142,10 @@ async function resolve(operation: 'resume' | 'abandon') {
       <SButton v-if="recovery!.projectState !== 'conflict'" size="lg" :disabled="busy || working" @click="resolve('resume')">
         {{ t(recovery!.projectState === 'after' ? 'creativeTeam.milestone.confirmReceipt' : 'creativeTeam.milestone.resume') }}
       </SButton>
-      <SButton v-if="recovery!.projectState === 'before'" variant="outline" size="lg" :disabled="busy || working" @click="resolve('abandon')">
+      <SButton v-if="recovery!.projectState === 'partial' && recovery!.run.milestones?.some(item => item.id === recovery!.entry.intentId && item.status === 'prepared')" variant="outline" size="lg" :disabled="busy || working" @click="resolve('restore')">
+        {{ t('creativeTeam.mediaMilestone.restore') }}
+      </SButton>
+      <SButton v-if="recovery!.sourceState === 'before'" variant="outline" size="lg" :disabled="busy || working" @click="resolve('abandon')">
         {{ t('creativeTeam.milestone.abandon') }}
       </SButton>
     </div>

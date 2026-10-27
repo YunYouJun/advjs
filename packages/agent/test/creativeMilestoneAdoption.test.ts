@@ -144,6 +144,17 @@ describe('durable text milestone adoption and recovery', () => {
     expect(h.writes()).toBe(0)
   })
 
+  it('allows an authoring review to restore a valid empty asset catalog while retaining other compiler diagnostics', async () => {
+    const h = await fixture()
+    const files = { ...h.request.project.files, 'adv/assets.json': JSON.stringify({ schemaVersion: 2, id: 'station', defaultProfile: 'local', profiles: { local: { provider: 'project', root: 'adv/assets' } }, includes: ['assets/other.json'] }), 'adv/assets/other.json': '{"schemaVersion":2,"assets":[]}' }
+    const request = { ...h.request, project: { ...h.request.project, files, revision: await computeAgentProjectRevision(files) } }
+    const reviewed = await reviewCreativeMilestone(h.getRun(), request)
+    expect(reviewed.files['adv/assets/other.json']).toBe(files['adv/assets/other.json'])
+    expect(reviewed.diagnostics.some(item => item.severity === 'error')).toBe(false)
+    const broken = { ...files, 'adv/chapters/intro.adv.md': '# 开始 {#start}\n\n- [Missing](missing#end)' }
+    await expect(reviewCreativeMilestone(h.getRun(), { ...request, project: { ...request.project, files: broken, revision: await computeAgentProjectRevision(broken) } })).rejects.toThrow('COMPILE_FAILED')
+  })
+
   it('rejects a write whose after snapshot cannot fit the confirmation protocol', async () => {
     const h = await fixture()
     h.getRun().artifacts[0].changes = [{ path: 'adv/characters/lin.character.md', before: null, after: `---\nid: lin\nname: 林舟\n---\n${'长'.repeat(49000)}` }]

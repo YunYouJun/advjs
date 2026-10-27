@@ -1,5 +1,6 @@
 import type { CreativeArtRequest } from '@advjs/agent'
 import type { CreativeImageMetadata } from './creativeImage'
+import type { CreativeMediaRegistration } from './creativeMediaCandidate'
 import type { StudioNativeFileChange } from './nativeProjectMutation'
 import { assertCreativeMediaJournalCapacity, creativeVoiceJournalEntries, creativeMediaJournalDatabase as database, creativeImageJournalEntries as entries } from './creativeMediaJournalStorage'
 
@@ -23,7 +24,8 @@ export interface CreativeArtImportEntry extends CreativeArtImportScope {
   image: CreativeImageMetadata
   data?: ArrayBuffer
   createdAt: number
-  state: 'candidate' | 'adopting' | 'adopted' | 'undoing' | 'undone'
+  managed?: CreativeMediaRegistration
+  state: 'candidate' | 'submitting' | 'submitted' | 'adopting' | 'adopted' | 'undoing' | 'undone'
   review?: CreativeArtImportReview
 }
 export interface CreativeArtImportCache {
@@ -40,7 +42,7 @@ export const creativeArtImportCache: CreativeArtImportCache = {
   },
   async save(entry) {
     await database.transaction('rw', entries, creativeVoiceJournalEntries, async () => {
-      await assertCreativeMediaJournalCapacity(entry, 'image', entry.data?.byteLength ?? 0, ['adopting', 'undoing'].includes(entry.state))
+      await assertCreativeMediaJournalCapacity(entry, 'image', entry.data?.byteLength ?? 0, ['submitting', 'adopting', 'undoing'].includes(entry.state))
       await entries.put(structuredClone(entry))
     })
   },

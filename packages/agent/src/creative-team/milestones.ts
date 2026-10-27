@@ -74,6 +74,24 @@ export function creativeMilestoneChanges(run: CreativeTeamRun, intent: Pick<Crea
 /** Exact confirmed writes adjust provenance without mutating the original candidate. */
 export function creativeArtifactExpectedFiles(artifact: CreativeArtifact, run?: CreativeTeamRun): Record<string, string | null> {
   const files: Record<string, string | null> = { ...artifact.source.files }
+  const dependencies = new Set<string>()
+  if (artifact.kind === 'art-direction' || artifact.kind === 'voice-direction' || artifact.media)
+    dependencies.add('adv/assets.json')
+  if (artifact.kind === 'voice-direction' || artifact.media?.target.kind === 'voice') {
+    for (const path of ['adv/audio/voice-ledger.json', 'adv/audio/pronunciation.json', 'adv/audio/voice-profiles.json', 'adv/settings/game.json'])
+      dependencies.add(path)
+  }
+  if (artifact.output?.kind === 'art-direction') {
+    for (const request of artifact.output.requests)
+      dependencies.add(request.kind === 'background' ? `adv/scenes/${request.sceneId}.md` : `adv/characters/${request.characterId}.character.md`)
+  }
+  if (artifact.output?.kind === 'voice-direction') {
+    for (const line of artifact.output.lines.filter(item => item.speakerId !== 'narrator'))
+      dependencies.add(`adv/characters/${line.speakerId}.character.md`)
+  }
+  // Known optional reads also depend on absence: creating a dictionary/profile later must expire old voice input.
+  for (const path of dependencies)
+    files[path] ??= null
   for (const change of artifact.changes)
     files[change.path] ??= change.before
   for (const intent of run?.milestones ?? []) {

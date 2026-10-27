@@ -2,7 +2,7 @@ import type { CreativeArtifact, CreativePartnerOutput, CreativeTeamRun } from '@
 import type { CharacterVoiceProfile, VoiceAuthoringSnapshot, VoiceRights } from '@advjs/types'
 import type { IFileSystem } from './fs'
 import { computeAgentProjectRevision, creativeArtifactExpectedFiles } from '@advjs/agent'
-import { audioFingerprint, audioProjectMediaPath, createVoiceTakeEditPlan, resolveVoiceSpokenText, serializeVoiceLedger } from '@advjs/audio'
+import { audioFingerprint, audioProjectMediaPath, createVoiceTakeEditPlan, createVoiceTakeSelectionPlan, prepareVoiceSpokenText, resolveVoiceSpokenText, serializeVoiceLedger, voiceInputFingerprint } from '@advjs/audio'
 import { compileProject, planAdvAssetManifestUpsert } from '@advjs/core'
 import { recoverCreativeMediaWrite } from './creativeMediaRecovery'
 import { createStudioCreativeWorkspace } from './creativeTeamWorkspace'
@@ -187,4 +187,29 @@ export async function commitCreativeVoiceImport(fs: IFileSystem, run: CreativeTe
       assertProposal(run, artifact, source.files)
     },
   })
+}
+
+/** Prepare the independent selected-take binding after audition, retaining its exact input provenance. */
+export async function reviewCreativeVoiceSelection(fs: IFileSystem, run: CreativeTeamRun, imported: Omit<CreativeVoiceReview, 'data'>, assertCurrent: () => void) {
+  const current = (await readCreativeVoiceTargets(fs, run, imported.target.artifactId, assertCurrent)).find(item => item.lineId === imported.target.lineId)
+  if (!current || current.artifactFingerprint !== imported.target.artifactFingerprint || current.locale !== imported.target.locale || JSON.stringify(current.request) !== JSON.stringify(imported.target.request) || current.profileRevision !== imported.target.profileRevision)
+    throw new Error('CREATIVE_VOICE_PROFILE_REQUIRED')
+  const line = current.snapshot.ledger.lines[current.lineId]
+  const binding = line?.locales[current.locale]
+  const take = binding?.takes.find(item => item.id === imported.takeId)
+  const provider = current.providers.find(item => item.id === take?.providerId && item.voiceId === take.voiceId && item.model === take.model)
+  const prepared = await prepareVoiceSpokenText(current.request.text, { override: binding?.spokenText ?? line?.spokenText, locale: current.locale, pronunciation: current.snapshot.pronunciation })
+  if (!take || !provider || take.voiceProfileRevision !== current.profileRevision || take.inputFingerprint !== await voiceInputFingerprint({ spokenText: prepared.text, locale: current.locale, speakerId: current.request.speakerId, providerId: take.providerId, voiceId: take.voiceId, model: take.model, voiceProfileRevision: current.profileRevision, parameters: take.parameters, ...(prepared.pronunciationRevision ? { pronunciationRevision: prepared.pronunciationRevision } : {}) }))
+    throw new Error('CREATIVE_VOICE_SOURCE_CHANGED')
+  const source = await createStudioCreativeWorkspace(fs, run.plan.projectId, { assertCurrent }).snapshot()
+  if (source.revision !== current.sourceRevision)
+    throw new Error('CREATIVE_VOICE_SOURCE_CHANGED')
+  const plan = createVoiceTakeSelectionPlan(current.snapshot, { expectedRevision: current.snapshot.revision, lineId: current.lineId, locale: current.locale, takeId: take.id, replaceSelected: true })
+  const content = serializeVoiceLedger(plan.ledger)
+  const path = 'adv/audio/voice-ledger.json'
+  const afterRevision = await computeAgentProjectRevision({ ...source.files, [path]: content })
+  if (afterRevision === source.revision)
+    throw new Error('CREATIVE_EMPTY_MILESTONE')
+  assertCurrent()
+  return { ...imported, target: { artifactId: current.artifactId, artifactFingerprint: current.artifactFingerprint, request: current.request, lineId: current.lineId, sourceRevision: source.revision, locale: current.locale, profileRevision: current.profileRevision }, beforeRevision: source.revision, afterRevision, changes: [{ path, expected: source.files[path] ?? null, content }] }
 }

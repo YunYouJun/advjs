@@ -1,4 +1,4 @@
-import type { CreativeAdoptionJournal, CreativeCandidateEditRequest, CreativePlaytestReport, CreativeProjectWorkspace, CreativeTeamAvailability, CreativeTeamClient, CreativeTeamDecisionInput, CreativeTeamRun, CreativeTeamRunSummary, CreativeTeamStartRequest } from '@advjs/agent'
+import type { CreativeAdoptionJournal, CreativeCandidateEditRequest, CreativeMediaCandidateRequest, CreativePlaytestReport, CreativeProjectWorkspace, CreativeTeamAvailability, CreativeTeamClient, CreativeTeamDecisionInput, CreativeTeamRun, CreativeTeamRunSummary, CreativeTeamStartRequest } from '@advjs/agent'
 import { CreativeMilestoneCoordinator, normalizeAgentRuntimeError } from '@advjs/agent'
 import { defineStore } from 'pinia'
 import { computed, shallowRef } from 'vue'
@@ -202,6 +202,14 @@ export const useCreativeTeamStore = defineStore('creative-team', () => {
     })
   }
 
+  async function registerMediaCandidate(request: CreativeMediaCandidateRequest, intent: string): Promise<CreativeTeamRun | undefined> {
+    const runId = run.value?.id
+    if (!runId || !connection || request.project.id !== connection.projectId || !availability.value?.authoring?.mediaCandidates || !connection.client.registerMediaCandidate)
+      throw new Error('Creative media service unavailable')
+    const success = await mutate(current => current.client.registerMediaCandidate!(current.projectId, runId, request, intent))
+    return success && run.value?.id === runId ? run.value : undefined
+  }
+
   function milestoneCoordinator(workspace: CreativeProjectWorkspace, journal: CreativeAdoptionJournal, assertCurrent: () => void) {
     const current = connection
     const runId = run.value?.id
@@ -247,5 +255,5 @@ export const useCreativeTeamStore = defineStore('creative-team', () => {
     return epoch === generation && run.value?.id === runId ? report : undefined
   }
 
-  return { availability, runs, run, loading, mutating, error, connected, canStart, needsPolling, configure, disconnect, refresh, open, start, decide, refreshFacts, editCandidate, milestoneCoordinator, performMilestone, recordPlaytest, getPlaytest, requestPlaytestRepair }
+  return { availability, runs, run, loading, mutating, error, connected, canStart, needsPolling, configure, disconnect, refresh, open, start, decide, refreshFacts, editCandidate, registerMediaCandidate, milestoneCoordinator, performMilestone, recordPlaytest, getPlaytest, requestPlaytestRepair }
 })

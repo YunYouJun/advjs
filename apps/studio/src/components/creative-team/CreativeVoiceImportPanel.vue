@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CreativeTeamRun } from '@advjs/agent'
 import type { CreativeArtImportHost } from '../../composables/useCreativeArtImport'
+import type { CreativeMediaSubmit } from '../../utils/creativeMediaCandidate'
 import type { CreativeVoiceTarget } from '../../utils/creativeVoiceImport'
 import { computed, onBeforeUnmount, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -10,7 +11,7 @@ import { voiceWorkflowLocation } from '../../utils/voiceWorkflow'
 import SButton from '../ui/SButton.vue'
 import CreativeVoiceImportCandidate from './CreativeVoiceImportCandidate.vue'
 
-const props = defineProps<{ run: CreativeTeamRun, busy: boolean, host: () => Promise<CreativeArtImportHost> }>()
+const props = defineProps<{ run: CreativeTeamRun, busy: boolean, host: () => Promise<CreativeArtImportHost>, submitMedia?: CreativeMediaSubmit }>()
 const emit = defineEmits<{ busy: [value: boolean], changed: [] }>()
 const { t } = useI18n()
 const proposals = computed(() => props.run.artifacts.filter(item => item.output?.kind === 'voice-direction' && ['selected', 'adopted'].includes(item.status)))
@@ -26,19 +27,27 @@ const attribution = shallowRef('')
 const working = shallowRef(false)
 const error = shallowRef('')
 let epoch = 0
-const session = useCreativeVoiceImport({ run: () => props.run, host: props.host, changed: () => emit('changed') })
+const session = useCreativeVoiceImport({ run: () => props.run, host: props.host, changed: () => emit('changed'), submitMedia: () => props.submitMedia })
 const { rows, inspections, busy: journalBusy, loading: journalLoading, error: journalError } = session
 const visible = computed(() => proposals.value.length || rows.value.length)
 const pending = computed(() => rows.value.some(item => ['registering', 'restoring'].includes(item.state)))
 const candidates = computed(() => rows.value.map((entry) => {
   let stale = false
   try {
-    assertCreativeVoiceReview(props.run, entry.review)
+    if (entry.managed) {
+      const parent = props.run.artifacts.find(item => item.id === entry.review.target.artifactId && item.fingerprint === entry.review.target.artifactFingerprint)
+      if (!parent || !['selected', 'adopted'].includes(parent.status))
+        throw new Error('Source changed')
+    }
+    else {
+      assertCreativeVoiceReview(props.run, entry.review)
+    }
   }
   catch {
     stale = true
   }
-  return { entry, stale }
+  const selectedTake = props.run.artifacts.some(item => item.status === 'adopted' && item.media?.target.kind === 'voice' && item.media.target.phase === 'selected' && item.media.target.takeId === entry.review.takeId)
+  return { entry, stale, selectedTake }
 }))
 const blocked = computed(() => props.busy || working.value || journalBusy.value || journalLoading.value || props.run.tasks.some(item => ['running', 'reconcile_required'].includes(item.status)) || Boolean(props.run.milestones?.some(item => item.status === 'prepared')))
 const localBusy = computed(() => working.value || journalBusy.value || journalLoading.value)
@@ -110,8 +119,8 @@ async function inspect() {
 <template>
   <section v-if="visible" class="voice-import" data-testid="creative-voice-import">
     <h2>{{ t('creativeTeam.voiceImport.title') }}</h2>
-    <p>{{ t('creativeTeam.voiceImport.hint') }}</p>
-    <p>{{ t('creativeTeam.voiceImport.localScope') }}</p>
+    <p>{{ t(submitMedia ? 'creativeTeam.mediaMilestone.voiceHint' : 'creativeTeam.voiceImport.hint') }}</p>
+    <p>{{ t(submitMedia ? 'creativeTeam.mediaMilestone.scope' : 'creativeTeam.voiceImport.localScope') }}</p>
     <label>{{ t('creativeTeam.voiceImport.proposal') }}<select v-model="artifactId" :disabled="blocked" @change="targets = []"><option v-for="proposal in proposals" :key="proposal.id" :value="proposal.id">{{ proposal.summary }}</option></select></label>
     <template v-if="direction">
       <ul>
@@ -164,7 +173,7 @@ async function inspect() {
         </template>
       </template>
     </form>
-    <CreativeVoiceImportCandidate v-for="candidate in candidates" :key="candidate.entry.id" v-bind="candidate" :actual="inspections[candidate.entry.id]" :disabled="blocked" @register="session.register(candidate.entry.id)" @reconcile="session.reconcile(candidate.entry.id)" @restore="session.restore(candidate.entry.id)" @abandon="session.abandon(candidate.entry.id)" @discard="session.discard(candidate.entry.id)" />
+    <CreativeVoiceImportCandidate v-for="candidate in candidates" :key="candidate.entry.id" v-bind="candidate" :actual="inspections[candidate.entry.id]" :disabled="blocked" :managed-available="Boolean(submitMedia)" @register="session.register(candidate.entry.id)" @select="session.select(candidate.entry.id)" @reconcile="session.reconcile(candidate.entry.id)" @restore="session.restore(candidate.entry.id)" @abandon="session.abandon(candidate.entry.id)" @discard="session.discard(candidate.entry.id)" />
   </section>
 </template>
 

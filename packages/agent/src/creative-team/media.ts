@@ -315,12 +315,30 @@ export function compatibleCreativeMediaArtifacts(run: CreativeTeamRun, files: Re
     const asset = assets.find(item => item.id === evidence.target.assetId)
     if (!asset || asset.sha256 !== evidence.sha256 || asset.bytes !== evidence.bytes || asset.mimeType !== evidence.mimeType || [root, asset.path].filter(Boolean).join('/') !== evidence.mediaPath)
       return false
+    const parent = run.artifacts.find(item => item.id === evidence.parent.artifactId && item.fingerprint === evidence.parent.fingerprint)
+    const expected = creativeArtifactExpectedFiles(artifact, run)
+    const inputs = new Set<string>()
+    if (evidence.target.kind === 'voice' && parent?.output?.kind === 'voice-direction') {
+      for (const path of ['adv/audio/pronunciation.json', 'adv/audio/voice-profiles.json', 'adv/settings/game.json'])
+        inputs.add(path)
+      for (const line of parent.output.lines) {
+        inputs.add(line.path)
+        if (line.speakerId !== 'narrator')
+          inputs.add(`adv/characters/${line.speakerId}.character.md`)
+      }
+    }
+    if (evidence.target.kind === 'image' && parent?.output?.kind === 'art-direction') {
+      const request = parent.output.requests.find(item => item.assetId === evidence.target.assetId)
+      if (request)
+        inputs.add(request.kind === 'background' ? `adv/scenes/${request.sceneId}.md` : `adv/characters/${request.characterId}.character.md`)
+    }
+    if ([...inputs].some(path => (files[path] ?? null) !== (expected[path] ?? null)))
+      return false
     if (evidence.target.kind === 'voice') {
       const selection = evidence.target
       const binding = voiceBinding(files, selection)
       return binding.takes.some(item => item.id === selection.takeId && item.assetId === asset.id && item.sha256 === asset.sha256) && (evidence.target.phase === 'registered' || binding.locale.selectedTake === evidence.target.takeId)
     }
-    const parent = run.artifacts.find(item => item.id === evidence.parent.artifactId && item.fingerprint === evidence.parent.fingerprint)
     const request = parent?.output?.kind === 'art-direction' ? parent.output.requests.find(item => item.assetId === evidence.target.assetId) : undefined
     if (!request)
       return false

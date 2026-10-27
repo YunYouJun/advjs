@@ -6,16 +6,20 @@ export interface StudioNativeFileChange { path: string, expected: string | null,
 export interface StudioNativeMedia { path: string, blob: Blob, sha256: string, bytes: number }
 
 /** Exact-byte CAS and rollback, shared by finite voice mutations and JSON Flow. */
-export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioNativeFileChange[], options: { assertCurrent?: () => void, validateCurrent?: () => Promise<void>, media?: StudioNativeMedia, acceptsPath: (path: string) => boolean }) {
+export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioNativeFileChange[], options: { assertCurrent?: () => void, validateCurrent?: () => Promise<void>, validateAfter?: () => Promise<void>, media?: StudioNativeMedia | readonly StudioNativeMedia[], acceptsPath: (path: string) => boolean }) {
   if (!Array.isArray(changes) || changes.length > 100 || new Set(changes.map(change => change.path)).size !== changes.length)
     throw new Error('ADV_STUDIO_TRANSACTION_INVALID')
   for (const change of changes) {
     if (!options.acceptsPath(change.path) || ![change.expected, change.content].every(value => value === null || typeof value === 'string'))
       throw new Error('ADV_STUDIO_TRANSACTION_INVALID')
   }
-  const media = options.media
-  if (media)
-    await verifyVoiceCandidateBytes(media, await media.blob.arrayBuffer())
+  const media = options.media ? (Array.isArray(options.media) ? options.media : [options.media]) as readonly StudioNativeMedia[] : []
+  if (media.length > 32 || new Set(media.map(item => item.path)).size !== media.length || media.reduce((bytes, item) => bytes + item.bytes, 0) > 64 * 1024 * 1024
+    || media.some(item => !/^[\w./-]+$/.test(item.path) || item.path.split('/').some(part => ['', '.', '..'].includes(part)) || changes.some(change => change.path === item.path))) {
+    throw new Error('ADV_STUDIO_TRANSACTION_INVALID')
+  }
+  for (const item of media)
+    await verifyVoiceCandidateBytes(item, await item.blob.arrayBuffer())
   return await runStudioProjectWrite(fs, async () => {
     options.assertCurrent?.()
     await options.validateCurrent?.()
@@ -24,17 +28,17 @@ export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioN
       if (current !== change.expected)
         throw new Error('ADV_STUDIO_SOURCE_CONFLICT')
     }
-    let imported = false
+    const imported: string[] = []
     const written: StudioNativeFileChange[] = []
     try {
-      if (media) {
-        if (await fs.exists(media.path)) {
-          await verifyVoiceCandidateBytes(media, await (await fs.readBlob(media.path)).arrayBuffer())
+      for (const item of media) {
+        if (await fs.exists(item.path)) {
+          await verifyVoiceCandidateBytes(item, await (await fs.readBlob(item.path)).arrayBuffer())
         }
         else {
           options.assertCurrent?.()
-          imported = true
-          await fs.writeBlob(media.path, media.blob)
+          imported.push(item.path)
+          await fs.writeBlob(item.path, item.blob)
         }
       }
       for (const change of changes) {
@@ -49,6 +53,8 @@ export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioN
       }
       await fs.flush?.()
       options.assertCurrent?.()
+      await options.validateAfter?.()
+      options.assertCurrent?.()
     }
     catch (cause) {
       for (const change of written.reverse()) {
@@ -60,8 +66,10 @@ export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioN
           await fs.writeFile(change.path, change.expected)
         }
       }
-      if (imported && media && await fs.exists(media.path))
-        await fs.deleteFile(media.path)
+      for (const path of imported.reverse()) {
+        if (await fs.exists(path))
+          await fs.deleteFile(path)
+      }
       await fs.flush?.()
       throw cause
     }

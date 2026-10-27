@@ -1,11 +1,14 @@
 import type { CreativeArtImportScope } from './creativeArtImportCache'
+import type { CreativeMediaRegistration } from './creativeMediaCandidate'
 import type { CreativeVoiceReview } from './creativeVoiceImport'
 import { assertCreativeMediaJournalCapacity, creativeImageJournalEntries, creativeMediaJournalDatabase as database, creativeVoiceJournalEntries as entries } from './creativeMediaJournalStorage'
 
 export interface CreativeVoiceImportEntry extends CreativeArtImportScope {
   id: string
   review: Omit<CreativeVoiceReview, 'data'> & { data?: ArrayBuffer }
-  state: 'reviewed' | 'registering' | 'registered' | 'restoring' | 'restored' | 'abandoned'
+  phase?: 'registered' | 'selected'
+  managed?: CreativeMediaRegistration
+  state: 'reviewed' | 'submitting' | 'submitted' | 'registering' | 'registered' | 'selected' | 'restoring' | 'restored' | 'abandoned'
   createdAt: number
 }
 export interface CreativeVoiceImportCache {
@@ -22,7 +25,7 @@ export const creativeVoiceImportCache: CreativeVoiceImportCache = {
   },
   async save(entry) {
     await database.transaction('rw', entries, creativeImageJournalEntries, async () => {
-      await assertCreativeMediaJournalCapacity(entry, 'voice', entry.review.data?.byteLength ?? 0, ['registering', 'restoring'].includes(entry.state))
+      await assertCreativeMediaJournalCapacity(entry, 'voice', entry.review.data?.byteLength ?? 0, ['submitting', 'registering', 'restoring'].includes(entry.state))
       await entries.put(structuredClone(entry))
     })
   },
