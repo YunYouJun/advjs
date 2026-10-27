@@ -18,6 +18,7 @@ const proposals = computed(() => props.run.artifacts.filter(item => item.output?
 const artifactId = shallowRef('')
 const selected = computed(() => proposals.value.find(item => item.id === artifactId.value))
 const direction = computed(() => selected.value?.output?.kind === 'voice-direction' ? selected.value.output : undefined)
+const legacyFlow = computed(() => direction.value?.lines.some(line => line.path.endsWith('.chapter.json') && line.lineId === undefined))
 const targets = shallowRef<CreativeVoiceTarget[]>([])
 const targetIndex = shallowRef('0')
 const target = computed(() => targets.value[Number(targetIndex.value)])
@@ -91,6 +92,8 @@ async function operate(action: (host: CreativeArtImportHost) => Promise<void>) {
   }
 }
 async function load() {
+  if (legacyFlow.value)
+    return
   await operate(async ({ fs, assertCurrent }) => {
     const result = await readCreativeVoiceTargets(fs, props.run, artifactId.value, assertCurrent)
     assertCurrent()
@@ -142,7 +145,10 @@ async function inspect() {
         </li>
       </ul>
     </template>
-    <SButton size="lg" variant="outline" :disabled="blocked || pending" @click="load">
+    <p v-if="legacyFlow" role="status">
+      {{ t('creativeTeam.voiceImport.legacyFlow') }}
+    </p>
+    <SButton size="lg" variant="outline" :disabled="blocked || pending || legacyFlow" @click="load">
       {{ t('creativeTeam.voiceImport.resolve') }}
     </SButton>
     <p v-if="error || journalError" role="alert" class="voice-import__error">
@@ -154,7 +160,7 @@ async function inspect() {
     <form v-if="targets.length && !pending" @submit.prevent="inspect">
       <label>{{ t('creativeTeam.voiceImport.line') }}<select v-model="targetIndex" :disabled="blocked"><option v-for="(line, index) in targets" :key="line.lineId" :value="String(index)">{{ line.request.speakerId }} · {{ line.request.text }}</option></select></label>
       <template v-if="target">
-        <p>{{ target.request.path }}:{{ target.request.line }} · <code>{{ target.lineId }}</code></p>
+        <p>{{ target.request.path }}{{ target.request.line === undefined ? '' : `:${target.request.line}` }} · {{ target.address ?? target.lineId }} · <code>{{ target.lineId }}</code></p>
         <p>{{ target.request.instruction }}</p>
         <div class="voice-import__links">
           <RouterLink :to="voiceWorkflowLocation('jobs', target.request.speakerId, target.lineId)">

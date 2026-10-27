@@ -46,10 +46,16 @@ async function main() {
     originals['adv/audio/pronunciation.json'] = json({ schemaVersion: 1, revision: 4, replacements: { ADV: '冒险' }, locales: { 'en': { replacements: { station: 'station' } }, 'zh-CN': { replacements: { 车站: '车站' } } } })
     originals['adv/audio/voice-profiles.json'] = json({ schemaVersion: 1, revision: 2, narrator: { intent: { temperament: ['从容'], speakingStyle: '既有旁白' } } })
   }
-  if (variant === 'voice-plan-flow') {
+  if (variant === 'voice-plan-flow' || variant === 'flow-selected-playback') {
     originals['adv.config.json'] = json({ schemaVersion: 1, id: projectId, root: 'adv', format: 'flow' })
     delete originals['adv/chapters/intro.adv.md']
     originals['adv/chapters/intro.chapter.json'] = json({ schemaVersion: 1, id: 'intro', title: '全部 Flow 配音', nodes: [{ id: 'start', type: 'dialogues', dialogues: [{ speakerId: 'lin', text: '列车还没有到，我们再等一会儿。', lineId: 'line_01900400-0000-7000-8000-000000000001' }, { speakerId: 'lin', text: '这是方案未列出的 Flow 对白。', lineId: 'line_01900400-0000-7000-8000-000000000002' }] }, { id: 'narration', type: 'narration', text: '站台上的灯亮了。', lineId: 'line_01900400-0000-7000-8000-000000000003' }] })
+  }
+  if (variant === 'flow-selected-playback') {
+    const chapter = JSON.parse(originals['adv/chapters/intro.chapter.json']!)
+    chapter.nodes[0].dialogues[0].text = '这是第一句，尚未配置配音。'
+    chapter.nodes[0].dialogues[1].text = '列车还没有到，我们再等一会儿。'
+    originals['adv/chapters/intro.chapter.json'] = json(chapter)
   }
   const fs = new MemoryFsAdapter(projectId)
   await fs.init()
@@ -73,9 +79,12 @@ async function main() {
     const output = run.artifacts[1]!.output!
     if (output.kind === 'voice-direction') {
       output.dictionary = [{ term: '列车', pronunciation: '火车' }]
-      if (variant === 'voice-plan-flow')
-        output.lines = [{ ...output.lines[0]!, path: 'adv/chapters/intro.chapter.json', line: 1 }]
     }
+  }
+  if (variant === 'voice-plan-flow' || variant === 'flow-selected-playback') {
+    const output = run.artifacts[1]!.output!
+    if (output.kind === 'voice-direction')
+      output.lines = [{ path: 'adv/chapters/intro.chapter.json', lineId: variant === 'flow-selected-playback' ? 'line_01900400-0000-7000-8000-000000000002' : 'line_01900400-0000-7000-8000-000000000001', speakerId: 'lin', text: '列车还没有到，我们再等一会儿。', instruction: '按既有稳定身份回流，不猜测 JSON 行号' }]
   }
   if (variant.startsWith('source-merge')) {
     run.plan = { ...run.plan, tasks: ['writer-a', 'writer-b'].map(id => ({ id, partner: 'writer' as const, capability: 'write-chapters' as const, dependsOn: [], sourcePaths: Object.keys(originals), instruction: 'Explicit candidate input fixture', expectedOutput: 'Reviewed source' })) }
@@ -148,7 +157,10 @@ async function main() {
   }
   Object.assign(window, { creativeMediaFixture: {
     originals,
-    editSource: (path: string, content: string) => projectFs.writeFile(path, content),
+    async editSource(path: string, content: string) {
+      await projectFs.writeFile(path, content)
+      await projectFs.flush?.()
+    },
     calls: () => [...calls],
     writes: () => [...writes],
     lose: (phase: typeof lose) => { lose = phase },

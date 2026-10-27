@@ -231,6 +231,7 @@ test('imports a real character image, reviews the catalog and renders the adopte
   expect(calls.filter(call => call.startsWith('POST'))).toEqual([])
   await page.goto('/tabs/play')
   await expect(page).toHaveURL(/\/tabs\/play/)
+  await expect(page.locator('.game-player')).toContainText('这张图片已经采用到项目。', { timeout: 15000 })
   const avatar = page.locator('.dialog-avatar-wrap img')
   await expect(avatar).toBeVisible()
   await expect.poll(() => avatar.evaluate((element: HTMLImageElement) => ({ loaded: element.complete, width: element.naturalWidth, height: element.naturalHeight, local: element.src.startsWith('blob:') }))).toEqual({ loaded: true, width: 619, height: 619, local: true })
@@ -923,109 +924,140 @@ test('retries an image candidate registration with the original durable request 
   await writeFile(info.outputPath('shared-registration-evidence.json'), JSON.stringify({ before, pending, final }, null, 2))
 })
 
-test('auditions the registered real take, adopts its separate team selection and plays it with the imported image in the actual game', async ({ page }, info) => {
-  test.setTimeout(90000)
-  const audioPath = process.env.STUDIO_CREATIVE_VOICE_WAV
-  test.skip(!audioPath, 'Requires a real externally produced spoken WAV; no substitute tone is used')
-  await page.addInitScript(() => {
-    const records: any[] = []
-    const gains: any[] = []
-    Object.assign(window, { unifiedMediaPlayback: { records, gains } })
-    const start = AudioBufferSourceNode.prototype.start
-    AudioBufferSourceNode.prototype.start = function (...args: Parameters<typeof start>) {
-      if (this.buffer && this.buffer.duration > 0.1) {
-        const row = { duration: this.buffer.duration, rate: this.buffer.sampleRate, channels: this.buffer.numberOfChannels, state: this.context.state, start: this.context.currentTime, wallStart: performance.now(), ended: false, elapsed: 0, wallElapsed: 0, trusted: false }
-        records.push(row)
-        this.addEventListener('ended', (event) => {
-          row.ended = true
-          row.elapsed = this.context.currentTime - row.start
-          row.wallElapsed = performance.now() - row.wallStart
-          row.trusted = event.isTrusted
-        }, { once: true })
+for (const format of ['adv-md', 'flow'] as const) {
+  test(`auditions the registered real take, adopts its separate team selection and plays it with the imported image in the actual ${format} game`, async ({ page }, info) => {
+    test.setTimeout(90000)
+    const audioPath = process.env.STUDIO_CREATIVE_VOICE_WAV
+    test.skip(!audioPath, 'Requires a real externally produced spoken WAV; no substitute tone is used')
+    await page.addInitScript(() => {
+      const records: any[] = []
+      const gains: any[] = []
+      Object.assign(window, { unifiedMediaPlayback: { records, gains } })
+      const start = AudioBufferSourceNode.prototype.start
+      AudioBufferSourceNode.prototype.start = function (...args: Parameters<typeof start>) {
+        if (this.buffer && this.buffer.duration > 0.1) {
+          const row = { duration: this.buffer.duration, rate: this.buffer.sampleRate, channels: this.buffer.numberOfChannels, state: this.context.state, start: this.context.currentTime, wallStart: performance.now(), ended: false, elapsed: 0, wallElapsed: 0, trusted: false }
+          records.push(row)
+          this.addEventListener('ended', (event) => {
+            row.ended = true
+            row.elapsed = this.context.currentTime - row.start
+            row.wallElapsed = performance.now() - row.wallStart
+            row.trusted = event.isTrusted
+          }, { once: true })
+        }
+        return start.apply(this, args)
       }
-      return start.apply(this, args)
-    }
-    const connect = AudioNode.prototype.connect
-    AudioNode.prototype.connect = function (...args: any[]) {
-      if (args[0] instanceof AudioDestinationNode)
-        gains.push({ from: this.constructor.name, gain: this instanceof GainNode ? this.gain.value : undefined })
-      return (connect as any).apply(this, args)
-    }
-  })
-  const fixture = '/tests/fixtures/creative-team/media-milestones.html?case=selected-playback'
-  await page.goto(fixture)
-  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeMediaFixture))).toBe(true)
-  const milestone = await stageUnifiedMedia(page, audioPath!)
-  await milestone.getByRole('button', { name: '确认写入项目', exact: true }).click()
-  await expect(milestone.getByText(/最近一次采用已确认/)).toBeVisible()
-  await page.goto('/tabs/workspace/audio?section=review&speaker=lin&line=line_01900400-0000-7000-8000-000000000001')
-  const audioWorkspace = page.getByTestId('audio-workspace')
-  const take = audioWorkspace.locator('.voice-review__take')
-  await expect(take).toHaveCount(1)
-  await take.getByRole('button', { name: '试听', exact: true }).click()
-  const player = audioWorkspace.locator('audio')
-  await expect.poll(() => player.evaluate((element: HTMLAudioElement) => element.currentTime)).toBeGreaterThan(0.4)
-  const audition = await player.evaluate((element: HTMLAudioElement) => ({ duration: element.duration, time: element.currentTime, muted: element.muted, volume: element.volume }))
-  expect(audition.duration).toBeGreaterThan(1)
-  expect(audition.muted).toBe(false)
-  await page.goto(fixture)
-  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeMediaFixture))).toBe(true)
-  const original = page.getByTestId('creative-voice-candidate')
-  await original.getByRole('checkbox', { name: '我已试听，并确认将此候选设为当前选用（如有旧选择，将替换它）', exact: true }).check()
-  for (const width of [1280, 390]) {
-    await page.setViewportSize({ width, height: 900 })
-    await original.getByRole('checkbox').scrollIntoViewIfNeeded()
-    await page.screenshot({ path: info.outputPath(`shared-voice-selection-${width}.png`), animations: 'disabled' })
-  }
-  await original.getByRole('button', { name: '审阅此配音的选用绑定', exact: true }).click()
-  const selection = page.getByTestId('creative-voice-candidate').filter({ hasText: '本候选只改变当前台词的选用绑定' })
-  await expect(selection.getByRole('button', { name: '登记制作组候选（项目未变）', exact: true })).toBeVisible()
-  const before = await page.evaluate(() => (window as any).creativeMediaFixture.files())
-  await selection.getByRole('button', { name: '登记制作组候选（项目未变）', exact: true }).click()
-  await expect(milestone.getByRole('checkbox')).toHaveCount(1)
-  expect(await page.evaluate(() => (window as any).creativeMediaFixture.files())).toEqual(before)
-  await milestone.getByRole('checkbox').check()
-  await milestone.getByLabel('采用或撤销的原因', { exact: true }).fill('已通过正式音频工作区试听；本次只改变原 take 的选用绑定。')
-  await milestone.getByRole('button', { name: '审阅采用', exact: true }).click()
-  await milestone.getByRole('button', { name: '确认写入项目', exact: true }).click()
-  await expect(selection.getByRole('heading', { name: /选用绑定已确认/ })).toBeVisible()
-  const adopted = await page.evaluate(async () => ({ files: await (window as any).creativeMediaFixture.files(), media: await (window as any).creativeMediaFixture.media(), candidates: await (window as any).creativeMediaFixture.candidates(), run: (window as any).creativeMediaFixture.run() }))
-  const binding = JSON.parse(adopted.files['adv/audio/voice-ledger.json']).lines['line_01900400-0000-7000-8000-000000000001'].locales['zh-CN']
-  expect(binding.selectedTake).toBe(binding.takes[0].id)
-  expect(adopted.run.artifacts.filter((item: any) => item.media?.target.kind === 'voice').map((item: any) => [item.media.target.phase, item.status])).toEqual([['registered', 'adopted'], ['selected', 'adopted']])
-  expect(adopted.run.artifacts.filter((item: any) => item.kind.endsWith('direction')).map((item: any) => item.status)).toEqual(['selected', 'selected'])
-  expect(adopted.media).toHaveLength(2)
-  expect(adopted.media.every((item: any) => item.sha256 === item.expectedSha256 && item.bytes === item.expectedBytes)).toBe(true)
-  await writeFile(info.outputPath('shared-selected-input.json'), JSON.stringify({ audition, before, adopted }, null, 2))
-  await page.goto('/tabs/play')
-  try {
-    await expect(page.locator('.game-player')).toContainText('列车还没有到，我们再等一会儿。', { timeout: 15000 })
-  }
-  catch (cause) {
-    const diagnostics = await page.evaluate(() => {
-      const adv = (window as any).$adv
-      const component = (document.querySelector('.game-player') as any)?.__vueParentComponent
-      return { url: location.href, title: document.title, body: document.body.textContent, componentKeys: Object.keys(component?.setupState ?? {}), ready: component?.setupState?.ready, error: component?.setupState?.error, runtime: adv ? { cursor: adv.store?.state?.cursor, status: adv.store?.state?.status, title: adv.gameConfig?.value?.title } : null, resources: performance.getEntriesByType('resource').map((item: any) => ({ name: item.name, duration: item.duration, size: item.transferSize })) }
+      const connect = AudioNode.prototype.connect
+      AudioNode.prototype.connect = function (...args: any[]) {
+        if (args[0] instanceof AudioDestinationNode)
+          gains.push({ from: this.constructor.name, gain: this instanceof GainNode ? this.gain.value : undefined })
+        return (connect as any).apply(this, args)
+      }
     })
-    await writeFile(info.outputPath('shared-game-load-diagnostic.json'), JSON.stringify(diagnostics, null, 2))
-    throw cause
-  }
-  const avatar = page.locator('.dialog-avatar-wrap img')
-  await expect(avatar).toBeVisible()
-  await expect.poll(() => avatar.evaluate((element: HTMLImageElement) => element.naturalWidth)).toBe(619)
-  await page.locator('.game-player .adv-ui').click({ position: { x: 200, y: 300 } })
-  await page.getByTestId('play-toolbar-actions').getByRole('button', { name: '设置', exact: true }).click()
-  await page.locator('.adv-popover-menu:visible').getByText('重新开始', { exact: true }).click()
-  await expect.poll(() => page.evaluate(() => (window as any).unifiedMediaPlayback.records.some((item: any) => item.ended && item.trusted && item.state === 'running' && item.elapsed >= item.duration - 0.15 && item.wallElapsed >= (item.duration - 0.2) * 1000)), { timeout: 12000 }).toBe(true)
-  const playback = await page.evaluate(() => (window as any).unifiedMediaPlayback)
-  expect(playback.gains.some((item: any) => item.gain > 0)).toBe(true)
-  for (const width of [1280, 390]) {
-    await page.setViewportSize({ width, height: 900 })
-    await expect(avatar).toBeInViewport()
-    await page.screenshot({ path: info.outputPath(`shared-selected-game-${width}.png`), animations: 'allow' })
-  }
-  await writeFile(info.outputPath('shared-selected-playback.json'), JSON.stringify({ scope: 'Actual WebP + external system speech; direction, identity and local service storage remain explicit fixtures. Native methods are observed, not replaced with fake playback. No physical speaker measurement or performance-quality claim.', audition, before, adopted, playback }, null, 2))
-})
+    const targetLineId = format === 'flow' ? 'line_01900400-0000-7000-8000-000000000002' : 'line_01900400-0000-7000-8000-000000000001'
+    const fixture = `/tests/fixtures/creative-team/media-milestones.html?case=${format === 'flow' ? 'flow-selected-playback' : 'selected-playback'}`
+    await page.goto(fixture)
+    await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeMediaFixture))).toBe(true)
+    const milestone = await stageUnifiedMedia(page, audioPath!)
+    await milestone.getByRole('button', { name: '确认写入项目', exact: true }).click()
+    await expect(milestone.getByText(/最近一次采用已确认/)).toBeVisible()
+    await page.goto(`/tabs/workspace/audio?section=review&speaker=lin&line=${targetLineId}`)
+    const audioWorkspace = page.getByTestId('audio-workspace')
+    const take = audioWorkspace.locator('.voice-review__take')
+    await expect(take).toHaveCount(1)
+    await take.getByRole('button', { name: '试听', exact: true }).click()
+    const player = audioWorkspace.locator('audio')
+    await expect.poll(() => player.evaluate((element: HTMLAudioElement) => element.currentTime)).toBeGreaterThan(0.4)
+    const audition = await player.evaluate((element: HTMLAudioElement) => ({ duration: element.duration, time: element.currentTime, muted: element.muted, volume: element.volume }))
+    expect(audition.duration).toBeGreaterThan(1)
+    expect(audition.muted).toBe(false)
+    await page.goto(fixture)
+    await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeMediaFixture))).toBe(true)
+    const original = page.getByTestId('creative-voice-candidate')
+    await original.getByRole('checkbox', { name: '我已试听，并确认将此候选设为当前选用（如有旧选择，将替换它）', exact: true }).check()
+    for (const width of [1280, 390]) {
+      await page.setViewportSize({ width, height: 900 })
+      await original.getByRole('checkbox').scrollIntoViewIfNeeded()
+      await page.screenshot({ path: info.outputPath(`shared-voice-selection-${width}.png`), animations: 'disabled' })
+    }
+    await original.getByRole('button', { name: '审阅此配音的选用绑定', exact: true }).click()
+    const selection = page.getByTestId('creative-voice-candidate').filter({ hasText: '本候选只改变当前台词的选用绑定' })
+    await expect(selection.getByRole('button', { name: '登记制作组候选（项目未变）', exact: true })).toBeVisible()
+    const before = await page.evaluate(() => (window as any).creativeMediaFixture.files())
+    await selection.getByRole('button', { name: '登记制作组候选（项目未变）', exact: true }).click()
+    await expect(milestone.getByRole('checkbox')).toHaveCount(1)
+    expect(await page.evaluate(() => (window as any).creativeMediaFixture.files())).toEqual(before)
+    await milestone.getByRole('checkbox').check()
+    await milestone.getByLabel('采用或撤销的原因', { exact: true }).fill('已通过正式音频工作区试听；本次只改变原 take 的选用绑定。')
+    await milestone.getByRole('button', { name: '审阅采用', exact: true }).click()
+    await milestone.getByRole('button', { name: '确认写入项目', exact: true }).click()
+    await expect(selection.getByRole('heading', { name: /选用绑定已确认/ })).toBeVisible()
+    const adopted = await page.evaluate(async () => ({ files: await (window as any).creativeMediaFixture.files(), media: await (window as any).creativeMediaFixture.media(), candidates: await (window as any).creativeMediaFixture.candidates(), run: (window as any).creativeMediaFixture.run() }))
+    const binding = JSON.parse(adopted.files['adv/audio/voice-ledger.json']).lines[targetLineId].locales['zh-CN']
+    expect(binding.selectedTake).toBe(binding.takes[0].id)
+    expect(adopted.run.artifacts.filter((item: any) => item.media?.target.kind === 'voice').map((item: any) => [item.media.target.phase, item.status])).toEqual([['registered', 'adopted'], ['selected', 'adopted']])
+    expect(adopted.run.artifacts.filter((item: any) => item.kind.endsWith('direction')).map((item: any) => item.status)).toEqual(['selected', 'selected'])
+    expect(adopted.media).toHaveLength(2)
+    expect(adopted.media.every((item: any) => item.sha256 === item.expectedSha256 && item.bytes === item.expectedBytes)).toBe(true)
+    await writeFile(info.outputPath('shared-selected-input.json'), JSON.stringify({ audition, before, adopted }, null, 2))
+    await page.goto('/tabs/play')
+    try {
+      await expect(page.locator('.game-player')).toContainText(format === 'flow' ? '这是第一句，尚未配置配音。' : '列车还没有到，我们再等一会儿。', { timeout: 15000 })
+    }
+    catch (cause) {
+      const diagnostics = await page.evaluate(() => {
+        const adv = (window as any).$adv
+        const component = (document.querySelector('.game-player') as any)?.__vueParentComponent
+        return { url: location.href, title: document.title, body: document.body.textContent, componentKeys: Object.keys(component?.setupState ?? {}), ready: component?.setupState?.ready, error: component?.setupState?.error, runtime: adv ? { cursor: adv.store?.state?.cursor, status: adv.store?.state?.status, title: adv.gameConfig?.value?.title } : null, resources: performance.getEntriesByType('resource').map((item: any) => ({ name: item.name, duration: item.duration, size: item.transferSize })) }
+      })
+      await writeFile(info.outputPath('shared-game-load-diagnostic.json'), JSON.stringify(diagnostics, null, 2))
+      throw cause
+    }
+    const avatar = page.locator('.dialog-avatar-wrap img')
+    await expect(avatar).toBeVisible()
+    await expect.poll(() => avatar.evaluate((element: HTMLImageElement) => element.naturalWidth)).toBe(619)
+    await page.locator('.game-player .adv-ui').click({ position: { x: 200, y: 300 } })
+    await page.getByTestId('play-toolbar-actions').getByRole('button', { name: '设置', exact: true }).click()
+    await page.evaluate(() => {
+      (window as any).unifiedMediaPlayback.records.length = 0
+    })
+    await page.locator('.adv-popover-menu:visible').getByText('重新开始', { exact: true }).click()
+    if (format === 'flow') {
+      const dialogue = page.locator('.game-player .adv-dialog-box')
+      await expect(dialogue).toContainText('这是第一句，尚未配置配音。')
+      for (let action = 0; action < 3 && !((await dialogue.textContent()) ?? '').includes('列车还没有到，我们再等一会儿。'); action++)
+        await dialogue.click()
+      await expect(dialogue).toContainText('列车还没有到，我们再等一会儿。')
+      expect(Object.keys(JSON.parse(adopted.files['adv/audio/voice-ledger.json']).lines)).toEqual([targetLineId])
+    }
+    await expect.poll(() => page.evaluate(() => (window as any).unifiedMediaPlayback.records.some((item: any) => item.ended && item.trusted && item.state === 'running' && item.elapsed >= item.duration - 0.15 && item.wallElapsed >= (item.duration - 0.2) * 1000)), { timeout: 12000 }).toBe(true)
+    const playback = await page.evaluate(() => (window as any).unifiedMediaPlayback)
+    expect(playback.gains.some((item: any) => item.gain > 0)).toBe(true)
+    for (const width of [1280, 390]) {
+      await page.setViewportSize({ width, height: 900 })
+      await expect(avatar).toBeInViewport()
+      await page.screenshot({ path: info.outputPath(`shared-selected-game-${width}.png`), animations: 'allow' })
+    }
+    let changedFlow: unknown
+    if (format === 'flow') {
+      await page.goto(fixture)
+      await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeMediaFixture))).toBe(true)
+      const path = 'adv/chapters/intro.chapter.json'
+      const chapter = JSON.parse(adopted.files[path])
+      chapter.nodes[0].dialogues[1].text = '列车到了，我们走吧。'
+      await page.evaluate(({ path, content }) => (window as any).creativeMediaFixture.editSource(path, content), { path, content: JSON.stringify(chapter, null, 2) })
+      const coverage = page.getByTestId('creative-voice-coverage')
+      await coverage.getByRole('button', { name: '检查全部对白配音', exact: true }).click()
+      const row = coverage.getByTestId('creative-voice-coverage-row').filter({ hasText: targetLineId })
+      await expect(row).toContainText('列车到了，我们走吧。')
+      await expect(row).toContainText('已选配音过期')
+      const files = await page.evaluate(() => (window as any).creativeMediaFixture.files())
+      expect(files['adv/audio/voice-ledger.json']).toBe(adopted.files['adv/audio/voice-ledger.json'])
+      changedFlow = { files, status: await row.textContent(), media: await page.evaluate(() => (window as any).creativeMediaFixture.media()) }
+    }
+    await writeFile(info.outputPath('shared-selected-playback.json'), JSON.stringify({ format, targetLineId, changedFlow, scope: 'Actual WebP + external system speech; direction, identity and local service storage remain explicit fixtures. Native methods are observed, not replaced with fake playback. No physical speaker measurement or performance-quality claim.', audition, before, adopted, playback }, null, 2))
+  })
+}
 
 test('reviews voice dictionary and intent as an immutable revision, adopts the actual sources, reopens read-only and conditionally undoes', async ({ page }, info) => {
   test.setTimeout(60000)

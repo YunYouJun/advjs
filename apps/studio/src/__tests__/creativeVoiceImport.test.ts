@@ -137,13 +137,18 @@ describe('durable creative voice registration', () => {
   })
 })
 afterAll(() => vi.unstubAllGlobals())
-async function fixture() {
+async function fixture(format: 'adv-md' | 'flow' = 'adv-md') {
   const files: Record<string, string> = {
     'adv.config.json': '{"schemaVersion":1,"id":"voice-import","root":"adv","format":"adv-md"}',
     'adv/settings/game.json': '{"entryChapterId":"intro","locale":"zh-CN"}',
     'adv/assets.json': '{"schemaVersion":2,"id":"voice-import","defaultProfile":"local","profiles":{"local":{"provider":"project","root":"adv/assets"}},"includes":[]}',
     'adv/characters/lin.character.md': '---\nid: lin\nname: 林\nvoiceProfile:\n  intent:\n    speakingStyle: 平静\n  locales:\n    zh-CN:\n      providers:\n        local-system:\n          voiceId: Tingting\n          model: macos-say\n          source: system\n---\n角色。',
     'adv/chapters/intro.adv.md': `# 等车 {#start}\n\n@lin\n${text} {#${lineId}}`,
+  }
+  if (format === 'flow') {
+    files['adv.config.json'] = '{"schemaVersion":1,"root":"adv","format":"flow"}'
+    delete files['adv/chapters/intro.adv.md']
+    files['adv/chapters/intro.chapter.json'] = JSON.stringify({ schemaVersion: 1, id: 'intro', title: 'Flow 实际台词', nodes: [{ id: 'station', type: 'dialogues', dialogues: [{ speakerId: 'lin', text, lineId: 'line_01900400-0000-7000-8000-000000000002' }, { speaker: '林', text, lineId }] }, { id: 'narration', type: 'narration', text: '灯亮了。', lineId: 'line_01900400-0000-7000-8000-000000000003' }] }, null, 2)
   }
   const before = { ...files }
   const blobs = new Map<string, Blob>()
@@ -164,7 +169,7 @@ async function fixture() {
   const run = createCreativeTeamRun({ id: 'voice-run', accountId: 'author', now: 0, plan: { protocolVersion: 1, projectId: 'voice-import', projectRevision: revision, goal: '真实对白回流', limits: { maxTasks: 4, maxToolCalls: 4, maxReworkRounds: 2, maxMicroPoints: 0 }, tasks: [{ id: 'voice', partner: 'voice-director', capability: 'direct-voice', dependsOn: [], sourcePaths: Object.keys(files), instruction: '配音方案', expectedOutput: '对白交接' }] } })
   run.status = 'awaiting_review'
   run.tasks = [{ taskId: 'voice', status: 'completed', attempt: 1, artifactIds: ['voice1'] }]
-  run.artifacts = [{ id: 'voice1', runId: run.id, taskId: 'voice', partner: 'voice-director', projectId: run.plan.projectId, kind: 'voice-direction', source: { projectId: run.plan.projectId, revision, files: before, upstream: [] }, fingerprint: 'voice-fingerprint', summary: '配音交接', output: { kind: 'voice-direction', summary: '配音交接', cast: [{ speakerId: 'lin', designBrief: '平静', performance: '稍慢' }, { speakerId: 'narrator', designBrief: '独立旁白', performance: '中性' }], dictionary: [], lines: [{ path: 'adv/chapters/intro.adv.md', line: 4, speakerId: 'lin', text, instruction: '轻声邀请同伴继续等待' }] }, changes: [], reviewCapabilities: ['voice-take'], status: 'selected' }]
+  run.artifacts = [{ id: 'voice1', runId: run.id, taskId: 'voice', partner: 'voice-director', projectId: run.plan.projectId, kind: 'voice-direction', source: { projectId: run.plan.projectId, revision, files: before, upstream: [] }, fingerprint: 'voice-fingerprint', summary: '配音交接', output: { kind: 'voice-direction', summary: '配音交接', cast: [{ speakerId: 'lin', designBrief: '平静', performance: '稍慢' }, { speakerId: 'narrator', designBrief: '独立旁白', performance: '中性' }], dictionary: [], lines: [format === 'flow' ? { path: 'adv/chapters/intro.chapter.json', lineId, speakerId: 'lin', text, instruction: '第二句的稳定身份' } : { path: 'adv/chapters/intro.adv.md', line: 4, speakerId: 'lin', text, instruction: '轻声邀请同伴继续等待' }] }, changes: [], reviewCapabilities: ['voice-take'], status: 'selected' }]
   const data = new TextEncoder().encode('unit transaction bytes, not speech acceptance').buffer
   const sha256 = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', data)), value => value.toString(16).padStart(2, '0')).join('')
   return { fs, files, before, blobs, run, audio: { data, sha256, duration: 4, sampleRate: 22050 } }
@@ -172,6 +177,32 @@ async function fixture() {
 function current() {}
 
 describe('creative voice return to the canonical authoring ledger', () => {
+  it('returns a repeated Flow dialogue by its literal ID, imports to the canonical ledger and retains the second compiled address', async () => {
+    const f = await fixture('flow')
+    const target = (await readCreativeVoiceTargets(f.fs, f.run, 'voice1', current))[0]!
+    expect(target).toMatchObject({ lineId, address: 'intro#station.dialog-2', request: { path: 'adv/chapters/intro.chapter.json', lineId }, providers: [{ id: 'local-system' }] })
+    expect(target.request.line).toBeUndefined()
+    const review = await reviewCreativeVoiceImport(f.fs, f.run, target, f.audio, 'local-system', 'Unit transaction bytes only, not real speech', current)
+    expect(f.files).toEqual(f.before)
+    await commitCreativeVoiceImport(f.fs, f.run, review, current)
+    const snapshot = await createStudioAudioService(f.fs).read()
+    expect(Object.keys(snapshot.ledger.lines)).toEqual([lineId])
+    expect(snapshot.ledger.lines[lineId]!.locales['zh-CN']!.selectedTake).toBeNull()
+    const result = await compileProject({ files: f.files })
+    expect(result.diagnostics.filter(item => item.severity === 'error')).toEqual([])
+    const rows = await resolveVoiceReviewRows(snapshot, voiceReviewContextFromProgram(result.project.program, { lin: result.project.characters[0]!.voiceProfile }))
+    expect(rows[0]!.takes[0]!.stale).toBe(false)
+    f.files['adv/chapters/intro.chapter.json'] = f.files['adv/chapters/intro.chapter.json']!.replaceAll(text, '列车已经到了。')
+    await expect(readCreativeVoiceTargets(f.fs, f.run, 'voice1', current)).rejects.toThrow('SOURCE_CHANGED')
+  })
+
+  it('refuses a globally duplicated compiled line identity instead of guessing a Flow row', async () => {
+    const f = await fixture('flow')
+    f.files['adv/chapters/other.chapter.json'] = JSON.stringify({ schemaVersion: 1, id: 'other', title: '另一个章节', nodes: [{ id: 'dialogue', type: 'dialogues', dialogues: [{ speakerId: 'lin', text, lineId }] }] })
+    await expect(readCreativeVoiceTargets(f.fs, f.run, 'voice1', current)).rejects.toThrow(/LINE_UNRESOLVED|COMPILE_FAILED/)
+    expect(f.fs.writeFile).not.toHaveBeenCalled()
+  })
+
   it('matches compiler source, speaker, text and stable line identity and refuses a stale or unresolved proposal', async () => {
     const f = await fixture()
     const target = (await readCreativeVoiceTargets(f.fs, f.run, 'voice1', current))[0]!

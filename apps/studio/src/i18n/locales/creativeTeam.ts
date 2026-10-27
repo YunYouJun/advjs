@@ -75,6 +75,7 @@ export const creativeTeamMessages = {
     },
     voiceImport: {
       title: '配音方案与真实对白回流',
+      legacyFlow: '这份旧 Flow 方案只有 JSON 行号，不能可靠定位台词。请让配音导演按现有稳定台词 ID 重新交接，或从完整对白清单进入现有配音任务与审阅；不会猜造身份。',
       hint: '先核对方案对应的稳定台词，再导入实际 WAV 音频（最多 32 MiB、120 秒、双声道）。导入只登记未选候选，试听后在配音审阅中单独采用。',
       localScope: '配音候选与操作意图保存在本机，重开只读。确认后写入本机项目；尚未同步制作组媒体采用回执。',
       proposal: '已选定配音方案',
@@ -428,6 +429,7 @@ export const creativeTeamMessages = {
     },
     voiceImport: {
       title: 'Voice direction and dialogue import',
+      legacyFlow: 'This older Flow plan only has JSON line numbers. Ask for a handoff using existing stable line IDs, or use the complete dialogue inventory to open voice jobs and review. Identities are never guessed.',
       hint: 'Resolve the actual stable dialogue first, then import a real WAV (up to 32 MiB, 120 seconds, two channels). Import registers an unselected take; audition and adopt it separately in voice review.',
       localScope: 'Candidates and operation intents are stored locally; reopening is read-only. Confirmation writes to this project. Team media adoption receipts are not connected.',
       proposal: 'Selected voice direction',

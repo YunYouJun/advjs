@@ -76,10 +76,10 @@ const { t } = useI18n()
         {{ term.term }}: {{ term.pronunciation }}
       </p>
       <h4>{{ t('creativeTeam.lines') }}</h4>
-      <blockquote v-for="line in output.lines" :key="`${line.path}:${line.line}`">
+      <blockquote v-for="line in output.lines" :key="`${line.path}:${line.lineId ?? line.line}`">
         {{ line.speakerId }}: {{ line.text }}
         <p>{{ line.instruction }}</p>
-        <small>{{ line.path }}:{{ line.line }}</small>
+        <small>{{ line.path }} · {{ line.lineId ?? line.line }}</small>
       </blockquote>
       <p class="team-output__notice">
         {{ t('creativeTeam.voiceHandoff') }}

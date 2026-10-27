@@ -2,6 +2,7 @@ import type { CreativeFileChange, CreativeTeamLimits, CreativeTeamPlan } from '.
 import type { CreativeVoiceIntent } from './voice-direction'
 import { assertCreativeSourcePath, parseCreativeTeamPlan } from './validation'
 import { assertCreativeDictionaryTerms, creativeVoiceDirectionFileChanges, creativeVoiceLocale, parseCreativeVoiceIntent } from './voice-direction'
+import { matchesCreativeVoiceLineSource } from './voice-lines'
 
 /** A structured cast proposal; these ids belong to the game, not to the partner roster. */
 export interface CreativeCharacterProfile {
@@ -37,6 +38,9 @@ export interface CreativePlaytestScenario {
   expectedEnding: string
 }
 
+/** Flow uses its literal stable ID; legacy Markdown keeps its exact physical source line. */
+export type CreativeVoiceLine = { path: string, speakerId: string, text: string, instruction: string } & ({ line: number, lineId?: never } | { lineId: string, line?: never })
+
 export function parseCreativePlaytestScenarios(value: unknown): CreativePlaytestScenario[] {
   const scenarios = array(value, 12, 1).map((item) => {
     const scenario = record(item)
@@ -51,7 +55,7 @@ export type CreativePartnerOutput
     | { kind: 'characters', summary: string, characters: readonly CreativeCharacterProfile[] }
     | { kind: 'chapter', summary: string, chapters: readonly { id: string, title: string, content: string }[], entryChapterId: string, endingAddresses: readonly string[] }
     | { kind: 'art-direction', summary: string, style: string, requests: readonly CreativeArtRequest[] }
-    | { kind: 'voice-direction', summary: string, locale?: string, cast: readonly { speakerId: string, designBrief: string, performance: string, intent?: CreativeVoiceIntent }[], dictionary: readonly { term: string, pronunciation: string }[], lines: readonly { path: string, line: number, speakerId: string, text: string, instruction: string }[] }
+    | { kind: 'voice-direction', summary: string, locale?: string, cast: readonly { speakerId: string, designBrief: string, performance: string, intent?: CreativeVoiceIntent }[], dictionary: readonly { term: string, pronunciation: string }[], lines: readonly CreativeVoiceLine[] }
     | { kind: 'playtest-plan', summary: string, scenarios: readonly CreativePlaytestScenario[], concerns: readonly { path: string, line: number, expected: string, actual: string, suggestion: string }[] }
 
 /** Effective context assembled by Runtime from saved facts and explicitly selected candidates. */
@@ -224,17 +228,27 @@ function parseOutput(kind: CreativePartnerOutput['kind'], value: unknown, contex
       return { term: text(term.term, 120), pronunciation: text(term.pronunciation, 240) }
     })
     assertCreativeDictionaryTerms(dictionary)
-    const lines = array(root.lines, 128).map((item) => {
+    const lines = array(root.lines, 128).map((item): CreativeVoiceLine => {
       const line = record(item)
       const path = text(line.path, 200)
       if (!/^adv\/chapters\/[\w-]+\.(?:adv\.md|chapter\.json)$/.test(path))
         throw new TypeError('Voice instructions must target chapter dialogue sources')
-      const lineNumber = integer(line.line, 1, 100000)
       const content = text(line.text, 2000)
-      if (checkReferences && !context.files[path]?.split('\n')[lineNumber - 1]?.includes(content))
+      let selector: { line: number } | { lineId: string }
+      if (line.lineId === undefined) {
+        selector = { line: integer(line.line, 1, 100000) }
+      }
+      else {
+        if (line.line !== undefined || !path.endsWith('.chapter.json') || typeof line.lineId !== 'string' || !/^line_[a-f0-9-]{36}$/.test(line.lineId))
+          throw new TypeError('Invalid stable Flow voice line selector')
+        selector = { lineId: line.lineId }
+      }
+      const result: CreativeVoiceLine = { path, ...selector, speakerId: speaker(line.speakerId), text: content, instruction: text(line.instruction) }
+      if (checkReferences && !matchesCreativeVoiceLineSource(result, context.files))
         throw new TypeError('Voice instruction does not match the frozen dialogue source')
-      return { path, line: lineNumber, speakerId: speaker(line.speakerId), text: content, instruction: text(line.instruction) }
+      return result
     })
+    unique(lines.filter(line => line.lineId !== undefined).map(line => line.lineId!))
     return { kind, summary, cast, dictionary, lines, ...(root.locale === undefined ? {} : { locale: creativeVoiceLocale(root.locale) }) }
   }
   const scenarios = parseCreativePlaytestScenarios(root.scenarios)

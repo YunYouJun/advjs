@@ -3,6 +3,7 @@ import type { CreativeTeamStartRequest } from './wire'
 import { JSON_SCHEMA, load } from 'js-yaml'
 import { creativeArtifactExpectedFiles } from './milestones'
 import { requiredCreativeReviewCapabilities } from './validation'
+import { matchesCreativeVoiceLineSource } from './voice-lines'
 import { parseCreativeProject } from './wire'
 
 export type CreativeMediaTarget = { kind: 'image', assetId: string } | { kind: 'voice', assetId: string, lineId: string, locale: string, takeId: string, phase: 'registered' | 'selected' }
@@ -232,8 +233,9 @@ export function prepareCreativeMediaCandidate(run: CreativeTeamRun, input: Creat
     const previous = voiceBinding(input.project.files, selection)
     const next = voiceBinding(files, selection)
     const take = next.takes.find(item => item.id === selection.takeId)
-    const line = original.output?.kind === 'voice-direction' ? original.output.lines.find(item => item.speakerId === next.line.speakerId && item.text === (next.locale.displayText ?? next.line.displayText)) : undefined
-    if (!line || !input.project.files[line.path]?.split('\n')[line.line - 1]?.includes(line.text) || !take || asset.type !== 'audio' || asset.kind !== 'voice' || evidence.mimeType !== 'audio/wav' || take.assetId !== asset.id || take.sha256 !== asset.sha256 || asset.characterId !== next.line.speakerId || !['system', 'recorded'].includes(String(take.source))
+    const lines = original.output?.kind === 'voice-direction' ? original.output.lines.filter(item => item.speakerId === next.line.speakerId && item.text === (next.locale.displayText ?? next.line.displayText) && matchesCreativeVoiceLineSource(item, input.project.files, selection.lineId)) : []
+    const line = lines.length === 1 ? lines[0] : undefined
+    if (!line || !take || asset.type !== 'audio' || asset.kind !== 'voice' || evidence.mimeType !== 'audio/wav' || take.assetId !== asset.id || take.sha256 !== asset.sha256 || asset.characterId !== next.line.speakerId || !['system', 'recorded'].includes(String(take.source))
       || typeof asset.duration !== 'number' || !(asset.duration > 0 && asset.duration <= 120) || !/^[a-f0-9]{64}$/.test(String(take.inputFingerprint)) || !/^[a-f0-9]{64}$/.test(String(take.voiceProfileRevision))) {
       throw new TypeError('CREATIVE_MEDIA_INVALID_VOICE')
     }

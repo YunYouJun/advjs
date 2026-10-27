@@ -1,7 +1,7 @@
 import type { CreativeArtifact, CreativePartnerOutput, CreativeTeamRun } from '@advjs/agent'
 import type { CharacterVoiceProfile, VoiceAuthoringSnapshot, VoiceRights } from '@advjs/types'
 import type { IFileSystem } from './fs'
-import { computeAgentProjectRevision, creativeArtifactExpectedFiles } from '@advjs/agent'
+import { computeAgentProjectRevision, creativeArtifactExpectedFiles, matchesCreativeVoiceLineSource } from '@advjs/agent'
 import { audioFingerprint, audioProjectMediaPath, createVoiceTakeEditPlan, createVoiceTakeSelectionPlan, prepareVoiceSpokenText, resolveVoiceSpokenText, serializeVoiceLedger, voiceInputFingerprint } from '@advjs/audio'
 import { compileProject, planAdvAssetManifestUpsert } from '@advjs/core'
 import { recoverCreativeMediaWrite } from './creativeMediaRecovery'
@@ -16,6 +16,7 @@ export interface CreativeVoiceTarget {
   artifactFingerprint: string
   request: CreativeVoiceLine
   lineId: string
+  address?: string
   sourceRevision: string
   locale: string
   snapshot: VoiceAuthoringSnapshot
@@ -23,7 +24,7 @@ export interface CreativeVoiceTarget {
   providers: Array<{ id: string, voiceId: string, model: string, source: 'system' | 'recorded', rights?: VoiceRights }>
 }
 export interface CreativeVoiceReview {
-  target: Pick<CreativeVoiceTarget, 'artifactId' | 'artifactFingerprint' | 'request' | 'lineId' | 'sourceRevision' | 'locale' | 'profileRevision'>
+  target: Pick<CreativeVoiceTarget, 'artifactId' | 'artifactFingerprint' | 'request' | 'lineId' | 'address' | 'sourceRevision' | 'locale' | 'profileRevision'>
   beforeRevision: string
   afterRevision: string
   mediaPath: string
@@ -76,24 +77,31 @@ export async function readCreativeVoiceTargets(fs: IFileSystem, run: CreativeTea
   const snapshot = await createStudioAudioService(fs).read()
   const profiles: Record<string, CharacterVoiceProfile | undefined> = { ...Object.fromEntries(compilation.project.characters.map(item => [item.id, item.voiceProfile])), narrator: snapshot.narratorProfile }
   const output = artifact.output as VoiceDirection
-  const nodes = Object.values(compilation.project.program.chapters).flatMap(chapter => Object.values(chapter.nodes).map(node => ({ node, source: compilation.sourceMap.nodes?.[`${chapter.id}#${node.id}`] })))
+  const nodes = Object.values(compilation.project.program.chapters).flatMap(chapter => Object.values(chapter.nodes).map(node => ({ node, address: `${chapter.id}#${node.id}`, source: compilation.sourceMap.nodes?.[`${chapter.id}#${node.id}`] })))
   const targets: CreativeVoiceTarget[] = []
   for (const request of output.lines) {
+    if (!matchesCreativeVoiceLineSource(request, source.files))
+      throw new Error('CREATIVE_VOICE_LINE_UNRESOLVED')
     const sourceLines = source.files[request.path]?.split('\n') ?? []
-    // Canonical @speaker dialogue maps to its directive line; the output contract
-    // points at the following spoken-text line. Both must describe the same node.
-    const matches = nodes.filter(({ node, source }) => ['dialog', 'narration'].includes(node.kind)
-      && source?.path === request.path
-      && (source.line === request.line || (node.kind === 'dialog' && source.line === request.line - 1 && sourceLines[source.line - 1]?.trim().startsWith('@')))
-      && sourceLines[request.line - 1]?.includes(request.text)
-      && node.data?.speakerId === request.speakerId && node.data?.text === request.text && typeof node.data?.lineId === 'string')
-    if (matches.length !== 1)
+    const matches = nodes.filter(({ node, source }) => {
+      if (!['dialog', 'narration'].includes(node.kind) || source?.path !== request.path
+        || node.data?.speakerId !== request.speakerId || node.data?.text !== request.text || typeof node.data?.lineId !== 'string') {
+        return false
+      }
+      if (request.lineId !== undefined)
+        return node.data.lineId === request.lineId
+      // Canonical @speaker maps to its directive; the request points to the spoken-text line.
+      return source.line === request.line || (node.kind === 'dialog' && source.line === request.line - 1 && sourceLines[source.line - 1]?.trim().startsWith('@'))
+    })
+    if (matches.length !== 1 || nodes.filter(({ node }) => node.data?.lineId === matches[0]!.node.data!.lineId).length !== 1)
       throw new Error('CREATIVE_VOICE_LINE_UNRESOLVED')
     const profile = profiles[request.speakerId]
     const locale = output.locale ?? String(compilation.project.game.locale ?? 'zh-CN')
     const providers = Object.entries(profile?.locales?.[locale]?.providers ?? {}).flatMap(([id, binding]) => binding.model && ['system', 'recorded'].includes(binding.source) ? [{ id, voiceId: binding.voiceId, model: binding.model, source: binding.source as 'system' | 'recorded', ...(binding.rights ? { rights: binding.rights } : {}) }] : [])
-    targets.push({ artifactId, artifactFingerprint: artifact.fingerprint, request, lineId: String(matches[0]!.node.data!.lineId), sourceRevision: source.revision, locale, snapshot, profileRevision: profile ? await audioFingerprint(profile) : '', providers })
+    targets.push({ artifactId, artifactFingerprint: artifact.fingerprint, request, lineId: String(matches[0]!.node.data!.lineId), address: matches[0]!.address, sourceRevision: source.revision, locale, snapshot, profileRevision: profile ? await audioFingerprint(profile) : '', providers })
   }
+  if ((await createStudioCreativeWorkspace(fs, run.plan.projectId, { assertCurrent }).snapshot()).revision !== source.revision)
+    throw new Error('CREATIVE_VOICE_SOURCE_CHANGED')
   assertCurrent()
   return targets
 }
@@ -169,7 +177,7 @@ export async function reviewCreativeVoiceImport(fs: IFileSystem, run: CreativeTe
   const catalog = planAdvAssetManifestUpsert({ files: source.files, rootPath: 'adv/assets.json', catalogId: run.plan.projectId, asset, replaceExisting: false })
   const writes = { ...catalog.writes, 'adv/audio/voice-ledger.json': serializeVoiceLedger(plan.ledger) }
   assertCurrent()
-  const targetReference = { artifactId: current.artifactId, artifactFingerprint: current.artifactFingerprint, request: current.request, lineId: current.lineId, sourceRevision: current.sourceRevision, locale: current.locale, profileRevision: current.profileRevision }
+  const targetReference = { artifactId: current.artifactId, artifactFingerprint: current.artifactFingerprint, request: current.request, lineId: current.lineId, address: current.address, sourceRevision: current.sourceRevision, locale: current.locale, profileRevision: current.profileRevision }
   return { target: targetReference, beforeRevision: source.revision, afterRevision: await computeAgentProjectRevision({ ...source.files, ...writes }), mediaPath: audioProjectMediaPath(catalog.manifest, asset), ...audio, bytes: audio.data.byteLength, takeId: plan.addedTakes[0]!.id, attribution: attribution.trim(), changes: Object.entries(writes).map(([path, content]) => ({ path, expected: source.files[path] ?? null, content })) }
 }
 
@@ -213,5 +221,5 @@ export async function reviewCreativeVoiceSelection(fs: IFileSystem, run: Creativ
   if (afterRevision === source.revision)
     throw new Error('CREATIVE_EMPTY_MILESTONE')
   assertCurrent()
-  return { ...imported, target: { artifactId: current.artifactId, artifactFingerprint: current.artifactFingerprint, request: current.request, lineId: current.lineId, sourceRevision: source.revision, locale: current.locale, profileRevision: current.profileRevision }, beforeRevision: source.revision, afterRevision, changes: [{ path, expected: source.files[path] ?? null, content }] }
+  return { ...imported, target: { artifactId: current.artifactId, artifactFingerprint: current.artifactFingerprint, request: current.request, lineId: current.lineId, address: current.address, sourceRevision: source.revision, locale: current.locale, profileRevision: current.profileRevision }, beforeRevision: source.revision, afterRevision, changes: [{ path, expected: source.files[path] ?? null, content }] }
 }

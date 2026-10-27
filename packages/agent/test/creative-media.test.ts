@@ -100,6 +100,34 @@ describe('immutable author-host media and shared milestone anchors', () => {
     expect(prepareCreativeMediaCandidate(f.run, request, fingerprint).changes.some(item => item.path === scenePath)).toBe(true)
     expect(() => prepareCreativeMediaCandidate(f.run, { ...request, writes: { ...writes, [scenePath]: `${writes[scenePath]}Changed body.` } }, fingerprint)).toThrow('INVALID_BINDING')
   })
+  it('registers a take for the exact repeated Flow row instead of another identical sentence', async () => {
+    const f = await fixture('voice')
+    const md = 'adv/chapters/intro.adv.md'
+    const path = 'adv/chapters/intro.chapter.json'
+    delete f.baseline.files[md]
+    f.baseline.files['adv.config.json'] = JSON.stringify({ schemaVersion: 1, root: 'adv', format: 'flow' })
+    f.baseline.files[path] = JSON.stringify({ schemaVersion: 1, id: 'intro', title: 'Flow 精确回流', nodes: [{ id: 'station', type: 'dialogues', dialogues: [{ speakerId: 'lin', text: '列车还没有到，我们再等一会儿。', lineId: 'line_01900400-0000-7000-8000-000000000002' }, { speakerId: 'lin', text: '列车还没有到，我们再等一会儿。', lineId: f.input.lineId }] }] }, null, 2)
+    f.baseline.revision = await computeAgentProjectRevision(f.baseline.files)
+    f.parent.source = { ...f.parent.source, files: { ...f.baseline.files }, revision: f.baseline.revision }
+    if (f.parent.output?.kind !== 'voice-direction')
+      throw new Error('Expected voice fixture')
+    f.parent.output = { ...f.parent.output, lines: [{ path, lineId: f.input.lineId, speakerId: 'lin', text: '列车还没有到，我们再等一会儿。', instruction: 'Only the second stable row' }] }
+    const next = register(f.run, f.request)
+    const adopted = await adopt(next, f.baseline)
+    expect(adopted.run.artifacts.at(-1)!.media!.target).toMatchObject({ kind: 'voice', lineId: f.input.lineId })
+    expect(adopted.project.files[path]).toBe(f.baseline.files[path])
+    const forged = structuredClone(f.request)
+    if (forged.target.kind !== 'voice')
+      throw new Error('Expected voice target')
+    const id = 'line_01900400-0000-7000-8000-000000000002'
+    const ledger = JSON.parse(forged.writes['adv/audio/voice-ledger.json']!)
+    ledger.lines[id] = ledger.lines[f.input.lineId]
+    delete ledger.lines[f.input.lineId]
+    forged.writes = { ...forged.writes, 'adv/audio/voice-ledger.json': JSON.stringify(ledger) }
+    forged.target = { ...forged.target, lineId: id }
+    expect(() => register(f.run, forged)).toThrow('CREATIVE_MEDIA_INVALID_VOICE')
+  })
+
   it('freezes the real unselected take, then anchors its independent selected binding', async () => {
     const f = await fixture('voice')
     const first = await adopt(register(f.run, f.request), f.baseline)
