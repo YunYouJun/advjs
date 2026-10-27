@@ -62,6 +62,30 @@ WebKit 在同一音频布局流程中出现 `ResizeObserver loop completed with 
 
 离线项目只包含测试音调和人工时间戳，用于验证界面与真实媒体时钟的同步，不作为声学对齐准确性证据。未生成语音、调用对齐模型、下载模型、写入真实项目或清理用户素材。VRM 的完整模型加载与三维交互未验收；其唯一资源加载失败来自被主动拦截的示例 VRM 请求。GitHub／在线服务对话框未连接真实账号执行。
 
+## 截图取景追加复核
+
+用户指出音频面板看起来被截断。原先的 320px 图片通过局部样式收窄 `.ae-audio-workspace`，外层停靠区域仍约 841px，同时保留了滚到试听区的滚动位置；这些图片只能作为局部动效压力测试，不能当作完整音频面板或真实 320px 停靠布局的证据。原报告对取景的说明不充分，在此纠正。
+
+追加复核未修改产品代码，也未向页面注入宽度样式。使用真实 Splitpanes 拖动，在 Chromium、WebKit 分别验证：
+
+| 场景              | 实测与结果                                                                     |
+| ----------------- | ------------------------------------------------------------------------------ |
+| 1440×900 正常布局 | 音频内容与停靠容器均为约 841.08px，填满可用区域                                |
+| 1168×900 窄窗口   | 实际拖动分栏至约 321.36px，内容和停靠容器宽度一致                              |
+| 正文滚动          | 只有一个纵向主滚动区，顶部字段与底部操作均可访问；截图分别记录面板顶部和试听区 |
+| 窄栏导航          | 标签栏支持横向滚动，最后的「供应商与清理」可完整显示；页面自身没有横向溢出     |
+| 页面与业务状态    | 两浏览器均无页面异常，未发起生成／对齐／模型设置请求                           |
+
+长表单超出面板高度时需要内部纵向滚动；窄栏的八个标签需要横向滚动。这两种滚动并不代表内容丢失。新的正常宽度截图不再留下「宽停靠区里只有一条窄内容」的误导性空白。
+
+补充证据保存在仓库外的 `audio-panel-review/`，原动效证据仍按其历史取景保留：
+
+- [正常布局 · 面板顶部](file:///Users/yunyou/.codex/visualizations/2026/10/27/01a17dc5-a903-7430-a816-a883a2cafd8e/audio-panel-review/normal-panel-top-dark-chromium.png)、[正常布局 · 试听区](file:///Users/yunyou/.codex/visualizations/2026/10/27/01a17dc5-a903-7430-a816-a883a2cafd8e/audio-panel-review/normal-player-dark-chromium.png)。
+- [真实窄分栏 · 面板顶部](file:///Users/yunyou/.codex/visualizations/2026/10/27/01a17dc5-a903-7430-a816-a883a2cafd8e/audio-panel-review/actual-narrow-panel-top-dark-webkit.png)、[真实窄分栏 · 试听区](file:///Users/yunyou/.codex/visualizations/2026/10/27/01a17dc5-a903-7430-a816-a883a2cafd8e/audio-panel-review/actual-narrow-player-dark-webkit.png)。
+- [Chromium 几何与可达性记录](file:///Users/yunyou/.codex/visualizations/2026/10/27/01a17dc5-a903-7430-a816-a883a2cafd8e/audio-panel-review/geometry-chromium.json)、[WebKit 记录](file:///Users/yunyou/.codex/visualizations/2026/10/27/01a17dc5-a903-7430-a816-a883a2cafd8e/audio-panel-review/geometry-webkit.json)。
+
 ## 产物回收
 
 任务构建、离线项目、基线复现和中间文件均位于独占临时目录。验收完成后停止本轮服务器，回收可重建输出、基线副本与测试项目，仅保留小型证据；依赖和仍可复用的增量缓存继续保留。按 `du -sk` 计，本轮临时目录 532,992 KiB 与生成 API 文档 3,916 KiB 均降至 0，共回收 524.32 MiB；保留约 1.77 MiB 的截图、日志与复现证据。测量记录位于本地证据的 `cleanup.json`。
+
+本次截图追加复核另回收 432.30 MiB 的临时生产构建、生成文档与离线项目；保留约 1.09 MiB 的新截图和几何记录。
