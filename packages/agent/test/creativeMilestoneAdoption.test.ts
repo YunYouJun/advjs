@@ -199,7 +199,7 @@ describe('durable text milestone adoption and recovery', () => {
     expect(() => prepareCreativeMilestone(run, onlyChild)).toThrow('CREATIVE_MILESTONE_UPSTREAM_REQUIRED')
     const together: CreativeMilestoneRequest = { ...onlyChild, artifacts: [...(h.request.operation === 'adopt' ? h.request.artifacts : []), ...onlyChild.artifacts] }
     expect(prepareCreativeMilestone(run, together).changes).toHaveLength(2)
-    chapter.changes = [...cast.changes] as typeof chapter.changes
+    chapter.changes = cast.changes.map(change => ({ ...change, after: `${change.after}\nDifferent contribution` })) as typeof chapter.changes
     expect(() => prepareCreativeMilestone(run, together)).toThrow(/MERGE_REQUIRED/)
     cast.kind = 'art-direction'
     cast.partner = 'art-director'

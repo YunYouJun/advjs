@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import type { CreativeAdoptionRecovery, CreativeMilestoneRequest, CreativeMilestoneReview, CreativeProjectWorkspace, CreativeTeamRun } from '@advjs/agent'
-import { reviewCreativeMilestone } from '@advjs/agent'
+import { creativeMergeInvalidations, reviewCreativeMilestone } from '@advjs/agent'
 import { computed, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useCreativeMilestoneMerge } from '../../composables/useCreativeMilestoneMerge'
 import { useCreativeTeamStore } from '../../stores/useCreativeTeamStore'
 import { creativeAdoptionJournal } from '../../utils/creativeAdoptionJournal'
 import SButton from '../ui/SButton.vue'
+import CreativeMilestoneMerge from './CreativeMilestoneMerge.vue'
 
-const props = defineProps<{ run: CreativeTeamRun, enabled: boolean, busy: boolean, workspace: () => Promise<CreativeProjectWorkspace> }>()
+const props = defineProps<{ run: CreativeTeamRun, enabled: boolean, mergesEnabled?: boolean, busy: boolean, workspace: () => Promise<CreativeProjectWorkspace> }>()
 const emit = defineEmits<{ busy: [value: boolean], changed: [] }>()
 const { t } = useI18n()
 const store = useCreativeTeamStore()
@@ -18,6 +20,14 @@ const failure = shallowRef(false)
 const recovery = shallowRef<CreativeAdoptionRecovery>()
 const reviewed = shallowRef<{ request: CreativeMilestoneRequest, review: CreativeMilestoneReview }>()
 const candidates = computed(() => props.run.artifacts.filter(item => item.status === 'selected' && item.changes.length))
+const inputs = computed(() => candidates.value.filter(item => selected.value.includes(item.id)))
+const merge = useCreativeMilestoneMerge(inputs)
+const affected = computed(() => {
+  const invalidated = creativeMergeInvalidations(props.run, inputs.value.map(item => ({ artifactId: item.id, fingerprint: item.fingerprint })), merge.resolutions.value)
+  return inputs.value.filter(item => invalidated.has(item.id))
+})
+const mergeReady = computed(() => !affected.value.length && (!merge.conflicts.value.length || Boolean(props.mergesEnabled && merge.complete.value)))
+watch(merge.resolutions, () => reviewed.value = undefined)
 const pending = computed(() => props.run.milestones?.find(item => item.status === 'prepared'))
 const unresolved = computed(() => recovery.value && !['confirmed', 'abandoned'].includes(recovery.value.entry.state))
 const active = computed(() => props.run.tasks.some(task => ['running', 'reconcile_required'].includes(task.status)))
@@ -82,11 +92,13 @@ async function work(action: () => Promise<void>) {
 }
 async function review(operation: 'adopt' | 'undo') {
   await work(async () => {
+    if (operation === 'adopt' && !mergeReady.value)
+      return
     const run = props.run
     const snapshot = await (await props.workspace()).snapshot()
     const project = { id: snapshot.projectId, revision: snapshot.revision, files: snapshot.files }
     const request: CreativeMilestoneRequest = operation === 'adopt'
-      ? { operation, project, reason: reason.value, artifacts: candidates.value.filter(item => selected.value.includes(item.id)).map(item => ({ artifactId: item.id, fingerprint: item.fingerprint })) }
+      ? { operation, project, reason: reason.value, artifacts: inputs.value.map(item => ({ artifactId: item.id, fingerprint: item.fingerprint })), ...(merge.resolutions.value.length ? { merges: merge.resolutions.value } : {}) }
       : { operation, project, reason: reason.value, milestoneId: latest.value!.id }
     const result = await reviewCreativeMilestone(run, request)
     if (props.run.id !== run.id || props.run.revision !== run.revision)
@@ -163,12 +175,21 @@ async function resolve(operation: 'resume' | 'abandon' | 'restore') {
           <span>{{ artifact.summary }}</span>
         </label>
       </fieldset>
+      <p v-if="merge.conflicts.value.length && !mergesEnabled" role="status">
+        {{ t('creativeTeam.merge.unavailable') }}
+      </p>
+      <template v-if="mergesEnabled">
+        <CreativeMilestoneMerge v-for="conflict in merge.conflicts.value" :key="conflict.path" :conflict="conflict" :draft="merge.drafts.value[conflict.path]" :disabled="busy || working || active" @update="(after, confirmed) => merge.update(conflict.path, after, confirmed)" />
+        <p v-if="affected.length" role="status">
+          {{ t('creativeTeam.merge.affected', { outputs: affected.map(item => item.summary).join('、') }) }}
+        </p>
+      </template>
       <label v-if="candidates.length || latest?.operation === 'adopt'" class="milestone__reason">
         {{ t('creativeTeam.milestone.reason') }}
         <textarea v-model="reason" rows="2" maxlength="4000" :disabled="busy || working" />
       </label>
       <div class="milestone__actions">
-        <SButton v-if="candidates.length" variant="outline" size="lg" :disabled="busy || working || active || !selected.length || !reason.trim()" @click="review('adopt')">
+        <SButton v-if="candidates.length" variant="outline" size="lg" :disabled="busy || working || active || !selected.length || !mergeReady || !reason.trim()" @click="review('adopt')">
           {{ t('creativeTeam.milestone.review') }}
         </SButton>
         <SButton v-if="latest?.operation === 'adopt'" variant="outline" size="lg" :disabled="busy || working || active || !reason.trim()" @click="review('undo')">
@@ -190,6 +211,13 @@ async function resolve(operation: 'resume' | 'abandon' | 'restore') {
     <p v-if="latest && !unresolved">
       {{ t(latest.operation === 'undo' ? 'creativeTeam.milestone.undone' : 'creativeTeam.milestone.adopted') }} · {{ latest.reason }}
     </p>
+    <div v-if="latest?.operation === 'adopt' && latest.merges?.length && !unresolved">
+      <p>{{ t('creativeTeam.merge.contributions') }}</p>
+      <details v-for="item in latest.merges" :key="item.path" data-testid="creative-merge-receipt">
+        <summary>{{ t('creativeTeam.merge.recorded') }} · {{ item.path }}</summary>
+        <pre>{{ item.after ?? t('creativeTeam.milestone.absent') }}</pre>
+      </details>
+    </div>
   </section>
 </template>
 

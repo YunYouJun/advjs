@@ -2,7 +2,7 @@ import type { CreativeTeamRun } from '@advjs/agent'
 import type { Plugin } from 'vite'
 import { Buffer } from 'node:buffer'
 import { createHash } from 'node:crypto'
-import { computeAgentProjectRevision, creativeMediaCanonical, overlayCreativeMilestone, parseCreativeCandidateEditRequest, parseCreativeMediaCandidateRequest, parseCreativeMilestoneCommand, parseCreativeProject, parseCreativeTeamPublicDecision, parseCreativeTeamRun, prepareCreativeCandidateEdit, prepareCreativeMediaCandidate, prepareCreativeMilestone, reduceCreativeTeamRun } from '@advjs/agent'
+import { computeAgentProjectRevision, creativeMediaCanonical, creativeMilestoneChanges, overlayCreativeMilestone, parseCreativeCandidateEditRequest, parseCreativeMediaCandidateRequest, parseCreativeMilestoneCommand, parseCreativeProject, parseCreativeTeamPublicDecision, parseCreativeTeamRun, prepareCreativeCandidateEdit, prepareCreativeMediaCandidate, prepareCreativeMilestone, reduceCreativeTeamRun } from '@advjs/agent'
 
 /** Explicit local service substitute. Uses the shared validators/reducer; no models, billing or cloud DB. */
 export function creativeMediaMilestoneFixtureService(): Plugin {
@@ -44,7 +44,7 @@ export function creativeMediaMilestoneFixtureService(): Plugin {
           if (url.pathname === '/__creative-media-fixture/exists')
             return send(200, { exists: Boolean(record) })
           if (url.pathname.endsWith('/capabilities'))
-            return send(200, { protocolVersion: 1, enabled: projectId.startsWith('creative-media-voice-plan'), authoring: { candidateEdits: true, voiceDirectionEdits: true, milestoneAdoption: true, mediaCandidates: true }, serviceVersion: 'explicit local authoring service fixture; no models', capabilities: [], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } })
+            return send(200, { protocolVersion: 1, enabled: projectId.startsWith('creative-media-voice-plan'), authoring: { candidateEdits: true, voiceDirectionEdits: true, milestoneAdoption: true, milestoneMerges: true, mediaCandidates: true }, serviceVersion: 'explicit local authoring service fixture; no models', capabilities: [], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } })
           if (!record)
             return send(404, { error: { code: 'CREATIVE_NOT_FOUND', message: 'Explicit fixture project not found' } })
           const run = record.run
@@ -102,7 +102,7 @@ export function creativeMediaMilestoneFixtureService(): Plugin {
                 throw new Error('CREATIVE_IDEMPOTENCY_CONFLICT')
               if (!previous) {
                 const prepared = prepareCreativeMilestone(run, command.request)
-                record.run = reduceCreativeTeamRun(run, { type: 'prepare-milestone', intent: { id: key, operation: command.request.operation, status: 'prepared', artifacts: prepared.artifacts, anchors: prepared.anchors, beforeRevision: command.request.project.revision, afterRevision: await computeAgentProjectRevision(prepared.files), requestFingerprint: hash(command.request), reason: command.request.reason, at: Date.now(), ...(command.request.operation === 'undo' ? { targetId: command.request.milestoneId } : {}) } }, Date.now())
+                record.run = reduceCreativeTeamRun(run, { type: 'prepare-milestone', intent: { id: key, operation: command.request.operation, status: 'prepared', artifacts: prepared.artifacts, anchors: prepared.anchors, ...(command.request.operation === 'adopt' && command.request.merges ? { merges: command.request.merges } : {}), beforeRevision: command.request.project.revision, afterRevision: await computeAgentProjectRevision(prepared.files), requestFingerprint: hash(command.request), reason: command.request.reason, at: Date.now(), ...(command.request.operation === 'undo' ? { targetId: command.request.milestoneId } : {}) } }, Date.now())
               }
             }
             else {
@@ -110,10 +110,8 @@ export function creativeMediaMilestoneFixtureService(): Plugin {
               if (!intent || command.project.revision !== (command.type === 'confirm' ? intent.afterRevision : intent.beforeRevision) || await computeAgentProjectRevision(command.project.files) !== command.project.revision)
                 throw new Error('CREATIVE_SOURCE_CONFLICT')
               if (intent.status === 'prepared') {
-                const selected = intent.operation === 'adopt' ? intent : run.milestones!.find(item => item.id === intent.targetId)!
-                // The real Runtime performs its own immutable reconstruction; reuse the shared transform here.
-                const changes = selected.artifacts.flatMap(reference => run.artifacts.find(item => item.id === reference.artifactId)!.changes)
-                const expected = intent.operation === 'adopt' ? changes : changes.map(item => ({ path: item.path, before: item.after, after: item.before }))
+                // Reconstruct the immutable author resolutions with the product transform.
+                const expected = creativeMilestoneChanges(run, intent)
                 const reversed = expected.map(item => ({ path: item.path, before: item.after, after: item.before }))
                 if (command.type === 'confirm' && await computeAgentProjectRevision(overlayCreativeMilestone(command.project.files, reversed)) !== intent.beforeRevision)
                   throw new Error('CREATIVE_SOURCE_CONFLICT')

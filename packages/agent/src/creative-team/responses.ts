@@ -4,6 +4,8 @@ import type { CreativeTeamRunSummary } from './wire'
 import { AGENT_CAPABILITY_IDS } from '../core/contracts'
 import { CREATIVE_ARTIFACT_KINDS, CREATIVE_PARTNER_IDS } from './contracts'
 import { parseCreativeMediaEvidence } from './media'
+import { parseCreativeMilestoneMerges } from './merges'
+import { creativeMilestoneChanges } from './milestones'
 import { parseCreativePartnerOutputSnapshot } from './outputs'
 import { parseCreativePlaytestSummary } from './playtest-contracts'
 import { parseCreativePlaytestRepairReference } from './playtest-repair'
@@ -184,6 +186,7 @@ export function parseCreativeTeamRun(value: unknown, boundary: { accountId: stri
             status: member(intent.status, ['prepared', 'confirmed', 'abandoned']),
             artifacts: array(intent.artifacts, 256).map(reference => ({ artifactId: identity(object(reference).artifactId), fingerprint: identity(object(reference).fingerprint) })),
             anchors: ids(intent.anchors),
+            ...(intent.merges === undefined ? {} : { merges: parseCreativeMilestoneMerges(intent.merges) }),
             ...(intent.targetId === undefined ? {} : { targetId: identity(intent.targetId) }),
             beforeRevision: identity(intent.beforeRevision),
             afterRevision: identity(intent.afterRevision),
@@ -224,11 +227,12 @@ export function parseCreativeTeamRun(value: unknown, boundary: { accountId: stri
   if (new Set(run.milestones?.map(item => item.id)).size !== (run.milestones?.length ?? 0) || (run.milestones?.filter(item => item.status === 'prepared').length ?? 0) > 1)
     throw new TypeError('Invalid milestone identity or pending count')
   for (const intent of run.milestones ?? []) {
-    if (intent.artifacts.some(reference => !run.artifacts.some(item => item.id === reference.artifactId && item.fingerprint === reference.fingerprint))
+    if ((intent.operation === 'undo' && intent.merges !== undefined) || intent.artifacts.some(reference => !run.artifacts.some(item => item.id === reference.artifactId && item.fingerprint === reference.fingerprint))
       || intent.anchors.some(id => !run.artifacts.some(item => item.id === id))
       || (intent.operation === 'undo' && !run.milestones?.some(item => item.id === intent.targetId && item.operation === 'adopt' && item.status === 'confirmed'))) {
       throw new TypeError('Invalid milestone provenance')
     }
+    creativeMilestoneChanges(run, intent)
   }
   for (const task of run.tasks) {
     if (task.artifactIds.some(id => !run.artifacts.some(item => item.id === id && item.taskId === task.taskId)))

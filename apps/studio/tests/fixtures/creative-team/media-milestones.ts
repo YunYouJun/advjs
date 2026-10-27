@@ -1,4 +1,4 @@
-import { computeAgentProjectRevision, createCreativeTeamRun, ManagedCreativeTeamClient } from '@advjs/agent'
+import { computeAgentProjectRevision, createCreativeTeamRun, creativeOutputFileChanges, ManagedCreativeTeamClient } from '@advjs/agent'
 import { IonApp, IonContent, IonHeader, IonicVue, IonPage, IonTitle, IonToolbar } from '@ionic/vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { createApp, defineComponent, h } from 'vue'
@@ -77,6 +77,14 @@ async function main() {
         output.lines = [{ ...output.lines[0]!, path: 'adv/chapters/intro.chapter.json', line: 1 }]
     }
   }
+  if (variant.startsWith('source-merge')) {
+    run.plan = { ...run.plan, tasks: ['writer-a', 'writer-b'].map(id => ({ id, partner: 'writer' as const, capability: 'write-chapters' as const, dependsOn: [], sourcePaths: Object.keys(originals), instruction: 'Explicit candidate input fixture', expectedOutput: 'Reviewed source' })) }
+    run.tasks = run.plan.tasks.map(task => ({ taskId: task.id, status: 'completed', attempt: 1, artifactIds: [task.id] }))
+    run.artifacts = run.plan.tasks.map((task, index) => {
+      const output = { kind: 'chapter' as const, summary: index ? '候选乙：主动归还信件' : '候选甲：等待末班车', entryChapterId: 'intro', endingAddresses: ['intro#start'], chapters: [{ id: 'intro', title: '等车', content: `# 等车 {#start}\n\n@lin\n${index ? '先归还信件。' : '等到末班车。'}` }] }
+      return { id: task.id, runId, taskId: task.id, partner: 'writer' as const, projectId, kind: 'chapter' as const, source, fingerprint: `${task.id}-v1`, summary: output.summary, output, changes: creativeOutputFileChanges(output, originals), reviewCapabilities: ['modify-source' as const, 'candidate-preview' as const], status: 'selected' as const }
+    })
+  }
   const exists = await fetch(`/__creative-media-fixture/exists?projectId=${encodeURIComponent(projectId)}`)
   if (!(await exists.json()).exists) {
     const seeded = await fetch('/__creative-media-fixture/seed', { method: 'POST', body: JSON.stringify(run) })
@@ -140,6 +148,7 @@ async function main() {
   }
   Object.assign(window, { creativeMediaFixture: {
     originals,
+    editSource: (path: string, content: string) => projectFs.writeFile(path, content),
     calls: () => [...calls],
     writes: () => [...writes],
     lose: (phase: typeof lose) => { lose = phase },

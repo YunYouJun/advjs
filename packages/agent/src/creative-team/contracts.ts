@@ -145,7 +145,7 @@ export interface CreativeTeamRun {
   tasks: readonly CreativeTeamTaskState[]
   artifacts: readonly CreativeArtifact[]
   decisions: readonly CreativeTeamDecision[]
-  /** Two-store adoption receipts contain references, never duplicate game source content. */
+  /** Two-store receipts reference immutable inputs and retain explicit author merge results. */
   milestones?: readonly CreativeMilestoneIntent[]
   playtests?: readonly CreativePlaytestSummary[]
   chargedMicroPoints: number
@@ -160,7 +160,9 @@ export interface CreativeMilestoneIntent {
   operation: 'adopt' | 'undo'
   status: 'prepared' | 'confirmed' | 'abandoned'
   artifacts: readonly { artifactId: string, fingerprint: string }[]
-  /** Only these candidates were built using the exact adopted versions. */
+  /** Explicit author resolutions; immutable input contributions remain in their original artifacts. */
+  merges?: readonly CreativeMilestoneMerge[]
+  /** Reviewed input contributions and compatible descendants may advance their source anchors. */
   anchors: readonly string[]
   targetId?: string
   beforeRevision: string
@@ -169,6 +171,11 @@ export interface CreativeMilestoneIntent {
   reason: string
   at: number
   confirmedAt?: number
+}
+
+export interface CreativeMilestoneMerge {
+  path: string
+  after: string | null
 }
 
 /** Author decisions preserve the selected version and reason for replacement. */
@@ -190,7 +197,7 @@ export interface CreativeTeamAvailability {
   serviceVersion: string
   capabilities: readonly CreativeTeamCapability[]
   media: { image: 'unavailable' | 'manual-import' | 'verified-managed', voice: 'unavailable' | 'manual-import' | 'verified-author-host' | 'verified-managed' }
-  authoring?: { candidateEdits: boolean, milestoneAdoption: boolean, playtestReports?: boolean, playtestRepair?: boolean, mediaCandidates?: boolean, voiceDirectionEdits?: boolean }
+  authoring?: { candidateEdits: boolean, milestoneAdoption: boolean, milestoneMerges?: boolean, playtestReports?: boolean, playtestRepair?: boolean, mediaCandidates?: boolean, voiceDirectionEdits?: boolean }
   maxConcurrentTasks: 1
 }
 

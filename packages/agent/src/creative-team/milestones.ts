@@ -1,6 +1,7 @@
-import type { CreativeArtifact, CreativeFileChange, CreativeMilestoneIntent, CreativeTeamRun } from './contracts'
+import type { CreativeArtifact, CreativeFileChange, CreativeMilestoneIntent, CreativeMilestoneMerge, CreativeTeamRun } from './contracts'
 import type { CreativeTeamStartRequest } from './wire'
 import { compatibleCreativeMediaArtifacts } from './media'
+import { creativeMergeInvalidations, mergeCreativeMilestoneChanges, parseCreativeMilestoneMerges } from './merges'
 import { creativeOutputFileChanges } from './outputs'
 import { requiredCreativeReviewCapabilities } from './validation'
 import { parseCreativeProject } from './wire'
@@ -8,7 +9,7 @@ import { parseCreativeProject } from './wire'
 export type CreativeMilestoneRequest = {
   project: CreativeTeamStartRequest['project']
   reason: string
-} & ({ operation: 'adopt', artifacts: readonly { artifactId: string, fingerprint: string }[] } | { operation: 'undo', milestoneId: string })
+} & ({ operation: 'adopt', artifacts: readonly { artifactId: string, fingerprint: string }[], merges?: readonly CreativeMilestoneMerge[] } | { operation: 'undo', milestoneId: string })
 
 export type CreativeMilestoneCommand = { type: 'prepare', request: CreativeMilestoneRequest } | { type: 'confirm' | 'abandon', milestoneId: string, project: CreativeTeamStartRequest['project'] }
 
@@ -29,7 +30,7 @@ export function parseCreativeMilestoneRequest(value: unknown): CreativeMilestone
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new TypeError('Invalid milestone request')
   const source = value as Record<string, unknown>
-  const allowed = source.operation === 'adopt' ? ['operation', 'artifacts', 'project', 'reason'] : ['operation', 'milestoneId', 'project', 'reason']
+  const allowed = source.operation === 'adopt' ? ['operation', 'artifacts', 'project', 'reason', 'merges'] : ['operation', 'milestoneId', 'project', 'reason']
   if (Object.keys(source).some(key => !allowed.includes(key)) || typeof source.reason !== 'string' || !source.reason.trim() || source.reason.length > 4000)
     throw new TypeError('Invalid milestone reason or authority')
   const project = parseCreativeProject(source.project)
@@ -47,29 +48,24 @@ export function parseCreativeMilestoneRequest(value: unknown): CreativeMilestone
   })
   if (new Set(artifacts.map(item => item.artifactId)).size !== artifacts.length)
     throw new TypeError('Duplicate milestone reference')
-  return { operation: 'adopt', artifacts, project, reason: source.reason }
+  return { operation: 'adopt', artifacts, project, reason: source.reason, ...(source.merges === undefined ? {} : { merges: parseCreativeMilestoneMerges(source.merges) }) }
 }
 
 /** Reconstruct transformations from immutable artifacts rather than accepting client patches. */
-export function creativeMilestoneChanges(run: CreativeTeamRun, intent: Pick<CreativeMilestoneIntent, 'operation' | 'artifacts' | 'targetId'>): CreativeFileChange[] {
+export function creativeMilestoneChanges(run: CreativeTeamRun, intent: Pick<CreativeMilestoneIntent, 'operation' | 'artifacts' | 'targetId' | 'merges'>): CreativeFileChange[] {
   if (intent.operation === 'undo') {
     const target = run.milestones?.find(item => item.id === intent.targetId && item.operation === 'adopt' && item.status === 'confirmed')
     if (!target)
       throw new Error('CREATIVE_MILESTONE_CONFLICT')
     return creativeMilestoneChanges(run, target).map(change => ({ path: change.path, before: change.after, after: change.before }))
   }
-  const paths = new Set<string>()
-  return intent.artifacts.flatMap((reference) => {
+  const artifacts = intent.artifacts.map((reference) => {
     const artifact = run.artifacts.find(item => item.id === reference.artifactId && item.fingerprint === reference.fingerprint)
     if (!artifact)
       throw new Error('CREATIVE_MILESTONE_CONFLICT')
-    return artifact.changes.map((change) => {
-      if (paths.has(change.path))
-        throw new Error(`CREATIVE_MERGE_REQUIRED:${change.path}`)
-      paths.add(change.path)
-      return { ...change }
-    })
+    return artifact
   })
+  return mergeCreativeMilestoneChanges(artifacts, intent.merges)
 }
 
 /** Exact confirmed writes adjust provenance without mutating the original candidate. */
@@ -185,7 +181,14 @@ export function prepareCreativeMilestone(run: CreativeTeamRun, request: Creative
     artifacts = target.artifacts
     anchors = [...target.anchors]
   }
-  const changes = creativeMilestoneChanges(run, { operation: request.operation, artifacts, targetId })
+  const merges = request.operation === 'adopt' ? request.merges : undefined
+  if (merges) {
+    const invalidated = creativeMergeInvalidations(run, artifacts, merges)
+    if (artifacts.some(item => invalidated.has(item.artifactId)))
+      throw new Error('CREATIVE_MILESTONE_REBASE_REQUIRED')
+    anchors = anchors.filter(id => !invalidated.has(id))
+  }
+  const changes = creativeMilestoneChanges(run, { operation: request.operation, artifacts, targetId, merges })
   if (!changes.length || changes.length > 100)
     throw new Error('CREATIVE_EMPTY_MILESTONE')
   const files = overlayCreativeMilestone(request.project.files, changes)

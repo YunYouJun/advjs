@@ -2,6 +2,7 @@ import type { AgentUsageSummary } from '../core/contracts'
 import type { CreativeArtifact, CreativeMilestoneIntent, CreativeTeamPlan, CreativeTeamRun } from './contracts'
 import type { CreativePlaytestRepairReference } from './playtest-repair'
 import { invalidateCreativeArtifacts } from './candidates'
+import { creativeMergeInvalidations } from './merges'
 import { assertCreativeArtifactBoundary, parseCreativeTeamPlan } from './validation'
 
 /** All mutations are serialized by Runtime's account/project-scoped transaction. */
@@ -100,6 +101,8 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
         const adopted = new Set(intent.artifacts.map(item => item.artifactId))
         run.artifacts = run.artifacts.map(item => adopted.has(item.id) ? { ...item, status: intent.operation === 'adopt' ? 'adopted' : 'selected' } : item)
         run.decisions = [...run.decisions, { id: intent.id, action: intent.operation, artifactIds: [...adopted], reason: intent.reason, projectRevision: intent.afterRevision, at: now, requestFingerprint: intent.requestFingerprint }]
+        const mergeStale = intent.operation === 'adopt' ? creativeMergeInvalidations(run, intent.artifacts, intent.merges) : new Set<string>()
+        run.artifacts = run.artifacts.map(item => mergeStale.has(item.id) && item.status !== 'rejected' ? { ...item, status: 'stale' } : item)
         run.artifacts = invalidateCreativeArtifacts(run.artifacts, action.files, run)
         const stale = new Set(run.artifacts.filter(item => item.status === 'stale').map(item => item.id))
         for (const task of run.tasks) {
