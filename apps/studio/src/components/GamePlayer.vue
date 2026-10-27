@@ -573,7 +573,7 @@ defineExpose({
 
 .runtime-inspector-button {
   position: absolute;
-  top: 12px;
+  top: 64px;
   right: 12px;
   z-index: 12;
   padding: 6px 10px;
