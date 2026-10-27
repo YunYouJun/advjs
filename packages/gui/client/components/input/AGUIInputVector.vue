@@ -23,15 +23,16 @@ function updateModelValue(value: number, key: VectorKey) {
 
 <style lang="scss">
 .agui-input-vector {
+  font-family: var(--agui-font-family-ui);
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
-  gap: 4px;
+  grid-template-columns: repeat(auto-fit, minmax(min(88px, 100%), 1fr));
+  gap: var(--agui-control-gap);
   min-width: 0;
   width: 100%;
   .agui-vector-axis {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--agui-control-gap);
     min-width: 0;
     label {
       font-size: 12px;

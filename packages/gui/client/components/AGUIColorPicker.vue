@@ -88,18 +88,38 @@ function onInput(e: Event) {
 <style lang="scss">
 .agui-color-picker {
   width: 100%;
-  height: 16px;
-  padding: 0;
-  outline: none;
+  box-sizing: border-box;
+  min-width: 0;
+  height: var(--agui-control-height);
+  padding: 3px var(--agui-space-1);
   cursor: pointer;
   appearance: none;
-  background-color: transparent;
+  background-color: var(--agui-c-field);
+  border: 1px solid var(--agui-c-control-border);
+  border-radius: var(--agui-radius-sm);
 
-  border: none;
-  border-bottom: 2px solid white;
+  &:hover:not(:disabled) {
+    border-color: var(--agui-c-border-hover);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--agui-c-focus);
+    outline-offset: -2px;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 
   &::-webkit-color-swatch-wrapper {
     padding: 0;
+  }
+  &::-webkit-color-swatch {
+    border: 0;
+    border-radius: 2px;
+  }
+  &::-moz-color-swatch {
+    border: 0;
+    border-radius: 2px;
   }
 }
 </style>

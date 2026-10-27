@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { VoiceListeningSession } from '@advjs/audio'
 import AGUIProperty from '@advjs/gui/client/components/AGUIProperty.vue'
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
 import AGUIFormItem from '@advjs/gui/client/components/form/AGUIFormItem.vue'
 import AGUISelect from '@advjs/gui/client/components/select/AGUISelect.vue'
 import AGUITextarea from '@advjs/gui/client/components/textarea/AGUITextarea.vue'
@@ -21,20 +22,12 @@ function score(key: keyof Sample['scores'], value: string | number) {
 </script>
 
 <template>
-  <div class="ae-listening-rating" :aria-label="`${sample.id} 六维评分`">
+  <AGUIForm class="ae-listening-rating" :aria-label="`${sample.id} 六维评分`">
     <AGUIProperty v-for="field in fields" :key="field.key" :label="field.label">
       <AGUISelect :model-value="sample.scores[field.key] === null ? 'pending' : String(sample.scores[field.key])" :options="options" :label="`${sample.id} ${field.label}`" @update:model-value="score(field.key, $event)" />
     </AGUIProperty>
     <AGUIFormItem :for="`${id}-notes`" label="听审备注" label-align="top">
       <AGUITextarea :id="`${id}-notes`" :model-value="sample.notes" :rows="3" @update:model-value="emit('update', { notes: String($event) })" />
     </AGUIFormItem>
-  </div>
+  </AGUIForm>
 </template>
-
-<style scoped>
-.ae-listening-rating {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-</style>

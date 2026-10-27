@@ -36,6 +36,38 @@ beforeEach(async () => {
 afterEach(async () => await rm(root, { recursive: true, force: true }))
 
 describe('native shared dialogue authoring', () => {
+  it('aligns an existing take with revision and media checks, preserving its identity and selection', async () => {
+    const service = await createNodeVoiceAuthoringService({ root, config })
+    const initial = await service.read()
+    const generated = await runVoiceGenerateTake({ root, config, lineId, locale: 'zh-CN', speakerId: 'hero', displayText: '你好', expectedRevision: initial.revision })
+    const take = generated.ledger.lines[lineId]!.locales['zh-CN']!.takes[0]!
+    provider.align = vi.fn(async input => ({ schemaVersion: 1, text: input.text, audioSha256: input.sha256, durationSeconds: input.durationSeconds, engine: 'fixture', model: 'fixture', units: [{ start: 0, end: 1, startTime: 0.05, endTime: 0.3 }, { start: 1, end: 2, startTime: 0.5, endTime: 0.9 }] }))
+    const aligned = await service.alignTake({ lineId, locale: 'zh-CN', takeId: take.id, expectedRevision: generated.revision })
+    expect(aligned.revision).not.toBe(generated.revision)
+    expect(aligned.ledger.lines[lineId]!.locales['zh-CN']!.takes[0]).toMatchObject({ ...take, alignment: { text: '你好', audioSha256: take.sha256 } })
+    expect(aligned.ledger.lines[lineId]!.locales['zh-CN']!.selectedTake).toBeNull()
+    expect(aligned.catalog).toEqual(generated.catalog)
+    expect(provider.synthesize).toHaveBeenCalledTimes(1)
+    await expect(service.alignTake({ lineId, locale: 'zh-CN', takeId: take.id, expectedRevision: generated.revision })).rejects.toThrow('VOICE_CONFLICT')
+    const asset = aligned.catalog.assets.find(value => value.id === take.assetId)!
+    await writeFile(join(root, 'public', asset.path!), 'changed media')
+    await expect(service.alignTake({ lineId, locale: 'zh-CN', takeId: take.id, expectedRevision: aligned.revision })).rejects.toThrow('hash or size')
+    expect(provider.align).toHaveBeenCalledTimes(1)
+  })
+
+  it('refuses alignment metadata when the ledger changes during inference', async () => {
+    const service = await createNodeVoiceAuthoringService({ root, config })
+    const initial = await service.read()
+    const generated = await runVoiceGenerateTake({ root, config, lineId, locale: 'zh-CN', speakerId: 'hero', displayText: '你好', expectedRevision: initial.revision })
+    const take = generated.ledger.lines[lineId]!.locales['zh-CN']!.takes[0]!
+    provider.align = async (input) => {
+      await service.select({ lineId, locale: 'zh-CN', takeId: take.id, expectedRevision: generated.revision })
+      return { schemaVersion: 1, text: input.text, audioSha256: input.sha256, durationSeconds: input.durationSeconds, engine: 'fixture', model: 'fixture', units: [{ start: 0, end: 2, startTime: 0.1, endTime: 0.8 }] }
+    }
+    await expect(service.alignTake({ lineId, locale: 'zh-CN', takeId: take.id, expectedRevision: generated.revision })).rejects.toThrow('VOICE_CONFLICT')
+    expect((await service.read()).ledger.lines[lineId]!.locales['zh-CN']!.takes[0]!.alignment).toBeUndefined()
+  })
+
   async function writeStory(text: string) {
     await mkdir(join(root, 'adv/chapters'), { recursive: true })
     await mkdir(join(root, 'adv/settings'), { recursive: true })

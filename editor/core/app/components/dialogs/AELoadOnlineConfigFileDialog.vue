@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
+import AGUIFormItem from '@advjs/gui/client/components/form/AGUIFormItem.vue'
 import { DEFAULT_BGM_LIBRARY_URL } from '../../constants'
 
 const onlineStore = useOnlineStore()
 const fileStore = useFileStore()
 const gameStore = useGameStore()
 const audioStore = useAudioStore()
+const id = useId()
 
 const adapterOptions = ref<{
   label: string
@@ -23,9 +26,10 @@ const adapterOptions = ref<{
     content-class="w-720px"
   >
     <div class="flex flex-col gap-4">
-      <AGUIForm>
-        <AGUIFormItem label="Online ADV Config File" label-class="w-1/4">
+      <AGUIForm padded>
+        <AGUIFormItem :for="`${id}-config`" label="Online ADV Config File">
           <AGUICombobox
+            :id="`${id}-config`"
             :model-value="onlineStore.onlineAdvConfigFileUrl"
             placeholder="https://.../*.adv.json"
             :options="onlineStore.onlineAdvConfigUrlOptions"
@@ -33,26 +37,27 @@ const adapterOptions = ref<{
           />
         </AGUIFormItem>
         <hr class="my-2 op-10">
-        <AGUIFormItem label="Config Adapter" label-class="w-1/4">
+        <AGUIFormItem :for="`${id}-adapter`" label="Config Adapter">
           <AGUISelect
+            :id="`${id}-adapter`"
             v-model="gameStore.curAdapter"
             :options="adapterOptions"
             placeholder="Select Config Adapter"
           />
         </AGUIFormItem>
-        <AGUIFormItem label="CDN Url" label-class="w-1/4">
+        <AGUIFormItem :for="`${id}-cdn`" label="CDN Url">
           <AGUIInput
+            :id="`${id}-cdn`"
             v-model="onlineStore.cdnUrl"
             :placeholder="onlineStore.defaultCdnUrl"
-            autofocus
           />
         </AGUIFormItem>
 
-        <AGUIFormItem label="BGM Library Url" label-class="w-1/4">
+        <AGUIFormItem :for="`${id}-bgm`" label="BGM Library Url">
           <AGUIInput
+            :id="`${id}-bgm`"
             v-model="audioStore.bgmLibraryUrl"
             :placeholder="DEFAULT_BGM_LIBRARY_URL"
-            autofocus
           />
         </AGUIFormItem>
       </AGUIForm>

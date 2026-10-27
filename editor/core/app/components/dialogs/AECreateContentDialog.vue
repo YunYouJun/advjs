@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
+import AGUIFormItem from '@advjs/gui/client/components/form/AGUIFormItem.vue'
 import { useEditorLayoutState } from '../../extensions/layout-state'
 import { useContentCreationStore } from '../../stores/useContentCreationStore'
 import { contentCreationPlan } from '../../utils/content-creation'
@@ -39,18 +41,18 @@ async function submit() {
 
 <template>
   <AGUIDialog v-model:open="open" :title="title" :description="zh ? '在当前项目中创建创作内容，再打开源码编辑。' : 'Create authoring content in the current project, then open its source.'" content-class="w-110 h-auto">
-    <form v-if="creation.draft" class="content-create-form" @submit.prevent="submit">
-      <div class="content-create-field">
-        <label :for="`${ids}-name`">{{ zh ? '名称' : 'Name' }}</label>
+    <AGUIForm v-if="creation.draft" as="form" class="content-create-form" @submit.prevent="submit">
+      <AGUIFormItem :for="`${ids}-name`" :label="zh ? '名称' : 'Name'" label-align="top">
         <AGUIInput :id="`${ids}-name`" v-model="creation.draft.title" autofocus :disabled="creation.busy || plan.exists" :aria-describedby="plan.error ? `${ids}-error` : undefined" maxlength="120" />
-      </div>
-      <div v-if="creation.draft.kind !== 'world'" class="content-create-field">
-        <label :for="`${ids}-id`">{{ zh ? '标识符' : 'ID' }}</label>
+      </AGUIFormItem>
+      <AGUIFormItem v-if="creation.draft.kind !== 'world'" :for="`${ids}-id`" :label="zh ? '标识符' : 'ID'" label-align="top">
         <AGUIInput :id="`${ids}-id`" v-model="creation.draft.id" :disabled="creation.busy || !!creation.draft.createdPath" :aria-describedby="`${ids}-id-help${plan.error ? ` ${ids}-error` : ''}`" maxlength="80" spellcheck="false" />
-        <p :id="`${ids}-id-help`">
-          {{ zh ? '使用字母、数字、连字符或下划线，例如 chapter-02；标识符用于文件名和剧情引用。' : 'Use letters, numbers, hyphens or underscores, e.g. chapter-02. The ID is used for the filename and story references.' }}
-        </p>
-      </div>
+        <template #description>
+          <p :id="`${ids}-id-help`">
+            {{ zh ? '使用字母、数字、连字符或下划线，例如 chapter-02；标识符用于文件名和剧情引用。' : 'Use letters, numbers, hyphens or underscores, e.g. chapter-02. The ID is used for the filename and story references.' }}
+          </p>
+        </template>
+      </AGUIFormItem>
       <div v-if="plan.path" class="content-create-path">
         <span>{{ zh ? '项目文件' : 'Project file' }}</span>
         <output>{{ plan.path }}</output>
@@ -67,23 +69,19 @@ async function submit() {
           {{ plan.exists ? (zh ? '打开编辑' : 'Open to edit') : (zh ? '创建并编辑' : 'Create and edit') }}
         </AGUIButton>
       </footer>
-    </form>
+    </AGUIForm>
   </AGUIDialog>
 </template>
 
 <style scoped>
 .content-create-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 12px;
+  padding: var(--agui-space-3);
   font-size: 13px;
 }
-.content-create-field,
 .content-create-path {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--agui-form-label-gap);
   min-width: 0;
 }
 .content-create-form p {
@@ -109,6 +107,6 @@ async function submit() {
   display: flex;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--agui-space-2);
 }
 </style>

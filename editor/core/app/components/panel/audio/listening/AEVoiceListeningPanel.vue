@@ -4,6 +4,7 @@ import type { VoiceAuthoringSnapshot } from '@advjs/types'
 import AGUICheckbox from '@advjs/gui/client/components/AGUICheckbox.vue'
 import AGUIProperty from '@advjs/gui/client/components/AGUIProperty.vue'
 import AGUIButton from '@advjs/gui/client/components/button/AGUIButton.vue'
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
 import AGUISelect from '@advjs/gui/client/components/select/AGUISelect.vue'
 import { computed, reactive, useId, useTemplateRef, watch } from 'vue'
 import { useVoiceListening } from '../../../../composables/useVoiceListening'
@@ -32,7 +33,7 @@ function close() {
 </script>
 
 <template>
-  <section class="ae-listening-panel" aria-label="高级匿名听审">
+  <AGUIForm class="ae-listening-panel" aria-label="高级匿名听审" as="section">
     <div class="ae-listening-toolbar">
       <strong>高级听审</strong>
       <AGUIButton data-testid="voice-listening-close" @click="close">
@@ -125,16 +126,10 @@ function close() {
     <p v-if="listening.error || playback.error" class="ae-resource-error" role="alert">
       {{ listening.error || playback.error }}
     </p>
-  </section>
+  </AGUIForm>
 </template>
 
 <style scoped>
-.ae-listening-panel {
-  min-width: 0;
-  display: grid;
-  gap: 8px;
-  container: agui-properties / inline-size;
-}
 .ae-listening-toolbar {
   display: flex;
   flex-wrap: wrap;

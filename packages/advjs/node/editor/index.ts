@@ -15,6 +15,9 @@ import { createServer } from 'node:http'
 import { createRequire } from 'node:module'
 import { dirname, extname, isAbsolute, relative, resolve, sep } from 'pathe'
 
+import { createVoiceProviderMaintenance } from '../audio/provider-maintenance'
+import { createVoiceProviderStatus } from '../audio/provider-status'
+import { createNodeVoiceAuthoringService } from '../audio/voice'
 import { createNodeVoiceDesignHost } from '../audio/voice-design'
 import { AdvCommandError } from '../commands/errors'
 import { withProjectWriteLock } from '../project/write-lock'
@@ -290,6 +293,7 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
   const eventResponses = new Set<ServerResponse>()
   let voiceJobs: Promise<Awaited<ReturnType<typeof createEditorVoiceJobsHost>>> | undefined
   let voiceDesign: Promise<Awaited<ReturnType<typeof createNodeVoiceDesignHost>>> | undefined
+  let providerMaintenance: ReturnType<typeof createVoiceProviderMaintenance> | undefined
   async function audioVoiceDesign() {
     await options.validateProjectAccess?.()
     voiceDesign ??= createNodeVoiceDesignHost({ root: projectRoot, config: options.audioJobs?.config, ...(options.audioJobs?.storeDirectory ? { stateDirectory: resolve(options.audioJobs.storeDirectory, 'voice-design') } : {}), validateProjectAccess: options.validateProjectAccess, verifyProvider: options.audioJobs?.verifyProvider, withProviderPermit: options.audioJobs?.withProviderPermit, mediaPrefix: `${API_PREFIX}audio/voice-design/previews` }).catch((error) => {
@@ -327,6 +331,95 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
       throw new EditorHttpError(403, 'Editor request origin is not allowed')
     if (!tokenMatches(request.headers.authorization, token))
       throw new EditorHttpError(401, 'Editor session token is required')
+    if (url.pathname === `${API_PREFIX}audio/provider-status` || url.pathname === `${API_PREFIX}audio/provider-status/doctor`) {
+      await options.validateProjectAccess?.()
+      const controller = new AbortController()
+      const cancel = () => controller.abort()
+      response.once('close', cancel)
+      try {
+        if (url.search)
+          throw new Error('VOICE_PROVIDER_STATUS_INPUT_INVALID')
+        const service = createVoiceProviderStatus({ root: projectRoot, config: options.audioJobs?.config })
+        if (request.method === 'GET' && url.pathname.endsWith('/provider-status')) {
+          writeJson(response, 200, await service.read(controller.signal))
+          return
+        }
+        if (request.method !== 'POST' || !url.pathname.endsWith('/doctor'))
+          throw new Error('VOICE_PROVIDER_STATUS_INPUT_INVALID')
+        const input = JSON.parse((await readRequestBytes(request, 1024)).toString())
+        if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).length !== 1 || typeof input.providerId !== 'string')
+          throw new Error('VOICE_PROVIDER_STATUS_INPUT_INVALID')
+        writeJson(response, 200, await service.doctor(input.providerId, controller.signal))
+        return
+      }
+      catch (error) {
+        const code = error instanceof Error && /^VOICE_PROVIDER_(?:STATUS_INPUT_INVALID|DIAGNOSTICS_FAILED)$/u.test(error.message) ? error.message : 'VOICE_PROVIDER_STATUS_FAILED'
+        throw new EditorHttpError(409, code)
+      }
+      finally {
+        response.removeListener('close', cancel)
+      }
+    }
+    if (url.pathname === `${API_PREFIX}audio/alignment`) {
+      await options.validateProjectAccess?.()
+      if (request.method !== 'POST' || url.search)
+        throw new EditorHttpError(400, 'VOICE_ALIGNMENT_INPUT_INVALID')
+      const controller = new AbortController()
+      const cancel = () => controller.abort()
+      response.once('close', cancel)
+      try {
+        const input = JSON.parse((await readRequestBytes(request, 16 * 1024)).toString())
+        if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).length !== 4 || !['lineId', 'locale', 'takeId', 'expectedRevision'].every(key => typeof input[key] === 'string'))
+          throw new Error('VOICE_ALIGNMENT_INPUT_INVALID')
+        const service = await createNodeVoiceAuthoringService({ root: projectRoot, config: options.audioJobs?.config })
+        writeJson(response, 200, await service.alignTake(input, controller.signal))
+        return
+      }
+      catch (error) {
+        const code = error instanceof Error && /VOICE_[A-Z_]+/u.exec(error.message)?.[0]
+        throw new EditorHttpError(409, code || 'VOICE_ALIGNMENT_FAILED')
+      }
+      finally {
+        response.removeListener('close', cancel)
+      }
+    }
+    if (url.pathname.startsWith(`${API_PREFIX}audio/providers`)) {
+      await options.validateProjectAccess?.()
+      providerMaintenance ??= createVoiceProviderMaintenance({ root: projectRoot, config: options.audioJobs?.config })
+      const service = await providerMaintenance
+      const action = url.pathname.slice(`${API_PREFIX}audio/providers`.length)
+      try {
+        if (request.method === 'GET' && !action) {
+          writeJson(response, 200, await service.read())
+          return
+        }
+        if (request.method !== 'POST')
+          throw new Error('VOICE_MAINTENANCE_METHOD_INVALID')
+        const input = JSON.parse((await readRequestBytes(request, 16 * 1024)).toString())
+        if (!input || typeof input !== 'object' || Array.isArray(input))
+          throw new Error('VOICE_CLEANUP_INPUT_INVALID')
+        let result: unknown
+        if (action === '/plan') {
+          result = await service.plan(input)
+        }
+        else if (action === '/execute' && typeof input.id === 'string' && typeof input.hash === 'string' && Object.keys(input).every(key => ['id', 'hash'].includes(key))) {
+          result = await service.execute(input)
+        }
+        else if (['/enable', '/stop'].includes(action) && typeof input.providerId === 'string' && Object.keys(input).length === 1) {
+          await service[action === '/enable' ? 'enable' : 'stop'](input.providerId)
+          result = { ok: true }
+        }
+        else {
+          throw new Error('VOICE_CLEANUP_INPUT_INVALID')
+        }
+        writeJson(response, 200, result)
+        return
+      }
+      catch (error) {
+        const code = error instanceof Error && /^VOICE_[A-Z_]+/u.exec(error.message)?.[0]
+        throw new EditorHttpError(409, code || 'VOICE_MAINTENANCE_FAILED')
+      }
+    }
 
     const apiPath = decodeURIComponent(url.pathname.slice(API_PREFIX.length))
     if (/^audio\/voice-design(?:\/(?:save|plan|execute|register|select|apply|previews\/[\w-]+(?:\/(?:media|cancel))?))?$/u.test(apiPath)) {
@@ -375,7 +468,7 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
         }
         if (request.method !== 'POST' || apiPath === 'audio/jobs')
           throw new EditorHttpError(405, 'ADV_AUDIO_JOB_METHOD_INVALID')
-        const input = JSON.parse((await readRequestBytes(request, 64 * 1024)).toString('utf8'))
+        const input = JSON.parse((await readRequestBytes(request, apiPath === 'audio/jobs/plan' ? 512 * 1024 : 64 * 1024)).toString('utf8'))
         const result = apiPath === 'audio/jobs/plan' ? await service.plan(input) : apiPath === 'audio/jobs/enqueue' ? await service.enqueue(input) : await service.command(input)
         writeJson(response, 200, result)
       }

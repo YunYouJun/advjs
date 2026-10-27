@@ -4,6 +4,7 @@ import { assertAudioId, createAudioId } from './ids'
 import { normalizeAudioLocale } from './locale'
 import { activeAudioPronunciationDictionary, parseAudioPronunciationDictionary } from './pronunciation'
 import { prepareVoiceSpokenText } from './spoken-text'
+import { parseVoiceAlignment } from './voice-alignment'
 import { assertVoiceSpeakerId, parseVoiceLedger, resolveVoiceTake, updateVoiceLedgerLine, validateVoiceRights } from './voice-ledger'
 import { activeAudioVoiceProfiles, parseAudioVoiceProfiles } from './voice-profiles'
 
@@ -94,6 +95,7 @@ export async function createVoiceTakeEditPlan(snapshot: VoiceAuthoringSnapshot, 
     parameters,
     ...(candidate.voiceId === undefined ? {} : { projectVoiceId: candidate.voiceId }),
     ...(candidate.voiceVersion === undefined ? {} : { projectVoiceVersion: candidate.voiceVersion }),
+    ...(candidate.alignment ? { alignment: parseVoiceAlignment(candidate.alignment, { text: spokenText, sha256: candidate.sha256, durationSeconds: candidate.durationSeconds }) } : {}),
   }
   const line = result.ledger.lines[input.lineId]!
   const binding = line.locales[locale] ?? { selectedTake: null, takes: [] }

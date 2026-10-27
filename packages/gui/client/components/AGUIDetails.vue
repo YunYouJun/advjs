@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import AGUIForm from './form/AGUIForm.vue'
+
 defineProps<{
   icon?: string
   title: string
@@ -13,9 +15,9 @@ defineProps<{
         <span class="title">{{ title }}</span>
       </summary>
     </slot>
-    <div class="content">
+    <AGUIForm class="content">
       <slot />
-    </div>
+    </AGUIForm>
   </details>
 </template>
 
@@ -34,6 +36,7 @@ defineProps<{
   }
 
   > .agui-summary {
+    font-family: var(--agui-font-family-ui);
     box-sizing: border-box;
     min-height: 28px;
     margin: 0;
@@ -60,8 +63,7 @@ defineProps<{
   }
 
   > .content {
-    min-width: 0;
-    padding: 8px 12px;
+    padding: var(--agui-space-2) var(--agui-space-3);
   }
 }
 </style>

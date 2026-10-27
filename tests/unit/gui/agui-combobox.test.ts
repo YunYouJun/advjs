@@ -39,6 +39,18 @@ async function type(input: HTMLInputElement, value: string) {
 }
 
 describe('aGUI combobox model', () => {
+  it('forwards label, description and disabled state to the actual editable field', () => {
+    const container = document.createElement('div')
+    document.body.append(container)
+    app = createApp({ render: () => h(AGUICombobox, { 'id': 'config-url', 'label': 'Config URL', 'aria-describedby': 'url-help', 'disabled': true, 'modelValue': 'https://example.com' }) })
+    app.mount(container)
+    const input = container.querySelector('input')!
+    expect(input.id).toBe('config-url')
+    expect(input.getAttribute('aria-label')).toBe('Config URL')
+    expect(input.getAttribute('aria-describedby')).toBe('url-help')
+    expect(input.disabled).toBe(true)
+  })
+
   it('updates freeform input and clearing without requiring a suggestion', async () => {
     const { input, value, update } = mount([], 'https://example.com/first.adv.json')
     await nextTick()
