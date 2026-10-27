@@ -74,6 +74,66 @@ jobs:
       - name: Verify Studio Pages output
         run: test -f apps/studio/dist/index.html && test -f apps/studio/dist/sw.js
 
+  # Studio's own Vite/Vitest config is excluded from the root unit job. Shared
+  # content, validation and authoring modules are also checked here through
+  # the native Studio engine, so a change cannot pass on one client only.
+  studio-unit:
+    name: studio-unit (Node LTS)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build Studio and engine fixture dependencies
+        run: pnpm prepare:workspace studio-ios
+      - name: Run Studio unit tests
+        run: pnpm -C apps/studio exec vitest run
+      - name: Build the native Studio engine
+        run: pnpm -C apps/studio-ios build:engine
+      - name: Test the native Studio engine on Node
+        run: pnpm -C apps/studio-ios test:engine
+
+  studio-ios-engine:
+    name: studio-ios-engine (JavaScriptCore)
+    runs-on: xcode-27
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build engine fixture dependencies
+        run: pnpm prepare:workspace studio-ios
+      - name: Build the engine and golden cases
+        run: pnpm -C apps/studio-ios build:engine && pnpm -C apps/studio-ios golden
+      - name: Golden parity on macOS JavaScriptCore
+        run: swift test --package-path apps/studio-ios/Packages/StudioKit
+      - name: Golden parity on iPhone and iPad simulators
+        working-directory: apps/studio-ios/Packages/StudioKit
+        run: |
+          destinations=$(node ../../scripts/simulator-destinations.mjs)
+          xcodebuild test -scheme StudioKit $destinations -resultBundlePath ../../build/StudioKit.xcresult
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: studio-ios-engine
+          path: |
+            apps/studio-ios/engine/dist/engine.report.json
+            apps/studio-ios/engine/dist/golden/summary.json
+            apps/studio-ios/build/StudioKit.xcresult
+          if-no-files-found: warn
+          retention-days: 30
+
   vrm-pages-build:
     name: vrm-pages-build
     runs-on: ubuntu-latest
@@ -340,6 +400,8 @@ jobs:
       - build
       - editor-pages-build
       - studio-pages-build
+      - studio-unit
+      - studio-ios-engine
       - vrm-pages-build
       - unit
       - typecheck

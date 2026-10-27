@@ -17,6 +17,7 @@ const props = withDefaults(defineProps<{
    * show animation
    */
   animation?: boolean
+  highlight?: { text: string, unit?: { start: number, end: number } }
 }>(), {
   words: '',
   mode: 'soft',
@@ -24,17 +25,24 @@ const props = withDefaults(defineProps<{
   animation: true,
 })
 const emit = defineEmits<{ end: [], glossary: [reference: GlossaryReference] }>()
+const activeUnit = computed(() => props.highlight?.text === props.words ? props.highlight.unit : undefined)
 
 const parts = computed(() => {
   const references = glossaryReferences(props.glossary, props.words)
-  const result: Array<{ text: string, start: number, end: number, reference?: GlossaryReference }> = []
+  const result: Array<{ text: string, start: number, end: number, reference?: GlossaryReference, characters?: Array<{ text: string, start: number }> }> = []
   let offset = 0
   for (const reference of references) {
     for (const text of props.words.slice(offset, reference.start)) {
       result.push({ text, start: offset, end: offset + text.length })
       offset += text.length
     }
-    result.push({ text: reference.label, start: reference.start, end: reference.end, reference })
+    let start = reference.start
+    const characters = [...reference.label].map((text) => {
+      const character = { text, start }
+      start += text.length
+      return character
+    })
+    result.push({ text: reference.label, start: reference.start, end: reference.end, reference, characters })
     offset = reference.end
   }
   for (const text of props.words.slice(offset)) {
@@ -113,11 +121,19 @@ watch(() => props.animation, (value) => {
     finish()
 })
 
-function wordClasses(i: number) {
+watch(activeUnit, (unit) => {
+  if (unit && !completed)
+    len.value = Math.max(len.value, unit.end)
+})
+
+function wordClasses(i: number, start = i, highlight = true) {
   const classes: string[] = []
+  const unit = activeUnit.value
+  if (highlight && unit && i >= unit.start && start < unit.end)
+    classes.push('adv-voice-word-active')
 
   if (!props.animation)
-    return []
+    return classes
 
   if (i >= len.value) {
     classes.push('invisible')
@@ -139,20 +155,25 @@ function wordClasses(i: number) {
         v-if="part.reference"
         type="button"
         class="adv-glossary-reference"
-        :class="wordClasses(part.end - 1)"
+        :class="wordClasses(part.end - 1, part.start, false)"
         :tabindex="animation && len < part.end ? -1 : 0"
         :aria-hidden="animation && len < part.end || undefined"
         aria-haspopup="dialog"
         @click.stop="emit('glossary', part.reference)"
       >
-        {{ part.text }}
+        <span v-for="character in part.characters" :key="character.start" :class="{ 'adv-voice-word-active': activeUnit && character.start >= activeUnit.start && character.start < activeUnit.end }" :data-voice-active="activeUnit && character.start >= activeUnit.start && character.start < activeUnit.end || undefined">{{ character.text }}</span>
       </button>
-      <span v-else :class="wordClasses(part.start)">{{ part.text }}</span>
+      <span v-else :class="wordClasses(part.start)" :data-voice-active="activeUnit && part.start >= activeUnit.start && part.start < activeUnit.end || undefined">{{ part.text }}</span>
     </template>
   </div>
 </template>
 
 <style scoped>
+.adv-voice-word-active {
+  color: var(--adv-c-primary, currentColor);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
 .adv-glossary-reference {
   font: inherit;
   color: inherit;

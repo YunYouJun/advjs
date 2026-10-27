@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import type { SceneFormData } from '@advjs/parser'
 import type { SceneInfo } from '../../composables/useProjectContent'
-import type { SceneFormData } from '../../utils/sceneMd'
+import { parseSceneMd, stringifySceneMd } from '@advjs/parser'
 import {
   IonButton,
   IonFab,
@@ -32,7 +33,6 @@ import { useIncrementalList } from '../../composables/useIncrementalList'
 import { useManagedAssetStorage } from '../../composables/useManagedAssetStorage'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { useRecentActivity } from '../../composables/useRecentActivity'
-import { parseSceneMd, stringifySceneMd } from '../../utils/sceneMd'
 import { showToast } from '../../utils/toast'
 
 const { t } = useI18n()

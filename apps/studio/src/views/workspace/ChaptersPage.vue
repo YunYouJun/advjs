@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import type { ChapterFormData } from '@advjs/parser'
 import type { ChapterInfo } from '../../composables/useProjectContent'
-import type { ChapterFormData } from '../../utils/chapterMd'
+import { stringifyChapterMd } from '@advjs/parser'
 import {
   IonButton,
   IonFab,
@@ -34,7 +35,6 @@ import { useContentSave } from '../../composables/useContentSave'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { useRecentActivity } from '../../composables/useRecentActivity'
 import { useStudioStore } from '../../stores/useStudioStore'
-import { stringifyChapterMd } from '../../utils/chapterMd'
 import { musicAssetQuery } from '../../utils/musicWorkflow'
 import { loadStudioSourceFormat } from '../../utils/projectRuntimeFiles'
 import { showToast } from '../../utils/toast'

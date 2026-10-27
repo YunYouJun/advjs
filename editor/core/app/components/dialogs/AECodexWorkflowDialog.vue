@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { AdvAgentIntegrationStatus } from '@advjs/types'
 import { Toast } from '@advjs/gui'
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
+import AGUIFormItem from '@advjs/gui/client/components/form/AGUIFormItem.vue'
 
 const { t } = useI18n()
 const open = defineModel('open', {
@@ -11,6 +13,7 @@ const projectStore = useProjectStore()
 const status = ref<AdvAgentIntegrationStatus>()
 const loading = ref(false)
 const selectedSceneId = ref('')
+const id = useId()
 
 const promptScenes = computed(() => projectStore.scenes.filter(scene => scene.imagePrompt?.trim()))
 const selectedScene = computed(() => promptScenes.value.find(scene => scene.id === selectedSceneId.value))
@@ -66,8 +69,8 @@ watch(open, (isOpen) => {
 
 <template>
   <AGUIDialog v-model:open="open" :title="t('codex.title')" content-class="w-lg h-auto">
-    <div class="p-4 flex flex-col gap-4">
-      <div v-if="projectStore.workspaceMode !== 'local'" class="text-sm text-orange-700 p-3 rounded bg-orange-500/10 dark:text-orange-300">
+    <AGUIForm padded>
+      <div v-if="projectStore.workspaceMode !== 'local'" class="text-xs text-$agui-c-warning-text p-2 rounded bg-$agui-c-warning-soft">
         {{ t('codex.localOnly') }}
       </div>
 
@@ -85,14 +88,14 @@ watch(open, (isOpen) => {
             <div
               v-for="check in status.checks"
               :key="check.id"
-              class="p-2 rounded bg-black/5 flex gap-2 items-start dark:bg-white/5"
+              class="text-xs p-2 rounded bg-$agui-c-bg-soft flex gap-2 items-start"
             >
-              <span :class="check.status === 'pass' ? 'text-green-600' : 'text-orange-600'">
+              <span :class="check.status === 'pass' ? 'text-$agui-c-success-text' : 'text-$agui-c-warning-text'">
                 {{ check.status === 'pass' ? '✓' : '!' }}
               </span>
               <span>{{ check.message }}</span>
             </div>
-            <code v-if="!status.ready" class="text-xs p-2 rounded bg-black/5 select-all dark:bg-white/5">{{ status.installCommand }}</code>
+            <code v-if="!status.ready" class="text-xs p-2 rounded bg-$agui-c-bg-soft select-all">{{ status.installCommand }}</code>
             <div class="flex gap-2">
               <AGUIButton v-if="!status.ready" size="mini" @click="copyText(status.installCommand, t('codex.installCopied'))">
                 {{ t('codex.copyInstall') }}
@@ -104,21 +107,13 @@ watch(open, (isOpen) => {
           </div>
         </section>
 
-        <section class="pt-4 border-t border-black/10 flex flex-col gap-2 dark:border-white/10">
-          <h3 class="font-semibold">
-            {{ t('codex.taskPrompt') }}
-          </h3>
-          <select v-model="selectedSceneId" class="text-sm p-2 border border-black/20 rounded bg-transparent dark:border-white/20">
-            <option v-for="scene in promptScenes" :key="scene.id" :value="scene.id">
-              {{ scene.name || scene.id }}
-            </option>
-          </select>
-          <textarea
-            :value="taskPrompt"
-            readonly
-            rows="9"
-            class="text-xs p-2 border border-black/20 rounded bg-black/3 resize-none dark:border-white/20 dark:bg-white/3"
-          />
+        <AGUIForm as="section" class="pt-2 border-t border-$agui-c-divider-light">
+          <AGUIFormItem :for="`${id}-scene`" :label="t('menu.createScene')" label-align="top">
+            <AGUISelect :id="`${id}-scene`" v-model="selectedSceneId" :label="t('menu.createScene')" :options="promptScenes.map(scene => ({ value: scene.id, label: scene.name || scene.id }))" :disabled="!promptScenes.length" />
+          </AGUIFormItem>
+          <AGUIFormItem :for="`${id}-prompt`" :label="t('codex.taskPrompt')" label-align="top">
+            <AGUITextarea :id="`${id}-prompt`" :model-value="taskPrompt" readonly :rows="9" />
+          </AGUIFormItem>
           <div class="flex gap-2">
             <AGUIButton size="mini" :disabled="!taskPrompt" @click="copyText(taskPrompt, t('codex.taskCopied'))">
               {{ t('codex.copyTask') }}
@@ -127,11 +122,11 @@ watch(open, (isOpen) => {
               {{ t('codex.refreshProject') }}
             </AGUIButton>
           </div>
-          <p v-if="promptScenes.length === 0" class="text-sm op-60">
+          <p v-if="promptScenes.length === 0" class="text-xs text-$agui-c-text-2">
             {{ t('codex.noPromptScenes') }}
           </p>
-        </section>
+        </AGUIForm>
       </template>
-    </div>
+    </AGUIForm>
   </AGUIDialog>
 </template>

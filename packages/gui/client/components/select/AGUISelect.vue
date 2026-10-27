@@ -2,6 +2,7 @@
 import type {
   AcceptableValue,
 } from 'reka-ui'
+import { usePreferredReducedMotion } from '@vueuse/core'
 import {
   SelectContent,
   SelectGroup,
@@ -19,15 +20,18 @@ import {
   SelectViewport,
 } from 'reka-ui'
 import { computed } from 'vue'
+import '../../styles/motion.scss'
 
 type OptionType = string | { value: string | number, label?: string, icon?: string }
 
+defineOptions({ inheritAttrs: false })
 const props = defineProps<{
   modelValue?: string | number
   options: OptionType[]
   legend?: string
   label?: string
   disabled?: boolean
+  name?: string
 
   placeholder?: string
 
@@ -49,18 +53,22 @@ function onUpdateModelValue(value: AcceptableValue) {
   emit('update:modelValue', value)
   emit('change', value)
 }
+const reducedMotion = usePreferredReducedMotion()
 </script>
 
 <template>
   <SelectRoot
+    v-slot="{ open }"
     :model-value="modelValue"
     :multiple="multiple"
     :disabled="disabled"
+    :name="name"
     @update:model-value="onUpdateModelValue"
   >
     <SelectTrigger
+      v-bind="$attrs"
       class="agui-select-trigger"
-      :aria-label="label || placeholder"
+      :aria-label="label || placeholder || ($attrs['aria-label'] as string | undefined)"
       :title="multiple ? undefined : selectedLabel"
     >
       <SelectValue v-if="!multiple && selectedLabel !== undefined" :placeholder="placeholder">
@@ -70,10 +78,11 @@ function onUpdateModelValue(value: AcceptableValue) {
       <div class="i-radix-icons:chevron-down" op="60" />
     </SelectTrigger>
 
-    <SelectPortal>
+    <SelectPortal :key="Number(!open && reducedMotion === 'reduce')">
       <SelectContent
-        class="agui-select-content z-100"
+        class="agui-select-content agui-motion-popup z-100"
         side="bottom"
+        :disable-outside-pointer-events="open"
       >
         <SelectScrollUpButton class="agui-select-scroll-button">
           <div class="i-radix-icons:chevron-up" />
@@ -129,7 +138,9 @@ function onUpdateModelValue(value: AcceptableValue) {
 <style lang="scss">
 .agui-select-trigger {
   font: inherit;
-  font-size: 13px;
+  font-family: var(--agui-font-family-ui);
+  font-size: var(--agui-control-font-size);
+  line-height: var(--agui-control-line-height);
   appearance: none;
   box-sizing: border-box;
   width: 100%;
@@ -137,13 +148,14 @@ function onUpdateModelValue(value: AcceptableValue) {
   display: inline-flex;
   justify-content: space-between;
   align-items: center;
-  gap: 4px;
-  padding: 0 8px;
+  gap: var(--agui-control-gap);
+  padding: 2px var(--agui-control-padding-x);
   background: var(--agui-c-field);
   border: 1px solid var(--agui-c-control-border);
-  border-radius: 2px;
+  border-radius: var(--agui-radius-sm);
   text-align: left;
-  min-height: var(--agui-control-height);
+  height: var(--agui-control-height);
+  min-width: 0;
   cursor: pointer;
 
   &:focus-visible {
@@ -166,26 +178,30 @@ function onUpdateModelValue(value: AcceptableValue) {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  > div:last-child {
+    flex-shrink: 0;
+  }
 }
 .agui-select-content {
+  font-family: var(--agui-font-family-ui);
   overflow: hidden;
   color: var(--agui-c-text-1);
   background: var(--agui-c-popup);
   border: 1px solid var(--agui-c-border);
-  border-radius: 4px;
+  border-radius: var(--agui-radius-md);
   box-shadow: var(--agui-shadow-popup);
 }
 .agui-select-viewport {
-  padding: 4px;
+  padding: var(--agui-space-1);
 }
 .agui-select-item {
   font-size: 12px;
   line-height: 1.4;
-  border-radius: 2px;
+  border-radius: var(--agui-radius-sm);
   display: flex;
   align-items: center;
-  min-height: 25px;
-  padding: 0 24px;
+  min-height: var(--agui-control-height);
+  padding: 0 var(--agui-control-height);
   position: relative;
   user-select: none;
 
@@ -202,7 +218,7 @@ function onUpdateModelValue(value: AcceptableValue) {
   &-indicator {
     position: absolute;
     left: 0;
-    width: 24px;
+    width: var(--agui-control-height);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -212,7 +228,7 @@ function onUpdateModelValue(value: AcceptableValue) {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 24px;
+  height: var(--agui-control-height);
   color: var(--agui-c-text-2);
   background: var(--agui-c-popup);
   cursor: default;

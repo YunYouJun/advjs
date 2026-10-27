@@ -6,6 +6,8 @@
  * utilities now live here as the single source of truth.
  */
 
+import { PROJECT_AUDIO_EXTENSIONS } from '@advjs/core'
+
 // ── Extension constants ──
 
 export const TEXT_EXTENSIONS = new Set([
@@ -27,7 +29,8 @@ export const TEXT_EXTENSIONS = new Set([
   '.conf',
 ])
 
-export const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg', '.opus', '.m4a', '.webm', '.flac', '.aac']
+/** Shared with native hosts through `@advjs/core`. */
+export const AUDIO_EXTENSIONS: string[] = [...PROJECT_AUDIO_EXTENSIONS]
 
 export const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.avif']
 

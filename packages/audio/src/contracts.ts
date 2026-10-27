@@ -9,6 +9,8 @@ export interface AudioResolvedAsset {
 }
 
 export interface AudioPlayback {
+  /** Actual media/Web Audio clock, including pauses and seeks; optional for old hosts. */
+  currentTime?: () => number
   play: () => void | Promise<void>
   pause: () => void
   resume: () => void | Promise<void>
@@ -63,6 +65,7 @@ export interface AudioEngineInspection {
 }
 
 export interface AudioEngine {
+  voicePosition?: () => number | undefined
   syncState: (state: RuntimeAudioState, options?: { reason?: AudioSyncReason, fadeOutMs?: number, slot?: string }) => Promise<void>
   playVoice: (request: AudioVoiceRequest) => Promise<void>
   playSfx: (request: AudioSfxRequest) => Promise<void>

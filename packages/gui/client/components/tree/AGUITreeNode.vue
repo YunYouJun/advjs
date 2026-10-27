@@ -182,6 +182,7 @@ function onKeydown(event: KeyboardEvent) {
   }
 }
 .agui-tree-node {
+  font-family: var(--agui-font-family-ui);
   display: flex;
   align-items: center;
   min-width: 0;

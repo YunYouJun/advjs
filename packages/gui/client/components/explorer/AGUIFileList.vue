@@ -138,6 +138,7 @@ function onRenameEvent(e: Event) {
 
 <style lang="scss">
 .agui-file-list {
+  font-family: var(--agui-font-family-ui);
   min-width: 0;
   min-height: 100%;
   align-content: start;

@@ -5,7 +5,7 @@ import AGUIDetails from '@advjs/gui/client/components/AGUIDetails.vue'
 import AGUIButton from '@advjs/gui/client/components/button/AGUIButton.vue'
 import { computed } from 'vue'
 
-const props = defineProps<{ take?: VoiceTake, selectedTake?: string | null, stale?: boolean, kept?: boolean, unavailable?: boolean, pending: boolean, canSelect: boolean, writable: boolean, previewLoading: boolean }>()
+const props = withDefaults(defineProps<{ take?: VoiceTake, selectedTake?: string | null, stale?: boolean, kept?: boolean, unavailable?: boolean, pending: boolean, canSelect: boolean, writable: boolean, previewLoading: boolean, showText?: boolean }>(), { showText: true })
 const emit = defineEmits<{ preview: [], select: [], clear: [], keep: [] }>()
 const replace = defineModel<boolean>('replace', { default: false })
 const reviewed = defineModel<boolean>('reviewed', { default: false })
@@ -23,7 +23,7 @@ const replacing = computed(() => Boolean(props.selectedTake && props.selectedTak
     <p v-if="unavailable" class="ae-take-warning" role="status">
       原生音频资源缺失、被拒绝或哈希不匹配，请先恢复媒体。
     </p>
-    <p class="ae-take-prose">
+    <p v-if="showText" class="ae-take-prose">
       {{ take.spokenText }}
     </p>
     <slot name="listening" />
@@ -68,13 +68,13 @@ const replacing = computed(() => Boolean(props.selectedTake && props.selectedTak
 <style scoped>
 .ae-take-review {
   display: grid;
-  gap: 4px;
+  gap: var(--agui-space-1);
   min-width: 0;
 }
 .ae-take-prose {
-  margin: 4px 0;
-  font-size: 13px;
-  line-height: 1.6;
+  margin: var(--agui-space-1) 0;
+  font-size: var(--agui-font-size-reading);
+  line-height: var(--agui-line-height-reading);
   white-space: pre-wrap;
 }
 .ae-take-warning {

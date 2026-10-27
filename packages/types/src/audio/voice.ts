@@ -2,6 +2,7 @@ import type { AdvAssetEntry, AdvAssetManifest } from '../config/assets'
 import type { AdvVoiceCandidate, AdvVoiceSynthesisResult } from '../config/voice'
 import type { JsonObject } from '../runtime/json'
 import type { AudioPronunciationDictionary } from './pronunciation'
+import type { VoiceAlignment } from './voice-alignment'
 import type { AudioVoiceProfiles } from './voice-profiles'
 
 export type VoiceTakeSource = 'system' | 'designed' | 'recorded' | 'cloned'
@@ -57,6 +58,7 @@ export interface VoiceTake {
   /** Project voice identity, when a reviewed provider implementation was used. */
   projectVoiceId?: string
   projectVoiceVersion?: string
+  alignment?: VoiceAlignment
 }
 
 export interface VoiceLedgerLocale {

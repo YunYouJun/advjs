@@ -16,8 +16,8 @@
  */
 
 import type { SourceSegment } from './sourceChunk'
+import { parseFrontmatterAndBody } from '@advjs/parser'
 import * as yaml from 'js-yaml'
-import { parseFrontmatterAndBody } from './mdFrontmatter'
 import { chunkByHeadings } from './sourceChunk'
 import { estimateTokens } from './tokenEstimate'
 

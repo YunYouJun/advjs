@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { usePreferredReducedMotion } from '@vueuse/core'
 import {
   DialogClose,
   DialogContent,
@@ -9,30 +10,66 @@ import {
   DialogTitle,
   // DialogTrigger,
 } from 'reka-ui'
+import { shallowRef } from 'vue'
 import AGUIButton from '../button/AGUIButton.vue'
+import '../../styles/motion.scss'
 
-defineProps<{
+const props = defineProps<{
   title: string
   description?: string
 
   contentClass?: string
+  /** Focus origin captured by a lazy host before its async content loads. */
+  returnFocus?: HTMLElement
 }>()
+const emit = defineEmits<{ afterClose: [] }>()
 
 const open = defineModel('open', {
   type: Boolean,
   default: false,
 })
+
+const returnFocus = shallowRef<HTMLElement>()
+let menubar: HTMLElement | null = null
+let menuIndex = -1
+function rememberFocus() {
+  const active = props.returnFocus ?? document.activeElement
+  if (!(active instanceof HTMLElement))
+    return
+  // A programmatic dialog may open from a menu item that unmounts on select.
+  // Its menu's accessible label identifies the surviving trigger.
+  const menuLabel = active.closest('[role="menu"]')?.getAttribute('aria-labelledby')
+  returnFocus.value = (menuLabel ? document.getElementById(menuLabel) : undefined) ?? active
+  menubar = returnFocus.value.closest('[role="menubar"]')
+  menuIndex = menubar ? Array.from(menubar.querySelectorAll('[role="menuitem"]')).indexOf(returnFocus.value) : -1
+}
+function restoreFocus(event: Event) {
+  if (event.defaultPrevented)
+    return
+  event.preventDefault()
+  // An overlapping dialog owns focus once it opens during this one's exit.
+  if (document.activeElement?.closest('[role="dialog"][data-state="open"]'))
+    return
+  if (returnFocus.value?.isConnected)
+    returnFocus.value.focus({ preventScroll: true })
+  else if (menubar?.isConnected && menuIndex >= 0)
+    menubar.querySelectorAll<HTMLElement>('[role="menuitem"]')[menuIndex]?.focus({ preventScroll: true })
+}
+const reducedMotion = usePreferredReducedMotion()
 </script>
 
 <template>
   <DialogRoot v-model:open="open">
-    <DialogPortal>
+    <DialogPortal :key="Number(!open && reducedMotion === 'reduce')">
       <DialogOverlay class="agui-dialog-overlay" />
       <DialogContent
         class="agui-dialog-content"
         :class="contentClass || 'w-4xl h-md'"
         v-bind="description ? {} : { 'aria-describedby': undefined }"
         :aria-hidden="!open"
+        :disable-outside-pointer-events="open"
+        @open-auto-focus="rememberFocus"
+        @close-auto-focus="restoreFocus"
       >
         <header class="agui-dialog-header">
           <DialogTitle class="agui-dialog-title">
@@ -50,7 +87,7 @@ const open = defineModel('open', {
           {{ description }}
         </DialogDescription>
 
-        <div class="agui-dialog-body">
+        <div class="agui-dialog-body" @vue:unmounted="emit('afterClose')">
           <slot />
         </div>
       </DialogContent>
@@ -58,7 +95,7 @@ const open = defineModel('open', {
   </DialogRoot>
 </template>
 
-<style scoped>
+<style>
 .agui-dialog-overlay {
   position: fixed;
   inset: 0;
@@ -66,6 +103,7 @@ const open = defineModel('open', {
   background: var(--agui-c-overlay);
 }
 .agui-dialog-content {
+  font-family: var(--agui-font-family-ui);
   position: fixed;
   left: 50%;
   top: 50%;
@@ -79,7 +117,7 @@ const open = defineModel('open', {
   color: var(--agui-c-text-1);
   background: var(--agui-c-bg-panel);
   border: 1px solid var(--agui-c-border);
-  border-radius: 4px;
+  border-radius: var(--agui-radius-lg);
   box-shadow: var(--agui-shadow-popup);
   font-size: 13px;
 }

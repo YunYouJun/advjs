@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "model": "Breeze-TTS-2",
+  "seed": 42,
+  "cfgScale": 4,
+  "characters": [
+    {
+      "id": "narrator",
+      "name": "旁白",
+      "text": "欢迎回来，新的故事即将开始。",
+      "description": "成熟温暖的女声，平静自然，咬字清晰。"
+    }
+  ]
+}

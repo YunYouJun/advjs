@@ -1,14 +1,9 @@
+import type { ChapterFormData, LocationFormData, SceneFormData } from '@advjs/parser'
 import type { AdvCharacter, AdvTachie } from '@advjs/types'
-import type { ChapterFormData } from '../utils/chapterMd'
 import type { IFileSystem } from '../utils/fs'
-import type { LocationFormData } from '../utils/locationMd'
-import type { SceneFormData } from '../utils/sceneMd'
 import type { ContentType, EditorMode } from './useContentEditor'
-import { stringifyCharacterMd } from '@advjs/parser'
+import { stringifyChapterMd, stringifyCharacterMd, stringifyLocationMd, stringifySceneMd } from '@advjs/parser'
 import { ref } from 'vue'
-import { stringifyChapterMd } from '../utils/chapterMd'
-import { stringifyLocationMd } from '../utils/locationMd'
-import { stringifySceneMd } from '../utils/sceneMd'
 
 const DATA_URI_RE = /^data:image\/(\w+);base64,/
 const SAFE_NAME_RE = /[^\w-]/g
@@ -24,6 +19,21 @@ export interface SaveResult {
  */
 async function fileExists(fs: IFileSystem, path: string): Promise<boolean> {
   return fs.exists(path)
+}
+
+/**
+ * Current file content when editing, so fields and body text the form does
+ * not manage survive the save. Unreadable files fall back to a fresh write.
+ */
+async function editSource(fs: IFileSystem, mode: EditorMode, path: string): Promise<string | undefined> {
+  if (mode !== 'edit')
+    return undefined
+  try {
+    return await fs.exists(path) ? await fs.readFile(path) : undefined
+  }
+  catch {
+    return undefined
+  }
 }
 
 /**
@@ -136,7 +146,9 @@ export function useContentSave() {
 
           // Extract data URI images → save to assets, update paths
           char = await extractCharacterImages(fs, char)
-          content = stringifyCharacterMd(char)
+          content = stringifyCharacterMd(char, {
+            source: await editSource(fs, mode, `adv/characters/${originalId || char.id}.character.md`),
+          })
           break
         }
         case 'scene': {
@@ -160,7 +172,9 @@ export function useContentSave() {
             }
           }
 
-          content = stringifySceneMd(scene)
+          content = stringifySceneMd(scene, {
+            source: await editSource(fs, mode, `adv/scenes/${originalId || scene.id}.md`),
+          })
           break
         }
         case 'chapter': {
@@ -211,7 +225,9 @@ export function useContentSave() {
             }
           }
 
-          content = stringifyLocationMd(location)
+          content = stringifyLocationMd(location, {
+            source: await editSource(fs, mode, `adv/locations/${originalId || location.id}.md`),
+          })
           break
         }
         default:

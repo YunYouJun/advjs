@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import type { SceneFormData } from '@advjs/parser'
 import type { AdvCharacter } from '@advjs/types'
-import type { SceneFormData } from '../../utils/sceneMd'
-import { stringifyCharacterMd } from '@advjs/parser'
+import { stringifyCharacterMd, stringifySceneMd } from '@advjs/parser'
 import {
   alertController,
   IonButton,
@@ -31,7 +31,6 @@ import { useI18n } from 'vue-i18n'
 import LayoutPage from '../../components/common/LayoutPage.vue'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { parseCSV, validateCharacterCSVHeaders } from '../../utils/csvParser'
-import { stringifySceneMd } from '../../utils/sceneMd'
 import { showToast } from '../../utils/toast'
 
 const WHITESPACE_RE = /\s+/g

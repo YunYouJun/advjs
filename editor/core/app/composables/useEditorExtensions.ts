@@ -19,6 +19,7 @@ export function useEditorExtensions() {
     workspace: () => project.workspace,
     name: () => project.rootDir?.name ?? '',
     refresh: () => project.refreshProject(),
+    voiceProviderStatus: () => project.workspace?.voiceProviderStatus,
     locale,
     writeClipboard: text => navigator.clipboard.writeText(text),
     notify: description => Toast({ title: locale.value === 'zh-CN' ? '编辑器' : 'Editor', description, duration: 2500 }),

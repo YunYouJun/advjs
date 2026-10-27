@@ -1,0 +1,28 @@
+{
+  "name": "@advjs/plugin-breeze-tts",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Local Breeze TTS 2 authoring provider for ADV.JS via Xinference",
+  "license": "MPL-2.0",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": ["README.md", "dist", "examples", "python"],
+  "scripts": {
+    "build": "unbuild",
+    "dev": "unbuild --stub"
+  },
+  "dependencies": {
+    "@advjs/assets": "workspace:*",
+    "@advjs/audio": "workspace:*",
+    "@advjs/types": "workspace:*"
+  },
+  "devDependencies": {
+    "unbuild": "catalog:build"
+  }
+}

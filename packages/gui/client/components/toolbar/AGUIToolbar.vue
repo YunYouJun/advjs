@@ -67,19 +67,20 @@ withDefaults(defineProps<{
 
 <style lang="scss">
 .agui-toolbar {
+  font-family: var(--agui-font-family-ui);
   box-sizing: border-box;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
+  gap: var(--agui-control-gap);
   width: 100%;
   min-width: 0;
-  min-height: 30px;
-  padding: 3px 6px;
+  min-height: var(--agui-toolbar-min-height);
+  padding: 2px var(--agui-space-2);
   color: var(--agui-c-text-1);
   background: var(--agui-c-bg-panel-title);
   border-bottom: 1px solid var(--agui-c-divider);
-  font-size: 12px;
+  font-size: var(--agui-font-size-body);
   line-height: 1.5;
 }
 

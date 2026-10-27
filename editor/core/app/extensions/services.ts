@@ -1,4 +1,5 @@
 import type { EditorProjectSnapshot } from '@advjs/editor-sdk'
+import type { VoiceProviderStatusPort } from '@advjs/types'
 import type { Ref } from 'vue'
 import type { EditorProjectModel } from '../adapters/browser/project'
 import type { EditorHostServices } from './registry'
@@ -26,6 +27,7 @@ export function createEditorHostServices(options: {
   locale: Ref<string>
   writeClipboard: (text: string) => Promise<void>
   notify: (text: string) => void
+  voiceProviderStatus?: () => VoiceProviderStatusPort | undefined
 }) {
   const current = shallowRef<EditorProjectSnapshot | null>(null)
   let previousWorkspace: object | undefined
@@ -55,6 +57,7 @@ export function createEditorHostServices(options: {
     },
     clipboard: { writeText: options.writeClipboard },
     notifications: { info: options.notify },
+    voiceProviderStatus: options.voiceProviderStatus,
   }
   return { services, dispose: stop }
 }

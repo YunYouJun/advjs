@@ -269,7 +269,8 @@ export async function createStudioVoiceService(options: StudioVoiceServiceOption
         continue
       if (!saved || take.sha256 !== saved.sha256)
         fail('ADV_AUDIO_RECEIPT_METADATA_REQUIRED', 409)
-      const { path: _path, ...candidate } = saved
+      const { path: _path, alignment: _timing, ...receipt } = saved
+      const candidate = { ...receipt, ...(take.alignment ? { alignment: take.alignment } : {}) }
       const relativeAssetPath = asset.path
       if (!relativeAssetPath)
         fail('ADV_AUDIO_RECEIPT_MEDIA_REQUIRED', 409)

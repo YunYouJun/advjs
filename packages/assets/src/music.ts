@@ -1,4 +1,5 @@
 import type { AdvMusicMetadata } from '@advjs/types'
+import { parsePublicHttpsUrl } from './url'
 
 export const musicUsages = ['background', 'theme', 'opening', 'ending', 'insert'] as const
 
@@ -41,14 +42,11 @@ export function parseAdvMusicMetadata(input: unknown): AdvMusicMetadata {
   let sourceUrl: string | undefined
   if (source.url !== undefined) {
     const raw = text(source.url, 'source URL', 2048)
-    let url: URL
-    try {
-      url = new URL(raw)
-    }
-    catch {
+    // Pure JS: hosts such as JavaScriptCore have no WHATWG URL.
+    const url = parsePublicHttpsUrl(raw)
+    if (!url.ok && url.reason === 'not-absolute')
       fail('source URL must be an absolute public HTTPS page')
-    }
-    if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash)
+    if (!url.ok)
       fail('source URL must use HTTPS without credentials, query or fragment')
     sourceUrl = url.href
   }

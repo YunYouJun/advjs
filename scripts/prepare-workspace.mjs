@@ -8,25 +8,32 @@ import { runCommand, runPnpm } from './release/run-command.mjs'
 const repositoryRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
 
 export const WORKSPACE_PREPARATION_PROFILES = Object.freeze({
-  editor: Object.freeze([
+  'editor': Object.freeze([
     Object.freeze(['pnpm', Object.freeze(['build'])]),
     Object.freeze(['pnpm', Object.freeze(['build:plugins'])]),
     Object.freeze(['pnpm', Object.freeze(['-C', 'editor/core', 'exec', 'nuxt', 'prepare'])]),
   ]),
-  launch: Object.freeze([
+  'launch': Object.freeze([
     Object.freeze(['pnpm', Object.freeze(['build'])]),
     Object.freeze(['pnpm', Object.freeze(['build:plugins'])]),
     Object.freeze(['pnpm', Object.freeze(['-C', 'editor/core', 'build'])]),
   ]),
-  lint: Object.freeze([
+  'lint': Object.freeze([
     Object.freeze(['pnpm', Object.freeze(['unocss:build'])]),
   ]),
-  studio: Object.freeze([
+  'studio': Object.freeze([
     // Build Studio's dependency graph once, in pnpm's topological order.
     // The ^ selector excludes Studio itself; studio:build runs it afterwards.
     Object.freeze(['pnpm', Object.freeze(['-r', '--filter', '@advjs/studio^...', 'run', 'build'])]),
   ]),
-  unit: Object.freeze([
+  // Studio unit tests plus the native engine golden cases, which load demo
+  // projects through the CLI (module configs import the built advjs package).
+  'studio-ios': Object.freeze([
+    Object.freeze(['pnpm', Object.freeze(['-r', '--filter', '@advjs/studio^...', 'run', 'build'])]),
+    // advjs and its themes depend on each other; build:advjs is the ordered chain.
+    Object.freeze(['pnpm', Object.freeze(['build:advjs'])]),
+  ]),
+  'unit': Object.freeze([
     Object.freeze(['pnpm', Object.freeze(['build'])]),
     Object.freeze(['pnpm', Object.freeze(['-C', 'editor/core', 'exec', 'nuxt', 'prepare'])]),
   ]),

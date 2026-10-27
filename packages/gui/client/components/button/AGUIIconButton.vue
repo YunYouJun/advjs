@@ -35,15 +35,15 @@ withDefaults(defineProps<{
   min-height: var(--agui-control-height);
   padding: 4px;
   border: 1px solid transparent;
-  border-radius: 3px;
+  border-radius: var(--agui-radius-sm);
   color: var(--agui-c-text-1);
   background: transparent;
   appearance: none;
-  font-family: inherit;
+  font-family: var(--agui-font-family-ui);
   font-size: 14px;
   line-height: 1;
   cursor: pointer;
-  transition: background-color 100ms ease;
+  transition: background-color var(--agui-motion-duration) var(--agui-motion-ease);
 
   .agui-icon-button-icon {
     flex-shrink: 0;

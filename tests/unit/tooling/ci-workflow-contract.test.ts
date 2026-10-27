@@ -128,6 +128,8 @@ describe('github Actions launch baseline', () => {
       'build',
       'editor-pages-build',
       'studio-pages-build',
+      'studio-unit',
+      'studio-ios-engine',
       'vrm-pages-build',
       'unit',
       'typecheck',
@@ -159,6 +161,11 @@ describe('github Actions launch baseline', () => {
     expect(runCommands(ci.jobs['editor-pages-build'])).toContain('pnpm editor:build')
     expectCommandBefore(ci.jobs['studio-pages-build'], 'pnpm install --frozen-lockfile', 'pnpm studio:build')
     expect(runCommands(ci.jobs['studio-pages-build'])).toContain('test -f apps/studio/dist/index.html && test -f apps/studio/dist/sw.js')
+    expectCommandBefore(ci.jobs['studio-unit'], 'pnpm prepare:workspace studio-ios', 'pnpm -C apps/studio exec vitest run')
+    expectCommandBefore(ci.jobs['studio-unit'], 'pnpm -C apps/studio-ios build:engine', 'pnpm -C apps/studio-ios test:engine')
+    expect(ci.jobs['studio-ios-engine']['runs-on']).toBe('xcode-27')
+    expectCommandBefore(ci.jobs['studio-ios-engine'], 'pnpm -C apps/studio-ios build:engine && pnpm -C apps/studio-ios golden', 'swift test --package-path apps/studio-ios/Packages/StudioKit')
+    expect(runCommands(ci.jobs['studio-ios-engine']).some(command => command.includes('xcodebuild test -scheme StudioKit'))).toBe(true)
     expectCommandBefore(ci.jobs['vrm-pages-build'], 'pnpm install --frozen-lockfile', 'pnpm run build:advjs && pnpm plugins:build && pnpm run vrm:build')
     expect(runCommands(ci.jobs['vrm-pages-build'])).toContain('test -f editor/vrm/dist/index.html && test -f editor/vrm/dist/sw.js')
     expectCommandBefore(ci.jobs['editor-smoke'], 'pnpm prepare:workspace editor', 'pnpm --filter @advjs/editor typecheck')
@@ -192,6 +199,8 @@ describe('github Actions launch baseline', () => {
       'build',
       'editor-pages-build',
       'studio-pages-build',
+      'studio-unit',
+      'studio-ios-engine',
       'vrm-pages-build',
       'unit',
       'typecheck',

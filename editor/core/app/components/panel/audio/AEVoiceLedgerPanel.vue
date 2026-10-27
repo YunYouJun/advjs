@@ -2,6 +2,7 @@
 import AGUIDetails from '@advjs/gui/client/components/AGUIDetails.vue'
 import AGUIProperty from '@advjs/gui/client/components/AGUIProperty.vue'
 import AGUIButton from '@advjs/gui/client/components/button/AGUIButton.vue'
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
 import AGUIFormItem from '@advjs/gui/client/components/form/AGUIFormItem.vue'
 import AGUIInput from '@advjs/gui/client/components/input/AGUIInput.vue'
 import AGUISelect from '@advjs/gui/client/components/select/AGUISelect.vue'
@@ -9,13 +10,16 @@ import AGUITextarea from '@advjs/gui/client/components/textarea/AGUITextarea.vue
 import AGUIToolbar from '@advjs/gui/client/components/toolbar/AGUIToolbar.vue'
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, reactive, shallowRef, useId, useTemplateRef, watch } from 'vue'
 import { useAudioLedger } from '../../../composables/useAudioLedger'
+import AEAudioPlayer from './AEAudioPlayer.vue'
 import AEVoiceComparePanel from './AEVoiceComparePanel.vue'
 import AEVoiceTakeReview from './AEVoiceTakeReview.vue'
+import AEVoiceTranscript from './AEVoiceTranscript.vue'
 
 const props = withDefaults(defineProps<{ visible?: boolean }>(), { visible: true })
 const ledger = reactive(useAudioLedger())
 const id = useId()
-const player = useTemplateRef<HTMLAudioElement>('player')
+const player = useTemplateRef<InstanceType<typeof AEAudioPlayer>>('player')
+const playbackTime = shallowRef(0)
 const advancedButton = useTemplateRef<InstanceType<typeof AGUIButton>>('advancedButton')
 const advanced = shallowRef(false)
 const AdvancedListening = defineAsyncComponent(() => import('./listening/AEVoiceListeningPanel.vue'))
@@ -66,7 +70,7 @@ function playbackError() {
         </AGUIButton>
       </template>
     </AGUIToolbar>
-    <div class="ae-ledger-fields">
+    <AGUIForm class="ae-ledger-fields" padded>
       <p v-if="ledger.unboundCount" class="ae-resource-caption" role="status">
         {{ ledger.unboundCount }} 条对白尚无稳定 lineId。先在剧本末尾添加 {#line_&lt;uuidv7&gt;}，再绑定配音。
       </p>
@@ -98,10 +102,17 @@ function playbackError() {
         <p v-else class="ae-resource-caption" role="status">
           此语言尚无配音 take；生成候选后，登记和选用分别执行。
         </p>
-        <AEVoiceTakeReview v-model:replace="ledger.replaceSelected" v-model:reviewed="ledger.staleReviewed" :take="ledger.take" :selected-take="ledger.binding?.selectedTake" :stale="ledger.takeReview?.stale" :kept="ledger.staleKept" :unavailable="ledger.takeReview?.unavailable" :pending="ledger.pending || ledger.reviewLoading" :writable="ledger.writable" :can-select="ledger.canSelect" :preview-loading="ledger.previewLoading" @preview="ledger.preview()" @select="ledger.select()" @clear="ledger.select(true)" @keep="ledger.confirmCurrent">
+        <AEVoiceTakeReview v-model:replace="ledger.replaceSelected" v-model:reviewed="ledger.staleReviewed" :take="ledger.take" :show-text="!ledger.previewSource || ledger.previewTake?.spokenText !== ledger.take?.spokenText" :selected-take="ledger.binding?.selectedTake" :stale="ledger.takeReview?.stale" :kept="ledger.staleKept" :unavailable="ledger.takeReview?.unavailable" :pending="ledger.pending || ledger.reviewLoading" :writable="ledger.writable" :can-select="ledger.canSelect" :preview-loading="ledger.previewLoading" @preview="ledger.preview()" @select="ledger.select()" @clear="ledger.select(true)" @keep="ledger.confirmCurrent">
           <template #listening>
             <AEVoiceComparePanel :row="ledger.reviewRow" :take-id="ledger.takeId" :preview-take-id="ledger.previewTakeId" :loading="ledger.previewLoading" :pending="ledger.pending || ledger.reviewLoading || advanced" @preview="ledger.preview" @inspect="ledger.takeId = $event" @stop="ledger.clearPreview" />
-            <audio v-if="ledger.previewSource" ref="player" :src="ledger.previewSource" controls preload="none" aria-label="对白配音试听" class="ae-ledger-player" @error="playbackError" />
+            <AEAudioPlayer v-if="ledger.previewSource" ref="player" :src="ledger.previewSource" label="对白配音试听" :title="ledger.previewTakeId === ledger.takeId ? '当前审核配音试听' : '对比候选试听'" @timeupdate="playbackTime = $event" @error="playbackError">
+              <AEVoiceTranscript v-if="ledger.previewTake" :text="ledger.previewTake.spokenText" :alignment="ledger.previewTake.alignment" :time="playbackTime" follow />
+            </AEAudioPlayer>
+            <div v-if="ledger.take" class="ae-resource-actions">
+              <AGUIButton :disabled="!ledger.canAlign" :loading="ledger.pending" data-testid="take-align" @click="ledger.alignTake">
+                {{ ledger.take.alignment ? '重新对齐逐字时间轴' : '生成逐字时间轴' }}
+              </AGUIButton>
+            </div>
           </template>
         </AEVoiceTakeReview>
         <AGUIDetails title="生成新的配音候选">
@@ -149,21 +160,6 @@ function playbackError() {
         {{ ledger.error }}
       </p>
       <AdvancedListening v-if="advanced && ledger.snapshot" :visible="visible" :snapshot="ledger.snapshot" :rows="ledger.reviewRows" @close="closeAdvanced" />
-    </div>
+    </AGUIForm>
   </section>
 </template>
-
-<style scoped>
-.ae-ledger-fields {
-  display: grid;
-  gap: 8px;
-  padding: 8px;
-  container: agui-properties / inline-size;
-}
-.ae-ledger-player {
-  max-width: 100%;
-  width: 100%;
-  height: 32px;
-  color-scheme: inherit;
-}
-</style>

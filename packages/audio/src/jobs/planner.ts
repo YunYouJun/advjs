@@ -1,4 +1,4 @@
-import type { VoiceAuthoringSnapshot } from '@advjs/types'
+import type { VoiceAuthoringSnapshot, VoiceTake } from '@advjs/types'
 import type { AudioGenerationCost, VoiceGenerationBudget, VoiceGenerationJob, VoiceGenerationResolvedInput } from './contracts'
 import { audioFingerprint, voiceInputFingerprint } from '../fingerprint'
 import { assertAudioId, createAudioId } from '../ids'
@@ -8,6 +8,17 @@ import { findVoiceTakeByFingerprint } from '../voice-ledger'
 
 export interface VoiceGenerationPlanLine extends VoiceGenerationResolvedInput {
   estimatedCost: AudioGenerationCost | null
+}
+
+export type VoiceGenerationSelectionMode = 'all' | 'missing' | 'stale'
+
+/** Shared Editor/Studio selection against the inspected, exact generation input. */
+export function voiceGenerationTargetMatches(mode: VoiceGenerationSelectionMode, selected: Pick<VoiceTake, 'inputFingerprint'> | undefined, fingerprint: string): boolean {
+  if (mode === 'missing')
+    return !selected
+  if (mode === 'stale')
+    return Boolean(selected && selected.inputFingerprint !== fingerprint)
+  return true
 }
 
 export function validateVoiceGenerationBudget(budget: VoiceGenerationBudget) {

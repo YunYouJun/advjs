@@ -51,21 +51,23 @@ const classes = computed(() => {
   --button-pressed: var(--agui-c-control-pressed);
   --button-text: var(--agui-c-text-1);
   --button-border: var(--agui-c-button-border);
-  --border-radius: 2px;
+  --border-radius: var(--agui-radius-sm);
 
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: var(--agui-control-gap);
   flex-shrink: 0;
   min-height: var(--agui-control-height);
   min-width: var(--agui-control-height);
-  padding: 2px 6px;
-  font-family: inherit;
-  font-size: 12px;
+  max-width: 100%;
+  padding: 2px var(--agui-control-padding-x);
+  font-family: var(--agui-font-family-ui);
+  font-size: var(--agui-font-size-body);
   font-weight: 400;
   line-height: 16px;
+  overflow-wrap: anywhere;
   appearance: none;
   background: var(--button-bg);
   color: var(--button-text);
@@ -73,8 +75,8 @@ const classes = computed(() => {
   border: 1px solid var(--button-border);
   border-radius: var(--border-radius);
   transition:
-    background-color 150ms ease,
-    border-color 150ms ease;
+    background-color var(--agui-motion-duration) var(--agui-motion-ease),
+    border-color var(--agui-motion-duration) var(--agui-motion-ease);
 
   .agui-button-icon {
     flex-shrink: 0;

@@ -3,6 +3,7 @@ import AGUICheckbox from '@advjs/gui/client/components/AGUICheckbox.vue'
 import AGUIDetails from '@advjs/gui/client/components/AGUIDetails.vue'
 import AGUIProperty from '@advjs/gui/client/components/AGUIProperty.vue'
 import AGUIButton from '@advjs/gui/client/components/button/AGUIButton.vue'
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
 import AGUISelect from '@advjs/gui/client/components/select/AGUISelect.vue'
 import AGUIToolbar from '@advjs/gui/client/components/toolbar/AGUIToolbar.vue'
 import { computed, reactive, useId } from 'vue'
@@ -31,7 +32,7 @@ const canApply = computed(() => Boolean(designer.selectedSample) && !designer.pe
         </AGUIButton>
       </template>
     </AGUIToolbar>
-    <div class="ae-design-workspace">
+    <AGUIForm class="ae-design-workspace" padded>
       <p v-if="!designer.hasTransport" class="ae-resource-caption" role="status">
         当前工作区未配置音色设计服务。请通过可信本地项目宿主连接，供应商插件与预设由宿主配置。
       </p>
@@ -89,23 +90,12 @@ const canApply = computed(() => Boolean(designer.selectedSample) && !designer.pe
       <p v-if="designer.status" class="ae-resource-caption" role="status">
         {{ designer.status }}
       </p>
-    </div>
+    </AGUIForm>
   </section>
 </template>
 
 <style scoped>
 .ae-voice-design {
   min-width: 0;
-}
-.ae-design-workspace {
-  display: grid;
-  gap: 8px;
-  padding: 8px;
-  min-width: 0;
-  container: agui-properties / inline-size;
-}
-.ae-design-workspace :deep(.agui-details-content) {
-  min-width: 0;
-  padding: 8px;
 }
 </style>

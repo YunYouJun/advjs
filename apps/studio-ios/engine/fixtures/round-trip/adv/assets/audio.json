@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 2,
+  "assets": [
+    {
+      "id": "bgm/theme",
+      "type": "audio",
+      "kind": "bgm",
+      "path": "bgm/theme.m4a",
+      "mimeType": "audio/mp4",
+      "duration": 20,
+      "title": "Theme",
+      "labels": ["night"],
+      "license": "CC0-1.0",
+      "source": { "type": "original" },
+      "music": {
+        "schemaVersion": 1,
+        "usage": "theme",
+        "source": { "type": "external-ai", "tool": "Suno", "url": "HTTPS://Suno.com/song/round-trip" },
+        "brief": { "summary": "Quiet night theme", "loopIntent": true },
+        "review": { "status": "pending" }
+      }
+    }
+  ]
+}

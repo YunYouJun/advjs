@@ -2,6 +2,7 @@
 import type { AGUIPanelProps } from '../types'
 import { ref } from 'vue'
 import { bCssVars } from '../styles/icons'
+import AGUIForm from './form/AGUIForm.vue'
 
 defineProps<{
   title?: string
@@ -27,7 +28,7 @@ const globalCSSVars = bCssVars()
     <template v-if="panels">
       <template v-for="panel in panels" :key="panel.title">
         <AGUIPanel :expanded="expanded" :title="panel.title">
-          <template v-if="!panel.type || panel.type === 'common'">
+          <AGUIForm v-if="!panel.type || panel.type === 'common'" padded>
             <AGUIProperty
               v-for="property in panel.properties"
               :key="property.label"
@@ -40,7 +41,7 @@ const globalCSSVars = bCssVars()
                 @change="property.onChange"
               />
             </AGUIProperty>
-          </template>
+          </AGUIForm>
 
           <AGUITree
             v-else-if="panel.type === 'tree'"

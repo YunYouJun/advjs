@@ -1,5 +1,7 @@
 import type { CharacterVoiceProfile, VoiceTakeSource } from '../audio/voice'
+import type { VoiceAlignment } from '../audio/voice-alignment'
 import type { VoiceDesignDefinition, VoiceDesignRecord, VoiceDesignSource } from '../audio/voice-design'
+import type { VoiceManagedInstallation } from '../audio/voice-maintenance'
 import type { JsonObject } from '../runtime'
 
 /** Available reference conditioning modes for an authoring voice provider. */
@@ -74,6 +76,7 @@ export interface AdvVoiceCandidate {
   providerVoiceId?: string
   voiceId?: string
   voiceVersion?: string
+  alignment?: VoiceAlignment
 }
 
 /** Modern synthesis always reports normalized local candidates. */
@@ -87,8 +90,11 @@ export interface AdvVoiceCapabilities {
   synthesis: boolean
   voiceCreation: boolean
   offline: boolean
+  alignment?: boolean
   /** Optional design/sample support. Absence means unsupported, independently of createVoice. */
   designSources?: VoiceDesignSource[]
+  /** Explicit reference modes for clone controls; absent preserves legacy adapters. */
+  referenceModes?: AdvVoiceReferenceMode[]
   models: Array<{
     id: string
     modes: string[]
@@ -144,9 +150,12 @@ export interface AdvVoiceCreateRequest extends AdvVoiceContext {
 /** Modern adapter; cloud providers need neither a local directory nor setup. */
 export interface AdvVoiceSynthesisProvider {
   id: string
+  packageName?: string
   capabilities: AdvVoiceCapabilities
+  installation?: VoiceManagedInstallation
   inspectPreset: (request: AdvVoiceSynthesisRequest) => Promise<AdvVoicePresetInspection>
   synthesize: (request: AdvVoiceSynthesisRequest) => Promise<AdvVoiceSynthesisResult>
+  align?: (request: AdvVoiceContext & { path: string, text: string, sha256: string, durationSeconds: number, locale?: string }) => Promise<VoiceAlignment>
   doctor?: (context: AdvVoiceContext) => Promise<AdvVoiceDoctorResult>
   setup?: (context: AdvVoiceContext) => Promise<AdvVoiceSetupResult>
   createVoice?: (request: AdvVoiceCreateRequest) => Promise<JsonObject>

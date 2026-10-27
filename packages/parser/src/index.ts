@@ -4,6 +4,7 @@
  */
 export * from './character'
 export * from './config'
+export * from './content'
 export * from './core'
 export { projectGlossarySource } from './glossary'
 export { readGlossaryContent } from './glossary-content'

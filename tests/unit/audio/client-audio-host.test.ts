@@ -30,6 +30,55 @@ function setup(options: Parameters<typeof createFakeAudioBackend>[0] = {}) {
 }
 
 describe('shared client audio director', () => {
+  it('follows the playback clock through pauses, seeks, natural end and next-line cancellation', async () => {
+    const frames = new Map<number, FrameRequestCallback>()
+    let sequence = 0
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      frames.set(++sequence, callback)
+      return sequence
+    })
+    vi.stubGlobal('cancelAnimationFrame', (id: number) => frames.delete(id))
+    const { audio, backend, config } = setup()
+    let seconds = 0.15
+    const tick = () => {
+      const entry = frames.entries().next().value!
+      frames.delete(entry[0])
+      entry[1](0)
+    }
+    try {
+      config.audio!.voiceLedger!.lines[lineId]!.locales['zh-CN']!.takes[0]!.alignment = { schemaVersion: 1, text: '你好', audioSha256: hash, durationSeconds: 1, engine: 'fixture', model: 'fixture', units: [{ start: 0, end: 1, startTime: 0.1, endTime: 0.3 }, { start: 1, end: 2, startTime: 0.5, endTime: 0.9 }] }
+      await audio.applyEffects([dialogue], state)
+      const voice = backend.playbacks.find(value => value.bus === 'voice')!
+      Object.assign(voice, { currentTime: () => seconds })
+      tick()
+      expect(audio.voiceHighlight.value?.unit?.start).toBe(0)
+      audio.pause()
+      tick()
+      expect(audio.voiceHighlight.value?.unit?.start).toBe(0)
+      await audio.resume()
+      seconds = 0.7
+      tick()
+      expect(audio.voiceHighlight.value?.unit?.start).toBe(1)
+      seconds = 0.4
+      tick()
+      expect(audio.voiceHighlight.value?.unit).toBeUndefined()
+      seconds = 0.15
+      tick()
+      expect(audio.voiceHighlight.value?.unit?.start).toBe(0)
+      voice.end()
+      expect(audio.voiceHighlight.value).toBeUndefined()
+      expect(frames.size).toBe(0)
+      await audio.applyEffects([dialogue], state)
+      audio.stopVoice()
+      expect(audio.voiceHighlight.value).toBeUndefined()
+      expect(frames.size).toBe(0)
+    }
+    finally {
+      audio.dispose()
+      vi.unstubAllGlobals()
+    }
+  })
+
   it('prefetches at most three selected voices and aborts them on locale/history changes', async () => {
     const { backend, config, audio: initial } = setup()
     initial.dispose()

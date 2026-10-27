@@ -11,12 +11,18 @@ import {
   ComboboxViewport,
 } from 'reka-ui'
 import { computed } from 'vue'
+import '../input/fields.scss'
+
+defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(defineProps<{
   modelValue?: string
   options?: string[]
   placeholder?: string
   clearable?: boolean
+  id?: string
+  label?: string
+  disabled?: boolean
 }>(), {
   options: () => [],
 })
@@ -39,11 +45,16 @@ function onUpdateModelValue(value: string) {
 
 <template>
   <ComboboxRoot
+    class="agui-combobox"
     :model-value="modelValue"
+    :disabled="disabled"
     @update:model-value="onUpdateModelValue"
   >
     <ComboboxAnchor class="agui-combobox-wrapper">
       <ComboboxInput
+        v-bind="$attrs"
+        :id="id"
+        :aria-label="label || ($attrs['aria-label'] as string | undefined)"
         :model-value="modelValue"
         :display-value="(v: string) => v ?? ''"
         class="agui-combobox-input agui-input"
@@ -81,28 +92,28 @@ function onUpdateModelValue(value: string) {
 
 <style lang="scss">
 .agui-combobox-wrapper {
+  min-width: 0;
   width: 100%;
 }
-
-.agui-combobox-input {
+.agui-combobox {
+  min-width: 0;
   width: 100%;
-  padding: 0 4px;
-  box-sizing: border-box;
 }
 
 .agui-combobox-content {
+  font-family: var(--agui-font-family-ui);
   overflow: hidden;
   color: var(--agui-c-text-1);
   background-color: var(--agui-c-popup);
   border: 1px solid var(--agui-c-border);
-  border-radius: 4px;
+  border-radius: var(--agui-radius-md);
   box-shadow: var(--agui-shadow-popup);
   width: var(--reka-combobox-trigger-width);
   max-height: var(--reka-combobox-content-available-height);
 }
 
 .agui-combobox-viewport {
-  padding: 5px;
+  padding: var(--agui-space-1);
 }
 
 .agui-combobox-empty {
@@ -114,11 +125,11 @@ function onUpdateModelValue(value: string) {
 .agui-combobox-item {
   font-size: 12px;
   line-height: 1;
-  border-radius: 3px;
+  border-radius: var(--agui-radius-sm);
   display: flex;
   align-items: center;
-  min-height: 25px;
-  padding: 0 35px 0 25px;
+  min-height: var(--agui-control-height);
+  padding: 0 var(--agui-control-height);
   position: relative;
   user-select: none;
 
@@ -136,7 +147,7 @@ function onUpdateModelValue(value: string) {
   &-indicator {
     position: absolute;
     left: 0;
-    width: 25px;
+    width: var(--agui-control-height);
     display: inline-flex;
     align-items: center;
     justify-content: center;

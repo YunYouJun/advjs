@@ -213,13 +213,36 @@
 
 ### 1. 引擎接口
 
-- **入口**：`AdvEngine.call(operation, inputJson) → Promise<responseJson>`，响应固定为 `{ ok, apiVersion, result | error }`。探针接口版本为 0，包含 `project.compile`、`project.playerConfig`、`project.applyPatches`、`chapter.parseAst`、`content.parse`、`content.stringify`、`assets.normalizeManifest`、`host.digest`、`engine.info`。P1 定稿为 v1。
-- **宿主能力**：JavaScriptCore 只有 ECMAScript 与 Intl。共享模块实际用到 `TextEncoder`、`TextDecoder`、`crypto.subtle.digest('SHA-256')`、`structuredClone`、`crypto.getRandomValues`。前 4 项以纯 JavaScript 预置在引擎包最前面（构建时作为 banner，不受导入排序影响），结果与 Node 逐字节一致（含 CJK、emoji、孤立代理项和 7 万字长文本）；安全随机数由 Swift 以 `SecRandomCopyBytes` 注入。引擎不得使用 `URL`、`fetch`、定时器与 DOM，P1 的依赖闭包检查需拦截这些全局。
-- **异常文本**：V8 与 JavaScriptCore 的运行时异常信息不同（探针首轮唯一差异即来自此）。接口先校验输入形状并返回稳定错误码，比较与展示只使用错误码。
-- **异步**：JavaScriptCore 在控制权离开虚拟机时清空微任务队列，纯计算型 Promise 在 `invokeMethod` 返回前完成。宿主把「调用返回后仍未完成」视为错误，P1 保留这条断言。
-- **线程与生命周期**：每个 `JSContext` 绑定一条串行队列，在后台加载，不阻塞首帧。冷加载（evaluate）41–82 ms（模拟器）。连续运行 160 个用例后进程内存从加载后约 44 MB 升至约 120 MB，释放上下文后不回落；P1 需改为按项目重建 `JSVirtualMachine`，并在真机上用 Instruments 定位，这是当前最大的性能风险。
-- **项目配置**：引擎只接受文件快照，不执行 `adv.config.ts` 等模块配置（Node 端依赖 jiti）。原生 App 读写 `adv.config.json`；仅有模块配置的项目给出明确诊断，并提示在桌面 Editor 中迁移。`public/md/chapters/**` 旧布局按 CLI `compileRuntimeChapterFiles` 的映射处理，P1 将该映射下沉为共享函数。
-- **包体**：未压缩 1.29 MB，压缩后 641 KiB（gzip 166 KB）。zod 占未压缩体积 43%，P1 评估 `zod/mini` 或按需导入。
+- **入口**：`AdvEngine.call(operation, inputJson) → Promise<responseJson>`，响应固定为 `{ ok, apiVersion, result | error }`，从不 reject。P1 定稿为 v1（`apps/studio-ios/engine/src/protocol.ts` 的 `ENGINE_API_VERSION`），原生宿主启动时用 `engine.info` 握手，版本不符即拒绝加载。任何操作的输入或结果出现不兼容变化都必须提升版本。
+- **v1 操作**（输入均为 JSON 对象；`files` 为「项目相对路径 → UTF-8 文本」快照，`paths` 为含二进制文件在内的全部路径）：
+
+  | 操作                       | 输入                                            | 结果                                                                       | 共享实现                                                |
+  | -------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------- |
+  | `engine.info`              | —                                               | 接口版本、操作列表、内置官方插件版本                                       | —                                                       |
+  | `project.index`            | `files`、`paths?`                               | 章节、角色、场景、地点、音频列表与逐文件问题（与 Web Studio 加载规则一致） | `@advjs/core/project` `indexProjectContent`             |
+  | `project.compile`          | `files`、`options?`                             | 项目编译结果与归一诊断；默认按内置官方插件版本编译                         | `compileProject`                                        |
+  | `project.playerConfig`     | `files`、`baseUrl`、`options?`                  | 播放器游戏配置（媒体路径映射到播放器 scheme）与诊断                        | `compileProject`、`createProjectGameConfig`             |
+  | `project.validate`         | `files`、`paths?`                               | 与 Web Studio 健康面板相同的问题列表、统计与内容问题                       | `validateProjectContent`                                |
+  | `project.authoringProgram` | `files`、`paths?`、`override?`、`resources?`    | 程序行（章节、节点、源位置）、入口与归一诊断；`override` 为未保存草稿      | `compileAuthoringProgram`                               |
+  | `project.fixReferences`    | `files`、`issues`                               | 移除失效引用后需写回的文件与已修复问题                                     | `fixProjectReferences`                                  |
+  | `project.applyPatches`     | `files`、`patches`                              | 结构化补丁后的文件                                                         | `applyProjectPatches`                                   |
+  | `project.legacyChapters`   | `chapters`（`chapters/` 目录内相对路径 → 文本） | 与 CLI 相同的章节分组和规范 `adv/` 项目文件                                | `groupLegacyChapterFiles`、`createLegacyChapterProject` |
+  | `chapter.parseAst`         | `content`、`glossary?`                          | AdvScript AST                                                              | `@advjs/parser` `parseAst`                              |
+  | `content.parse`            | `type`、`content`、`filename?`                  | 表单数据                                                                   | `@advjs/parser` 内容文档                                |
+  | `content.stringify`        | `type`、`data`、`source?`                       | 文件文本；给出 `source` 时保留未知字段与正文，未修改则原样返回             | 同上                                                    |
+  | `assets.normalizeManifest` | `manifest`、`allowEmpty?`                       | 规范化资源目录                                                             | `@advjs/assets`                                         |
+  | `assets.readManifest`      | `files`                                         | 合并 `includes` 后的规范化资源目录及其根路径                               | `readAdvAssetManifestSource`                            |
+  | `host.selfTest`            | `text`                                          | UTF-8、SHA-256、`structuredClone` 自检，仅用于一致性测试                   | —                                                       |
+
+- **错误码**：`ENGINE_UNKNOWN_OPERATION`、`ENGINE_INVALID_JSON`、`ENGINE_INVALID_INPUT`（附 `field`）、`ENGINE_CONTENT_INVALID`、`ENGINE_PROJECT_INVALID`（附 `field`）、`ENGINE_OPERATION_FAILED`。宿主按错误码分支与本地化，`message` 只用于日志。
+- **诊断**：`project.compile`、`project.playerConfig`、`project.authoringProgram` 返回统一的 `{ code, severity, message, file, line, column, suggestion }`（行列从 1 开始）。`project.validate` 保留 Web Studio 健康面板的问题结构（`type`、`category`、`file`、`line`、`column`、`code`），两端界面直接对照。编译诊断中由宿主 JSON 解析器给出的原文（如 `ADV_PROJECT_INVALID_JSON`）随 JavaScript 引擎而异，跨端比较以错误码、文件与行列为准；golden 用例因此不含格式损坏的 JSON 项目文件。
+- **宿主能力**：JavaScriptCore 只有 ECMAScript 与 Intl。共享模块实际用到 `TextEncoder`、`TextDecoder`、`crypto.subtle.digest('SHA-256')`、`structuredClone`、`crypto.getRandomValues`，以及 js-yaml `!!binary` 用到的 `atob`、`btoa`。除随机数外均以纯 JavaScript 预置在引擎包最前面（构建时作为 banner，不受导入排序影响），结果与 Node 逐字节一致（含 CJK、emoji、孤立代理项和 7 万字长文本）；安全随机数由 Swift 以 `SecRandomCopyBytes` 注入，`console` 在宿主未提供时转发到 `os.Logger`。
+- **依赖闭包检查**：构建时拦截 Node、Vue、Pixi、Three、Babylon、Monaco、Dexie、Capacitor 模块；再用 ESLint `no-undef` 检查未压缩产物中 `typeof` 守卫之外的全局引用，除 ECMAScript 内置、Intl 与上述预置外一律失败。P1 据此发现资源目录的音乐来源链接校验调用 `new URL()`，在 JavaScriptCore 中会使整个项目编译失败；已改为纯 JavaScript 的保守 HTTPS 解析（`@advjs/assets` `parsePublicHttpsUrl`），接受的输入与 WHATWG `URL.href` 逐字节一致（差分测试），IP、国际化域名、需要改写的路径等一律拒绝，Web、CLI 同时生效。zod 的可选校验器（`z.url()`、`z.file()`）与 vfile 的 URL 对象分支不可达，按模块登记在 `ENGINE_TOLERATED_GLOBAL_REFERENCES`，并由沙箱运行 golden 用例佐证。
+- **异常文本**：V8 与 JavaScriptCore 的运行时异常信息不同。接口先校验输入形状并返回稳定错误码；JSON 输入解析失败使用固定文本。
+- **异步**：JavaScriptCore 在控制权离开虚拟机时清空微任务队列，纯计算型 Promise 在 `invokeMethod` 返回前完成。宿主把「调用返回后仍未完成」视为错误（`EngineError.unsettled`）。
+- **线程与生命周期**：`StudioKit` 的 `EngineBridge` 是以私有串行队列为执行器的 actor，所有 JavaScript 在该队列运行，不占主线程。每个桥（每个打开的项目）拥有独立的 `JSVirtualMachine`，关闭项目即释放整个堆。模拟器上连续 5 轮「加载 → 全部 golden 用例 → 关闭」：首轮后进程占用约 100 MB，此后稳定在 85–107 MB，不再逐轮累积（P0 为单个上下文持续上涨且不回落）；关闭后不立即回落到基线，归还时机由 JavaScriptCore 自行决定，`malloc_zone_pressure_relief` 无可测改善。P7 用 Instruments Allocations 与 VM Tracker 进一步定位。
+- **项目配置**：引擎只接受文件快照，不执行 `adv.config.ts` 等模块配置（Node 端依赖 jiti）。原生 App 读写 `adv.config.json`；仅有模块配置的项目给出明确诊断，并提示在桌面 Editor 中迁移。`public/md/chapters/**` 旧布局的分组与映射已下沉为 `@advjs/core/project` 的 `groupLegacyChapterFiles`、`createLegacyChapterProject`，CLI 与引擎共用。
+- **包体**：压缩后 670 KiB（预算 720 KiB，构建与单测均检查）。zod 占 320 KiB（48%）。评估 `zod/mini`：`@advjs/parser` 公开导出的角色、场景 schema 基于完整 zod，改用 mini 会改变已发布 API，收益约 250 KiB；首版保留完整 zod，以体积预算约束增长，另行评估 parser 的 schema 迁移。
 
 ### 2. 播放器宿主
 
@@ -263,6 +286,26 @@
 | CI runner    | GitHub-hosted `xcode-27`（Apple Silicon，macOS 27，2026-10-15 GA）。固定 Xcode 版本；最低版本回归需要 iOS 26 模拟器运行时，镜像是否预装待 P8 核实。                                                                       |
 | 验收设备     | 用户决定使用 iOS 模拟器：iPhone 18 Pro 与 iPad Pro 11-inch（M5）模拟器，iOS 27.0；最低版本另装 iOS 26 运行时回归。性能预算以模拟器趋势为准，实机差异列为风险。                                                            |
 | Bundle ID    | Release `org.advjs.studio`，Debug `org.advjs.studio.dev`；Team Lan Yang（`QT792GAY4C`），Xcode 自动签名。                                                                                                                 |
+
+### 7. 共享层与内容格式
+
+P1 把 Web Studio 中平台无关的逻辑下沉到已有包，Vue Studio 改为引用共享实现，原文件删除或改为薄封装（注入 Studio 的插件与文件系统）：
+
+| 能力                                                 | 原位置（`apps/studio/src`）                                               | 共享位置                                                                      |
+| ---------------------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| frontmatter 拆分与序列化，场景、地点、音频、章节文档 | `utils/{mdFrontmatter,sceneMd,locationMd,audioMd,chapterMd}.ts`（已删除） | `@advjs/parser` `content/`                                                    |
+| 创作编译（程序行、源位置、插件校验）                 | `utils/runtimeAuthoring.ts`                                               | `@advjs/core/project` `compileAuthoringProgram`                               |
+| 项目校验与失效引用修复                               | `utils/projectValidation.ts`                                              | `@advjs/core/project` `validateProjectContent`、`fixProjectReferences`        |
+| 内容发现与列表摘要、章节根目录、源格式               | `composables/useProjectContent.ts`、`utils/projectRuntimeFiles.ts`        | `@advjs/core/project` `indexProjectContent` 及逐文件函数                      |
+| `game.json` 创作设置解析                             | `utils/projectRuntimeFiles.ts`                                            | `@advjs/core/project` `parseAuthoringGameSettings`                            |
+| 资源目录根与 `includes` 读取                         | `utils/projectAssets.ts`                                                  | `@advjs/assets` `readAdvAssetManifestSource`                                  |
+| 旧布局章节映射                                       | CLI `packages/advjs/node/runtime/project.ts`                              | `@advjs/core/project` `groupLegacyChapterFiles`、`createLegacyChapterProject` |
+
+`@advjs/core` 新增 `./project` 子入口，供引擎只引入无界面的项目模块。资源目录写入（`upsertStudioProjectAsset`）与 `@advjs/assets` 的 `planAdvAssetManifestUpsert` 规则不同（角色素材分片、旧索引迁移、替换确认），在 P3 实现原生图片导入时统一，届时两端改用同一计划函数；内容模板、CSV 导入导出随 P2、P3 对应功能下沉。
+
+**未知字段与正文的保留规则**（N3）：序列化函数接收当前文件 `source` 时只改写表单管理的字段。值与解析结果相同的字段保持原写法（包括省略状态）；被清空的字段从 frontmatter 删除；新字段按规范顺序追加；其他键、键序与正文原样保留，全部未修改时逐字节返回原文。frontmatter 有改动时整体重新输出 YAML，注释与引号风格随之规范化。场景、地点、音频的描述若原本写在正文中，修改后写回正文；角色只改写变化的 `##` 小节（解析器取同名小节的最后一个），未知小节与标题前的说明保留，新小节按序追加。章节标题与梗概经 `updateChapterMd` 写入章节自身的 frontmatter。Web Studio 编辑保存时传入原文件，因此同样保留未知字段。
+
+已知 Web 差异（不在 P1 修复）：Web Studio 编辑已有正文的章节时，表单中的标题、梗概不会写入文件（`stringifyChapterMd` 的既有行为）；原生端使用 `updateChapterMd`。修复前两端在此处行为不同，列入 P3 章节表单的统一。
 
 ## Capacitor 分发与数据迁移
 

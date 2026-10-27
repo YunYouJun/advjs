@@ -5,6 +5,7 @@ import { createAudioId } from '@advjs/audio'
 import { flowEditReferences, flowEditTargetAddress, isFlowEditRecord } from '@advjs/core'
 import AGUIProperty from '@advjs/gui/components/AGUIProperty.vue'
 import AGUIButton from '@advjs/gui/components/button/AGUIButton.vue'
+import AGUIForm from '@advjs/gui/components/form/AGUIForm.vue'
 import AGUIInput from '@advjs/gui/components/input/AGUIInput.vue'
 import AGUISelect from '@advjs/gui/components/select/AGUISelect.vue'
 import AGUITextarea from '@advjs/gui/components/textarea/AGUITextarea.vue'
@@ -97,7 +98,7 @@ function changePosition(axis: 'x' | 'y', value: string) {
     <p v-if="invalidRows" class="native-error" role="alert">
       对白或选项记录格式无效。请打开 JSON 源码修复；原始数据保持完整。
     </p>
-    <fieldset :disabled="disabled || invalidRows">
+    <AGUIForm as="fieldset" :disabled="disabled || invalidRows">
       <div class="native-actions">
         <AGUIButton :disabled="entry" @click="emit('edit', { type: 'set-entry', nodeId: node.id })">
           设为入口
@@ -223,7 +224,7 @@ function changePosition(axis: 'x' | 'y', value: string) {
       <p v-if="error" class="native-error" role="alert">
         {{ error }}
       </p>
-    </fieldset>
+    </AGUIForm>
   </aside>
 </template>
 
@@ -242,14 +243,6 @@ header {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-}
-fieldset {
-  border: 0;
-  padding: 0;
-  margin: 0;
-  min-width: 0;
-  display: grid;
-  gap: 6px;
 }
 .native-id,
 .native-caption {
@@ -270,10 +263,10 @@ fieldset {
 }
 .native-row {
   border: 1px solid var(--agui-c-divider);
-  padding: 6px;
+  padding: var(--agui-space-2);
   min-width: 0;
   display: grid;
-  gap: 6px;
+  gap: var(--agui-form-row-gap);
 }
 .native-error {
   color: var(--agui-c-danger-text);

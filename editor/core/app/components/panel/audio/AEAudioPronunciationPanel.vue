@@ -2,6 +2,7 @@
 import type { AudioPronunciationDictionary } from '@advjs/types'
 import { AUDIO_PRONUNCIATION_PATH, createAudioPronunciationDictionary, parseAudioPronunciationDictionary } from '@advjs/audio'
 import AGUIButton from '@advjs/gui/client/components/button/AGUIButton.vue'
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
 import AGUIFormItem from '@advjs/gui/client/components/form/AGUIFormItem.vue'
 import AGUITextarea from '@advjs/gui/client/components/textarea/AGUITextarea.vue'
 import AGUIToolbar from '@advjs/gui/client/components/toolbar/AGUIToolbar.vue'
@@ -104,7 +105,7 @@ onBeforeUnmount(() => {
         <span>版本 {{ dictionary.revision }}</span>
       </template>
     </AGUIToolbar>
-    <div class="ae-pronunciation-editor">
+    <AGUIForm class="ae-pronunciation-editor" padded>
       <p class="ae-resource-caption">
         词条按最长匹配单次替换。语言词条优先于全局词条；逐句口播覆盖优先于词典。
       </p>
@@ -137,15 +138,11 @@ onBeforeUnmount(() => {
       <p class="ae-resource-caption">
         {{ AUDIO_PRONUNCIATION_PATH }}
       </p>
-    </div>
+    </AGUIForm>
   </section>
 </template>
 
 <style scoped>
-.ae-pronunciation-editor {
-  padding: 8px;
-  min-width: 0;
-}
 .ae-pronunciation-editor :deep(textarea) {
   width: 100%;
   font-family: monospace;

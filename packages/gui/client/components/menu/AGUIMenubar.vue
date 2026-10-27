@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Menu } from './types'
+import { usePreferredReducedMotion } from '@vueuse/core'
 import {
   MenubarCheckboxItem,
   MenubarContent,
@@ -17,12 +18,15 @@ import {
   MenubarTrigger,
 } from 'reka-ui'
 import './menu-bar.scss'
+import '../../styles/motion.scss'
 
 withDefaults(defineProps<{
   menus?: Menu[]
 }>(), {
   menus: () => [],
 })
+
+const reducedMotion = usePreferredReducedMotion()
 
 const currentMenu = defineModel('currentMenu', {
   type: String,
@@ -33,16 +37,16 @@ const currentMenu = defineModel('currentMenu', {
 <template>
   <MenubarRoot v-model="currentMenu" class="MenubarRoot">
     <template v-if="menus?.length">
-      <MenubarMenu v-for="menu in menus" :key="menu.name">
+      <MenubarMenu v-for="menu in menus" :key="menu.name" :value="menu.name">
         <MenubarTrigger
           class="MenubarTrigger"
           :class="menu.class"
         >
           {{ menu.name }}
         </MenubarTrigger>
-        <MenubarPortal>
+        <MenubarPortal :key="Number(currentMenu !== menu.name && reducedMotion === 'reduce')">
           <MenubarContent
-            class="MenubarContent"
+            class="MenubarContent agui-motion-popup"
             align="start"
             :side-offset="5"
             :align-offset="-3"
@@ -64,7 +68,7 @@ const currentMenu = defineModel('currentMenu', {
                 class="MenubarSeparator"
               />
 
-              <MenubarSub v-else-if="menuItem.type === 'submenu'">
+              <MenubarSub v-else-if="menuItem.type === 'submenu'" v-slot="{ open: submenuOpen }">
                 <MenubarSubTrigger
                   class="MenubarItem"
                 >
@@ -75,9 +79,9 @@ const currentMenu = defineModel('currentMenu', {
                     <div class="i-radix-icons:chevron-right" />
                   </div>
                 </MenubarSubTrigger>
-                <MenubarPortal>
+                <MenubarPortal :key="Number(!submenuOpen && reducedMotion === 'reduce')">
                   <MenubarSubContent
-                    class="MenubarContent"
+                    class="MenubarContent agui-motion-popup"
                     :align-offset="-5"
                   >
                     <template v-for="(subItem, key) in menuItem.children" :key="key">

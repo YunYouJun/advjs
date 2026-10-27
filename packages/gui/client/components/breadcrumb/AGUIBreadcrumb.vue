@@ -23,6 +23,7 @@ defineProps<{
 
 <style lang="scss">
 .agui-breadcrumb-container {
+  font-family: var(--agui-font-family-ui);
   display: flex;
   background-color: var(--agui-c-bg-panel-title);
 

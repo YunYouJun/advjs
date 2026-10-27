@@ -1,15 +1,19 @@
 <script lang="ts" setup>
 import type { AGUIAccordionProps } from './types'
+import { usePreferredReducedMotion } from '@vueuse/core'
 import { AccordionContent, AccordionHeader, AccordionItem, AccordionTrigger } from 'reka-ui'
 import './styles.scss'
 
 defineProps<{
   item: AGUIAccordionProps
 }>()
+
+const reducedMotion = usePreferredReducedMotion()
 </script>
 
 <template>
   <AccordionItem
+    v-slot="{ open }"
     class="AccordionItem"
     :value="item.value || item.title"
     :collapsible="item.collapsible"
@@ -26,7 +30,7 @@ defineProps<{
         <slot name="trigger" />
       </AccordionTrigger>
     </AccordionHeader>
-    <AccordionContent class="AccordionContent">
+    <AccordionContent :key="Number(!open && reducedMotion === 'reduce')" class="AccordionContent">
       <slot name="content">
         <div class="AccordionContentText">
           <slot />

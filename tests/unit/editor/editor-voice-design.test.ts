@@ -4,8 +4,10 @@ import { createHash, webcrypto } from 'node:crypto'
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, reactive, ref } from 'vue'
+import AEAudioPlayer from '../../../editor/core/app/components/panel/audio/AEAudioPlayer.vue'
 import AEVoiceDesignCandidates from '../../../editor/core/app/components/panel/audio/AEVoiceDesignCandidates.vue'
 import { useVoiceDesign } from '../../../editor/core/app/composables/useVoiceDesign'
+import { mockResizeObserver } from '../../helpers/resize-observer'
 
 const context = vi.hoisted(() => ({ project: {} as { workspace?: { voiceDesign?: VoiceDesignPort, readAsset?: (path: string) => Promise<Blob> }, project?: { files: Record<string, string>, compilation?: { project: { assets?: AdvAssetManifest } } }, refreshProject: ReturnType<typeof vi.fn> }, audio: { supportedRoot: true, workflowSpeakerId: undefined as string | undefined }, drafts: { register: vi.fn(), remove: vi.fn() } }))
 vi.mock('../../../editor/core/app/stores/useProjectStore', () => ({ useProjectStore: () => context.project }))
@@ -39,6 +41,7 @@ function mutation(): VoiceDesignMutation {
   return { snapshot: JSON.parse(JSON.stringify(state)), changes: [] }
 }
 beforeEach(async () => {
+  mockResizeObserver()
   state = initial()
   changeIndex = 0
   visible.value = true
@@ -155,6 +158,20 @@ describe('editor shared voice design workflow', () => {
     expect(wrapper.emitted('sample')).toEqual([[sample]])
     expect(wrapper.emitted('select')).toBeUndefined()
     expect(wrapper.emitted('audition')).toBeUndefined()
+  })
+
+  it('shows a registered transcript once and preserves highlighting across the preview-to-sample identity', async () => {
+    vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue()
+    vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {})
+    const sample: VoiceDesignSample = { assetId: 'sample-one', sha256, bytes: 4, locale: 'zh-CN', providerId: 'fixture-tts', providerVoiceId: 'coral', model: 'fixture-model', source: 'system', text: '试听', presetSha256: 'a'.repeat(64), createdAt: '2026-10-12T00:00:00.000Z', alignment: { schemaVersion: 1, text: '试听', audioSha256: sha256, durationSeconds: 1, engine: 'fixture', model: 'fixture', units: [{ start: 0, end: 1, startTime: 0.1, endTime: 0.5 }] } }
+    const wrapper = mount(AEVoiceDesignCandidates, { props: { previews: [{ ...ready, status: 'registered', registeredAssetId: sample.assetId }], samples: [sample], source: 'blob:registered', playingPreviewId: ready.id, pending: false, replaceSelected: false } })
+    wrappers.push(wrapper)
+    await flushPromises()
+    wrapper.getComponent(AEAudioPlayer).vm.$emit('timeupdate', 0.2)
+    await flushPromises()
+    expect(wrapper.findAll('[aria-label="配音文本"]')).toHaveLength(1)
+    expect(wrapper.get('[data-voice-active]').text()).toBe('试')
+    expect(wrapper.get('[data-testid="design-preview-registered"]').isVisible()).toBe(true)
   })
 
   it('keeps saved design immutable, copies a distinct revision and saves without invoking synthesis or profile adoption', async () => {

@@ -47,8 +47,7 @@
   text-align: center;
 }
 .ae-resource-form {
-  margin-top: 8px;
-  container: agui-properties / inline-size;
+  margin-top: var(--agui-space-2);
 }
 .ae-resource-actions {
   display: flex;

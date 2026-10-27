@@ -5,12 +5,14 @@ import AGUIDetails from './AGUIDetails.vue'
 import AGUINumberField from './AGUINumberField.vue'
 import AGUIPanel from './AGUIPanel.vue'
 import AGUIProperty from './AGUIProperty.vue'
+import AGUISection from './AGUISection.vue'
 
 import AGUISlider from './AGUISlider.vue'
 
 import AGUIButton from './button/AGUIButton.vue'
 import AGUIIconButton from './button/AGUIIconButton.vue'
 
+import AGUICodeBlock from './code/AGUICodeBlock.vue'
 import AGUICombobox from './combobox/AGUICombobox.vue'
 import AGUIHr from './common/AGUIHr.vue'
 import AGUIAssetsExplorer from './explorer/AGUIAssetsExplorer.vue'
@@ -26,6 +28,7 @@ import AGUIInputVector from './input/AGUIInputVector.vue'
 import AGUILayout from './layout/AGUILayout.vue'
 import AGUILoading from './loading/AGUILoading.vue'
 import AGUIMenubar from './menu/AGUIMenubar.vue'
+import AGUIPopover from './popover/AGUIPopover.vue'
 
 import AGUISelect from './select/AGUISelect.vue'
 import AGUITabPanel from './tabs/AGUITabPanel.vue'
@@ -42,6 +45,7 @@ export {
   AGUIAssetsExplorer,
   AGUIButton,
   AGUICheckbox,
+  AGUICodeBlock,
   AGUIColorPicker,
 
   AGUICombobox,
@@ -60,7 +64,9 @@ export {
   AGUIMenubar,
   AGUINumberField,
   AGUIPanel,
+  AGUIPopover,
   AGUIProperty,
+  AGUISection,
   AGUISelect,
   AGUISlider,
   AGUITabPanel,

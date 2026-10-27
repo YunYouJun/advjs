@@ -13,7 +13,9 @@ import AEProjectAudioPanel from '../../../editor/core/app/components/panel/audio
 import AEVoiceLedgerPanel from '../../../editor/core/app/components/panel/audio/AEVoiceLedgerPanel.vue'
 import { useAudioStore } from '../../../editor/core/app/stores/useAudioStore'
 import { useProjectAssets } from '../../../editor/core/app/stores/useProjectAssets'
+import { createEditorAudioService } from '../../../editor/core/app/workspaces/audio'
 import { compileProject } from '../../../packages/core/src/project'
+import { mockResizeObserver } from '../../helpers/resize-observer'
 
 interface TestProject {
   workspace: ProjectWorkspace
@@ -107,6 +109,7 @@ async function setupProject(options: { empty?: boolean, catalog?: boolean } = {}
 }
 
 beforeEach(async () => {
+  mockResizeObserver()
   setActivePinia(createPinia())
   vi.stubGlobal('crypto', webcrypto)
   vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: vi.fn(() => 'blob:editor-audio'), revokeObjectURL: vi.fn() }))
@@ -132,6 +135,24 @@ function savedLedger() {
 }
 
 describe('editor native audio workspace', () => {
+  it('finishes alignment when a project refresh replaces equivalent dialogue objects', async () => {
+    const align = vi.fn(async (_input, signal?: AbortSignal) => {
+      const files = testState.project.project.files
+      testState.project.project = { files: { ...files }, compilation: await compileProject({ files }, { allowEmptyAssetManifest: true }) }
+      await flushPromises()
+      expect(signal?.aborted).toBe(false)
+      const snapshot = await createEditorAudioService(workspace).read()
+      const take = snapshot.ledger.lines[lineId]!.locales['zh-CN']!.takes[0]!
+      take.alignment = { schemaVersion: 1, text: take.spokenText, audioSha256: take.sha256, durationSeconds: 1, engine: 'fixture', model: 'fixture', units: [{ start: 0, end: 1, startTime: 0.1, endTime: 0.5 }] }
+      return snapshot
+    })
+    workspace.voiceAlignment = { alignTake: align }
+    const wrapper = await openLedger()
+    await wrapper.get('[data-testid="take-align"]').trigger('click')
+    await vi.waitFor(() => expect(wrapper.get('[data-testid="take-align"]').text()).toBe('重新对齐逐字时间轴'))
+    expect(align).toHaveBeenCalledOnce()
+  })
+
   it('keeps verified audition bytes during equivalent refreshes, but releases them when the registered media identity changes', async () => {
     const wrapper = mount(AEProjectAudioPanel, { global })
     mounted.push(wrapper)
@@ -367,7 +388,7 @@ describe('editor native audio workspace', () => {
     const wrapper = await openLedger()
     await wrapper.get('[data-testid="take-preview"]').trigger('click')
     await vi.waitFor(() => expect(wrapper.find('audio').exists()).toBe(true))
-    expect(wrapper.get('audio').attributes()).toMatchObject({ src: 'blob:editor-audio', preload: 'none' })
+    expect(wrapper.get('audio').attributes()).toMatchObject({ src: 'blob:editor-audio', preload: 'metadata' })
     expect(wrapper.get('audio').attributes('autoplay')).toBeUndefined()
     await wrapper.setProps({ visible: false })
     expect(wrapper.find('audio').exists()).toBe(false)

@@ -46,6 +46,7 @@
       "@advjs/audio/testing": ["./packages/audio/src/testing.ts"],
       "@advjs/core/runtime": ["./packages/core/src/runtime/headless.ts"],
       "@advjs/core/compiler": ["./packages/core/src/compiler/index.ts"],
+      "@advjs/core/project": ["./packages/core/src/project/index.ts"],
       "@advjs/*": [
         "./packages/*/src/index.ts"
       ],

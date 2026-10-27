@@ -1,8 +1,5 @@
+import type { AudioFormData, ChapterFormData, LocationFormData, SceneFormData } from '@advjs/parser'
 import type { AdvCharacter } from '@advjs/types'
-import type { AudioFormData } from '../utils/audioMd'
-import type { ChapterFormData } from '../utils/chapterMd'
-import type { LocationFormData } from '../utils/locationMd'
-import type { SceneFormData } from '../utils/sceneMd'
 import { computed, ref, watch } from 'vue'
 import { getCurrentProjectId } from '../utils/projectScope'
 

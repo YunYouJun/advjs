@@ -1,4 +1,5 @@
 .MenubarRoot {
+  font-family: var(--agui-font-family-ui);
   display: flex;
   background-color: var(--agui-c-bg);
   padding: 3px;
@@ -10,7 +11,7 @@
   appearance: none;
   border: 0;
   background: transparent;
-  font-family: inherit;
+  font-family: var(--agui-font-family-ui);
   cursor: pointer;
   color: var(--agui-c-text-1);
 
@@ -35,6 +36,7 @@
 
 .MenubarContent,
 .MenubarSubContent {
+  font-family: var(--agui-font-family-ui);
   min-width: 220px;
   background-color: var(--agui-c-popup);
   border: 1px solid var(--agui-c-border);
@@ -42,9 +44,6 @@
   border-radius: 4px;
   padding: 5px;
   box-shadow: var(--agui-shadow-popup);
-  animation-duration: 150ms;
-  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform, opacity;
 
   z-index: 1000;
 }
@@ -54,6 +53,7 @@
 .MenubarCheckboxItem,
 .MenubarRadioItem {
   all: unset;
+  font-family: var(--agui-font-family-ui);
   color: var(--agui-c-text-1);
   font-size: 12px;
   line-height: 1;
@@ -126,10 +126,4 @@
 .MenubarTrigger:focus-visible {
   outline: 2px solid var(--agui-c-focus);
   outline-offset: -2px;
-}
-@media (prefers-reduced-motion: reduce) {
-  .MenubarContent,
-  .MenubarSubContent {
-    animation-duration: 0ms;
-  }
 }

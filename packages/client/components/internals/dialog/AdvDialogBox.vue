@@ -89,6 +89,7 @@ const curWords = computed(() => {
         :mode="settings.storage.text.curDisplayMode"
         :speed="settings.storage.text.curSpeed"
         :words="curWords"
+        :highlight="$adv.$audio?.voiceHighlight?.value"
         :glossary="node.data?.glossary"
         @glossary="openGlossary"
         @end="$adv.$auto.notifyPrintDone()"
