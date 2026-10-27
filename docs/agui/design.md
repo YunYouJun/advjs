@@ -165,6 +165,7 @@ AGUI 通过 CSS 自定义属性（`--agui-c-*`）定义色彩。下表列出现�
 | `--agui-radius-lg`                                 | 12px 模态对话框                               |
 | `--agui-radius-pill`                               | 999px 状态标签；不改变标签高度                |
 | `--agui-tag-min-height` / `--agui-tag-line-height` | 20px 标签最小高度；16px 标签文字行高          |
+| `--agui-font-family-ui`                            | 系统 UI 无衬线字体，用于状态标签和媒体控件    |
 | `--agui-font-size-caption` / `body`                | 11px 元信息；12px 控件与说明正文              |
 | `--agui-font-size-title` / `heading`               | 13px 分组标题；14px 区域标题                  |
 | `--agui-font-size-reading`                         | 14px 剧本、配音逐字文本等连续阅读内容         |
@@ -182,6 +183,8 @@ AGUI 通过 CSS 自定义属性（`--agui-c-*`）定义色彩。下表列出现�
 `AGUITag` 是共享状态标签，可用 `tone="neutral|info|success|warning|danger"`；状态必须包含可读文字，不仅靠颜色。可选 `icon` 提供装饰性状态图标，图标对辅助技术隐藏，文字仍作为标签内容。显式 `tone` 优先于旧 `theme`，旧 `theme="default|primary|danger"`、`closable` 与 `close` 事件保持兼容。普通计数与元信息默认用中性标签，不为每个数据点分配状态色；不再为业务面板新增另一套状态徽标。
 
 标签使用统一的 pill 圆角、20px 最小高度与 16px 文字行高，由共享组件按 border-box 计算背景范围，并以 inline-flex 垂直居中。周围标题／操作行同样使用居中对齐；不要继承正文阅读行高撑高标签背景，也不要用位移补偿中英文基线。较长标签随所在操作组换行，避免挤压主要内容。
+
+标签显式消费 `--agui-font-family-ui`，避免旧面板的 Helvetica 与中文回退字体产生不同的字形基线。行盒居中不等于字形视觉居中；验收时同时检查真实系统字体的字形边界与截图，不能只比较 DOM 矩形。本规则作用于 AGUI 状态标签及媒体区域，不改游戏字体 token 或整个页面的字体。
 
 ### Button
 
@@ -321,6 +324,8 @@ three-kingdoms · 已保存的创作资料
 `AGUISlider` 基于 Reka UI 的 Root、Track、Range 和 Thumb，继续使用单个数值的 `v-model` 与 `input` 事件；轨道区域默认 24px，轨道 4px、滑块 12px、圆角 2px。填充与滑块使用 AGUI 主色，未填充轨道使用控件边框色，焦点使用独立焦点 token。方向键按 `step` 调节，Home / End 到达边界，PageUp / PageDown 按十个步长调节。可选数值输入与滑块同步，清空草稿后失焦恢复当前值；禁用同时阻止拖动、键盘与输入框修改。滑块通过原生按钮承载 `role="slider"`，保留外部标签的 `for` 与 id 关联。
 
 音频进度与音量可以显式使用 `variant="media"`，圆形 field 色滑块、文字色轮廓与圆轨道服务真实媒体时钟，继续复用相同的焦点、禁用、ARIA 和键盘交互。属性面板默认滑块形状保持不变。媒体内容的主播放入口可以使用 40px 圆形按钮；该尺寸例外不扩散到全局工具栏。逐字文本使用阅读字号与行高 token。长篇试听正文最多显示约七行并允许键盘滚动；活跃字变化或跳转时仅滚动该阅读区，避免拖走整个工作区，播放与进度操作保留在正文之外。
+
+配音播放器的音量滑块随剩余空间伸展，容器至少 112px；较窄面板将静音、音量和倍速整体换到下一行，不能直接隐藏音量。倍速的宽度由播放器自己的实际 DOM 容器约束，不依赖 renderless 下拉根节点透传布局 class。
 
 树行和资源列表默认最小 24px、名称 12px；每级缩进 12px，节点图标 14px，图标与名称间隔 2px。展开箭头靠近节点图标，点击区继续保持 24px，不通过压小点击区收紧视觉间距。选中使用 `--agui-c-selection` / `--agui-c-selection-text`，与焦点环分别表达选中和键盘位置；范围数值的进度也复用选择背景。轴提示使用 `--agui-c-axis-x/y/z/w`，必须同时显示 X/Y/Z/W 标签。图标通过遮罩继承文字颜色，避免白色图标在亮色面板消失。
 

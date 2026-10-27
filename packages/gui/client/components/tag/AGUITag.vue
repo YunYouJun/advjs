@@ -44,6 +44,7 @@ defineEmits<{
   min-height: var(--agui-tag-min-height);
 
   padding: 2px var(--agui-space-2);
+  font-family: var(--agui-font-family-ui);
   font-size: var(--agui-font-size-caption);
   font-weight: 400;
   line-height: var(--agui-tag-line-height);

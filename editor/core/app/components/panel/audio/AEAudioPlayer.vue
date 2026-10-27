@@ -60,7 +60,9 @@ defineExpose({ play, pause: transport.pause })
       <div class="ae-player-options">
         <AGUIButton variant="text" :icon="transport.muted || transport.volume === 0 ? 'i-ri-volume-mute-line' : 'i-ri-volume-up-line'" :aria-label="`${transport.muted ? '取消静音' : '静音'}${label}`" :aria-pressed="transport.muted" @click="transport.toggleMute" />
         <AGUISlider class="ae-player-volume" variant="media" :model-value="transport.muted ? 0 : transport.volume" :min="0" :max="1" :step="0.05" :label="`${label}音量`" @update:model-value="transport.setVolume" />
-        <AGUISelect class="ae-player-speed" :model-value="transport.rate" :options="speeds" :label="`${label}播放速度`" @update:model-value="transport.setRate" />
+        <div class="ae-player-speed">
+          <AGUISelect :model-value="transport.rate" :options="speeds" :label="`${label}播放速度`" @update:model-value="transport.setRate" />
+        </div>
       </div>
     </div>
     <p v-if="transport.error" class="ae-player-error" role="status">
@@ -78,6 +80,7 @@ defineExpose({ play, pause: transport.pause })
   border-radius: var(--agui-radius-md);
   background: var(--agui-c-field);
   color: var(--agui-c-text-1);
+  font-family: var(--agui-font-family-ui);
 }
 .ae-player-heading,
 .ae-player-time,
@@ -126,23 +129,33 @@ defineExpose({ play, pause: transport.pause })
   height: 20px;
 }
 .ae-player-options {
-  gap: var(--agui-space-1);
+  flex: 1 1 248px;
+  flex-wrap: wrap;
+  gap: var(--agui-space-2);
+  min-width: 0;
+  max-width: 320px;
+  margin-inline-start: auto;
 }
 .ae-player-volume {
-  width: 72px;
+  flex: 1 1 112px;
+  width: auto;
+  min-width: 112px;
 }
 .ae-player-speed {
-  width: 62px;
-  min-width: 62px;
+  flex: 0 0 80px;
+  width: 80px;
+  min-width: 80px;
+  margin-inline-start: auto;
 }
 .ae-player-error {
   font-size: var(--agui-font-size-body);
   color: var(--agui-c-warning-text);
   margin: var(--agui-space-2) 0 0;
 }
-@container audio-player (max-width: 300px) {
-  .ae-player-volume {
-    display: none;
+@container audio-player (max-width: 400px) {
+  .ae-player-options {
+    flex-basis: 100%;
+    max-width: none;
   }
 }
 </style>
