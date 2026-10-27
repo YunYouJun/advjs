@@ -2,6 +2,8 @@
 import type { AdvCharacter } from '@advjs/types'
 import type { FileTreeNode } from '~/stores/useCharacterStore'
 import { Toast } from '@advjs/gui'
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
+import AGUIFormItem from '@advjs/gui/client/components/form/AGUIFormItem.vue'
 
 definePageMeta({
   layout: 'default',
@@ -99,9 +101,10 @@ const hasSource = computed(() => cStore.projectBound || !!cStore.dirHandle || !!
         </div>
       </aside>
       <main>
-        <form v-if="!hasSource" class="directory-form" @submit.prevent="onConnectDir">
-          <label for="characters-directory">{{ $t('characters.dirHint') }}</label>
-          <AGUIInput id="characters-directory" v-model="directoryDraft" :placeholder="$t('characters.dirPlaceholder')" />
+        <AGUIForm v-if="!hasSource" as="form" class="directory-form" @submit.prevent="onConnectDir">
+          <AGUIFormItem for="characters-directory" :label="$t('characters.dirHint')" label-align="top">
+            <AGUIInput id="characters-directory" v-model="directoryDraft" :placeholder="$t('characters.dirPlaceholder')" />
+          </AGUIFormItem>
           <div class="ae-resource-actions">
             <AGUIButton type="submit" :disabled="!directoryDraft.trim()">
               {{ $t('characters.connect') }}
@@ -110,7 +113,7 @@ const hasSource = computed(() => cStore.projectBound || !!cStore.dirHandle || !!
           <p class="ae-resource-caption">
             {{ $t('characters.examplePaths') }} ./demo/flow/adv/characters
           </p>
-        </form>
+        </AGUIForm>
         <CharacterList v-else :characters="cStore.filteredCharacters" :loading="cStore.loading" @select="onSelectCharacter" />
       </main>
     </div>
@@ -152,11 +155,7 @@ main {
 }
 .directory-form {
   max-width: 560px;
-  padding: 12px;
-}
-.directory-form label {
-  display: block;
-  margin-bottom: 8px;
+  padding: var(--agui-space-3);
 }
 @container character-page (max-width: 560px) {
   .character-workspace {

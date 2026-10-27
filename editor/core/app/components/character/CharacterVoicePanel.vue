@@ -3,6 +3,7 @@ import type { AdvCharacter, AdvVoiceLibrarySnapshot } from '@advjs/types'
 import AGUICheckbox from '@advjs/gui/client/components/AGUICheckbox.vue'
 import AGUIProperty from '@advjs/gui/client/components/AGUIProperty.vue'
 import AGUIButton from '@advjs/gui/client/components/button/AGUIButton.vue'
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
 import AGUISelect from '@advjs/gui/client/components/select/AGUISelect.vue'
 import { computed, nextTick, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import CharacterVoiceWorkflowEntry from './CharacterVoiceWorkflowEntry.vue'
@@ -166,7 +167,7 @@ onBeforeUnmount(() => close())
 
 <template>
   <CharacterVoiceWorkflowEntry :character="character" />
-  <section v-if="supported" class="voice-panel" data-testid="voice-panel" @keydown.esc.stop.prevent="close(true)">
+  <AGUIForm v-if="supported" as="section" class="voice-panel" padded data-testid="voice-panel" @keydown.esc.stop.prevent="close(true)">
     <div class="flex gap-2 items-center justify-between">
       <h3 class="font-bold">
         {{ t('characters.voice.legacyTitle') }}
@@ -214,23 +215,16 @@ onBeforeUnmount(() => close())
         {{ t('characters.voice.hint') }}
       </p>
     </template>
-  </section>
+  </AGUIForm>
 </template>
 
 <style scoped>
 .voice-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 8px;
   border-top: 1px solid var(--agui-c-divider-light);
   font-size: 12px;
   color: var(--agui-c-text-1);
 }
-.voice-panel :deep(.agui-select-trigger) {
-  width: 100%;
-  min-width: 0;
-}
+
 .voice-panel > .agui-button {
   align-self: flex-start;
 }

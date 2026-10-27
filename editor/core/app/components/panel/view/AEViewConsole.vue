@@ -120,7 +120,7 @@ logTypeOptions.forEach((option) => {
 }
 .console-toolbar {
   display: grid;
-  grid-template-columns: 24px minmax(80px, 100px) minmax(48px, 1fr) 24px;
+  grid-template-columns: var(--agui-control-height) minmax(80px, 100px) minmax(48px, 1fr) var(--agui-control-height);
   overflow: hidden;
   scrollbar-gutter: stable;
 }
@@ -132,12 +132,12 @@ logTypeOptions.forEach((option) => {
 }
 .console-log {
   display: grid;
-  grid-template-columns: 16px minmax(0, 1fr) 24px;
-  gap: 4px;
+  grid-template-columns: 16px minmax(0, 1fr) var(--agui-control-height);
+  gap: var(--agui-space-1);
   align-items: start;
-  padding: 4px 6px;
+  padding: var(--agui-space-1) var(--agui-space-2);
   border-bottom: 1px solid var(--agui-c-divider);
-  font-size: 12px;
+  font-size: var(--agui-font-size-body);
 }
 .console-log:hover {
   background: var(--agui-c-bg-hover);
@@ -149,14 +149,14 @@ logTypeOptions.forEach((option) => {
 .console-log-icon {
   display: flex;
   align-items: center;
-  min-height: 24px;
+  min-height: var(--agui-control-height);
 }
 .console-log-summary {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
-  min-height: 24px;
+  gap: var(--agui-space-1);
+  min-height: var(--agui-control-height);
 }
 .console-log-details {
   margin: 4px 0 0;

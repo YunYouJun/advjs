@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ToolbarDropdown } from '../toolbar/types'
+import { usePreferredReducedMotion } from '@vueuse/core'
 import {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -9,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from 'reka-ui'
 import { ref } from 'vue'
+import '../../styles/motion.scss'
 import './dropdown-menu.scss'
 
 defineProps<{
@@ -16,6 +18,7 @@ defineProps<{
 }>()
 
 const toggleState = ref(false)
+const reducedMotion = usePreferredReducedMotion()
 </script>
 
 <template>
@@ -38,9 +41,9 @@ const toggleState = ref(false)
       </span>
     </DropdownMenuTrigger>
 
-    <DropdownMenuPortal>
+    <DropdownMenuPortal :key="Number(!toggleState && reducedMotion === 'reduce')">
       <DropdownMenuContent
-        class="agui-dropdown-menu-content"
+        class="agui-dropdown-menu-content agui-motion-popup"
         :side-offset="5"
       >
         <template v-for="(item, key) in data.children" :key="key">

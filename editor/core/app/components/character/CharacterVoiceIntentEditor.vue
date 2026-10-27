@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CharacterVoiceProfile } from '@advjs/types'
 import AGUIProperty from '@advjs/gui/client/components/AGUIProperty.vue'
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
 import AGUIInput from '@advjs/gui/client/components/input/AGUIInput.vue'
 import AGUISelect from '@advjs/gui/client/components/select/AGUISelect.vue'
 
@@ -19,7 +20,7 @@ function update(field: keyof CharacterVoiceProfile['intent'], value: string) {
 </script>
 
 <template>
-  <div class="voice-intent-fields">
+  <AGUIForm class="voice-intent-fields">
     <AGUIProperty :for="`${idPrefix}-voice-style`" label="说话风格">
       <AGUIInput :id="`${idPrefix}-voice-style`" :model-value="modelValue.speakingStyle ?? ''" @update:model-value="update('speakingStyle', String($event))" />
     </AGUIProperty>
@@ -38,11 +39,5 @@ function update(field: keyof CharacterVoiceProfile['intent'], value: string) {
     <AGUIProperty :for="`${idPrefix}-voice-pace`" label="语速">
       <AGUISelect :id="`${idPrefix}-voice-pace`" label="语速" :model-value="modelValue.pace ?? 'unspecified'" :options="[{ value: 'unspecified', label: '未指定' }, 'slow', 'medium', 'fast']" @update:model-value="update('pace', String($event))" />
     </AGUIProperty>
-  </div>
+  </AGUIForm>
 </template>
-
-<style scoped>
-.voice-intent-fields {
-  min-width: 0;
-}
-</style>

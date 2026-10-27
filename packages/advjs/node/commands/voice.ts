@@ -16,8 +16,9 @@ import type {
 import { createHash } from 'node:crypto'
 import { readFile, realpath, stat } from 'node:fs/promises'
 import process from 'node:process'
-import { normalizeAudioLocale, VOICE_DESIGN_LIBRARY_PATH, VOICE_DESIGN_PRESET_ROOT } from '@advjs/audio'
+import { normalizeAudioLocale, parseVoiceAlignment, VOICE_DESIGN_LIBRARY_PATH, VOICE_DESIGN_PRESET_ROOT } from '@advjs/audio'
 import { isAbsolute, relative, resolve, sep } from 'pathe'
+import { readVoiceProviderState } from '../audio/provider-state'
 import { loadAdvConfig } from '../config'
 import { AdvCommandError } from './errors'
 import { readVoiceAssetManifest, readVoiceLibrary } from './voice-library'
@@ -28,6 +29,8 @@ export interface VoiceCommandOptions extends Omit<AdvVoiceContext, 'root'> {
   provider?: string
   /** Programmatic configuration seam; the CLI reads adv.config.ts instead. */
   config?: Partial<AdvConfig>
+  /** Trusted maintenance reads still need to enumerate a disabled provider. */
+  allowDisabled?: boolean
 }
 
 /** Options shared by candidate listing and synthesis. */
@@ -182,6 +185,8 @@ function validateCapabilities(provider: AdvVoiceSynthesisProvider): void {
   const ids = new Set<string>()
   if (capabilities.designSources !== undefined && (!Array.isArray(capabilities.designSources) || new Set(capabilities.designSources).size !== capabilities.designSources.length || capabilities.designSources.some(source => !['system', 'designed', 'cloned'].includes(source)) || typeof provider.buildDesignPreset !== 'function'))
     throw invalid(`Invalid voice design capabilities: ${provider.id}`)
+  if (capabilities.referenceModes !== undefined && (!Array.isArray(capabilities.referenceModes) || !capabilities.referenceModes.length || new Set(capabilities.referenceModes).size !== capabilities.referenceModes.length || capabilities.referenceModes.some(mode => !['icl', 'embedding-only'].includes(mode))))
+    throw invalid(`Invalid voice reference capabilities: ${provider.id}`)
   for (const model of capabilities.models) {
     if (!isRecord(model) || typeof model.id !== 'string' || !model.id.trim() || ids.has(model.id)
       || !Array.isArray(model.modes) || !model.modes.every(mode => typeof mode === 'string' && mode.trim())
@@ -246,6 +251,9 @@ async function context(options: VoiceCommandOptions & { preset?: string, voice?:
   const provider = providers.find(item => item.id === providerId)
   if (!provider)
     throw invalid(`Unknown voice provider: ${providerId ?? '(none)'}`)
+  const disabled = await readVoiceProviderState(root)
+  if (!options.allowDisabled && disabled.includes(provider.id))
+    throw invalid(`VOICE_PROVIDER_DISABLED: ${provider.id}`)
   if (!isRecord(voice.presets) || Object.keys(voice.presets).length === 0)
     throw invalid('authoring.voice.presets must contain project-relative JSON preset paths')
   text(voice.defaultPreset, 'authoring.voice.defaultPreset')
@@ -255,7 +263,7 @@ async function context(options: VoiceCommandOptions & { preset?: string, voice?:
     projectPath(root, path, `Voice preset ${id}`)
   if (voice.assetManifest !== undefined)
     projectPath(root, voice.assetManifest, 'Voice asset manifest')
-  return { context: { root, signal: options.signal, onProgress: options.onProgress }, voice, provider, providers }
+  return { context: { root, signal: options.signal, onProgress: options.onProgress }, voice, provider, providers: options.allowDisabled ? providers : providers.filter(item => !disabled.includes(item.id)) }
 }
 
 /** Trusted authoring hosts reuse the same validated provider registry as CLI commands. */
@@ -414,6 +422,8 @@ export async function runVoicePreview(options: VoicePreviewOptions = {}): Promis
       if (bytes.length !== candidate.bytes || createHash('sha256').update(bytes).digest('hex') !== candidate.sha256)
         throw invalid('Voice candidate checksum or size differs from the synthesis result')
       candidate.inputFingerprint = fingerprint
+      if (candidate.alignment)
+        parseVoiceAlignment(candidate.alignment, { text: candidate.text, sha256: candidate.sha256, durationSeconds: candidate.durationSeconds })
       candidate.voiceId = voiceId
       candidate.voiceVersion = voiceVersion
     }
@@ -483,8 +493,9 @@ export async function runVoicePreview(options: VoicePreviewOptions = {}): Promis
 
 /** Inspect installed providers without running diagnostics, setup, or synthesis. */
 export async function runVoiceProviders(options: VoiceCommandOptions = {}) {
-  const loaded = await context(options)
-  return { providers: loaded.providers.map(provider => ({ id: provider.id, default: provider.id === loaded.provider.id, capabilities: 'capabilities' in provider ? provider.capabilities : null, legacy: !('synthesize' in provider), diagnostics: Boolean(provider.doctor), setup: Boolean(provider.setup), voiceCreation: isSynthesisProvider(provider) && provider.capabilities.voiceCreation && typeof provider.createVoice === 'function' })) }
+  const loaded = await context({ ...options, allowDisabled: true })
+  const disabled = await readVoiceProviderState(loaded.context.root)
+  return { providers: loaded.providers.filter(provider => !disabled.includes(provider.id)).map(provider => ({ id: provider.id, default: provider.id === loaded.provider.id, capabilities: 'capabilities' in provider ? provider.capabilities : null, legacy: !('synthesize' in provider), diagnostics: Boolean(provider.doctor), setup: Boolean(provider.setup), voiceCreation: isSynthesisProvider(provider) && provider.capabilities.voiceCreation && typeof provider.createVoice === 'function' })) }
 }
 
 /** Explicit voice creation is independent of synthesis and local environment preparation. */

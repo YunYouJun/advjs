@@ -5,6 +5,7 @@ import { inspectMusicReview, musicPlaybackDefaults } from '@advjs/audio'
 import AGUINumberField from '@advjs/gui/components/AGUINumberField.vue'
 import AGUIProperty from '@advjs/gui/components/AGUIProperty.vue'
 import AGUIButton from '@advjs/gui/components/button/AGUIButton.vue'
+import AGUIForm from '@advjs/gui/components/form/AGUIForm.vue'
 import AGUIInput from '@advjs/gui/components/input/AGUIInput.vue'
 import AGUISelect from '@advjs/gui/components/select/AGUISelect.vue'
 import { computed, useId } from 'vue'
@@ -52,7 +53,7 @@ function remove(index: number) {
 
 <template>
   <div class="audio-operation-editor" :aria-label="zh ? '场景音频操作' : 'Scene audio operations'">
-    <fieldset v-for="(operation, index) in modelValue" :key="index" :disabled="disabled" class="operation-row">
+    <AGUIForm v-for="(operation, index) in modelValue" :key="index" as="fieldset" :disabled="disabled" class="operation-row">
       <legend>{{ zh ? '操作' : 'Operation' }} {{ index + 1 }}</legend>
       <AGUIProperty :for="`${id}-${index}-kind`" :label="zh ? '用途' : 'Kind'">
         <AGUISelect :id="`${id}-${index}-kind`" :label="zh ? '用途' : 'Kind'" :model-value="operation.type" :options="kinds" @update:model-value="changeKind(index, $event as ProjectAudioOperation['type'])" />
@@ -91,7 +92,7 @@ function remove(index: number) {
       <AGUIButton :disabled="disabled" @click="remove(index)">
         {{ zh ? '移除此操作' : 'Remove operation' }}
       </AGUIButton>
-    </fieldset>
+    </AGUIForm>
     <AGUIButton :disabled="disabled || modelValue.length >= 64" data-testid="audio-operation-add" @click="add">
       {{ zh ? '添加音频操作' : 'Add audio operation' }}
     </AGUIButton>
@@ -101,13 +102,13 @@ function remove(index: number) {
 <style scoped>
 .audio-operation-editor {
   display: grid;
-  gap: 6px;
+  gap: var(--agui-form-row-gap);
   min-width: 0;
 }
 .operation-row {
   min-width: 0;
   margin: 0;
-  padding: 6px;
+  padding: var(--agui-space-2);
   border: 1px solid var(--agui-c-divider);
 }
 .operation-row legend {
