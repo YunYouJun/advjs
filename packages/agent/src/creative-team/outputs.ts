@@ -38,8 +38,10 @@ export interface CreativePlaytestScenario {
   expectedEnding: string
 }
 
-/** Flow uses its literal stable ID; legacy Markdown keeps its exact physical source line. */
-export type CreativeVoiceLine = { path: string, speakerId: string, text: string, instruction: string } & ({ line: number, lineId?: never } | { lineId: string, line?: never })
+/** Full physical source rows, with CRLF normalized to LF; never a reserialization of Markdown. */
+export interface CreativeVoiceSourceSpan { line: number, endLine: number, text: string }
+/** Stable Markdown targets quote the complete authored block; legacy single rows remain readable. */
+export type CreativeVoiceLine = { path: string, speakerId: string, text: string, instruction: string } & ({ line: number, lineId?: never, source?: never } | { lineId: string, line?: never, source?: CreativeVoiceSourceSpan })
 
 export function parseCreativePlaytestScenarios(value: unknown): CreativePlaytestScenario[] {
   const scenarios = array(value, 12, 1).map((item) => {
@@ -234,14 +236,27 @@ function parseOutput(kind: CreativePartnerOutput['kind'], value: unknown, contex
       if (!/^adv\/chapters\/[\w-]+\.(?:adv\.md|chapter\.json)$/.test(path))
         throw new TypeError('Voice instructions must target chapter dialogue sources')
       const content = text(line.text, 2000)
-      let selector: { line: number } | { lineId: string }
+      let selector: { line: number } | { lineId: string, source?: CreativeVoiceSourceSpan }
       if (line.lineId === undefined) {
+        if (line.source !== undefined)
+          throw new TypeError('Quoted Markdown voice sources require a stable line ID')
         selector = { line: integer(line.line, 1, 100000) }
       }
       else {
-        if (line.line !== undefined || !path.endsWith('.chapter.json') || typeof line.lineId !== 'string' || !/^line_[a-f0-9-]{36}$/.test(line.lineId))
-          throw new TypeError('Invalid stable Flow voice line selector')
+        if (line.line !== undefined || typeof line.lineId !== 'string' || !/^line_[a-f0-9-]{36}$/.test(line.lineId))
+          throw new TypeError('Invalid stable voice line selector')
         selector = { lineId: line.lineId }
+        if (path.endsWith('.adv.md')) {
+          const span = record(line.source)
+          if (Object.keys(span).some(key => !['line', 'endLine', 'text'].includes(key)))
+            throw new TypeError('Invalid quoted Markdown voice source')
+          const start = integer(span.line, 1, 100000)
+          const end = integer(span.endLine, start, 100000)
+          selector.source = { line: start, endLine: end, text: text(span.text, 48000).replace(/\r\n/g, '\n') }
+        }
+        else if (line.source !== undefined) {
+          throw new TypeError('Flow voice targets do not use Markdown source spans')
+        }
       }
       const result: CreativeVoiceLine = { path, ...selector, speakerId: speaker(line.speakerId), text: content, instruction: text(line.instruction) }
       if (checkReferences && !matchesCreativeVoiceLineSource(result, context.files))

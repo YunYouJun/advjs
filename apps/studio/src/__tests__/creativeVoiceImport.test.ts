@@ -177,6 +177,63 @@ async function fixture(format: 'adv-md' | 'flow' = 'adv-md') {
 function current() {}
 
 describe('creative voice return to the canonical authoring ledger', () => {
+  async function quotedFixture(narration = false, newline = '\n') {
+    const f = await fixture()
+    const block = narration ? `> 列车还没有到，\n> 我们再**等一会儿**。 {#${lineId}}` : `@lin\n列车还没有到，\n我们再**等一会儿**。 {#${lineId}}`
+    f.files['adv/chapters/intro.adv.md'] = `# 等车 {#start}\n\n${block}`.replace(/\n/g, newline)
+    if (narration)
+      f.files['adv/audio/voice-profiles.json'] = JSON.stringify({ schemaVersion: 1, revision: 1, narrator: { intent: { speakingStyle: '独立旁白' }, locales: { 'zh-CN': { providers: { 'local-system': { voiceId: 'narrator-Tingting', model: 'macos-say', source: 'system' } } } } } })
+    const artifact = f.run.artifacts[0]!
+    artifact.source = { ...artifact.source, files: { ...f.files }, revision: await computeAgentProjectRevision(f.files) }
+    if (artifact.output?.kind !== 'voice-direction')
+      throw new Error('Expected voice fixture')
+    artifact.output.lines = [{ path: 'adv/chapters/intro.adv.md', lineId, source: { line: 3, endLine: narration ? 4 : 5, text: block }, speakerId: narration ? 'narrator' : 'lin', text: '列车还没有到，\n我们再等一会儿。'.replace(/\n/g, newline), instruction: '完整多行源块' }]
+    return f
+  }
+  it.each([[false, '\n'], [true, '\n'], [true, '\r\n']] as const)('binds, registers and invalidates complete Markdown (narration=%s, newline=%j)', async (narration, newline) => {
+    const f = await quotedFixture(narration, newline)
+    const target = (await readCreativeVoiceTargets(f.fs, f.run, 'voice1', current))[0]!
+    expect(target.request.source).toMatchObject({ line: 3, endLine: narration ? 4 : 5 })
+    expect(target.request.text).toBe('列车还没有到，\n我们再等一会儿。'.replace(/\n/g, newline))
+    expect(target.lineId).toBe(lineId)
+    expect(target.providers[0]!.voiceId).toBe(narration ? 'narrator-Tingting' : 'Tingting')
+    const review = await reviewCreativeVoiceImport(f.fs, f.run, target, f.audio, 'local-system', 'unit transaction fixture', current)
+    const source = f.files['adv/chapters/intro.adv.md']
+    await commitCreativeVoiceImport(f.fs, f.run, review, current)
+    const saved = await createStudioAudioService(f.fs).read()
+    expect(saved.ledger.lines[lineId]).toMatchObject({ speakerId: narration ? 'narrator' : 'lin', displayText: target.request.text, locales: { 'zh-CN': { selectedTake: null } } })
+    expect(f.files['adv/chapters/intro.adv.md']).toBe(source)
+    const ledger = f.files['adv/audio/voice-ledger.json']
+    f.files['adv/chapters/intro.adv.md'] = source!.replace('等一会儿', '马上走')
+    await expect(readCreativeVoiceTargets(f.fs, f.run, 'voice1', current)).rejects.toThrow()
+    expect(f.files['adv/audio/voice-ledger.json']).toBe(ledger)
+  })
+  it('requires the compiler’s exact block extent even when an oversized quote contains the correct literal ID', async () => {
+    const f = await quotedFixture()
+    const artifact = f.run.artifacts[0]!
+    if (artifact.output?.kind !== 'voice-direction')
+      throw new Error('Expected voice fixture')
+    const line = artifact.output.lines[0]!
+    if (!line.source)
+      throw new Error('Expected quoted source')
+    line.source = { ...line.source, line: 2, text: `\n${line.source.text}` }
+    await expect(readCreativeVoiceTargets(f.fs, f.run, 'voice1', current)).rejects.toThrow('LINE_UNRESOLVED')
+    expect(f.fs.writeFile).not.toHaveBeenCalled()
+  })
+  it('refuses a forged display continuation or speaker despite a matching quoted source', async () => {
+    const f = await quotedFixture()
+    const artifact = f.run.artifacts[0]!
+    if (artifact.output?.kind !== 'voice-direction')
+      throw new Error('Expected voice fixture')
+    const line = artifact.output.lines[0]!
+    const original = line.text
+    line.text = '列车还没有到。'
+    await expect(readCreativeVoiceTargets(f.fs, f.run, 'voice1', current)).rejects.toThrow('LINE_UNRESOLVED')
+    line.text = original
+    line.speakerId = 'narrator'
+    await expect(readCreativeVoiceTargets(f.fs, f.run, 'voice1', current)).rejects.toThrow('LINE_UNRESOLVED')
+    expect(f.fs.writeFile).not.toHaveBeenCalled()
+  })
   it('returns a repeated Flow dialogue by its literal ID, imports to the canonical ledger and retains the second compiled address', async () => {
     const f = await fixture('flow')
     const target = (await readCreativeVoiceTargets(f.fs, f.run, 'voice1', current))[0]!

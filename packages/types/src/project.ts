@@ -91,7 +91,7 @@ export interface AdvProjectSourceMap {
   characters: Record<string, string>
   scenes: Record<string, string>
   /** Runtime chapter#node addresses to authored locations, independent of the program hash. */
-  nodes?: Record<string, { path: string, line?: number, column?: number }>
+  nodes?: Record<string, { path: string, line?: number, column?: number, endLine?: number, endColumn?: number }>
 }
 
 export interface AdvProjectCompileResult {

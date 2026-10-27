@@ -77,9 +77,11 @@ const { t } = useI18n()
       </p>
       <h4>{{ t('creativeTeam.lines') }}</h4>
       <blockquote v-for="line in output.lines" :key="`${line.path}:${line.lineId ?? line.line}`">
-        {{ line.speakerId }}: {{ line.text }}
+        <p class="team-output__voice-text">
+          {{ line.speakerId }}: {{ line.text }}
+        </p>
         <p>{{ line.instruction }}</p>
-        <small>{{ line.path }} · {{ line.lineId ?? line.line }}</small>
+        <small>{{ line.path }}{{ line.source ? `:${line.source.line}–${line.source.endLine}` : '' }} · {{ line.lineId ?? line.line }}</small>
       </blockquote>
       <p class="team-output__notice">
         {{ t('creativeTeam.voiceHandoff') }}
@@ -126,6 +128,9 @@ const { t } = useI18n()
   white-space: pre-wrap;
   font-family: var(--adv-font-mono);
   font-size: var(--adv-font-body-sm);
+}
+.team-output__voice-text {
+  white-space: pre-wrap;
 }
 .team-output__notice {
   border-inline-start: 3px solid var(--adv-accent);

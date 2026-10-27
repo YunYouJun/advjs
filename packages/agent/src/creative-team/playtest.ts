@@ -135,7 +135,10 @@ export async function runCreativePlaytest(input: {
         const entered = update.state.visited.filter(item => !seen.has(item))
         entered.forEach(item => seen.add(item))
         const coreTrace = runtime.trace().at(-1)!
-        const observation: CreativePlaytestObservation = { sequence: execution.commands, command, ...(choice ? { choice } : {}), address: address(update.state.cursor), source: result.sourceMap.nodes?.[address(update.state.cursor)], kind: current?.kind, status: update.state.status, ...(typeof current?.data?.text === 'string' ? { text: current.data.text } : {}), ...(current?.kind === 'choices' ? { options: (current.data!.options as unknown as RuntimeChoice[]).map(item => ({ id: item.id, label: item.label })) } : {}), effects: update.effects.map(effect => effect.type), variablesChanged: coreTrace.variableChanges.map(change => change.path), entered }
+        const location = result.sourceMap.nodes?.[address(update.state.cursor)]
+        // The durable playtest wire records a point location; compiler authoring spans stay local.
+        const source = location ? { path: location.path, ...(location.line === undefined ? {} : { line: location.line }), ...(location.column === undefined ? {} : { column: location.column }) } : undefined
+        const observation: CreativePlaytestObservation = { sequence: execution.commands, command, ...(choice ? { choice } : {}), address: address(update.state.cursor), source, kind: current?.kind, status: update.state.status, ...(typeof current?.data?.text === 'string' ? { text: current.data.text } : {}), ...(current?.kind === 'choices' ? { options: (current.data!.options as unknown as RuntimeChoice[]).map(item => ({ id: item.id, label: item.label })) } : {}), effects: update.effects.map(effect => effect.type), variablesChanged: coreTrace.variableChanges.map(change => change.path), entered }
         const size = encoder.encode(JSON.stringify(observation)).length
         if (evidenceBytes + size > limits.maxEvidenceBytes) {
           execution.code = 'evidence_limit'

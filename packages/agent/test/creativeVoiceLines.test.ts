@@ -48,3 +48,57 @@ describe('stable Flow voice source handoffs', () => {
     expect(matchesCreativeVoiceLineSource(line, files, otherId)).toBe(false)
   })
 })
+
+describe('quoted stable Markdown voice sources', () => {
+  const path = 'adv/chapters/intro.adv.md'
+  function markdown(block: string) {
+    return { ...context, files: { 'adv.config.json': '{"schemaVersion":1,"root":"adv","format":"adv-md"}', 'adv/characters/lin.character.md': context.files['adv/characters/lin.character.md'], [path]: `# 等车 {#start}\n\n${block}` } }
+  }
+  it.each(['\n', '\r\n'])('preserves a complete formatted dialogue block using %j source rows', async (newline) => {
+    const block = `@lin\n列车还没有到，\n我们再**等一会儿**。 {#${lineId}}`
+    const frozen = markdown(block)
+    frozen.files[path] = frozen.files[path].replace(/\n/g, newline)
+    const line = { path, lineId, source: { line: 3, endLine: 5, text: block }, speakerId: 'lin', text: '列车还没有到，\n我们再等一会儿。', instruction: '读完整段落' }
+    const plan = { ...output, lines: [line] }
+    expect(parseCreativePartnerOutput('voice-direction', plan, frozen)).toEqual(plan)
+    expect(parseCreativePartnerOutputSnapshot(plan, { ...frozen, files: {} })).toEqual(plan)
+    const compiled = await compileProject({ files: frozen.files })
+    expect(compiled.diagnostics.filter(item => item.severity === 'error')).toEqual([])
+    const node = Object.values(compiled.project.program!.chapters.intro!.nodes).find(node => node.data?.lineId === lineId)!
+    expect(node.data).toMatchObject({ speakerId: 'lin', text: line.text })
+    expect(compiled.sourceMap.nodes![`intro#${node.id}`]).toMatchObject({ path, line: 3, endLine: 5 })
+    expect(matchesCreativeVoiceLineSource(line, frozen.files, otherId)).toBe(false)
+    expect(matchesCreativeVoiceLineSource(line, { ...frozen.files, [path]: frozen.files[path].replace('等一会儿', '走吧') })).toBe(false)
+  })
+  it.each(['\n', '\r\n'])('quotes multi-paragraph narration using the compiler’s existing %j display text', async (newline) => {
+    const block = `> 雨没有停，\n> 灯在晃。\n>\n> 末班车仍没有来。 {#${narratorId}}`
+    const frozen = markdown(block)
+    frozen.files[path] = frozen.files[path].replace(/\n/g, newline)
+    const line = { path, lineId: narratorId, source: { line: 3, endLine: 6, text: block }, speakerId: 'narrator', text: `雨没有停，${newline}灯在晃。\n末班车仍没有来。`, instruction: '独立旁白' }
+    expect(parseCreativePartnerOutput('voice-direction', { ...output, lines: [line] }, frozen)).toMatchObject({ lines: [line] })
+    const compiled = await compileProject({ files: frozen.files })
+    expect(compiled.diagnostics.filter(item => item.severity === 'error')).toEqual([])
+    const node = Object.values(compiled.project.program!.chapters.intro!.nodes).find(node => node.data?.lineId === narratorId)!
+    expect(node.data).toMatchObject({ speakerId: 'narrator', text: line.text })
+    expect(compiled.sourceMap.nodes![`intro#${node.id}`]).toMatchObject({ line: 3, endLine: 6 })
+  })
+  it('uses the quoted block rather than counting unrelated literal markers in fenced examples', async () => {
+    const block = `@lin\n你好。 {#${lineId}}`
+    const frozen = markdown(`\`\`\`\n{#${lineId}}\n\`\`\`\n\n${block}`)
+    const line = { path, lineId, source: { line: 7, endLine: 8, text: block }, speakerId: 'lin', text: '你好。', instruction: '实际台词' }
+    expect(matchesCreativeVoiceLineSource(line, frozen.files, lineId)).toBe(true)
+    const compiled = await compileProject({ files: frozen.files })
+    expect(compiled.diagnostics.filter(item => item.severity === 'error')).toEqual([])
+    expect(Object.values(compiled.project.program!.chapters.intro!.nodes).filter(node => node.data?.lineId === lineId)).toHaveLength(1)
+  })
+  it('rejects missing, changed, reversed or overflowing quotes and mixed selector authority', () => {
+    const block = `@lin\n你好。 {#${lineId}}`
+    const frozen = markdown(block)
+    const line = { path, lineId, source: { line: 3, endLine: 4, text: block }, speakerId: 'lin', text: '你好。', instruction: '完整原文' }
+    for (const source of [undefined, { line: 4, endLine: 3, text: block }, { line: 3, endLine: 5, text: block }, { line: 3, endLine: 4, text: `${block}改字` }, { ...line.source, verification: 'model-certified' }])
+      expect(() => parseCreativePartnerOutput('voice-direction', { ...output, lines: [{ ...line, source }] }, frozen)).toThrow()
+    expect(() => parseCreativePartnerOutput('voice-direction', { ...output, lines: [{ ...line, line: 3 }] }, frozen)).toThrow()
+    expect(() => parseCreativePartnerOutput('voice-direction', { ...output, lines: [{ ...line, lineId: undefined, line: 4 }] }, frozen)).toThrow()
+    expect(() => parseCreativePartnerOutput('voice-direction', { ...output, lines: [{ ...output.lines[0], source: line.source }] }, context)).toThrow()
+  })
+})

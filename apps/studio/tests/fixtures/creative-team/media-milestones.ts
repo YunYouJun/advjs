@@ -22,8 +22,17 @@ import '../../../src/theme/variables.css'
 import '../../../src/theme/global.css'
 import 'virtual:uno.css'
 
+/** Read-only startup evidence for diagnosing an interrupted page reopen. */
+const boot = { stage: 'imports-loaded', timeline: [] as { stage: string, at: number }[] }
+Object.assign(window, { creativeMediaBoot: boot })
+function mark(stage: string) {
+  boot.stage = stage
+  boot.timeline.push({ stage, at: performance.now() })
+}
+
 /** Proposals, identities and service storage are explicit fixtures; media and product transactions are real. */
 async function main() {
+  mark('starting')
   const variant = new URL(location.href).searchParams.get('case')?.replace(/[^a-z0-9-]/gi, '').slice(0, 60) ?? 'batch'
   const accountId = 'media-milestone-fixture-author'
   const projectId = `creative-media-${variant}`
@@ -41,6 +50,13 @@ async function main() {
     'adv/characters/lin.character.md': '---\nid: lin\nname: 林\nvoiceProfile:\n  intent:\n    speakingStyle: 平静\n  locales:\n    zh-CN:\n      providers:\n        local-system:\n          voiceId: Tingting\n          model: macos-say\n          source: system\n---\n外部系统语音和既有小云图片的真实媒体回流验证，不表示人物美术或表演品质。',
     'adv/chapters/intro.adv.md': '# 等车 {#start}\n\n@lin\n列车还没有到，我们再等一会儿。 {#line_01900400-0000-7000-8000-000000000001}\n\n@lin\n这是下一句，没有绑定配音。',
   }
+  const multilineNarration = variant === 'markdown-narration-selected'
+  const multilineDialogue = variant === 'markdown-dialogue-selected'
+  const markdownBlock = multilineNarration ? '> 列车还没有到，\n> 我们再**等一会儿**。 {#line_01900400-0000-7000-8000-000000000001}' : '@lin\n列车还没有到，\n我们再**等一会儿**。 {#line_01900400-0000-7000-8000-000000000001}'
+  if (multilineDialogue || multilineNarration)
+    originals['adv/chapters/intro.adv.md'] = `# 等车 {#start}\n\n${multilineNarration ? '@lin\n这是第一句，尚未配置配音。 {#line_01900400-0000-7000-8000-000000000002}\n\n' : ''}${markdownBlock}`
+  if (multilineNarration)
+    originals['adv/audio/voice-profiles.json'] = json({ schemaVersion: 1, revision: 1, narrator: { intent: { speakingStyle: '独立系统旁白，不借用角色 Profile' }, locales: { 'zh-CN': { providers: { 'local-system': { voiceId: 'Tingting', model: 'macos-say', source: 'system' } } } } } })
   if (variant.startsWith('voice-plan')) {
     originals['adv/chapters/intro.adv.md'] += '\n\n> 站台上的灯亮了。 {#line_01900400-0000-7000-8000-000000000003}'
     originals['adv/audio/pronunciation.json'] = json({ schemaVersion: 1, revision: 4, replacements: { ADV: '冒险' }, locales: { 'en': { replacements: { station: 'station' } }, 'zh-CN': { replacements: { 车站: '车站' } } } })
@@ -58,11 +74,14 @@ async function main() {
     originals['adv/chapters/intro.chapter.json'] = json(chapter)
   }
   const fs = new MemoryFsAdapter(projectId)
+  mark('filesystem-init')
   await fs.init()
+  mark('filesystem-ready')
   if (!await fs.exists('adv.config.json')) {
     fs.bulkLoad(Object.entries(originals).map(([path, content]) => ({ path, content })))
     await fs.persist()
   }
+  mark('source-ready')
   const baselineRevision = await computeAgentProjectRevision(originals)
   const run = createCreativeTeamRun({ id: runId, accountId, now: 0, plan: { protocolVersion: 1, projectId, projectRevision: baselineRevision, goal: '明确的本地服务 fixture：真实 WebP 与 WAV 通过同一里程碑', limits: { maxTasks: 4, maxToolCalls: 4, maxReworkRounds: 2, maxMicroPoints: 0 }, tasks: [
     { id: 'art', partner: 'art-director', capability: 'direct-art', dependsOn: [], sourcePaths: Object.keys(originals), instruction: 'Existing image only', expectedOutput: 'Image binding' },
@@ -75,6 +94,11 @@ async function main() {
     { id: 'art-direction', runId, taskId: 'art', partner: 'art-director', projectId, kind: 'art-direction', source, fingerprint: 'art-v1', summary: '既有图片回流方案 fixture', output: { kind: 'art-direction', summary: '既有图片回流方案 fixture', style: 'Preserve the repository image', requests: [{ assetId: 'character/lin/default', kind: 'portrait', characterId: 'lin', width: 619, height: 619, prompt: 'Existing image for protocol verification', constraints: [] }] }, changes: [], reviewCapabilities: [], status: 'selected' },
     { id: 'voice-direction', runId, taskId: 'voice', partner: 'voice-director', projectId, kind: 'voice-direction', source, fingerprint: 'voice-v1', summary: '真实系统语音回流方案 fixture', output: { kind: 'voice-direction', summary: '真实系统语音回流方案 fixture', cast: [{ speakerId: 'lin', designBrief: 'Tingting system voice', performance: 'Calm' }, { speakerId: 'narrator', designBrief: 'Independent narrator', performance: 'Not produced' }], dictionary: [], lines: [{ path: 'adv/chapters/intro.adv.md', line: 4, speakerId: 'lin', text: '列车还没有到，我们再等一会儿。', instruction: '平静地邀请同伴继续等待' }] }, changes: [], reviewCapabilities: ['voice-take'], status: 'selected' },
   ]
+  if (multilineDialogue || multilineNarration) {
+    const output = run.artifacts[1]!.output!
+    if (output.kind === 'voice-direction')
+      output.lines = [{ path: 'adv/chapters/intro.adv.md', lineId: 'line_01900400-0000-7000-8000-000000000001', source: { line: multilineNarration ? 6 : 3, endLine: multilineNarration ? 7 : 5, text: markdownBlock }, speakerId: multilineNarration ? 'narrator' : 'lin', text: '列车还没有到，\n我们再等一会儿。', instruction: '完整多行原文，保留独立身份与换行' }]
+  }
   if (variant.startsWith('voice-plan')) {
     const output = run.artifacts[1]!.output!
     if (output.kind === 'voice-direction') {
@@ -94,6 +118,7 @@ async function main() {
       return { id: task.id, runId, taskId: task.id, partner: 'writer' as const, projectId, kind: 'chapter' as const, source, fingerprint: `${task.id}-v1`, summary: output.summary, output, changes: creativeOutputFileChanges(output, originals), reviewCapabilities: ['modify-source' as const, 'candidate-preview' as const], status: 'selected' as const }
     })
   }
+  mark('service-seed')
   const exists = await fetch(`/__creative-media-fixture/exists?projectId=${encodeURIComponent(projectId)}`)
   if (!(await exists.json()).exists) {
     const seeded = await fetch('/__creative-media-fixture/seed', { method: 'POST', body: JSON.stringify(run) })
@@ -121,7 +146,9 @@ async function main() {
   const auth = useAuthStore()
   auth.userInfo = { id: accountId }
   auth.session = { accessToken: 'explicit-media-fixture-only', user: { id: accountId } }
+  mark('project-switch')
   await useStudioStore().switchProject({ projectId, name: '真实媒体统一采用验证', source: 'local', lastOpened: Date.now() })
+  mark('project-ready')
   const store = useCreativeTeamStore()
   store.configure({ accountId, projectId, client })
   const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/:pathMatch(.*)*', component: { render: () => null } }] })
@@ -133,9 +160,12 @@ async function main() {
   const app = createApp(Host)
   app.use(pinia).use(IonicVue, { mode: 'ios', animated: false }).use(router).use(createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { creativeTeam: creativeTeamMessages['zh-CN'] } } }))
   app.mount('#app')
+  mark('mounted')
   await store.refresh()
+  mark('run-ready')
   const content = app.runWithContext(() => useProjectContent())
   await content.whenReady()
+  mark('content-ready')
   const projectFs = content.getFs()!
   const writes: string[] = []
   let crashAfter = 0
@@ -187,5 +217,6 @@ async function main() {
       }))
     },
   } })
+  mark('ready')
 }
 void main()

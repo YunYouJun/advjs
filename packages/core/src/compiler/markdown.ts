@@ -309,6 +309,8 @@ function sourceLocation(
     file: sourcePath,
     line: node.position?.start.line,
     column: node.position?.start.column,
+    endLine: node.position?.end.line,
+    endColumn: node.position?.end.column,
   }
 }
 
@@ -485,8 +487,11 @@ export async function compileMarkdownProgram(source: MarkdownProgramSource): Pro
       let line = location.line ?? 1
       for (const [index, file] of chapterSource.sourceFiles.entries()) {
         const lineCount = file.content.split('\n').length
-        if (line <= lineCount || index === chapterSource.sourceFiles.length - 1)
-          return { ...location, file: file.path, line }
+        if (line <= lineCount || index === chapterSource.sourceFiles.length - 1) {
+          const endLine = location.endLine === undefined ? undefined : location.endLine - ((location.line ?? 1) - line)
+          const contained = endLine !== undefined && endLine <= lineCount
+          return { ...location, file: file.path, line, ...(location.endLine === undefined ? {} : { endLine: contained ? endLine : undefined, endColumn: contained ? location.endColumn : undefined }) }
+        }
         line -= lineCount + 1
       }
       return location

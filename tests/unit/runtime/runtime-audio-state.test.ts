@@ -104,7 +104,7 @@ describe('canonical runtime audio protocol', () => {
       chapters: [{ id: 'first', content: `@hero\n一句。 {#${lineId}}` }, { id: 'second', sourcePath: 'second.adv.md', content: `> 旁白。 {#${lineId}}` }],
     })
     expect(duplicate.program).toBeUndefined()
-    expect(duplicate.diagnostics).toContainEqual(expect.objectContaining({ code: 'ADV_RUNTIME_DUPLICATE_LINE_ID', source: { file: 'second.adv.md', line: 1, column: 1 } }))
+    expect(duplicate.diagnostics).toContainEqual(expect.objectContaining({ code: 'ADV_RUNTIME_DUPLICATE_LINE_ID', source: { file: 'second.adv.md', line: 1, column: 1, endLine: 1, endColumn: `> 旁白。 {#${lineId}}`.length + 1 } }))
   })
 
   it('maps character display names to stable speaker IDs', async () => {

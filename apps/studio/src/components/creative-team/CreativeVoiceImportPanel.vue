@@ -160,7 +160,10 @@ async function inspect() {
     <form v-if="targets.length && !pending" @submit.prevent="inspect">
       <label>{{ t('creativeTeam.voiceImport.line') }}<select v-model="targetIndex" :disabled="blocked"><option v-for="(line, index) in targets" :key="line.lineId" :value="String(index)">{{ line.request.speakerId }} · {{ line.request.text }}</option></select></label>
       <template v-if="target">
-        <p>{{ target.request.path }}{{ target.request.line === undefined ? '' : `:${target.request.line}` }} · {{ target.address ?? target.lineId }} · <code>{{ target.lineId }}</code></p>
+        <p>{{ target.request.path }}{{ target.request.source ? `:${target.request.source.line}–${target.request.source.endLine}` : target.request.line === undefined ? '' : `:${target.request.line}` }} · {{ target.address ?? target.lineId }} · <code>{{ target.lineId }}</code></p>
+        <p class="voice-import__text">
+          {{ target.request.text }}
+        </p>
         <p>{{ target.request.instruction }}</p>
         <div class="voice-import__links">
           <RouterLink :to="voiceWorkflowLocation('jobs', target.request.speakerId, target.lineId)">
@@ -231,6 +234,9 @@ async function inspect() {
 }
 .voice-import__error {
   color: var(--adv-danger);
+}
+.voice-import__text {
+  white-space: pre-wrap;
 }
 .voice-import a {
   color: var(--adv-primary);

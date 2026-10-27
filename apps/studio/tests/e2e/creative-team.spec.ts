@@ -5,21 +5,51 @@ import { resolve } from 'node:path'
 import process from 'node:process'
 import { expect, test } from '@playwright/test'
 
-const consoleEvidence = new WeakMap<Page, { errors: string[], warnings: string[] }>()
+const consoleEvidence = new WeakMap<Page, { errors: string[], warnings: string[], lifecycle: { event: string, path: string }[], vite: string[], requestsFailed: { method: string, path: string, error?: string }[], hmr: { type: string, path?: string }[] }>()
 test.beforeEach(({ page }) => {
-  const evidence = { errors: [] as string[], warnings: [] as string[] }
+  const evidence = { errors: [] as string[], warnings: [] as string[], lifecycle: [] as { event: string, path: string }[], vite: [] as string[], requestsFailed: [] as { method: string, path: string, error?: string }[], hmr: [] as { type: string, path?: string }[] }
+  const path = (value: string) => {
+    try {
+      return new URL(value).pathname
+    }
+    catch {
+      return 'unavailable'
+    }
+  }
   consoleEvidence.set(page, evidence)
+  page.on('framenavigated', (frame) => {
+    if (frame === page.mainFrame())
+      evidence.lifecycle.push({ event: 'navigation', path: path(frame.url()) })
+  })
+  page.on('domcontentloaded', () => evidence.lifecycle.push({ event: 'domcontentloaded', path: path(page.url()) }))
+  page.on('requestfailed', request => evidence.requestsFailed.push({ method: request.method(), path: path(request.url()), error: request.failure()?.errorText }))
+  page.on('websocket', socket => socket.on('framereceived', (frame) => {
+    try {
+      const message = JSON.parse(String(frame.payload))
+      if (['full-reload', 'update', 'error', 'connected'].includes(message.type))
+        evidence.hmr.push({ type: message.type, ...(typeof message.path === 'string' ? { path: message.path } : {}) })
+    }
+    catch {}
+  }))
   page.on('pageerror', error => evidence.errors.push(error.message))
   page.on('console', (message) => {
     if (message.type() === 'error')
       evidence.errors.push(message.text())
     if (message.type() === 'warning')
       evidence.warnings.push(message.text())
+    if (message.text().startsWith('[vite]'))
+      evidence.vite.push(message.text())
   })
 })
 test.afterEach(async ({ page }, info) => {
   const evidence = consoleEvidence.get(page)!
-  await writeFile(info.outputPath('browser-console.json'), JSON.stringify(evidence, null, 2))
+  const startup = info.status !== info.expectedStatus
+    ? await Promise.race([
+        page.evaluate(() => ({ readyState: document.readyState, boot: (window as any).creativeMediaBoot, body: (document.body.textContent ?? '').slice(0, 5000), modules: performance.getEntriesByType('resource').slice(-12).map(item => ({ path: new URL(item.name).pathname.slice(0, 300), duration: item.duration })) })).catch(() => ({ unavailable: true })),
+        new Promise(resolve => setTimeout(resolve, 1000, { unavailable: true })),
+      ])
+    : undefined
+  await writeFile(info.outputPath('browser-console.json'), JSON.stringify({ ...evidence, ...(startup ? { startup } : {}) }, null, 2))
   expect(evidence.errors).toEqual([])
   expect(evidence.warnings).toEqual([])
 })
@@ -928,7 +958,7 @@ for (const destination of ['resume', 'restore'] as const) {
     test.setTimeout(60000)
     const audioPath = process.env.STUDIO_CREATIVE_VOICE_WAV
     test.skip(!audioPath, 'Requires a real externally produced spoken WAV; no substitute tone is used')
-    await page.goto(`/tests/fixtures/creative-team/media-milestones.html?case=partial-${destination}`)
+    await page.goto(`/tests/fixtures/creative-team/media-milestones.html?case=partial-${destination}-${info.repeatEachIndex}`)
     await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeMediaFixture))).toBe(true)
     const before = await page.evaluate(() => (window as any).creativeMediaFixture.files())
     const milestone = await stageUnifiedMedia(page, audioPath!)
@@ -1002,7 +1032,7 @@ test('retries an image candidate registration with the original durable request 
   await writeFile(info.outputPath('shared-registration-evidence.json'), JSON.stringify({ before, pending, final }, null, 2))
 })
 
-for (const format of ['adv-md', 'flow'] as const) {
+for (const format of ['adv-md', 'flow', 'markdown-dialogue', 'markdown-narration'] as const) {
   test(`auditions the registered real take, adopts its separate team selection and plays it with the imported image in the actual ${format} game`, async ({ page }, info) => {
     test.setTimeout(90000)
     const audioPath = process.env.STUDIO_CREATIVE_VOICE_WAV
@@ -1032,14 +1062,28 @@ for (const format of ['adv-md', 'flow'] as const) {
         return (connect as any).apply(this, args)
       }
     })
+    const multiline = format.startsWith('markdown-')
+    const narration = format === 'markdown-narration'
+    const speakerId = narration ? 'narrator' : 'lin'
+    const spokenText = multiline ? '列车还没有到，\n我们再等一会儿。' : '列车还没有到，我们再等一会儿。'
     const targetLineId = format === 'flow' ? 'line_01900400-0000-7000-8000-000000000002' : 'line_01900400-0000-7000-8000-000000000001'
-    const fixture = `/tests/fixtures/creative-team/media-milestones.html?case=${format === 'flow' ? 'flow-selected-playback' : 'selected-playback'}`
+    const fixture = `/tests/fixtures/creative-team/media-milestones.html?case=${format === 'flow' ? 'flow-selected-playback' : multiline ? `${format}-selected` : 'selected-playback'}`
     await page.goto(fixture)
     await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeMediaFixture))).toBe(true)
     const milestone = await stageUnifiedMedia(page, audioPath!)
+    if (multiline) {
+      const voice = page.getByTestId('creative-voice-import')
+      await expect(voice).toContainText(`adv/chapters/intro.adv.md:${narration ? '6–7' : '3–5'}`)
+      await expect(voice.locator('.voice-import__text')).toHaveText(spokenText)
+      for (const width of [1280, 390]) {
+        await page.setViewportSize({ width, height: 900 })
+        await voice.locator('.voice-import__text').scrollIntoViewIfNeeded()
+        await page.screenshot({ path: info.outputPath(`markdown-source-${width}.png`), animations: 'disabled' })
+      }
+    }
     await milestone.getByRole('button', { name: '确认写入项目', exact: true }).click()
     await expect(milestone.getByText(/最近一次采用已确认/)).toBeVisible()
-    await page.goto(`/tabs/workspace/audio?section=review&speaker=lin&line=${targetLineId}`)
+    await page.goto(`/tabs/workspace/audio?section=review&speaker=${speakerId}&line=${targetLineId}`)
     const audioWorkspace = page.getByTestId('audio-workspace')
     const take = audioWorkspace.locator('.voice-review__take')
     await expect(take).toHaveCount(1)
@@ -1080,7 +1124,7 @@ for (const format of ['adv-md', 'flow'] as const) {
     await writeFile(info.outputPath('shared-selected-input.json'), JSON.stringify({ audition, before, adopted }, null, 2))
     await page.goto('/tabs/play')
     try {
-      await expect(page.locator('.game-player')).toContainText(format === 'flow' ? '这是第一句，尚未配置配音。' : '列车还没有到，我们再等一会儿。', { timeout: 15000 })
+      await expect(page.locator('.game-player')).toContainText(format === 'flow' || narration ? '这是第一句，尚未配置配音。' : spokenText, { timeout: 15000 })
     }
     catch (cause) {
       const diagnostics = await page.evaluate(() => {
@@ -1100,12 +1144,20 @@ for (const format of ['adv-md', 'flow'] as const) {
       (window as any).unifiedMediaPlayback.records.length = 0
     })
     await page.locator('.adv-popover-menu:visible').getByText('重新开始', { exact: true }).click()
-    if (format === 'flow') {
+    if (format === 'flow' || narration) {
       const dialogue = page.locator('.game-player .adv-dialog-box')
       await expect(dialogue).toContainText('这是第一句，尚未配置配音。')
-      for (let action = 0; action < 3 && !((await dialogue.textContent()) ?? '').includes('列车还没有到，我们再等一会儿。'); action++)
-        await dialogue.click()
-      await expect(dialogue).toContainText('列车还没有到，我们再等一会儿。')
+      if (narration) {
+        for (let action = 0; action < 3 && !await page.locator('.game-player .adv-black').isVisible(); action++)
+          await dialogue.click()
+        await expect(page.locator('.game-player .adv-black')).toContainText('我们再等一会儿。')
+        await expect(dialogue).toHaveCount(0)
+      }
+      else {
+        for (let action = 0; action < 3 && !((await dialogue.textContent()) ?? '').includes('我们再等一会儿。'); action++)
+          await dialogue.click()
+        await expect(dialogue).toContainText(spokenText)
+      }
       expect(Object.keys(JSON.parse(adopted.files['adv/audio/voice-ledger.json']).lines)).toEqual([targetLineId])
     }
     await expect.poll(() => page.evaluate(() => (window as any).unifiedMediaPlayback.records.some((item: any) => item.ended && item.trusted && item.state === 'running' && item.elapsed >= item.duration - 0.15 && item.wallElapsed >= (item.duration - 0.2) * 1000)), { timeout: 12000 }).toBe(true)
@@ -1113,27 +1165,34 @@ for (const format of ['adv-md', 'flow'] as const) {
     expect(playback.gains.some((item: any) => item.gain > 0)).toBe(true)
     for (const width of [1280, 390]) {
       await page.setViewportSize({ width, height: 900 })
-      await expect(avatar).toBeInViewport()
+      await expect(narration ? page.locator('.game-player .adv-black') : avatar).toBeInViewport()
       await page.screenshot({ path: info.outputPath(`shared-selected-game-${width}.png`), animations: 'allow' })
     }
-    let changedFlow: unknown
-    if (format === 'flow') {
+    let changedSource: unknown
+    if (format === 'flow' || multiline) {
       await page.goto(fixture)
       await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeMediaFixture))).toBe(true)
-      const path = 'adv/chapters/intro.chapter.json'
-      const chapter = JSON.parse(adopted.files[path])
-      chapter.nodes[0].dialogues[1].text = '列车到了，我们走吧。'
-      await page.evaluate(({ path, content }) => (window as any).creativeMediaFixture.editSource(path, content), { path, content: JSON.stringify(chapter, null, 2) })
+      const path = format === 'flow' ? 'adv/chapters/intro.chapter.json' : 'adv/chapters/intro.adv.md'
+      let content: string
+      if (format === 'flow') {
+        const chapter = JSON.parse(adopted.files[path])
+        chapter.nodes[0].dialogues[1].text = '列车到了，我们走吧。'
+        content = JSON.stringify(chapter, null, 2)
+      }
+      else {
+        content = adopted.files[path].replace('等一会儿', '继续等下去')
+      }
+      await page.evaluate(({ path, content }) => (window as any).creativeMediaFixture.editSource(path, content), { path, content })
       const coverage = page.getByTestId('creative-voice-coverage')
       await coverage.getByRole('button', { name: '检查全部对白配音', exact: true }).click()
       const row = coverage.getByTestId('creative-voice-coverage-row').filter({ hasText: targetLineId })
-      await expect(row).toContainText('列车到了，我们走吧。')
+      await expect(row).toContainText(format === 'flow' ? '列车到了，我们走吧。' : '我们再继续等下去。')
       await expect(row).toContainText('已选配音过期')
       const files = await page.evaluate(() => (window as any).creativeMediaFixture.files())
       expect(files['adv/audio/voice-ledger.json']).toBe(adopted.files['adv/audio/voice-ledger.json'])
-      changedFlow = { files, status: await row.textContent(), media: await page.evaluate(() => (window as any).creativeMediaFixture.media()) }
+      changedSource = { files, status: await row.textContent(), media: await page.evaluate(() => (window as any).creativeMediaFixture.media()) }
     }
-    await writeFile(info.outputPath('shared-selected-playback.json'), JSON.stringify({ format, targetLineId, changedFlow, scope: 'Actual WebP + external system speech; direction, identity and local service storage remain explicit fixtures. Native methods are observed, not replaced with fake playback. No physical speaker measurement or performance-quality claim.', audition, before, adopted, playback }, null, 2))
+    await writeFile(info.outputPath('shared-selected-playback.json'), JSON.stringify({ format, speakerId, spokenText, targetLineId, changedFlow: format === 'flow' ? changedSource : undefined, changedMarkdown: multiline ? changedSource : undefined, scope: 'Actual WebP + external system speech; direction, identity and local service storage remain explicit fixtures. Native methods are observed, not replaced with fake playback. No physical speaker measurement or performance-quality claim.', audition, before, adopted, playback }, null, 2))
   })
 }
 

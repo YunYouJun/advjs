@@ -28,6 +28,16 @@ export function matchesCreativeVoiceLineSource(line: CreativeVoiceLine, files: R
     return false
   try {
     if (line.lineId !== undefined) {
+      if (line.path.endsWith('.adv.md')) {
+        const span = line.source
+        const marker = `{#${line.lineId}}`
+        if (!span || (targetLineId !== undefined && targetLineId !== line.lineId))
+          return false
+        const rows = source.split(/\r?\n/)
+        const quoted = span.text.replace(/\r\n/g, '\n')
+        return span.line >= 1 && span.endLine >= span.line && span.endLine <= rows.length
+          && rows.slice(span.line - 1, span.endLine).join('\n') === quoted && quoted.split(marker).length === 2
+      }
       if (!line.path.endsWith('.chapter.json') || (targetLineId !== undefined && targetLineId !== line.lineId))
         return false
       const chapter = object(JSON.parse(source))

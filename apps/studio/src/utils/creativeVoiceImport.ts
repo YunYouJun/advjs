@@ -89,7 +89,7 @@ export async function readCreativeVoiceTargets(fs: IFileSystem, run: CreativeTea
         return false
       }
       if (request.lineId !== undefined)
-        return node.data.lineId === request.lineId
+        return node.data.lineId === request.lineId && (!request.source || (source.line === request.source.line && source.endLine === request.source.endLine))
       // Canonical @speaker maps to its directive; the request points to the spoken-text line.
       return source.line === request.line || (node.kind === 'dialog' && source.line === request.line - 1 && sourceLines[source.line - 1]?.trim().startsWith('@'))
     })
