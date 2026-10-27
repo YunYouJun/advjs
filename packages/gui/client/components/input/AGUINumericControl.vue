@@ -149,7 +149,7 @@ const vNumberDrag = numberDrag({
   color: var(--agui-c-text-1);
   background: var(--agui-c-field);
   border: 1px solid var(--agui-c-control-border);
-  border-radius: 2px;
+  border-radius: var(--agui-radius-sm);
   font-size: 12px;
   font-variant-numeric: tabular-nums;
   &:hover:not(.is-disabled) {
@@ -232,7 +232,7 @@ const vNumberDrag = numberDrag({
     width: 24px;
     padding: 0;
     border: 0;
-    border-radius: 2px;
+    border-radius: var(--agui-radius-sm);
     background: transparent;
     color: inherit;
     font: inherit;

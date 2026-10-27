@@ -79,7 +79,7 @@ const open = defineModel('open', {
   color: var(--agui-c-text-1);
   background: var(--agui-c-bg-panel);
   border: 1px solid var(--agui-c-border);
-  border-radius: 4px;
+  border-radius: var(--agui-radius-lg);
   box-shadow: var(--agui-shadow-popup);
   font-size: 13px;
 }

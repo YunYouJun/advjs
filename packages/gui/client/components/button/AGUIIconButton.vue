@@ -35,7 +35,7 @@ withDefaults(defineProps<{
   min-height: var(--agui-control-height);
   padding: 4px;
   border: 1px solid transparent;
-  border-radius: 3px;
+  border-radius: var(--agui-radius-sm);
   color: var(--agui-c-text-1);
   background: transparent;
   appearance: none;

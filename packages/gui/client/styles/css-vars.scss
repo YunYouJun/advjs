@@ -47,13 +47,17 @@
   --agui-control-height: 24px;
   --agui-tab-list-height: 28px;
 
-  // Opt-in composition tokens. Existing controls keep their own size contracts.
+  // Shared desktop composition. Rounding does not change compact control heights.
   --agui-space-1: 4px;
   --agui-space-2: 8px;
   --agui-space-3: 12px;
   --agui-space-4: 16px;
-  --agui-radius-sm: 3px;
-  --agui-radius-md: 6px;
+  --agui-radius-sm: 5px;
+  --agui-radius-md: 8px;
+  --agui-radius-lg: 12px;
+  --agui-radius-pill: 999px;
+  --agui-tag-min-height: 20px;
+  --agui-tag-line-height: 16px;
   --agui-font-size-caption: 11px;
   --agui-font-size-body: 12px;
   --agui-font-size-title: 13px;

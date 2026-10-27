@@ -51,7 +51,7 @@ const classes = computed(() => {
   --button-pressed: var(--agui-c-control-pressed);
   --button-text: var(--agui-c-text-1);
   --button-border: var(--agui-c-button-border);
-  --border-radius: 2px;
+  --border-radius: var(--agui-radius-sm);
 
   box-sizing: border-box;
   display: inline-flex;

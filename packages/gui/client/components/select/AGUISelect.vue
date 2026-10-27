@@ -141,7 +141,7 @@ function onUpdateModelValue(value: AcceptableValue) {
   padding: 0 8px;
   background: var(--agui-c-field);
   border: 1px solid var(--agui-c-control-border);
-  border-radius: 2px;
+  border-radius: var(--agui-radius-sm);
   text-align: left;
   min-height: var(--agui-control-height);
   cursor: pointer;
@@ -172,7 +172,7 @@ function onUpdateModelValue(value: AcceptableValue) {
   color: var(--agui-c-text-1);
   background: var(--agui-c-popup);
   border: 1px solid var(--agui-c-border);
-  border-radius: 4px;
+  border-radius: var(--agui-radius-md);
   box-shadow: var(--agui-shadow-popup);
 }
 .agui-select-viewport {
@@ -181,7 +181,7 @@ function onUpdateModelValue(value: AcceptableValue) {
 .agui-select-item {
   font-size: 12px;
   line-height: 1.4;
-  border-radius: 2px;
+  border-radius: var(--agui-radius-sm);
   display: flex;
   align-items: center;
   min-height: 25px;

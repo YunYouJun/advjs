@@ -17,7 +17,7 @@ const batchCount = computed(() => props.batchSize ? Math.ceil(plan.value.tasks.l
   <div class="ae-job-review" data-testid="jobs-plan-review">
     <div class="ae-job-review-heading">
       <strong>{{ plan.summary.lines }} 句已纳入计划</strong>
-      <AGUITag v-if="batchCount" tone="info">
+      <AGUITag v-if="batchCount" tone="neutral">
         共 {{ batchCount }} 批
       </AGUITag>
     </div>

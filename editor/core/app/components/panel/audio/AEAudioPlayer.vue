@@ -39,7 +39,7 @@ defineExpose({ play, pause: transport.pause })
     <audio :id="id" ref="audio" :src="src" :aria-label="label" preload="metadata" @error="emit('error')" />
     <div class="ae-player-heading">
       <span class="ae-player-title">{{ title }}</span>
-      <AGUITag :tone="transport.waiting || !transport.paused ? 'info' : 'neutral'">
+      <AGUITag :tone="transport.waiting || !transport.paused ? 'info' : 'neutral'" :icon="transport.waiting ? 'i-ri-time-line' : transport.paused ? 'i-ri-pause-line' : 'i-ri-play-fill'">
         {{ transport.waiting ? '正在载入' : transport.paused ? '已暂停' : '正在播放' }}
       </AGUITag>
     </div>

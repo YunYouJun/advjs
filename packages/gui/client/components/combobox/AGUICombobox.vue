@@ -95,7 +95,7 @@ function onUpdateModelValue(value: string) {
   color: var(--agui-c-text-1);
   background-color: var(--agui-c-popup);
   border: 1px solid var(--agui-c-border);
-  border-radius: 4px;
+  border-radius: var(--agui-radius-md);
   box-shadow: var(--agui-shadow-popup);
   width: var(--reka-combobox-trigger-width);
   max-height: var(--reka-combobox-content-available-height);
@@ -114,7 +114,7 @@ function onUpdateModelValue(value: string) {
 .agui-combobox-item {
   font-size: 12px;
   line-height: 1;
-  border-radius: 3px;
+  border-radius: var(--agui-radius-sm);
   display: flex;
   align-items: center;
   min-height: 25px;

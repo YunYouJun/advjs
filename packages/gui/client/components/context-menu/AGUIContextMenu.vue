@@ -176,7 +176,7 @@ withDefaults(defineProps<{
   min-width: 220px;
   background-color: var(--agui-c-popup);
   border: 1px solid var(--agui-c-border);
-  border-radius: 4px;
+  border-radius: var(--agui-radius-md);
   overflow: hidden;
   padding: 5px;
   box-shadow: var(--agui-shadow-popup);
@@ -189,7 +189,7 @@ withDefaults(defineProps<{
   font-size: 13px;
   line-height: 1;
   color: var(--agui-c-text);
-  border-radius: 3px;
+  border-radius: var(--agui-radius-sm);
   display: flex;
   align-items: center;
   height: 25px;

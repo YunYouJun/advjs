@@ -50,7 +50,7 @@ const sources: Record<VoiceDesignSample['source'], string> = { system: '系统�
     </p>
     <div v-for="preview in previews" :key="preview.id" class="ae-design-candidate" :data-testid="`design-preview-${preview.status}`">
       <p class="ae-design-candidate-title">
-        <AGUITag :tone="preview.status === 'failed' || preview.status === 'unknown' ? 'warning' : preview.status === 'registered' ? 'success' : 'neutral'">
+        <AGUITag :tone="preview.status === 'failed' ? 'danger' : preview.status === 'unknown' ? 'warning' : preview.status === 'registered' ? 'success' : preview.status === 'running' ? 'info' : 'neutral'">
           {{ statuses[preview.status] }}
         </AGUITag>
       </p>
