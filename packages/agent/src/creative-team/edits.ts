@@ -1,10 +1,13 @@
 import type { CreativeArtifact, CreativeTeamHandoff, CreativeTeamRun } from './contracts'
 import type { CreativePartnerOutput } from './outputs'
+import type { CreativeTextEditOutput } from './text-edits'
 import { creativeArtifactExpectedFiles } from './milestones'
 import { creativeOutputFileChanges, parseCreativePartnerOutput } from './outputs'
+import { creativeTextEditOutput, parseCreativeTextEditOutput } from './text-edits'
 import { requiredCreativeReviewCapabilities } from './validation'
 
-export type CreativeEditableOutput = Extract<CreativePartnerOutput, { kind: 'characters' | 'chapter' | 'voice-direction' }>
+type StructuredEditableOutput = Extract<CreativePartnerOutput, { kind: 'characters' | 'chapter' | 'voice-direction' }>
+export type CreativeEditableOutput = StructuredEditableOutput | CreativeTextEditOutput
 export interface CreativeCandidateEditRequest {
   artifactId: string
   fingerprint: string
@@ -33,8 +36,9 @@ export function prepareCreativeCandidateEdit(run: CreativeTeamRun, request: Crea
   const original = run.artifacts.find(item => item.id === request.artifactId && item.fingerprint === request.fingerprint)
   if (!original || !['candidate', 'selected'].includes(original.status) || run.status === 'completed')
     throw new Error('CREATIVE_EDIT_SOURCE_CONFLICT')
-  if (!original.output || !['characters', 'chapter', 'voice-direction'].includes(original.output.kind))
-    throw new TypeError('This candidate does not support structured author editing')
+  const textEdit = creativeTextEditOutput(original, run.plan.tasks.find(task => task.id === original.taskId)?.capability)
+  if (!textEdit && (!original.output || !['characters', 'chapter', 'voice-direction'].includes(original.output.kind)))
+    throw new TypeError('This candidate does not support author editing')
   if (!request.reason.trim() || request.reason.length > 4000)
     throw new TypeError('An author edit requires a bounded decision reason')
   for (const [path, content] of Object.entries(creativeArtifactExpectedFiles(original, run))) {
@@ -68,14 +72,17 @@ export function prepareCreativeCandidateEdit(run: CreativeTeamRun, request: Crea
     const match = /^adv\/characters\/([\w-]+)\.(?:character\.)?md$/.exec(path)
     return match ? [match[1]] : []
   })
-  const output = parseCreativePartnerOutput(original.output.kind, request.output, {
-    projectId: run.plan.projectId,
-    projectRevision: facts.revision,
-    files,
-    characterIds,
-    limits: run.plan.limits,
-  }) as CreativeEditableOutput
-  const changes = creativeOutputFileChanges(output, files)
+  const textOutput = textEdit ? parseCreativeTextEditOutput(request.output) : undefined
+  const output = textOutput
+    ? undefined
+    : parseCreativePartnerOutput(original.output!.kind, request.output, {
+      projectId: run.plan.projectId,
+      projectRevision: facts.revision,
+      files,
+      characterIds,
+      limits: run.plan.limits,
+    }) as StructuredEditableOutput | undefined
+  const changes = textOutput ? [{ ...original.changes[0]!, after: textOutput.content }] : creativeOutputFileChanges(output!, files)
   const dependencies = new Set([
     ...Object.keys(original.source.files),
     ...changes.map(change => change.path),
@@ -87,8 +94,8 @@ export function prepareCreativeCandidateEdit(run: CreativeTeamRun, request: Crea
     partner: original.partner,
     projectId: run.plan.projectId,
     kind: original.kind,
-    summary: output.summary,
-    output,
+    summary: textOutput?.summary ?? output!.summary,
+    ...(output ? { output } : {}),
     changes,
     reviewCapabilities: [],
     status: 'candidate',

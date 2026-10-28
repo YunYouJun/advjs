@@ -10,7 +10,7 @@ const targetArg = process.argv.find(argument => argument.startsWith('--runtime='
 if (!targetArg)
   throw new Error('Pass --runtime=/absolute/path/to/YunLeFun/api; --write updates the generated copy')
 const target = resolve(targetArg, 'packages/ai-runtime-advjs/src/creative-team/shared')
-const files = ['contracts.ts', 'delivery.ts', 'director-summary.ts', 'validation.ts', 'candidates.ts', 'orchestration.ts', 'outputs.ts', 'wire.ts', 'edits.ts', 'media.ts', 'milestones.ts', 'merges.ts', 'voice-direction.ts', 'voice-lines.ts', 'playtest-contracts.ts', 'playtest-voice.ts', 'narrative-concerns.ts', 'playtest-narrative.ts', 'playtest-snapshot.ts', 'playtest-repair.ts']
+const files = ['contracts.ts', 'delivery.ts', 'director-summary.ts', 'validation.ts', 'candidates.ts', 'orchestration.ts', 'outputs.ts', 'wire.ts', 'edits.ts', 'text-edits.ts', 'media.ts', 'milestones.ts', 'merges.ts', 'voice-direction.ts', 'voice-lines.ts', 'playtest-contracts.ts', 'playtest-voice.ts', 'narrative-concerns.ts', 'playtest-narrative.ts', 'playtest-snapshot.ts', 'playtest-repair.ts']
 const hashes = {}
 for (const file of files) {
   const original = await readFile(new URL(file, source), 'utf8')

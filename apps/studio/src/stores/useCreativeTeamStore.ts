@@ -1,5 +1,5 @@
 import type { CreativeAdoptionJournal, CreativeCandidateEditRequest, CreativeDeliveryRequest, CreativeMediaCandidateRequest, CreativePlaytestReport, CreativeProjectWorkspace, CreativeTeamAvailability, CreativeTeamClient, CreativeTeamDecisionInput, CreativeTeamRun, CreativeTeamRunSummary, CreativeTeamStartRequest } from '@advjs/agent'
-import { CreativeMilestoneCoordinator, normalizeAgentRuntimeError } from '@advjs/agent'
+import { computeAgentProjectRevision, creativeMediaCanonical, CreativeMilestoneCoordinator, normalizeAgentRuntimeError } from '@advjs/agent'
 import { defineStore } from 'pinia'
 import { computed, shallowRef } from 'vue'
 
@@ -198,9 +198,12 @@ export const useCreativeTeamStore = defineStore('creative-team', () => {
 
   async function editCandidate(request: CreativeCandidateEditRequest, project: CreativeTeamStartRequest['project']): Promise<boolean> {
     const runId = run.value?.id
-    if (!runId || project.id !== connection?.projectId)
+    const before = connection
+    if (!runId || !before || project.id !== before.projectId)
       return false
-    const intent = crypto.randomUUID()
+    const intent = `edit_${(await computeAgentProjectRevision({ request: creativeMediaCanonical({ accountId: before.accountId, projectId: project.id, runId, request }) })).slice(7)}`
+    if (before !== connection || run.value?.id !== runId)
+      return false
     return mutate(async (current) => {
       await current.client.refreshFacts(project, runId, crypto.randomUUID())
       if (current !== connection)

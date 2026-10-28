@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { CreativeCandidateEditRequest, CreativeTeamDecisionInput, CreativeTeamRun } from '@advjs/agent'
-import { canRequestCreativeDirectorSummary } from '@advjs/agent'
+import { canRequestCreativeDirectorSummary, creativeTextEditOutput } from '@advjs/agent'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import SButton from '../ui/SButton.vue'
 import CreativeTaskRework from './CreativeTaskRework.vue'
 import CreativeTeamArtifactCard from './CreativeTeamArtifactCard.vue'
 
-const props = defineProps<{ run: CreativeTeamRun, busy: boolean, enabled: boolean, authorEditsAvailable: boolean, voiceEditsAvailable?: boolean, directorSummaryAvailable?: boolean, savedEditArtifactId?: string, knownCharacterIds?: readonly string[] }>()
+const props = defineProps<{ run: CreativeTeamRun, busy: boolean, enabled: boolean, authorEditsAvailable: boolean, rawTextEditsAvailable?: boolean, voiceEditsAvailable?: boolean, directorSummaryAvailable?: boolean, savedEditArtifactId?: string, knownCharacterIds?: readonly string[] }>()
 defineEmits<{ decide: [decision: CreativeTeamDecisionInput], syncFacts: [], edit: [request: CreativeCandidateEditRequest] }>()
 const { t, locale } = useI18n()
 const active = computed(() => props.run.tasks.some(task => ['running', 'reconcile_required'].includes(task.status)))
@@ -28,10 +28,11 @@ const artifacts = computed(() => props.run.artifacts.map((artifact) => {
   const canRework = props.enabled && summaryAllowed && !stopped.value && !active.value && !['stale', 'rejected'].includes(artifact.status)
     && ['awaiting_review', 'completed'].includes(task.status) && task.attempt < 1 + props.run.plan.limits.maxReworkRounds
     && !(artifact.output?.kind === 'production-plan' && artifact.status === 'selected')
+  const sourceOutput = creativeTextEditOutput(artifact, props.run.plan.tasks.find(item => item.id === artifact.taskId)?.capability)
   const canEdit = props.authorEditsAvailable && props.run.status !== 'completed' && ['candidate', 'selected'].includes(artifact.status) && ['awaiting_review', 'completed'].includes(task.status)
-    && Boolean(artifact.output && (['characters', 'chapter'].includes(artifact.output.kind) || (artifact.output.kind === 'voice-direction' && props.voiceEditsAvailable)))
+    && Boolean((sourceOutput && props.rawTextEditsAvailable) || (artifact.output && (['characters', 'chapter'].includes(artifact.output.kind) || (artifact.output.kind === 'voice-direction' && props.voiceEditsAvailable))))
   const editSaved = props.savedEditArtifactId === artifact.id
-  return { artifact, canSelect, canRework, canEdit, editSaved }
+  return { artifact, sourceOutput, canSelect, canRework, canEdit, editSaved }
 }))
 function points(value: number) {
   return t('creativeTeam.points', { value: new Intl.NumberFormat(locale.value, { maximumFractionDigits: 3 }).format(value / 1000) })

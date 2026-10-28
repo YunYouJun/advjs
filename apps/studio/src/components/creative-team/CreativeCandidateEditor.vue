@@ -5,7 +5,7 @@ import { computed, onMounted, ref, shallowRef, toRaw, useTemplateRef } from 'vue
 import { useI18n } from 'vue-i18n'
 import SButton from '../ui/SButton.vue'
 
-type TextOutput = Exclude<CreativeEditableOutput, { kind: 'voice-direction' }>
+type TextOutput = Extract<CreativeEditableOutput, { kind: 'characters' | 'chapter' }>
 const props = withDefaults(defineProps<{ output: TextOutput, candidateId: string, busy: boolean, disabled?: boolean, knownCharacterIds?: readonly string[] }>(), { disabled: false, knownCharacterIds: () => [] })
 const emit = defineEmits<{ save: [value: { output: CreativeEditableOutput, reason: string }], close: [] }>()
 const { t } = useI18n()

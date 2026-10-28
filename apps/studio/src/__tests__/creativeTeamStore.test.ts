@@ -46,6 +46,37 @@ describe('creative team persisted session', () => {
     expect(api.start).not.toHaveBeenCalled()
     expect(api.decide).not.toHaveBeenCalled()
   })
+  it('reuses one scoped edit intent after an unknown response, canonicalizes input keys and separates changed revisions', async () => {
+    const api = client()
+    const store = useCreativeTeamStore()
+    store.configure({ client: api, accountId: 'account1', projectId: 'station' })
+    await store.refresh()
+    const request = { artifactId: 'candidate1', fingerprint: 'fingerprint1', reason: '改大纲', output: { kind: 'source-text' as const, summary: '作者的大纲', content: '# 留下或离开\n' } }
+    api.editCandidate.mockRejectedValueOnce(new Error('response lost after save'))
+    expect(await store.editCandidate(request, project)).toBe(false)
+    expect(await store.editCandidate({ output: { content: request.output.content, summary: request.output.summary, kind: request.output.kind }, reason: request.reason, fingerprint: request.fingerprint, artifactId: request.artifactId }, project)).toBe(true)
+    const first = api.editCandidate.mock.calls[0]![3]
+    expect(first).toMatch(/^edit_[a-f0-9]{64}$/)
+    expect(api.editCandidate.mock.calls[1]![3]).toBe(first)
+    expect(await store.editCandidate({ ...request, output: { ...request.output, content: '# 新的大纲\n' } }, project)).toBe(true)
+    expect(api.editCandidate.mock.calls[2]![3]).not.toBe(first)
+    expect(api.start).not.toHaveBeenCalled()
+    expect(api.decide).not.toHaveBeenCalled()
+  })
+
+  it('discards an author edit if the account changes while its stable intent is being computed', async () => {
+    const api = client()
+    const store = useCreativeTeamStore()
+    store.configure({ client: api, accountId: 'account1', projectId: 'station' })
+    await store.refresh()
+    const request = { artifactId: 'candidate1', fingerprint: 'fingerprint1', reason: '改大纲', output: { kind: 'source-text' as const, summary: '作者的大纲', content: '# 大纲\n' } }
+    const pending = store.editCandidate(request, project)
+    store.configure({ client: client(), accountId: 'another-account', projectId: 'station' })
+    expect(await pending).toBe(false)
+    expect(api.refreshFacts).not.toHaveBeenCalled()
+    expect(api.editCandidate).not.toHaveBeenCalled()
+  })
+
   it('shows disabled service without reading unavailable history or submitting work', async () => {
     const api = client()
     api.availability.mockResolvedValue({ ...(await api.availability()), enabled: false })

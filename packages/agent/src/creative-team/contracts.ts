@@ -200,7 +200,7 @@ export interface CreativeTeamAvailability {
   serviceVersion: string
   capabilities: readonly CreativeTeamCapability[]
   media: { image: 'unavailable' | 'manual-import' | 'verified-managed', voice: 'unavailable' | 'manual-import' | 'verified-author-host' | 'verified-managed' }
-  authoring?: { candidateEdits: boolean, milestoneAdoption: boolean, milestoneMerges?: boolean, playtestReports?: boolean, playtestVoiceCoverage?: boolean, playtestNarrativeReview?: boolean, playtestRepair?: boolean, mediaCandidates?: boolean, voiceDirectionEdits?: boolean, delivery?: boolean }
+  authoring?: { candidateEdits: boolean, rawTextEdits?: boolean, milestoneAdoption: boolean, milestoneMerges?: boolean, playtestReports?: boolean, playtestVoiceCoverage?: boolean, playtestNarrativeReview?: boolean, playtestRepair?: boolean, mediaCandidates?: boolean, voiceDirectionEdits?: boolean, delivery?: boolean }
   maxConcurrentTasks: 1
 }
 
