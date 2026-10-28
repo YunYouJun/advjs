@@ -2,11 +2,18 @@ import { resolve } from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
 
-// Jobs that run only for relevant changes, and the studio-changes output that decides.
-const conditional = {
+// null means unconditional; other values name a studio-changes output.
+export const LAUNCH_CHECKS = Object.freeze({
+  'quality': null,
+  'studio-changes': null,
+  'studio-pages-build': 'studio',
   'studio-unit': 'studio',
   'studio-ios': 'native',
-}
+  'vrm-pages-build': null,
+  'platform-smoke': null,
+  'browser': null,
+  'agent-install-smoke': null,
+})
 
 /**
  * Every launch check must succeed. A conditional job may be skipped only when
@@ -19,20 +26,25 @@ export function assertLaunchChecks(needs) {
   if (changes?.result !== 'success')
     throw new Error(`studio-changes=${changes?.result}; expected success`)
   const failed = []
-  for (const [name, job] of Object.entries(needs)) {
+  for (const [name, scope] of Object.entries(LAUNCH_CHECKS)) {
+    if (!Object.hasOwn(needs, name)) {
+      failed.push(`${name}=missing`)
+      continue
+    }
     let expected = 'success'
-    if (Object.hasOwn(conditional, name)) {
-      const flag = changes.outputs?.[conditional[name]]
+    if (scope) {
+      const flag = changes.outputs?.[scope]
       if (flag !== 'true' && flag !== 'false')
-        throw new Error(`studio-changes must report ${conditional[name]}=true|false`)
+        throw new Error(`studio-changes must report ${scope}=true|false`)
       expected = flag === 'true' ? 'success' : 'skipped'
     }
+    const job = needs[name]
     if (job?.result !== expected)
       failed.push(`${name}=${job?.result} (expected ${expected})`)
   }
-  for (const name of Object.keys(conditional)) {
-    if (!Object.hasOwn(needs, name))
-      failed.push(`${name}=missing`)
+  for (const name of Object.keys(needs)) {
+    if (!Object.hasOwn(LAUNCH_CHECKS, name))
+      failed.push(`${name}=unknown`)
   }
   if (failed.length > 0)
     throw new Error(failed.join(', '))

@@ -25,6 +25,25 @@ gh api repos/YunYouJun/advjs/rulesets
 gh api repos/YunYouJun/advjs/rulesets --method POST --input /tmp/advjs-required-checks.json
 ```
 
+## 主工作流与构建复用
+
+`.github/workflows/ci.yml` 完整运行时有 11 个实际作业（包括 macOS、Windows 矩阵），按验证目标复用安装与构建：
+
+| 作业                                     | 覆盖内容与复用方式                                                                                                                    |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `quality`                                | 构建全部 packages 并准备 Nuxt 类型，随后执行根目录类型检查、lint、游戏主题类型契约和全部单元测试；音频测试使用真实 FFmpeg/FFprobe     |
+| `browser`                                | 构建一次 Editor 并验证 Pages 输出，安装一次 Chromium，运行全部根目录 Playwright 用例及完整 launch journey；保留迁移与发布证据         |
+| `platform-smoke`                         | macOS、Windows 各安装一次依赖，检查 Editor 类型；从源码构建 Editor 后复用产物打包，验证 CLI 构建、Editor 安装生命周期和脚手架生成项目 |
+| `studio-changes`                         | 比较完整提交范围，决定 Web Studio 和原生 Studio 是否需要运行                                                                          |
+| `studio-pages-build`、`studio-unit`      | 按 Studio 改动范围运行；分别验证生产输出及 Web/Node 引擎单元测试                                                                      |
+| `studio-ios`                             | 从同一次工作流的 `studio-unit` 接收引擎、golden 数据和示例包，在 iPhone 运行 JavaScriptCore、App 单元及 UI 测试，在 iPad 运行布局测试 |
+| `vrm-pages-build`、`agent-install-smoke` | 保留独立的 VRM 生产输出及 Agent 安装验收                                                                                              |
+| `launch-required`                        | 始终执行，核对完整作业清单及 Studio 跳过条件，缺失、失败、取消和意外跳过均阻止合并                                                    |
+
+原生输入在 Linux 生成，通过 `studio-ios-inputs` artifact 传递到 macOS；仅传递平台无关的 JavaScript、JSON 和示例包，不传递 `node_modules` 或原生二进制。输入保留 7 天以支持失败作业重跑，验收结果仍保留 30 天。iOS 作业依赖输入生成成功，不跨工作流查找其他提交的产物。
+
+构建复用不减少测试套件或平台覆盖。五项必需检查名称保持稳定；新增主工作流作业时，同时更新 `scripts/ci/launch-required.mjs` 的权威作业清单。合并作业会串行执行其中的检查，实际耗时以 GitHub Actions 新运行结果为准。
+
 ## Cloudflare PR 预览
 
 Editor、Studio 和 VRM 使用已有 Git 集成项目。Docs、Demo 和 Parser 使用以下独立项目，仅发布预览，不绑定生产域名：

@@ -177,6 +177,7 @@ describe('packed advjs build', () => {
     expect(isAbsolute(relativeTemporaryRoot) || relativeTemporaryRoot.split(/[\\/]/u)[0] === '..').toBe(true)
 
     const manifest = await createPackageManifest({
+      build: process.env.ADVJS_PACKED_INSTALL_SKIP_BUILD !== '1',
       outputDirectory: packDirectory,
       root: repositoryRoot,
     })

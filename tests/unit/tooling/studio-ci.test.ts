@@ -93,9 +93,14 @@ describe('studio CI scope', () => {
 
 describe('launch-required', () => {
   const success = { result: 'success', outputs: {} }
-  function needs(native: string, studio: string, overrides: Record<string, unknown> = {}) {
+  function needs(native: string, studio: string, overrides: Record<string, unknown> = {}): Record<string, unknown> {
     return {
-      'build': success,
+      'quality': success,
+      'browser': success,
+      'platform-smoke': success,
+      'vrm-pages-build': success,
+      'agent-install-smoke': success,
+      'studio-pages-build': { result: studio === 'true' ? 'success' : 'skipped', outputs: {} },
       'studio-changes': { result: 'success', outputs: { native, studio } },
       'studio-unit': { result: studio === 'true' ? 'success' : 'skipped', outputs: {} },
       'studio-ios': { result: native === 'true' ? 'success' : 'skipped', outputs: {} },
@@ -107,7 +112,7 @@ describe('launch-required', () => {
     expect(() => assertLaunchChecks(needs('true', 'true'))).not.toThrow()
     expect(() => assertLaunchChecks(needs('false', 'true'))).not.toThrow()
     expect(() => assertLaunchChecks(needs('false', 'false'))).not.toThrow()
-    expect(() => assertLaunchChecks(needs('true', 'true', { build: { result: 'failure' } }))).toThrow('build=failure')
+    expect(() => assertLaunchChecks(needs('true', 'true', { quality: { result: 'failure' } }))).toThrow('quality=failure')
     expect(() => assertLaunchChecks(needs('true', 'true', { 'studio-ios': { result: 'skipped' } }))).toThrow('studio-ios=skipped (expected success)')
     expect(() => assertLaunchChecks(needs('true', 'true', { 'studio-ios': { result: 'cancelled' } }))).toThrow('studio-ios=cancelled')
     expect(() => assertLaunchChecks(needs('false', 'true', { 'studio-ios': { result: 'failure' } }))).toThrow('expected skipped')
@@ -116,7 +121,13 @@ describe('launch-required', () => {
   it('fails closed when change detection fails or reports nothing', () => {
     expect(() => assertLaunchChecks(needs('true', 'true', { 'studio-changes': { result: 'failure' } }))).toThrow('studio-changes=failure')
     expect(() => assertLaunchChecks(needs('true', 'true', { 'studio-changes': { result: 'success', outputs: {} } }))).toThrow('studio-changes must report')
-    const { 'studio-ios': _removed, ...missing } = needs('true', 'true')
-    expect(() => assertLaunchChecks(missing)).toThrow('studio-ios=missing')
+    for (const name of ['quality', 'browser', 'platform-smoke', 'vrm-pages-build', 'agent-install-smoke', 'studio-pages-build', 'studio-unit', 'studio-ios']) {
+      const missing = needs('true', 'true')
+      delete missing[name]
+      expect(() => assertLaunchChecks(missing), name).toThrow(`${name}=missing`)
+      for (const result of ['failure', 'cancelled', 'skipped'])
+        expect(() => assertLaunchChecks(needs('true', 'true', { [name]: { result } })), name).toThrow(`${name}=${result}`)
+    }
+    expect(() => assertLaunchChecks(needs('true', 'true', { accidental: success }))).toThrow('accidental=unknown')
   })
 })

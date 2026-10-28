@@ -19,9 +19,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: build (Node LTS)
+  quality:
+    name: quality (build, types, lint, unit)
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -31,51 +32,25 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Build packages
-        run: pnpm build
+      # Publication tests deliberately encode and verify real Opus/AAC media.
+      - name: Install audio test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends ffmpeg
+          ffmpeg -version
+          ffprobe -version
+      - name: Build test dependencies
+        run: pnpm prepare:workspace unit
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Lint
+        run: pnpm lint
+      - name: Check game theme type contracts
+        run: pnpm exec tsc -p tests/tsconfig.game-theme.json --noEmit
+      - name: Run unit tests
+        run: pnpm vitest run tests/unit --reporter=default
 
-  editor-pages-build:
-    name: editor-pages-build
-    runs-on: ubuntu-latest
-    env:
-      NODE_VERSION: 'lts/*'
-      PNPM_VERSION: 12.12.1
-    steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-        with:
-          version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Reproduce Cloudflare Pages build command
-        run: pnpm editor:build
-      - name: Verify Cloudflare Pages output directory
-        run: test -f editor/core/dist/index.html
-
-  studio-pages-build:
-    name: studio-pages-build
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 'lts/*'
-          cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Reproduce Cloudflare Pages build command
-        run: pnpm studio:build
-      - name: Verify Studio Pages output
-        run: test -f apps/studio/dist/index.html && test -f apps/studio/dist/sw.js
-
-  # Studio jobs run only for changes that can affect them (scripts/ci/studio-changes.mjs).
-  # launch-required accepts a skipped Studio job only when this job reports so.
+  # Studio jobs run only for relevant changes; launch-required verifies skips.
   studio-changes:
     name: studio-changes
     runs-on: ubuntu-latest
@@ -96,9 +71,26 @@ jobs:
           STUDIO_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node scripts/ci/studio-changes.mjs
 
-  # Studio's own Vite/Vitest config is excluded from the root unit job. Shared
-  # content, validation and authoring modules are also checked here through
-  # the native Studio engine, so a change cannot pass on one client only.
+  studio-pages-build:
+    name: studio-pages-build
+    needs: studio-changes
+    if: needs.studio-changes.outputs.studio == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Reproduce Cloudflare Pages build command
+        run: pnpm studio:build
+      - name: Verify Studio Pages output
+        run: test -f apps/studio/dist/index.html && test -f apps/studio/dist/sw.js
+
   studio-unit:
     name: studio-unit (Node LTS)
     needs: studio-changes
@@ -123,33 +115,46 @@ jobs:
       - name: Test the native Studio engine on Node
         run: pnpm -C apps/studio-ios test:engine
 
-  # StudioKit (including golden parity on iOS JavaScriptCore) and the App unit
-  # tests run once, on the iPhone; the iPad runs only its own UI tests.
+      - name: Generate native golden cases and sample packages
+        if: needs.studio-changes.outputs.native == 'true'
+        run: pnpm -C apps/studio-ios golden && pnpm -C apps/studio-ios build:samples
+      # Only portable JS/JSON/sample inputs cross runners, never node_modules.
+      # The shared path root is apps/studio-ios, restored at the same location.
+      - uses: actions/upload-artifact@v7
+        if: needs.studio-changes.outputs.native == 'true'
+        with:
+          name: studio-ios-inputs
+          path: |
+            apps/studio-ios/engine/dist/engine.report.json
+            apps/studio-ios/engine/dist/golden/summary.json
+            apps/studio-ios/Packages/StudioKit/Sources/StudioKit/EngineBundle/
+            apps/studio-ios/Packages/StudioKit/Tests/StudioKitTests/Golden/
+            apps/studio-ios/StudioApp/Samples/
+          if-no-files-found: error
+          retention-days: 7
+
+  # Node builds once on Linux; all JavaScriptCore, App and device UI tests stay on iOS.
   studio-ios:
     name: studio-ios (JavaScriptCore and App)
-    needs: studio-changes
+    needs: [studio-changes, studio-unit]
     if: needs.studio-changes.outputs.native == 'true'
     runs-on: xcode-27
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
-          cache: pnpm
-      # Simulators boot while dependencies install; xcodebuild waits for them.
+      - name: Download native inputs from this run
+        uses: actions/download-artifact@v8
+        with:
+          name: studio-ios-inputs
+          path: apps/studio-ios
       - name: Start booting the simulators
         run: node apps/studio-ios/scripts/simulator-destinations.mjs --boot
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Build engine fixture dependencies
-        run: pnpm prepare:workspace studio-ios
-      - name: Build the engine, golden cases and sample packages
-        run: pnpm -C apps/studio-ios build:engine && pnpm -C apps/studio-ios golden && pnpm -C apps/studio-ios build:samples
       - name: StudioKit on iPhone
         working-directory: apps/studio-ios/Packages/StudioKit
-        run: xcodebuild test -scheme StudioKit $(node ../../scripts/simulator-destinations.mjs --only iphone) -resultBundlePath ../../build/StudioKit.xcresult
+        run: xcodebuild test -parallel-testing-enabled NO -scheme StudioKit $(node ../../scripts/simulator-destinations.mjs --only iphone) -resultBundlePath ../../build/StudioKit.xcresult
       - name: Build the App for testing
         working-directory: apps/studio-ios
         run: xcodebuild build-for-testing -project StudioApp.xcodeproj -scheme StudioApp $(node scripts/simulator-destinations.mjs --only iphone) -derivedDataPath build/DerivedData
@@ -157,13 +162,13 @@ jobs:
       # bundle can stall after the UI tests finish.
       - name: App unit tests on iPhone
         working-directory: apps/studio-ios
-        run: xcodebuild test-without-building -project StudioApp.xcodeproj -scheme StudioApp $(node scripts/simulator-destinations.mjs --only iphone) -derivedDataPath build/DerivedData -only-testing:StudioAppTests -resultBundlePath build/StudioAppTests.xcresult
+        run: xcodebuild test-without-building -parallel-testing-enabled NO -project StudioApp.xcodeproj -scheme StudioApp $(node scripts/simulator-destinations.mjs --only iphone) -derivedDataPath build/DerivedData -only-testing:StudioAppTests -resultBundlePath build/StudioAppTests.xcresult
       - name: UI tests on iPhone
         working-directory: apps/studio-ios
-        run: xcodebuild test-without-building -project StudioApp.xcodeproj -scheme StudioApp $(node scripts/simulator-destinations.mjs --only iphone) -derivedDataPath build/DerivedData -only-testing:StudioAppUITests -resultBundlePath build/UITests-iPhone.xcresult
+        run: xcodebuild test-without-building -parallel-testing-enabled NO -project StudioApp.xcodeproj -scheme StudioApp $(node scripts/simulator-destinations.mjs --only iphone) -derivedDataPath build/DerivedData -only-testing:StudioAppUITests -resultBundlePath build/UITests-iPhone.xcresult
       - name: UI tests on iPad
         working-directory: apps/studio-ios
-        run: xcodebuild test-without-building -project StudioApp.xcodeproj -scheme StudioApp $(node scripts/simulator-destinations.mjs --only ipad) -derivedDataPath build/DerivedData -only-testing:StudioAppUITests/IPadLayoutUITests -resultBundlePath build/UITests-iPad.xcresult
+        run: xcodebuild test-without-building -parallel-testing-enabled NO -project StudioApp.xcodeproj -scheme StudioApp $(node scripts/simulator-destinations.mjs --only ipad) -derivedDataPath build/DerivedData -only-testing:StudioAppUITests/IPadLayoutUITests -resultBundlePath build/UITests-iPad.xcresult
       - uses: actions/upload-artifact@v7
         if: always()
         with:
@@ -193,67 +198,10 @@ jobs:
       - name: Verify VRM Pages output
         run: test -f editor/vrm/dist/index.html && test -f editor/vrm/dist/sw.js
 
-  unit:
-    name: unit (Node LTS)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 'lts/*'
-          cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      # Publication tests deliberately encode and verify real Opus/AAC media.
-      - name: Install audio test dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends ffmpeg
-          ffmpeg -version
-          ffprobe -version
-      - name: Build test dependencies
-        run: pnpm prepare:workspace unit
-      - name: Check game theme type contracts
-        run: pnpm exec tsc -p tests/tsconfig.game-theme.json --noEmit
-      - name: Run unit tests
-        run: pnpm vitest run tests/unit --reporter=default
-
-  typecheck:
-    name: typecheck (Node LTS)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 'lts/*'
-          cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Typecheck
-        run: pnpm typecheck
-
-  lint:
-    name: lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 'lts/*'
-          cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Prepare lint dependencies
-        run: pnpm prepare:workspace lint
-      - name: Lint
-        run: pnpm lint
-
-  editor-smoke:
-    name: editor-smoke (${{ matrix.os }})
+  platform-smoke:
+    name: platform-smoke (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
     env:
       NODE_OPTIONS: --max-old-space-size=4096
     strategy:
@@ -277,28 +225,10 @@ jobs:
         run: pnpm --filter @advjs/editor typecheck
       - name: Build Editor
         run: pnpm --filter @advjs/editor build
-
-  packed-smoke:
-    name: packed-smoke (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    env:
-      NODE_OPTIONS: --max-old-space-size=4096
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - macos-latest
-          - windows-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 'lts/*'
-          cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      # All packages and Editor were freshly built above on this runner.
       - name: Run packed CLI and build smoke
+        env:
+          ADVJS_PACKED_INSTALL_SKIP_BUILD: '1'
         run: pnpm vitest run tests/launch/packed-build.test.ts --no-file-parallelism --reporter=default
       - name: Run packed install and Editor lifecycle smoke
         env:
@@ -309,10 +239,13 @@ jobs:
           ADVJS_PACKED_INSTALL_SKIP_BUILD: '1'
         run: pnpm vitest run tests/launch/create-adv.test.ts --no-file-parallelism --reporter=default
 
-  e2e:
-    name: e2e
+  browser:
+    name: browser (Editor, player, launch journey)
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    env:
+      ADVJS_DOCS_JOURNEY_SKIP_BUILD: '1'
+      ADV_LAUNCH_ARTIFACTS_DIR: ${{ github.workspace }}/artifacts/launch-journey
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -330,13 +263,16 @@ jobs:
           ffprobe -version
       - name: Build packages
         run: pnpm editor:build
+      - name: Verify Cloudflare Pages output directory
+        run: test -f editor/core/dist/index.html
       - name: Install Chromium
         timeout-minutes: 10
         run: pnpm exec playwright install --with-deps --only-shell chromium
-      # The dedicated editor-e2e job owns these three specs. Keep every other
-      # current and future spec in this catch-all gate.
-      - name: Run Chromium tests
-        run: pnpm exec playwright test '^(?!.*[/\\]editor-(local|security|character-migration)\.spec\.ts$)' --project=chromium
+      # No file filter: every current and future root browser suite runs once.
+      - name: Run all Chromium tests
+        run: pnpm exec playwright test --project=chromium
+      - name: Run complete launch journey
+        run: pnpm test:launch:journey
       - uses: actions/upload-artifact@v7
         if: always()
         with:
@@ -344,37 +280,20 @@ jobs:
           path: playwright-report/
           retention-days: 30
 
-  editor-e2e:
-    name: editor-e2e (Chromium)
-    timeout-minutes: 30
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 'lts/*'
-          cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Build Editor launch chain
-        run: pnpm editor:build
-      - name: Install Chromium
-        timeout-minutes: 10
-        run: pnpm exec playwright install --with-deps --only-shell chromium
-      - name: Run Editor lifecycle and security tests
-        run: pnpm exec playwright test tests/e2e/editor-local.spec.ts tests/e2e/editor-security.spec.ts tests/e2e/editor-character-migration.spec.ts --project=chromium
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: editor-playwright-report
-          path: playwright-report/
-          retention-days: 30
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: editor-migration-evidence
           path: test-results/editor-character-migration-*/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Upload launch journey evidence
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: launch-journey-${{ github.run_id }}
+          path: artifacts/launch-journey/
           if-no-files-found: warn
           retention-days: 30
 
@@ -402,58 +321,19 @@ jobs:
           path: artifacts/agent-install-smoke/
           retention-days: 30
 
-  launch-journey:
-    name: launch-journey
-    timeout-minutes: 20
-    runs-on: ubuntu-latest
-    env:
-      ADVJS_DOCS_JOURNEY_SKIP_BUILD: '1'
-      ADV_LAUNCH_ARTIFACTS_DIR: ${{ github.workspace }}/artifacts/launch-journey
-    steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 'lts/*'
-          cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Prepare launch dependencies
-        run: pnpm prepare:workspace launch
-      - name: Install Chromium
-        timeout-minutes: 10
-        run: pnpm exec playwright install --with-deps --only-shell chromium
-      - name: Run complete launch journey
-        run: pnpm test:launch:journey
-      - name: Upload launch journey evidence
-        uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: launch-journey-${{ github.run_id }}
-          path: artifacts/launch-journey/
-          if-no-files-found: warn
-          retention-days: 30
-
   launch-required:
     name: launch-required
     if: always()
     needs:
-      - build
-      - editor-pages-build
-      - studio-pages-build
+      - quality
       - studio-changes
+      - studio-pages-build
       - studio-unit
       - studio-ios
       - vrm-pages-build
-      - unit
-      - typecheck
-      - lint
-      - editor-smoke
-      - packed-smoke
-      - e2e
-      - editor-e2e
+      - platform-smoke
+      - browser
       - agent-install-smoke
-      - launch-journey
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
