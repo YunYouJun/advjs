@@ -16,5 +16,18 @@ export async function createAdapter({ output }) {
     : { async write() {
         throw new Error('Execution output directory is required')
       } }
-  return createCreativeComparisonEvaluator({ model, crew, sink })
+  const evaluator = createCreativeComparisonEvaluator({ model, crew, sink })
+  return {
+    ...evaluator,
+    async run(input, context) {
+      const result = await evaluator.run(input, context)
+      if (typeof binding.finalizeEvaluationResult !== 'function')
+        return result
+      const checked = await binding.finalizeEvaluationResult(result)
+      // A provider check may invalidate a sample, never replace its costs or upgrade its outcome.
+      const final = { ...result, ...(checked.outcome === 'system' ? { outcome: 'system', stop: 'provider-comparison-invalid' } : {}), providerObservation: checked.providerObservation }
+      await sink.write(`${input.key}/provider-check.json`, { executionOutcome: result.outcome, result: final })
+      return { ...final, evidence: [...result.evidence, `${input.key}/provider-check.json`] }
+    },
+  }
 }
