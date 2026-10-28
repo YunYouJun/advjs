@@ -5,7 +5,7 @@ import { resolve } from 'node:path'
 import { expect, test } from '@playwright/test'
 
 const states = new WeakMap<Page, { id: string, errors: string[], warnings: string[], failedRequests: { url: string, error?: string }[] }>()
-const originalImage = resolve(import.meta.dirname, '../../../../demo/starter/public/img/characters/xiaoyun.webp')
+const originalImage = resolve(import.meta.dirname, '../../../../demo/love/public/img/characters/yun-alpha-compressed.webp')
 const importedImage = resolve(import.meta.dirname, '../../../../demo/love/public/img/characters/yun-good-alpha-compressed.webp')
 test.beforeEach(async ({ page }) => {
   const state = { id: randomUUID(), errors: [] as string[], warnings: [] as string[], failedRequests: [] as { url: string, error?: string }[] }
@@ -160,6 +160,7 @@ for (const fail of [true, false]) {
     const media = await page.evaluate(() => (window as any).formSavingFixture.media())
     const originalSha = createHash('sha256').update(await readFile(originalImage)).digest('hex')
     const importedSha = createHash('sha256').update(await readFile(importedImage)).digest('hex')
+    expect(originalSha).not.toBe(importedSha)
     expect(media.find((item: any) => item.path.endsWith('/avatar.webp')).sha256).toBe(originalSha)
     if (fail) {
       expect(content).toBe(before)
