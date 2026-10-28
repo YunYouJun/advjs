@@ -35,12 +35,13 @@ export interface ProjectSyncFile {
 export async function collectProjectFilesForSync(
   fs: Pick<IFileSystem, 'readBlob' | 'readdir'>,
   basePath = '',
+  options: { strict?: boolean } = {},
 ): Promise<ProjectSyncFile[]> {
   const files: ProjectSyncFile[] = []
   for (const entry of await fs.readdir(basePath)) {
     if (entry.type === 'directory') {
       if (!entry.name.startsWith('.') && entry.name !== 'node_modules')
-        files.push(...await collectProjectFilesForSync(fs, entry.path))
+        files.push(...await collectProjectFilesForSync(fs, entry.path, options))
       continue
     }
     try {
@@ -50,7 +51,9 @@ export async function collectProjectFilesForSync(
         path: entry.path,
       })
     }
-    catch {
+    catch (error) {
+      if (options.strict)
+        throw error
       // One unreadable file must not prevent the remaining project from syncing.
     }
   }

@@ -1,16 +1,18 @@
 import type { ConflictFile, CosConfig } from '../utils/cloudSync'
-import type { IFileSystem } from '../utils/fs'
+import type { CloudSyncSnapshot } from '../utils/cloudSyncWorkspace'
 import { onUnmounted, ref, watch } from 'vue'
+import { useAuthStore } from '../stores/useAuthStore'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import {
   classifySyncCandidates,
-  collectProjectFilesForSync,
   downloadBlobFromCloud,
   listCloudFilesDetailed,
   uploadToCloud,
 } from '../utils/cloudSync'
-import { createFsForProject, isTextFile } from '../utils/fs'
+import { createCloudSyncWorkspace, isCloudSyncPath } from '../utils/cloudSyncWorkspace'
+import { isTextFile } from '../utils/fs'
+import { useProjectContent } from './useProjectContent'
 
 export type SyncStatus = 'idle' | 'syncing' | 'success' | 'failed'
 
@@ -20,6 +22,12 @@ export type SyncStatus = 'idle' | 'syncing' | 'success' | 'failed'
 export function useCloudSync() {
   const settingsStore = useSettingsStore()
   const studioStore = useStudioStore()
+  const authStore = useAuthStore()
+  const projectContent = useProjectContent()
+  let scopeEpoch = 0
+  let disposed = false
+  let saveSequence = 0
+  let editRevision = 0
 
   // Auto-save state
   const isDirty = ref(false)
@@ -59,11 +67,15 @@ export function useCloudSync() {
       return
 
     isDirty.value = true
+    editRevision++
 
     if (autoSaveTimer)
       clearTimeout(autoSaveTimer)
 
+    const epoch = scopeEpoch
     autoSaveTimer = setTimeout(async () => {
+      if (epoch !== scopeEpoch || disposed)
+        return
       await saveNow(filePath, content)
     }, 2000)
   }
@@ -80,272 +92,263 @@ export function useCloudSync() {
       autoSaveTimer = null
     }
 
+    const epoch = scopeEpoch
+    const sequence = ++saveSequence
+    const revision = editRevision
     isSaving.value = true
     try {
       await uploadToCloud(getCosConfig(), filePath, content)
-      isDirty.value = false
-      lastSaved.value = new Date()
+      if (!disposed && epoch === scopeEpoch && sequence === saveSequence && revision === editRevision) {
+        isDirty.value = false
+        lastSaved.value = new Date()
+      }
     }
     catch {
       // Save failed, keep dirty state
     }
     finally {
-      isSaving.value = false
+      if (sequence === saveSequence)
+        isSaving.value = false
     }
   }
 
   /**
    * Pending conflicts from the most recent `performSync()` call. UI surfaces
-   * them in `SyncConflictModal.vue`. Cleared when `resolveConflicts()` runs
-   * or the user dismisses without resolving.
+   * them in `SyncConflictModal.vue`. Failed/skipped choices stay available
+   * until resolved, dismissed, or invalidated by a project/account switch.
    */
   const pendingConflicts = ref<ConflictFile[]>([])
 
-  /** Internal: cached fs handle for the project that produced pendingConflicts. */
-  let conflictFs: IFileSystem | null = null
-  /** Internal: cached config + prefix for resolveConflicts to use. */
-  let conflictContext: { config: CosConfig, prefix: string } | null = null
-  /** Binary payloads remain outside the text diff contract until resolution. */
-  const binaryConflictPayloads = new Map<string, { cloud: Blob, local: Blob }>()
+  interface ConflictContext {
+    config: CosConfig
+    prefix: string
+    projectId: string
+    startedAt: number
+    cloudMtimes: Map<string, number>
+    workspace: ReturnType<typeof createCloudSyncWorkspace>
+    expected: CloudSyncSnapshot
+    assertCurrent: () => void
+    hadFailures: boolean
+  }
+  let conflictContext: ConflictContext | null = null
+  // Downloaded bytes survive failed adoption and skipped choices for explicit review.
+  const conflictPayloads = new Map<string, Blob>()
 
-  /**
-   * Perform a full bidirectional sync.
-   *
-   * Conflict-aware:
-   *   1. List both sides + classify each path against the project's last-synced
-   *      baseline (`StudioProject.syncedAt`).
-   *   2. Auto-apply uploads + downloads for unambiguous cases.
-   *   3. Surface true conflicts via `pendingConflicts` ref — caller (e.g. the
-   *      Sync button in `ProjectOverview.vue`) opens `SyncConflictModal` and
-   *      calls `resolveConflicts()` once the user picks a side per file.
-   *
-   * Falls back to the legacy "newer wins" strategy when `syncedAt` is missing
-   * (first sync ever — no shared baseline to detect divergence).
-   */
-  async function performSync(): Promise<{ uploaded: number, downloaded: number, conflicts: number }> {
+  async function showConflicts(context: ConflictContext, payloads: Map<string, Blob>) {
+    const conflicts: ConflictFile[] = []
+    for (const [path, cloud] of payloads) {
+      const local = context.expected.get(path)
+      const binary = !isTextFile(path)
+      conflicts.push({
+        path,
+        binary,
+        localContent: binary ? '' : await local?.content.text() ?? '',
+        cloudContent: binary ? '' : await cloud.text(),
+        localMtime: local?.lastModified.getTime() ?? 0,
+        cloudMtime: context.cloudMtimes.get(path) ?? 0,
+      })
+    }
+    context.assertCurrent()
+    conflictContext = context
+    conflictPayloads.clear()
+    for (const [path, blob] of payloads)
+      conflictPayloads.set(path, blob)
+    pendingConflicts.value = conflicts
+  }
+
+  function finishSync(context: ConflictContext) {
+    context.assertCurrent()
+    // The start time keeps edits made during transfer/review after the baseline.
+    studioStore.updateProject(context.projectId, { syncedAt: context.startedAt })
+    syncStatus.value = 'success'
+    lastSyncTime.value = new Date()
+  }
+
+  /** Read before network waits, then adopt one validated local batch. */
+  async function performSync(): Promise<{ uploaded: number, downloaded: number, conflicts: number, failed: string[] }> {
+    const result = { uploaded: 0, downloaded: 0, conflicts: pendingConflicts.value.length, failed: [] as string[] }
+    if (isSyncing.value || result.conflicts)
+      return result
     const project = studioStore.currentProject
     if (!project || !isCosConfigured())
-      return { uploaded: 0, downloaded: 0, conflicts: 0 }
+      return result
 
+    const epoch = scopeEpoch
+    const projectId = project.projectId
+    const startedAt = Date.now()
+    const config = getCosConfig()
+    const prefix = project.cosPrefix || `${project.name}/`
+    const assertScope = () => {
+      if (disposed || epoch !== scopeEpoch)
+        throw new Error('ADV_STUDIO_SYNC_SCOPE_CHANGED')
+    }
     isSyncing.value = true
     syncStatus.value = 'syncing'
-    pendingConflicts.value = []
-    conflictFs = null
-    conflictContext = null
-    binaryConflictPayloads.clear()
-
     try {
-      const config = getCosConfig()
-      const prefix = project.cosPrefix || `${project.name}/`
-      let uploaded = 0
-      let downloaded = 0
-
+      await projectContent.whenReady()
+      assertScope()
+      const fs = projectContent.getFs()
+      if (!fs)
+        throw new Error('ADV_STUDIO_SYNC_LOCAL_WORKSPACE_REQUIRED')
+      const assertCurrent = () => {
+        assertScope()
+        if (projectContent.getFs() !== fs)
+          throw new Error('ADV_STUDIO_SYNC_WORKSPACE_CHANGED')
+      }
+      const workspace = createCloudSyncWorkspace(fs, assertCurrent)
+      const expected = await workspace.capture()
+      const cloudPaths = new Map<string, number>()
+      const context: ConflictContext = { config, prefix, projectId, startedAt, cloudMtimes: cloudPaths, workspace, expected, assertCurrent, hadFailures: false }
       const cloudFiles = await listCloudFilesDetailed(config, prefix)
-
-      let fs: IFileSystem | null = null
+      assertCurrent()
+      for (const file of cloudFiles) {
+        const path = file.key.startsWith(prefix) ? file.key.slice(prefix.length) : ''
+        if (path && path.endsWith('/'))
+          continue
+        const mtime = new Date(file.lastModified).getTime()
+        if (!isCloudSyncPath(path) || !Number.isFinite(mtime) || cloudPaths.has(path)) {
+          result.failed.push(file.key)
+          continue
+        }
+        cloudPaths.set(path, mtime)
+      }
+      const localPaths = new Map([...expected].map(([path, file]) => [path, file.lastModified.getTime()]))
+      const candidates = classifySyncCandidates({ localPaths, cloudPaths, baselineMs: project.syncedAt })
+      const downloads = new Map<string, Blob>()
+      const conflicts = new Map<string, Blob>()
+      for (const candidate of candidates) {
+        assertCurrent()
+        try {
+          if (candidate.decision === 'upload') {
+            await workspace.check(expected)
+            await uploadToCloud(config, prefix + candidate.path, expected.get(candidate.path)!.content)
+            result.uploaded++
+          }
+          else if (candidate.decision === 'download' || candidate.decision === 'conflict') {
+            const content = await downloadBlobFromCloud(config, prefix + candidate.path)
+            assertCurrent()
+            ;(candidate.decision === 'download' ? downloads : conflicts).set(candidate.path, content)
+          }
+        }
+        catch {
+          assertCurrent()
+          result.failed.push(candidate.path)
+        }
+      }
       try {
-        fs = await createFsForProject({
-          dirHandle: project.dirHandle,
-          projectId: project.projectId || project.name,
-          source: project.source,
-        })
+        if (downloads.size) {
+          context.expected = await workspace.apply(expected, downloads)
+          result.downloaded = downloads.size
+        }
+        else {
+          await workspace.check(expected)
+        }
       }
       catch {
-        // No FS available — bail out gracefully.
+        assertCurrent()
+        result.failed.push(...downloads.keys(), '*local-source')
+        // Retain the fetched candidates, but require a new review of today's source.
+        for (const [path, content] of downloads)
+          conflicts.set(path, content)
+        context.expected = await workspace.capture()
       }
-
-      if (!fs) {
+      assertCurrent()
+      context.hadFailures = result.failed.length > 0
+      if (conflicts.size) {
+        await showConflicts(context, conflicts)
+        result.conflicts = conflicts.size
+        syncStatus.value = context.hadFailures ? 'failed' : 'idle'
+      }
+      else if (context.hadFailures) {
         syncStatus.value = 'failed'
-        return { uploaded: 0, downloaded: 0, conflicts: 0 }
-      }
-
-      const localFileEntries = await collectProjectFilesForSync(fs)
-
-      // Map paths → mtime (epoch ms) for the classifier.
-      const cloudPaths = new Map<string, number>()
-      for (const cf of cloudFiles) {
-        const rel = cf.key.startsWith(prefix) ? cf.key.slice(prefix.length) : cf.key
-        if (!rel || rel.endsWith('/'))
-          continue
-        const ms = new Date(cf.lastModified).getTime()
-        cloudPaths.set(rel, ms)
-      }
-
-      const localPaths = new Map<string, number>()
-      const localByPath = new Map<string, { content: Blob, mtime: number }>()
-      for (const lf of localFileEntries) {
-        const ms = lf.lastModified.getTime()
-        localPaths.set(lf.path, ms)
-        localByPath.set(lf.path, { content: lf.content, mtime: ms })
-      }
-
-      const candidates = classifySyncCandidates({
-        localPaths,
-        cloudPaths,
-        baselineMs: project.syncedAt,
-      })
-
-      const conflicts: ConflictFile[] = []
-
-      for (const c of candidates) {
-        if (c.decision === 'upload') {
-          const local = localByPath.get(c.path)
-          if (!local)
-            continue
-          try {
-            await uploadToCloud(config, prefix + c.path, local.content)
-            uploaded++
-          }
-          catch {
-            // Per-file failures are absorbed; loop continues.
-          }
-        }
-        else if (c.decision === 'download') {
-          try {
-            const content = await downloadBlobFromCloud(config, prefix + c.path)
-            if (isTextFile(c.path))
-              await fs.writeFile(c.path, await content.text())
-            else
-              await fs.writeBlob(c.path, content)
-            downloaded++
-          }
-          catch {
-            // Per-file failures are absorbed; loop continues.
-          }
-        }
-        else if (c.decision === 'conflict') {
-          // Materialize both sides so the modal can render diff without
-          // re-fetching. Conflict files are usually a small handful, so
-          // upfront download is fine.
-          const local = localByPath.get(c.path)
-          if (!local)
-            continue
-          let cloud: Blob
-          try {
-            cloud = await downloadBlobFromCloud(config, prefix + c.path)
-          }
-          catch {
-            // Cloud read failed — skip rather than block other conflicts.
-            continue
-          }
-          if (isTextFile(c.path)) {
-            conflicts.push({
-              path: c.path,
-              localContent: await local.content.text(),
-              cloudContent: await cloud.text(),
-              localMtime: c.localMtime ?? 0,
-              cloudMtime: c.cloudMtime ?? 0,
-            })
-          }
-          else {
-            binaryConflictPayloads.set(c.path, { cloud, local: local.content })
-            conflicts.push({
-              binary: true,
-              path: c.path,
-              localContent: '',
-              cloudContent: '',
-              localMtime: c.localMtime ?? 0,
-              cloudMtime: c.cloudMtime ?? 0,
-            })
-          }
-        }
-      }
-
-      // Update sync baseline only if there's nothing left for the user to
-      // decide. Otherwise we'd lose the divergence point and a re-sync would
-      // miss the same conflicts.
-      if (conflicts.length === 0) {
-        studioStore.updateProject(project.projectId, { syncedAt: Date.now() } as any)
-        syncStatus.value = 'success'
-        lastSyncTime.value = new Date()
       }
       else {
-        pendingConflicts.value = conflicts
-        conflictFs = fs
-        conflictContext = { config, prefix }
-        syncStatus.value = 'idle'
+        await workspace.check(context.expected)
+        finishSync(context)
       }
-
-      return { uploaded, downloaded, conflicts: conflicts.length }
     }
     catch {
-      syncStatus.value = 'failed'
-      return { uploaded: 0, downloaded: 0, conflicts: 0 }
+      result.failed.push('*sync')
+      if (!disposed && epoch === scopeEpoch)
+        syncStatus.value = 'failed'
     }
     finally {
       isSyncing.value = false
     }
+    return result
   }
 
-  /**
-   * Apply user-selected resolutions for the conflicts produced by the most
-   * recent `performSync()`. Each map key is a file path; value is the side
-   * the user wants to keep (or 'skip' to leave both untouched).
-   *
-   * After applying, the project's `syncedAt` baseline is bumped iff every
-   * conflict was resolved (skipped files remain divergent → next sync will
-   * surface them again, which is the right behavior).
-   */
+  /** Resolve only the reviewed project version, retaining skipped/failed payloads. */
   async function resolveConflicts(
     resolutions: Map<string, 'use-local' | 'use-cloud' | 'skip'>,
   ): Promise<{ resolved: number, skipped: number }> {
-    if (!conflictFs || !conflictContext || pendingConflicts.value.length === 0)
-      return { resolved: 0, skipped: 0 }
-
-    const fs = conflictFs
-    const { config, prefix } = conflictContext
+    const context = conflictContext
+    const pending = new Map(conflictPayloads)
+    if (!context || isSyncing.value)
+      return { resolved: 0, skipped: pending.size }
+    isSyncing.value = true
     let resolved = 0
-    let skipped = 0
-
-    for (const conflict of pendingConflicts.value) {
-      const choice = resolutions.get(conflict.path) ?? 'skip'
-      if (choice === 'skip') {
-        skipped++
-        continue
+    try {
+      context.assertCurrent()
+      await context.workspace.check(context.expected)
+      const downloads = new Map<string, Blob>()
+      for (const [path, content] of pending) {
+        const choice = resolutions.get(path) ?? 'skip'
+        if (choice === 'use-cloud') {
+          downloads.set(path, content)
+        }
+        else if (choice === 'use-local') {
+          const local = context.expected.get(path)
+          if (!local)
+            continue
+          await context.workspace.check(context.expected)
+          await uploadToCloud(context.config, context.prefix + path, local.content)
+          context.assertCurrent()
+          resolved++
+          pending.delete(path)
+        }
       }
+      if (downloads.size) {
+        context.expected = await context.workspace.apply(context.expected, downloads)
+        for (const path of downloads.keys())
+          pending.delete(path)
+        resolved += downloads.size
+      }
+      await context.workspace.check(context.expected)
+      if (pending.size) {
+        await showConflicts(context, pending)
+        syncStatus.value = context.hadFailures ? 'failed' : 'idle'
+      }
+      else {
+        dismissConflicts()
+        if (context.hadFailures)
+          syncStatus.value = 'failed'
+        else
+          finishSync(context)
+      }
+    }
+    catch {
       try {
-        const binary = binaryConflictPayloads.get(conflict.path)
-        if (choice === 'use-local') {
-          await uploadToCloud(config, prefix + conflict.path, binary?.local ?? conflict.localContent)
-        }
-        else if (binary) {
-          await fs.writeBlob(conflict.path, binary.cloud)
-        }
-        else {
-          await fs.writeFile(conflict.path, conflict.cloudContent)
-        }
-        resolved++
+        context.assertCurrent()
+        syncStatus.value = 'failed'
+        context.hadFailures = true
+        context.expected = await context.workspace.capture()
+        await showConflicts(context, pending)
       }
       catch {
-        // Failed write counts as skip — user can retry on the next sync.
-        skipped++
+        // A switched scope cannot receive the previous project's candidates.
       }
     }
-
-    pendingConflicts.value = []
-
-    const project = studioStore.currentProject
-    if (project && skipped === 0) {
-      studioStore.updateProject(project.projectId, { syncedAt: Date.now() } as any)
-      syncStatus.value = 'success'
-      lastSyncTime.value = new Date()
+    finally {
+      isSyncing.value = false
     }
-
-    conflictFs = null
-    conflictContext = null
-    binaryConflictPayloads.clear()
-    return { resolved, skipped }
+    return { resolved, skipped: pending.size }
   }
 
-  /**
-   * Discard pending conflicts without applying any resolution. The next
-   * `performSync()` will re-detect them.
-   */
   function dismissConflicts() {
     pendingConflicts.value = []
-    conflictFs = null
     conflictContext = null
-    binaryConflictPayloads.clear()
+    conflictPayloads.clear()
   }
 
   /**
@@ -373,6 +376,26 @@ export function useCloudSync() {
     }
   }
 
+  // Invalidate work immediately, including switch-away/switch-back and logout.
+  watch(
+    () => [studioStore.currentProject?.projectId, studioStore.currentProject?.name, studioStore.currentProject?.source, studioStore.currentProject?.dirHandle, studioStore.currentProject?.cosPrefix, authStore.userId, settingsStore.cos.bucket, settingsStore.cos.region],
+    () => {
+      scopeEpoch++
+      saveSequence++
+      isSaving.value = false
+      isDirty.value = false
+      lastSaved.value = null
+      lastSyncTime.value = null
+      syncStatus.value = 'idle'
+      if (autoSaveTimer) {
+        clearTimeout(autoSaveTimer)
+        autoSaveTimer = null
+      }
+      dismissConflicts()
+    },
+    { flush: 'sync' },
+  )
+
   // Watch for autoSync setting changes
   watch(
     () => settingsStore.cos.autoSync,
@@ -397,6 +420,9 @@ export function useCloudSync() {
 
   // Clean up timers when the component using this composable is unmounted
   onUnmounted(() => {
+    disposed = true
+    scopeEpoch++
+    dismissConflicts()
     if (autoSaveTimer) {
       clearTimeout(autoSaveTimer)
       autoSaveTimer = null

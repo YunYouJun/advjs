@@ -5,7 +5,8 @@ import { createI18n } from 'vue-i18n'
 import ProjectOverview from '../components/ProjectOverview.vue'
 import en from '../i18n/locales/en.json'
 
-const state = vi.hoisted(() => ({ content: undefined as unknown, validate: vi.fn(async () => ({ passed: true, issues: [] })) }))
+const state = vi.hoisted(() => ({ status: 'idle', toast: vi.fn(async () => ({ present: vi.fn() })), content: undefined as unknown, validate: vi.fn(async () => ({ passed: true, issues: [] })) }))
+vi.mock('@ionic/vue', async original => ({ ...await original<object>(), toastController: { create: state.toast } }))
 vi.mock('../utils/projectValidation', () => ({ validateProject: state.validate, autoFixIssues: vi.fn() }))
 vi.mock('../composables/useProjectContent', () => ({ useProjectContent: () => state.content }))
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: vi.fn() }) }))
@@ -19,7 +20,8 @@ vi.mock('../composables/useProjectDescription', () => ({ useProjectDescription: 
   extractSections: () => [],
 }) }))
 vi.mock('../composables/useCloudSync', () => ({ useCloudSync: () => ({
-  syncStatus: ref('idle'),
+  syncStatus: ref(state.status),
+  resolveConflicts: async () => ({ resolved: 1, skipped: 0 }),
   isSyncing: ref(false),
   lastSyncTime: ref(null),
   pendingConflicts: ref([]),
@@ -30,6 +32,7 @@ let wrapper: ReturnType<typeof shallowMount> | undefined
 afterEach(() => {
   wrapper?.unmount()
   vi.clearAllMocks()
+  state.status = 'idle'
 })
 function mountOverview(loading: boolean) {
   const isLoading = ref(loading)
@@ -67,4 +70,13 @@ describe('project overview initial validation', () => {
     await flushPromises()
     expect(state.validate).toHaveBeenCalledTimes(1)
   })
+})
+
+it('reports an incomplete sync as failed even when the chosen conflicts were adopted', async () => {
+  state.status = 'failed'
+  mountOverview(false)
+  await flushPromises()
+  wrapper!.findComponent({ name: 'SyncConflictModal' }).vm.$emit('resolve', new Map())
+  await flushPromises()
+  expect(state.toast).toHaveBeenCalledWith(expect.objectContaining({ message: en.sync.syncFailed, color: 'danger' }))
 })

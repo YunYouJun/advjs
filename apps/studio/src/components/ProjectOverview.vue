@@ -147,12 +147,14 @@ async function handleConflictResolve(resolutions: Map<string, 'use-local' | 'use
   showConflictModal.value = false
   const { resolved, skipped } = await resolveConflicts(resolutions)
   const toast = await toastController.create({
-    message: skipped > 0
-      ? t('syncConflict.resolvedPartial', { resolved, skipped })
-      : t('syncConflict.resolvedAll', { resolved }),
+    message: syncStatus.value === 'failed'
+      ? t('sync.syncFailed')
+      : skipped > 0
+        ? t('syncConflict.resolvedPartial', { resolved, skipped })
+        : t('syncConflict.resolvedAll', { resolved }),
     duration: 2000,
     position: 'top',
-    color: skipped > 0 ? 'warning' : 'success',
+    color: syncStatus.value === 'failed' ? 'danger' : skipped > 0 ? 'warning' : 'success',
   })
   await toast.present()
 }
