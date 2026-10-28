@@ -1,10 +1,11 @@
+import type { CreativePlaytestVoiceRow } from '@advjs/agent'
 import type { AdvProjectDiagnostic, VoiceAuthoringSnapshot } from '@advjs/types'
 import type { IFileSystem } from './fs'
 import { audioProjectMediaPath, createAudioPronunciationDictionary, createAudioVoiceProfiles, createVoiceLedger, normalizeAudioLocale, parseAudioPronunciationDictionary, parseAudioVoiceProfiles, parseVoiceLedger, resolveVoiceReviewRows, verifyVoiceCandidateBytes, voiceReviewContextFromProgram } from '@advjs/audio'
 import { compileProject } from '@advjs/core'
 import { createStudioCreativeWorkspace } from './creativeTeamWorkspace'
 
-export type CreativeVoiceCoverageStatus = 'missing' | 'unselected' | 'stale' | 'unavailable' | 'ready' | 'unresolved'
+export type CreativeVoiceCoverageStatus = CreativePlaytestVoiceRow['status']
 export interface CreativeVoiceCoverageRow {
   address: string
   path?: string
@@ -15,6 +16,7 @@ export interface CreativeVoiceCoverageRow {
   status: CreativeVoiceCoverageStatus
   profileMissing: boolean
   takes: number
+  selected?: CreativePlaytestVoiceRow['selected']
 }
 export interface CreativeVoiceCoverage {
   revision: string
@@ -28,6 +30,16 @@ export interface CreativeVoiceCoverage {
 export async function readCreativeVoiceCoverage(fs: IFileSystem, projectId: string, assertCurrent: () => void): Promise<CreativeVoiceCoverage> {
   const workspace = createStudioCreativeWorkspace(fs, projectId, { assertCurrent })
   const source = await workspace.snapshot()
+  const result = await inspectCreativeVoiceCoverage(fs, projectId, source, assertCurrent)
+  if ((await workspace.snapshot()).revision !== source.revision)
+    throw new Error('CREATIVE_VOICE_SOURCE_CHANGED')
+  assertCurrent()
+  return result
+}
+
+/** Inspect a saved or candidate source snapshot against actual project bytes, without writes. */
+export async function inspectCreativeVoiceCoverage(fs: IFileSystem, projectId: string, source: { revision: string, files: Readonly<Record<string, string>> }, assertCurrent: () => void): Promise<CreativeVoiceCoverage> {
+  assertCurrent()
   const compiled = await compileProject({ id: projectId, files: source.files }, { allowEmptyAssetManifest: true })
   if (!compiled.project.program)
     throw new Error('CREATIVE_VOICE_COVERAGE_COMPILE_REQUIRED')
@@ -85,10 +97,8 @@ export async function readCreativeVoiceCoverage(fs: IFileSystem, projectId: stri
       catch { status = 'unavailable' }
     }
     assertCurrent()
-    rows.push({ address, ...(location ?? {}), ...(id ? { lineId: id } : {}), speakerId, text: String(node.data?.text ?? ''), status, profileMissing: !Object.values(profile?.locales?.[locale]?.providers ?? {}).some(binding => Boolean(binding.voiceId && binding.model)), takes: reviewedLine?.takes.length ?? 0 })
+    rows.push({ address, ...(location ?? {}), ...(id ? { lineId: id } : {}), speakerId, text: String(node.data?.text ?? ''), status, profileMissing: !Object.values(profile?.locales?.[locale]?.providers ?? {}).some(binding => Boolean(binding.voiceId && binding.model)), takes: reviewedLine?.takes.length ?? 0, ...(selected ? { selected: { takeId: selected.id, assetId: selected.assetId, sha256: selected.sha256 } } : {}) })
   }
-  if ((await workspace.snapshot()).revision !== source.revision)
-    throw new Error('CREATIVE_VOICE_SOURCE_CHANGED')
   assertCurrent()
   return { revision: source.revision, locale, complete: !compiled.diagnostics.some(item => item.severity === 'error'), diagnostics: compiled.diagnostics, rows }
 }

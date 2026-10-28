@@ -29,6 +29,21 @@ function summary(report: CreativePlaytestReport): NonNullable<CreativeTeamRun['p
 }
 
 describe('report-backed owner repair handoff', () => {
+  it('freezes retained voice evidence and pronunciation inputs for an author-selected owner without generating media', async () => {
+    const f = await fixture(true)
+    const files = { ...f.project.files, 'adv/audio/pronunciation.json': JSON.stringify({ schemaVersion: 1, revision: 1, replacements: {}, locales: {} }) }
+    const project = { ...f.project, files, revision: await computeAgentProjectRevision(files) }
+    const report = await runCreativePlaytest({ project, scenarios }, { inspectVoiceCoverage: async source => ({ verification: 'author-host-byte-check', snapshotRevision: source.revision, locale: 'zh-CN', complete: true, rowsOmitted: 0, rows: [{ address: 'station#arrival', speakerId: 'narrator', status: 'unresolved', takes: 0, profileMissing: true, source: { path, line: 3 } }] }) })
+    const run = { ...f.run, plan: { ...f.run.plan, projectRevision: project.revision }, artifacts: f.run.artifacts.map(item => ({ ...item, source: { ...item.source, revision: project.revision, files: project.files }, changes: [] })), playtests: [{ ...summary(report), passed: 1, blocked: 0 }] }
+    const reference = { reportId: 'report1', snapshotRevision: report.snapshotRevision, findingId: 'voice:0' }
+    const before = structuredClone(project)
+    const handoff = prepareCreativePlaytestRepair({ run, project, report, reference, taskId: 'script' })
+    expect(handoff.repair?.finding).toMatchObject({ kind: 'voice', code: 'ADV_CREATIVE_VOICE_UNRESOLVED', source: { path, line: 3 } })
+    expect(handoff.facts.files['adv/audio/pronunciation.json']).toBe(files['adv/audio/pronunciation.json'])
+    expect(handoff.repair?.files).toEqual({})
+    expect(project).toEqual(before)
+  })
+
   it('extracts a real compiler finding and restores owner-written files omitted by original sourcePaths', async () => {
     const f = await fixture()
     const handoff = prepareCreativePlaytestRepair({ ...f, taskId: 'script' })

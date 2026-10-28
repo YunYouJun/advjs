@@ -95,11 +95,13 @@ describe('director editorial delivery summary', () => {
   it('projects real stored core outcomes with their snapshot and missing-report state, without inventing traces', async () => {
     const { computeAgentProjectRevision } = await import('../src')
     const report = await runCreativePlaytest({ project: { id: 'station', revision: await computeAgentProjectRevision(project.files), files: project.files }, scenarios: [{ id: 'stay', choices: [0], expectedEnding: 'stay#ending-stay' }, { id: 'leave', choices: [1], expectedEnding: 'leave#ending-leave' }] })
+    report.voiceCoverage = { verification: 'author-host-byte-check', snapshotRevision: report.snapshotRevision, locale: 'zh-CN', complete: true, rows: [], rowsOmitted: 0 }
     const h = requested()
     const summary = { id: 'report1', projectId: 'station', baselineRevision: report.baselineRevision, snapshotRevision: report.snapshotRevision, scope: report.scope, artifacts: report.artifacts, runnerVersion: report.runnerVersion, verification: 'author-host' as const, passed: 2, failed: 0, blocked: 0, cancelled: 0, createdAt: 1 }
     const run: CreativeTeamRun = { ...h.run(), playtests: [summary] }
     const evidence = prepareCreativeDirectorSummaryEvidence(run, 'delivery', facts, { report1: report }, facts.revision)
     expect(evidence.reports[0]!.executions.map(item => item.status)).toEqual(['passed', 'passed'])
+    expect(evidence.reports[0]!.voiceCoverage).toEqual(report.voiceCoverage)
     expect(evidence.reports[0]!.executions.every(item => !('trace' in item))).toBe(true)
     expect(evidence.state.playtests[0]!.snapshotRevision).toBe(report.snapshotRevision)
     expect(prepareCreativeDirectorSummaryEvidence(run, 'delivery', facts, {}, facts.revision).reports[0]!.available).toBe(false)

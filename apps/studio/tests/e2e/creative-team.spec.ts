@@ -1271,6 +1271,43 @@ for (const format of ['adv-md', 'flow', 'markdown-dialogue', 'markdown-narration
     expect(adopted.media).toHaveLength(2)
     expect(adopted.media.every((item: any) => item.sha256 === item.expectedSha256 && item.bytes === item.expectedBytes)).toBe(true)
     await writeFile(info.outputPath('shared-selected-input.json'), JSON.stringify({ audition, before, adopted }, null, 2))
+    const voiceReports: unknown[] = []
+    async function inspectSavedVoice(expected: 'ready' | 'stale') {
+      const panel = page.getByTestId('creative-playtest')
+      await panel.getByLabel('预期结局地址', { exact: true }).first().fill('intro#start')
+      await panel.getByRole('button', { name: '执行这些路径', exact: true }).click()
+      const voice = page.getByTestId('creative-playtest-voice-report')
+      const row = voice.locator('li').filter({ hasText: targetLineId })
+      await expect(row).toContainText(expected === 'ready' ? '已选用，字节匹配' : '已选配音过期')
+      await expect(voice).toContainText('缺少配音')
+      await expect(voice).toContainText('不证明实际播放或表演质量')
+      const reports = await page.evaluate(() => (window as any).creativeMediaFixture.reports())
+      const current = reports[0].report
+      expect(current.voiceCoverage.rows.find((item: any) => item.lineId === targetLineId).status).toBe(expected)
+      expect(current.voiceCoverage.snapshotRevision).toBe(current.snapshotRevision)
+      expect(current.unverified).toContain('audio-playback')
+      expect(current.executions[0].status).toBe('passed')
+      voiceReports.push(current)
+      if (expected === 'ready') {
+        for (const width of [1280, 390]) {
+          await page.setViewportSize({ width, height: 900 })
+          await voice.getByRole('heading').scrollIntoViewIfNeeded()
+          expect(await voice.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true)
+          await page.screenshot({ path: info.outputPath(`voice-playtest-report-${width}.png`), animations: 'disabled' })
+        }
+      }
+    }
+    if (format === 'flow' || narration) {
+      await inspectSavedVoice('ready')
+      expect(await page.evaluate(() => (window as any).creativeMediaFixture.files())).toEqual(adopted.files)
+      const postCount = await page.evaluate(() => (window as any).creativeMediaFixture.calls().filter((item: any) => item.method === 'POST').length)
+      await page.reload()
+      await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeMediaFixture))).toBe(true)
+      await expect(page.getByTestId('creative-playtest-voice-report')).toContainText('已选用，字节匹配')
+      expect(await page.evaluate(() => (window as any).creativeMediaFixture.calls().filter((item: any) => item.method === 'POST').length)).toBe(0)
+      expect(postCount).toBeGreaterThan(0)
+    }
+
     await page.goto('/tabs/play')
     try {
       await expect(page.locator('.game-player')).toContainText(format === 'flow' || narration ? '这是第一句，尚未配置配音。' : spokenText, { timeout: 15000 })
@@ -1340,8 +1377,10 @@ for (const format of ['adv-md', 'flow', 'markdown-dialogue', 'markdown-narration
       const files = await page.evaluate(() => (window as any).creativeMediaFixture.files())
       expect(files['adv/audio/voice-ledger.json']).toBe(adopted.files['adv/audio/voice-ledger.json'])
       changedSource = { files, status: await row.textContent(), media: await page.evaluate(() => (window as any).creativeMediaFixture.media()) }
+      if (format === 'flow' || narration)
+        await inspectSavedVoice('stale')
     }
-    await writeFile(info.outputPath('shared-selected-playback.json'), JSON.stringify({ format, speakerId, spokenText, targetLineId, changedFlow: format === 'flow' ? changedSource : undefined, changedMarkdown: multiline ? changedSource : undefined, scope: 'Actual WebP + external system speech; direction, identity and local service storage remain explicit fixtures. Native methods are observed, not replaced with fake playback. No physical speaker measurement or performance-quality claim.', audition, before, adopted, playback }, null, 2))
+    await writeFile(info.outputPath('shared-selected-playback.json'), JSON.stringify({ format, speakerId, spokenText, targetLineId, voiceReports, changedFlow: format === 'flow' ? changedSource : undefined, changedMarkdown: multiline ? changedSource : undefined, scope: 'Actual WebP + external system speech; direction, identity and local service storage remain explicit fixtures. Native methods are observed, not replaced with fake playback. No physical speaker measurement or performance-quality claim.', audition, before, adopted, playback }, null, 2))
   })
 }
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CreativePlaytestReport } from '@advjs/agent'
 import { useI18n } from 'vue-i18n'
+import CreativePlaytestVoiceReport from './CreativePlaytestVoiceReport.vue'
 
 defineProps<{ report: CreativePlaytestReport, stale: boolean }>()
 defineEmits<{ source: [path: string, line?: number] }>()
@@ -23,6 +24,10 @@ function sourceLabel(path: string, line?: number) {
     </p>
     <p class="playtest-report__version">
       {{ t('creativeTeam.playtest.snapshot') }} · {{ report.snapshotRevision }}
+    </p>
+    <CreativePlaytestVoiceReport v-if="report.voiceCoverage" :coverage="report.voiceCoverage" navigable @source="(path, line) => $emit('source', path, line)" />
+    <p v-else>
+      {{ t('creativeTeam.playtest.voice.notChecked') }}
     </p>
     <details v-if="report.diagnostics.length || report.diagnosticsOmitted">
       <summary>{{ t('creativeTeam.playtest.static') }} · {{ report.diagnostics.length }}</summary>

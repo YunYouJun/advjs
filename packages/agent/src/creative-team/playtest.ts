@@ -2,6 +2,7 @@ import type { JsonObject, RuntimeAddress, RuntimeChoice, RuntimeProgram } from '
 import type { CreativeTeamRun } from './contracts'
 import type { CreativePlaytestScenario } from './outputs'
 import type { CreativePlaytestDiagnostic, CreativePlaytestExecution, CreativePlaytestObservation, CreativePlaytestReport } from './playtest-contracts'
+import type { CreativeProjectWorkspace } from './review'
 import type { CreativeTeamStartRequest } from './wire'
 import { compileProject, createAdvRuntime } from '@advjs/core'
 import { computeAgentProjectRevision } from '../proposals/review'
@@ -38,7 +39,7 @@ export async function runCreativePlaytest(input: {
   project: CreativeTeamStartRequest['project']
   scenarios: readonly CreativePlaytestScenario[]
   candidate?: { run: CreativeTeamRun, artifacts: CreativePlaytestReport['artifacts'] }
-}, options: { maxCommandsPerScenario?: number, maxTotalCommands?: number, maxEvidenceBytes?: number, signal?: AbortSignal, yieldControl?: () => Promise<void>, now?: () => number } = {}): Promise<CreativePlaytestReport> {
+}, options: { maxCommandsPerScenario?: number, maxTotalCommands?: number, maxEvidenceBytes?: number, signal?: AbortSignal, yieldControl?: () => Promise<void>, now?: () => number, inspectVoiceCoverage?: CreativeProjectWorkspace['inspectVoiceCoverage'] } = {}): Promise<CreativePlaytestReport> {
   const now = options.now ?? Date.now
   const startedAt = now()
   const project = parseCreativeProject(input.project)
@@ -177,5 +178,8 @@ export async function runCreativePlaytest(input: {
     }
     execution.trace = trace
   }
-  return parseCreativePlaytestReport({ schemaVersion: 1, producer: 'advjs-author-host', runnerVersion: 'creative-headless-v1', projectId: project.id, baselineRevision: project.revision, snapshotRevision, scope: input.candidate ? 'candidate' : 'saved', artifacts: structuredClone(input.candidate?.artifacts ?? []), ...(program ? { program: { id: program.id, hash: program.hash } } : {}), startedAt, finishedAt: now(), limits, diagnostics, diagnosticsOmitted: result.diagnostics.length - diagnostics.length, executions, unverified: ['visual-rendering', 'audio-playback', 'host-activities', 'narrative-consistency', 'unspecified-paths'] })
+  const voiceCoverage = program && !options.signal?.aborted && options.inspectVoiceCoverage
+    ? await options.inspectVoiceCoverage({ projectId: project.id, revision: snapshotRevision, files }, options.signal)
+    : undefined
+  return parseCreativePlaytestReport({ schemaVersion: 1, producer: 'advjs-author-host', runnerVersion: 'creative-headless-v1', projectId: project.id, baselineRevision: project.revision, snapshotRevision, scope: input.candidate ? 'candidate' : 'saved', artifacts: structuredClone(input.candidate?.artifacts ?? []), ...(program ? { program: { id: program.id, hash: program.hash } } : {}), startedAt, finishedAt: now(), limits, diagnostics, diagnosticsOmitted: result.diagnostics.length - diagnostics.length, executions, ...(voiceCoverage ? { voiceCoverage } : {}), unverified: ['visual-rendering', 'audio-playback', 'host-activities', 'narrative-consistency', 'unspecified-paths'] })
 }

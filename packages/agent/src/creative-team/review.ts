@@ -2,6 +2,7 @@ import type { AdvProjectDiagnostic, AdvProjectFileMap } from '@advjs/types'
 import type { AgentProjectWorkspaceSnapshot } from '../proposals/review'
 import type { CreativeArtifact, CreativeFileChange, CreativeMilestoneIntent, CreativeReviewCapability, CreativeTeamRun } from './contracts'
 import type { CreativeMediaEvidence } from './media'
+import type { CreativePlaytestVoiceCoverage } from './playtest-voice'
 import { compileProject } from '@advjs/core'
 import { computeAgentProjectRevision } from '../proposals/review'
 import { creativeArtifactExpectedFiles } from './milestones'
@@ -14,6 +15,8 @@ export interface CreativeProjectWorkspace {
   capabilities: readonly CreativeReviewCapability[]
   /** Re-read current binary bytes and verify every supplied immutable hash, size and binding. */
   verifyMedia?: (files: Readonly<AdvProjectFileMap>, evidence: readonly CreativeMediaEvidence[]) => Promise<void>
+  /** Trusted host inspects the exact effective source and real local audio bytes, read-only. */
+  inspectVoiceCoverage?: (snapshot: AgentProjectWorkspaceSnapshot, signal?: AbortSignal) => Promise<CreativePlaytestVoiceCoverage>
   /** Inspect actual source and binary bytes without writing or contacting a service. */
   inspectRecovery?: (review: CreativeMilestoneReview) => Promise<'before' | 'after' | 'partial' | 'conflict'>
   /** Explicit author recovery; every affected file must equal one of the two reviewed versions. */

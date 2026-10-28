@@ -1,6 +1,6 @@
-import type { CreativePlaytestReport, CreativeTeamClient, CreativeTeamStartRequest } from '@advjs/agent'
+import type { CreativePlaytestReport, CreativeProjectWorkspace, CreativeTeamClient, CreativeTeamStartRequest } from '@advjs/agent'
 import type { CreativePlaytestCacheEntry } from '../utils/creativePlaytestCache'
-import { computeAgentProjectRevision, createCreativeBootstrapPlan, createCreativeTeamRun, creativePlaytestFindings, parseCreativeTeamStartRequest } from '@advjs/agent'
+import { computeAgentProjectRevision, createCreativeBootstrapPlan, createCreativePlaytestVoiceCoverage, createCreativeTeamRun, creativePlaytestFindings, parseCreativeTeamStartRequest } from '@advjs/agent'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -10,7 +10,7 @@ import { useCreativePlaytest } from '../composables/useCreativePlaytest'
 import { useCreativeTeamStore } from '../stores/useCreativeTeamStore'
 
 beforeEach(() => setActivePinia(createPinia()))
-async function fixture() {
+async function fixture(inspectVoiceCoverage?: CreativeProjectWorkspace['inspectVoiceCoverage']) {
   let files: Record<string, string> = structuredClone(frozen.files)
   const snapshot = vi.fn(async () => ({ projectId: 'station', files: { ...files }, revision: await computeAgentProjectRevision(files) }))
   const project = { id: 'station', files, revision: (await snapshot()).revision }
@@ -26,14 +26,14 @@ async function fixture() {
   await store.open(run.id)
   const current = shallowRef(store.run!)
   const rows = new Map<string, CreativePlaytestCacheEntry>()
-  const cache = { list: vi.fn(async (scope: { accountId: string, projectId: string, runId: string }) => [...rows.values()].filter(item => item.accountId === scope.accountId && item.projectId === scope.projectId && item.runId === scope.runId)), save: vi.fn(async (entry: CreativePlaytestCacheEntry) => {
+  const cache = { list: vi.fn(async (scope: { accountId: string, projectId: string, runId: string }) => [...rows.values()].filter(item => item.accountId === scope.accountId && item.projectId === scope.projectId && item.runId === scope.runId).sort((left, right) => right.report.finishedAt - left.report.finishedAt)), save: vi.fn(async (entry: CreativePlaytestCacheEntry) => {
     rows.set(entry.id, structuredClone(entry))
   }) }
   let session!: ReturnType<typeof useCreativePlaytest>
   function open() {
     const wrapper = mount(defineComponent({ setup() {
       watch(() => store.run, value => value && (current.value = value))
-      session = useCreativePlaytest({ run: () => current.value, workspace: async () => ({ snapshot, capabilities: ['candidate-preview'], commit: unavailable }), cache })
+      session = useCreativePlaytest({ run: () => current.value, workspace: async () => ({ snapshot, capabilities: ['candidate-preview'], commit: unavailable, inspectVoiceCoverage }), cache })
       return () => h('div')
     } }))
     return wrapper
@@ -43,6 +43,74 @@ async function fixture() {
 const scenarios = [{ id: 'stay', choices: [0], expectedEnding: 'stay#ending-stay' }, { id: 'leave', choices: [1], expectedEnding: 'leave#ending-leave' }]
 
 describe('creative path execution, persistence and scope', () => {
+  it('negotiates host voice evidence explicitly and preserves it through local and service storage', async () => {
+    const inspector = vi.fn<NonNullable<CreativeProjectWorkspace['inspectVoiceCoverage']>>(async source => createCreativePlaytestVoiceCoverage({ snapshotRevision: source.revision, locale: 'zh-CN', complete: true, rows: [] }))
+    const f = await fixture(inspector)
+    const wrapper = f.open()
+    await flushPromises()
+    await f.session().execute(scenarios, false)
+    expect(inspector).not.toHaveBeenCalled()
+    expect(f.session().report.value?.voiceCoverage).toBeUndefined()
+    const available = await f.client.availability()
+    vi.spyOn(f.client, 'availability').mockResolvedValue({ ...available, authoring: { ...available.authoring!, playtestVoiceCoverage: true } })
+    await f.store.refresh()
+    await f.session().execute(scenarios, false)
+    expect(inspector).toHaveBeenCalledTimes(1)
+    expect(f.session().report.value?.voiceCoverage?.snapshotRevision).toBe((await f.snapshot()).revision)
+    expect(vi.mocked(f.client.recordPlaytest).mock.calls[1]![2].voiceCoverage).toEqual(f.session().report.value?.voiceCoverage)
+    const key = f.session().activeEntry.value!.id
+    expect(f.rows.get(key)?.report.voiceCoverage).toEqual(f.session().report.value?.voiceCoverage)
+    wrapper.unmount()
+    const reopened = f.open()
+    await flushPromises()
+    expect(inspector).toHaveBeenCalledTimes(1)
+    expect(f.client.recordPlaytest).toHaveBeenCalledTimes(2)
+    expect(f.session().report.value?.voiceCoverage).toBeDefined()
+    reopened.unmount()
+  })
+
+  it('discards voice results from a project changed during byte inspection', async () => {
+    const inspector = vi.fn<NonNullable<CreativeProjectWorkspace['inspectVoiceCoverage']>>()
+    const f = await fixture(inspector)
+    const available = await f.client.availability()
+    vi.spyOn(f.client, 'availability').mockResolvedValue({ ...available, authoring: { ...available.authoring!, playtestVoiceCoverage: true } })
+    await f.store.refresh()
+    inspector.mockImplementation(async (source) => {
+      f.edit()
+      return createCreativePlaytestVoiceCoverage({ snapshotRevision: source.revision, locale: 'zh-CN', complete: true, rows: [] })
+    })
+    const wrapper = f.open()
+    await flushPromises()
+    await f.session().execute(scenarios, false)
+    expect(f.session().report.value).toBeUndefined()
+    expect(f.session().error.value).toBe('execution')
+    expect(f.rows.size).toBe(0)
+    expect(f.client.recordPlaytest).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
+  it('keeps an unsynced voice report local when the service no longer advertises that report field', async () => {
+    const inspector = vi.fn<NonNullable<CreativeProjectWorkspace['inspectVoiceCoverage']>>(async source => createCreativePlaytestVoiceCoverage({ snapshotRevision: source.revision, locale: 'zh-CN', complete: true, rows: [] }))
+    const f = await fixture(inspector)
+    const available = await f.client.availability()
+    const availability = vi.spyOn(f.client, 'availability').mockResolvedValue({ ...available, authoring: { ...available.authoring!, playtestVoiceCoverage: true } })
+    vi.mocked(f.client.recordPlaytest).mockRejectedValueOnce(new Error('offline'))
+    await f.store.refresh()
+    const wrapper = f.open()
+    await flushPromises()
+    await f.session().execute(scenarios, false)
+    const original = structuredClone(f.session().report.value)
+    expect(original?.voiceCoverage).toBeDefined()
+    availability.mockResolvedValue(available)
+    await f.store.refresh()
+    await f.session().sync()
+    expect(f.session().error.value).toBe('voice-service')
+    expect(f.client.recordPlaytest).toHaveBeenCalledTimes(1)
+    expect(f.session().report.value).toEqual(original)
+    expect(f.rows.size).toBe(1)
+    wrapper.unmount()
+  })
+
   it('keeps actual reports after same-run metadata changes and reopens through reads without running or posting again', async () => {
     const f = await fixture()
     const first = f.open()

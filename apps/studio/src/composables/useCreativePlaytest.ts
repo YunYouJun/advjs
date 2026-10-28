@@ -15,7 +15,7 @@ export function useCreativePlaytest(options: { run: () => CreativeTeamRun, works
   const storedReportId = computed(() => activeEntry.value ? options.run().playtests?.find(item => item.intentId === activeEntry.value?.id)?.id : remoteReportId.value)
   const busy = shallowRef(false)
   const repairBusy = shallowRef(false)
-  const error = shallowRef<'execution' | 'storage' | 'sync' | 'scope' | 'repair'>()
+  const error = shallowRef<'execution' | 'storage' | 'sync' | 'scope' | 'repair' | 'voice-service'>()
   const currentRevision = shallowRef<string>()
   let epoch = 0
   let selection = 0
@@ -72,6 +72,10 @@ export function useCreativePlaytest(options: { run: () => CreativeTeamRun, works
   async function sync(entry = activeEntry.value) {
     if (!entry || entry.synced || !currentScope(entry))
       return
+    if (entry.report.voiceCoverage && !store.availability?.authoring?.playtestVoiceCoverage) {
+      error.value = 'voice-service'
+      return
+    }
     const turn = epoch
     try {
       if (await store.recordPlaytest(entry.project, entry.report, entry.id)) {
@@ -106,14 +110,25 @@ export function useCreativePlaytest(options: { run: () => CreativeTeamRun, works
     busy.value = true
     error.value = undefined
     try {
-      const snapshot = await (await options.workspace()).snapshot()
+      const workspace = await options.workspace()
+      const snapshot = await workspace.snapshot()
       if (turn !== epoch || !currentScope(before))
         return
       const project = { id: snapshot.projectId, revision: snapshot.revision, files: snapshot.files }
       const references = run.artifacts.filter(item => ['selected', 'adopted'].includes(item.status)).map(item => ({ artifactId: item.id, fingerprint: item.fingerprint }))
       if (candidate && !references.length)
         throw new Error('No selected candidates')
-      const result = await runCreativePlaytest({ project, scenarios, ...(candidate ? { candidate: { run, artifacts: references } } : {}) }, { signal, yieldControl: () => new Promise(resolve => setTimeout(resolve, 0)) })
+      const inspectVoiceCoverage = workspace.inspectVoiceCoverage && (!store.availability?.authoring?.playtestReports || store.availability.authoring.playtestVoiceCoverage)
+        ? async (source: Parameters<NonNullable<CreativeProjectWorkspace['inspectVoiceCoverage']>>[0]) => {
+          if ((await workspace.snapshot()).revision !== snapshot.revision)
+            throw new Error('CREATIVE_VOICE_SOURCE_CHANGED')
+          const evidence = await workspace.inspectVoiceCoverage!(source, signal)
+          if ((await workspace.snapshot()).revision !== snapshot.revision || turn !== epoch || !currentScope(before))
+            throw new Error('CREATIVE_VOICE_SOURCE_CHANGED')
+          return evidence
+        }
+        : undefined
+      const result = await runCreativePlaytest({ project, scenarios, ...(candidate ? { candidate: { run, artifacts: references } } : {}) }, { signal, yieldControl: () => new Promise(resolve => setTimeout(resolve, 0)), inspectVoiceCoverage })
       if (turn !== epoch || !currentScope(before))
         return
       report.value = result

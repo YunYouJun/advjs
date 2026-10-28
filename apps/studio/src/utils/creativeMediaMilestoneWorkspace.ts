@@ -168,6 +168,7 @@ export function createStudioCreativeMediaWorkspace(options: {
   }
   const workspace: CreativeProjectWorkspace = {
     snapshot: base.snapshot,
+    inspectVoiceCoverage: base.inspectVoiceCoverage,
     capabilities: ['create-source', 'modify-source', 'delete-source', 'candidate-preview', 'voice-settings', 'catalog-media', 'voice-take'],
     verifyMedia,
     inspectRecovery,

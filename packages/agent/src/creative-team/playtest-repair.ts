@@ -13,7 +13,7 @@ export interface CreativePlaytestRepairReference {
 /** Bounded observations remain host claims, never a model's completion or media receipt. */
 export interface CreativePlaytestFinding {
   id: string
-  kind: 'diagnostic' | 'execution'
+  kind: 'diagnostic' | 'execution' | 'voice'
   code: string
   expected: string
   actual: string
@@ -35,13 +35,13 @@ export function parseCreativePlaytestRepairReference(value: unknown): CreativePl
   const source = value as Record<string, unknown>
   if (typeof source.reportId !== 'string' || !/^[\w-]{1,120}$/.test(source.reportId)
     || typeof source.snapshotRevision !== 'string' || !/^sha256:[a-f0-9]{64}$/.test(source.snapshotRevision)
-    || typeof source.findingId !== 'string' || !/^(?:diagnostic:\d{1,3}|execution:\d{1,2})$/.test(source.findingId)) {
+    || typeof source.findingId !== 'string' || !/^(?:diagnostic:\d{1,3}|execution:\d{1,2}|voice:\d{1,3})$/.test(source.findingId)) {
     throw new TypeError('Invalid playtest repair identity')
   }
   return { reportId: source.reportId, snapshotRevision: source.snapshotRevision, findingId: source.findingId }
 }
 
-/** Offer source/runtime problems; input mistakes and unverified media are not repair evidence. */
+/** Offer observed problems; input mistakes and unperformed media checks are not evidence. */
 export function creativePlaytestFindings(report: CreativePlaytestReport): CreativePlaytestFinding[] {
   const diagnostics: CreativePlaytestFinding[] = report.diagnostics.map((item, index) => ({
     id: `diagnostic:${index}`,
@@ -51,7 +51,10 @@ export function creativePlaytestFindings(report: CreativePlaytestReport): Creati
     actual: item.message.slice(0, 1024),
     ...(item.path ? { source: { path: item.path, ...(item.line ? { line: item.line } : {}), ...(item.column ? { column: item.column } : {}) } } : {}),
   }))
-  return [...diagnostics, ...report.executions.flatMap((item, index): CreativePlaytestFinding[] => ['ending_missing', 'ending_mismatch', 'runtime_error'].includes(item.code)
+  const voices: CreativePlaytestFinding[] = (report.voiceCoverage?.rows ?? []).flatMap((item, index) => item.status === 'ready'
+    ? []
+    : [{ id: `voice:${index}`, kind: 'voice' as const, code: `ADV_CREATIVE_VOICE_${item.status.toUpperCase()}`, expected: 'A unique authored line identity and a selected, current take with matching project bytes; actual playback still requires author review', actual: JSON.stringify({ address: item.address, lineId: item.lineId, speakerId: item.speakerId, locale: report.voiceCoverage!.locale, status: item.status, takes: item.takes, profileMissing: item.profileMissing, selected: item.selected }).slice(0, 1024), ...(item.source ? { source: item.source } : {}) }])
+  return [...diagnostics, ...voices, ...report.executions.flatMap((item, index): CreativePlaytestFinding[] => ['ending_missing', 'ending_mismatch', 'runtime_error'].includes(item.code)
     ? [{
         id: `execution:${index}`,
         kind: 'execution',
@@ -86,6 +89,10 @@ export function prepareCreativePlaytestRepair(input: {
   const tested = report.scope === 'candidate' ? creativePlaytestCandidateFiles(run, project, report.artifacts) : project.files
   const handoff = createCreativeTeamHandoff(run, taskId, { revision: project.revision, files: project.files })
   const paths = new Set([...task.sourcePaths, ...run.artifacts.filter(item => item.taskId === taskId).flatMap(item => item.changes.map(change => change.path)), ...report.executions.flatMap(item => item.trace.flatMap(step => step.source ? [step.source.path] : [])), ...(finding.source ? [finding.source.path] : [])])
+  if (finding.kind === 'voice') {
+    for (const path of Object.keys(project.files).filter(path => /^adv\/(?:audio\/|characters\/|assets(?:\/|\.json$))/.test(path)))
+      paths.add(path)
+  }
   handoff.facts.files = Object.fromEntries([...paths].filter(path => path in project.files).map(path => [path, project.files[path]]))
   // Saved facts remain saved facts. Only exact differences from the tested snapshot are overlaid.
   const files = Object.fromEntries([...paths].filter(path => (project.files[path] ?? null) !== (tested[path] ?? null)).map(path => [path, tested[path] ?? null]))

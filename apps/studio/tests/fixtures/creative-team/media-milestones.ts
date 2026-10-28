@@ -12,6 +12,7 @@ import { useCreativeTeamStore } from '../../../src/stores/useCreativeTeamStore'
 import { useStudioStore } from '../../../src/stores/useStudioStore'
 import { creativeAdoptionJournal } from '../../../src/utils/creativeAdoptionJournal'
 import { creativeArtImportCache } from '../../../src/utils/creativeArtImportCache'
+import { creativePlaytestCache } from '../../../src/utils/creativePlaytestCache'
 import { creativeVoiceImportCache } from '../../../src/utils/creativeVoiceImportCache'
 import { MemoryFsAdapter } from '../../../src/utils/fs/MemoryFsAdapter'
 import '@ionic/vue/css/core.css'
@@ -200,6 +201,7 @@ async function main() {
     crashAfterText: (count: number) => { crashAfter = count },
     crashed: () => crashed,
     run: () => store.run,
+    reports: () => creativePlaytestCache.list(scope),
     journal: () => creativeAdoptionJournal.load(scope),
     async candidates() {
       const [image, voice] = await Promise.all([creativeArtImportCache.list(scope), creativeVoiceImportCache.list(scope)])

@@ -1,9 +1,12 @@
+import type { CreativePlaytestReport } from '@advjs/agent'
 import type { CharacterVoiceProfile } from '@advjs/types'
 import type { IFileSystem } from '../utils/fs'
 import { Blob as NodeBlob } from 'node:buffer'
 import { webcrypto } from 'node:crypto'
+import { computeAgentProjectRevision, creativePlaytestFindings, runCreativePlaytest } from '@advjs/agent'
 import { audioFingerprint, createVoiceLedger, createVoiceTakeEditPlan, createVoiceTakeSelectionPlan } from '@advjs/audio'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import { createStudioCreativeWorkspace } from '../utils/creativeTeamWorkspace'
 import { readCreativeVoiceCoverage } from '../utils/creativeVoiceCoverage'
 
 beforeAll(() => {
@@ -60,6 +63,60 @@ async function fixture(format: 'flow' | 'adv-md' = 'adv-md') {
 }
 
 describe('complete saved-project voice inventory', () => {
+  it('locates an actually unmarked dialogue and inspects changed candidate prose without adopting it', async () => {
+    const f = await fixture()
+    delete f.files['adv/assets.json']
+    f.files[f.path] = f.files[f.path]!.replace(`{#${secondId}}`, '')
+    const workspace = createStudioCreativeWorkspace(f.fs, 'coverage')
+    const source = await workspace.snapshot()
+    const unresolved = await workspace.inspectVoiceCoverage!(source)
+    const unmarked = unresolved.rows.find(row => row.source?.path === f.path && row.source.line === 6)
+    expect(unmarked, JSON.stringify(unresolved.rows)).toMatchObject({ status: 'unresolved', speakerId: 'lin' })
+    expect(unmarked?.lineId).toBeUndefined()
+    await f.register(true)
+    const baseline = await workspace.snapshot()
+    const candidateFiles = { ...baseline.files, [f.path]: baseline.files[f.path]!.replace('列车来了。', '列车已经开走。') }
+    const changed = await workspace.inspectVoiceCoverage!({ ...baseline, files: candidateFiles, revision: await computeAgentProjectRevision(candidateFiles) })
+    expect(changed.rows.find(row => row.lineId === lineId)?.status).toBe('stale')
+    expect(changed.snapshotRevision).not.toBe(baseline.revision)
+    expect(f.files[f.path]).toBe(baseline.files[f.path])
+    expect(f.fs.writeFile).not.toHaveBeenCalled()
+  })
+
+  it.each(['adv-md', 'flow'] as const)('records independent %s missing, unselected, matching, stale and missing-byte evidence from real source/ledger reads', async (format) => {
+    const f = await fixture(format)
+    delete f.files['adv/assets.json']
+    const workspace = createStudioCreativeWorkspace(f.fs, 'coverage')
+    const records: CreativePlaytestReport[] = []
+    async function inspect() {
+      const source = await workspace.snapshot()
+      const report = await runCreativePlaytest({ project: { id: 'coverage', files: source.files, revision: source.revision }, scenarios: [{ id: 'end', expectedEnding: 'intro#start', choices: [] }] }, { inspectVoiceCoverage: workspace.inspectVoiceCoverage })
+      expect(report.program, JSON.stringify(report.diagnostics)).toBeDefined()
+      expect(report.voiceCoverage?.snapshotRevision).toBe(report.snapshotRevision)
+      records.push(report)
+      return report
+    }
+    const missing = await inspect()
+    expect(missing.voiceCoverage?.rows.filter(row => row.status === 'missing')).toHaveLength(3)
+    expect(creativePlaytestFindings(missing).filter(item => item.kind === 'voice')).toHaveLength(3)
+    await f.register()
+    expect((await inspect()).voiceCoverage?.rows.find(row => row.lineId === lineId)?.status).toBe('unselected')
+    await f.register(true)
+    const matching = await inspect()
+    const selected = matching.voiceCoverage?.rows.find(row => row.lineId === lineId)
+    expect(selected).toMatchObject({ status: 'ready', selected: { sha256: expect.stringMatching(/^[a-f0-9]{64}$/) } })
+    expect(creativePlaytestFindings(matching).filter(item => item.kind === 'voice')).toHaveLength(2)
+    const ledger = f.files['adv/audio/voice-ledger.json']
+    f.files[f.path] = f.files[f.path]!.replace('列车来了。', '列车已经开走。')
+    expect((await inspect()).voiceCoverage?.rows.find(row => row.lineId === lineId)?.status).toBe('stale')
+    f.blobs.clear()
+    expect((await inspect()).voiceCoverage?.rows.find(row => row.lineId === lineId)?.status).toBe('unavailable')
+    expect(f.files['adv/audio/voice-ledger.json']).toBe(ledger)
+    expect(records[2]!.unverified).toContain('audio-playback')
+    expect(f.fs.writeFile).not.toHaveBeenCalled()
+    expect(f.fs.writeBlob).not.toHaveBeenCalled()
+  })
+
   it.each(['adv-md', 'flow'] as const)('lists all %s dialogue and independent narration, including lines absent from any plan or ledger', async (format) => {
     const f = await fixture(format)
     delete f.files['adv/assets.json']
