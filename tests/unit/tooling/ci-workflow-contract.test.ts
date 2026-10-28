@@ -17,7 +17,7 @@ interface WorkflowJob {
   'continue-on-error'?: boolean
   'env'?: Record<string, string>
   'if'?: string
-  'needs'?: string[]
+  'needs'?: string | string[]
   'runs-on': string
   'strategy'?: {
     matrix?: Record<string, unknown[]>
@@ -113,11 +113,12 @@ describe('github Actions launch baseline', () => {
 
       for (const [jobName, job] of Object.entries(workflow.jobs)) {
         const commands = runCommands(job)
-        if (jobName !== 'launch-required')
+        const installs = !['launch-required', 'studio-changes'].includes(jobName)
+        if (installs)
           expect(commands).toContain('pnpm install --frozen-lockfile')
         const npmCommands = commands.filter(command => /(?:^|\n)\s*(?:npm|npx)\s/u.test(command))
         expect(npmCommands).toEqual([])
-        if (jobName !== 'launch-required') {
+        if (installs) {
           expectCurrentActions(job)
           expectCurrentLts(job)
         }
@@ -128,8 +129,9 @@ describe('github Actions launch baseline', () => {
       'build',
       'editor-pages-build',
       'studio-pages-build',
+      'studio-changes',
       'studio-unit',
-      'studio-ios-engine',
+      'studio-ios',
       'vrm-pages-build',
       'unit',
       'typecheck',
@@ -163,9 +165,23 @@ describe('github Actions launch baseline', () => {
     expect(runCommands(ci.jobs['studio-pages-build'])).toContain('test -f apps/studio/dist/index.html && test -f apps/studio/dist/sw.js')
     expectCommandBefore(ci.jobs['studio-unit'], 'pnpm prepare:workspace studio-ios', 'pnpm -C apps/studio exec vitest run')
     expectCommandBefore(ci.jobs['studio-unit'], 'pnpm -C apps/studio-ios build:engine', 'pnpm -C apps/studio-ios test:engine')
-    expect(ci.jobs['studio-ios-engine']['runs-on']).toBe('xcode-27')
-    expectCommandBefore(ci.jobs['studio-ios-engine'], 'pnpm -C apps/studio-ios build:engine && pnpm -C apps/studio-ios golden', 'swift test --package-path apps/studio-ios/Packages/StudioKit')
-    expect(runCommands(ci.jobs['studio-ios-engine']).some(command => command.includes('xcodebuild test -scheme StudioKit'))).toBe(true)
+    expect(runCommands(ci.jobs['studio-changes'])).toEqual(['node scripts/ci/studio-changes.mjs'])
+    expect(ci.jobs['studio-unit'].needs).toEqual('studio-changes')
+    expect(ci.jobs['studio-unit'].if).toBe('needs.studio-changes.outputs.studio == \'true\'')
+    expect(ci.jobs['studio-ios'].needs).toEqual('studio-changes')
+    expect(ci.jobs['studio-ios'].if).toBe('needs.studio-changes.outputs.native == \'true\'')
+    expect(ci.jobs['studio-ios']['runs-on']).toBe('xcode-27')
+    const nativeCommands = runCommands(ci.jobs['studio-ios'])
+    expectCommandBefore(ci.jobs['studio-ios'], 'pnpm prepare:workspace studio-ios', 'pnpm -C apps/studio-ios build:engine && pnpm -C apps/studio-ios golden && pnpm -C apps/studio-ios build:samples')
+    // Engine parity and unit tests run once, on the iPhone; the iPad runs only its own UI tests.
+    expect(nativeCommands.filter(command => command.startsWith('xcodebuild test'))).toEqual(expect.arrayContaining([
+      expect.stringMatching(/^xcodebuild test -scheme StudioKit .*--only iphone/u),
+      expect.stringMatching(/--only iphone.* -only-testing:StudioAppTests /u),
+      expect.stringMatching(/--only iphone.* -only-testing:StudioAppUITests /u),
+      expect.stringMatching(/--only ipad.* -only-testing:StudioAppUITests\/IPadLayoutUITests /u),
+    ]))
+    expect(nativeCommands.filter(command => command.startsWith('xcodebuild test'))).toHaveLength(4)
+    expect(nativeCommands.some(command => command.includes('swift test'))).toBe(false)
     expectCommandBefore(ci.jobs['vrm-pages-build'], 'pnpm install --frozen-lockfile', 'pnpm run build:advjs && pnpm plugins:build && pnpm run vrm:build')
     expect(runCommands(ci.jobs['vrm-pages-build'])).toContain('test -f editor/vrm/dist/index.html && test -f editor/vrm/dist/sw.js')
     expectCommandBefore(ci.jobs['editor-smoke'], 'pnpm prepare:workspace editor', 'pnpm --filter @advjs/editor typecheck')
@@ -199,8 +215,9 @@ describe('github Actions launch baseline', () => {
       'build',
       'editor-pages-build',
       'studio-pages-build',
+      'studio-changes',
       'studio-unit',
-      'studio-ios-engine',
+      'studio-ios',
       'vrm-pages-build',
       'unit',
       'typecheck',
@@ -212,6 +229,6 @@ describe('github Actions launch baseline', () => {
       'agent-install-smoke',
       'launch-journey',
     ])
-    expect(runCommands(required).join('\n')).toContain('job.result !== "success"')
+    expect(runCommands(required)).toEqual(['node scripts/ci/launch-required.mjs'])
   })
 })
