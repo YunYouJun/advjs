@@ -22,6 +22,7 @@ final class ExternalChangeUITests: XCTestCase {
         let field = app.textFields["project-name"]
         XCTAssertTrue(field.waitForExistence(timeout: 15))
         field.typeText("Shared")
+        dismissKeyboardIntroduction(in: app)
         app.buttons["template-visual-novel-starter"].tap()
         app.buttons["create-project"].tap()
         XCTAssertTrue(app.navigationBars["Shared"].waitForExistence(timeout: 30))

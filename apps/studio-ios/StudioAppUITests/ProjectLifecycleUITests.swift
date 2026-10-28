@@ -40,6 +40,7 @@ final class ProjectLifecycleUITests: XCTestCase {
         let field = app.textFields["project-name"]
         XCTAssertTrue(field.waitForExistence(timeout: 10))
         field.typeText(name)
+        dismissKeyboardIntroduction(in: app)
         app.buttons["template-\(template)"].tap()
         app.buttons["create-project"].tap()
     }

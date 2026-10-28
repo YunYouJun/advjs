@@ -26,6 +26,7 @@ final class RegionalFormatUITests: XCTestCase {
         let field = app.textFields["project-name"]
         XCTAssertTrue(field.waitForExistence(timeout: 15))
         field.typeText("Formats")
+        dismissKeyboardIntroduction(in: app)
         app.buttons["template-quick-start"].tap()
         app.buttons["create-project"].tap()
         XCTAssertTrue(app.navigationBars["Formats"].waitForExistence(timeout: 30))
