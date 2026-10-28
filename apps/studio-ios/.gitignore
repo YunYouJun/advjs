@@ -18,6 +18,8 @@ xcuserdata/
 DerivedData/
 
 # Acceptance screenshots, recordings and test results stay out of the repository:
-# keep them as UI-test attachments or CI artifacts
+# keep them as UI-test attachments or CI artifacts.
+# The same evidence/ and *.xcresult rules also live in the root .gitignore.
+# These lines stay so this subtree is still covered on its own.
 evidence/
 *.xcresult
