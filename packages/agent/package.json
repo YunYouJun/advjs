@@ -13,7 +13,15 @@
       "types": "./dist/byok-dev/index.d.mts",
       "default": "./dist/byok-dev/index.mjs"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./evaluation": {
+      "types": "./dist/evaluation/index.d.mts",
+      "default": "./dist/evaluation/index.mjs"
+    },
+    "./evaluation/node": {
+      "types": "./dist/evaluation/node.d.mts",
+      "default": "./dist/evaluation/node.mjs"
+    }
   },
   "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",

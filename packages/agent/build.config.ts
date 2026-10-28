@@ -5,6 +5,8 @@ export default defineBuildConfig({
   entries: [
     'src/index',
     'src/byok-dev/index',
+    'src/evaluation/index',
+    'src/evaluation/node',
   ],
   clean: true,
   externals: [

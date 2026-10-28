@@ -13,7 +13,7 @@ export interface CreativeEvaluationResult {
   outcome: 'completed' | 'generation-quality' | 'system' | 'provider' | 'billing' | 'cancelled'
   usability: { compiled: boolean, referencesValid: boolean, specifiedEndingsReached: number, mediaPlayback: 'passed' | 'failed' | 'unverified' }
   defects: { expected: number, detected: number, falsePositives: number, retestPassed: number }
-  consumption: { inputTokens: number, outputTokens: number, costMicroCny: number, toolCalls: number, latencyMs: number, reworkRounds: number }
+  consumption: { inputTokens: number, outputTokens: number, totalTokens: number, costMicroCny: number, toolCalls: number, latencyMs: number, reworkRounds: number }
   author: { edits: number, confirmations: number, repeatedInstructions: number }
   evidence: readonly string[]
 }
