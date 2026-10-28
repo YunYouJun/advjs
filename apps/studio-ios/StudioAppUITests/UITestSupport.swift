@@ -9,6 +9,18 @@ extension XCTestCase {
         add(attachment)
     }
 
+    /// A fresh simulator can show the system's slide-to-type introduction over
+    /// the first keyboard. It accepts typing but intercepts subsequent taps.
+    func dismissKeyboardIntroduction(in app: XCUIApplication) {
+        let introduction = app.otherElements["UIContinuousPathIntroductionView"].firstMatch
+        guard introduction.waitForExistence(timeout: 3) else { return }
+        attachScreenshot(app, "keyboard-introduction")
+        let continueButton = introduction.buttons.firstMatch
+        XCTAssertTrue(continueButton.waitForExistence(timeout: 5))
+        continueButton.tap()
+        XCTAssertTrue(introduction.waitForNonExistence(timeout: 5), app.debugDescription)
+    }
+
     /// Documents of the App's UI-testing data directory on this simulator,
     /// found through the container metadata next to the test runner's own.
     func studioUITestingDocuments(bundleIdentifier: String = "org.advjs.studio.dev") throws -> URL {

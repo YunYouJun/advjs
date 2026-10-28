@@ -283,14 +283,14 @@
 
 ### 6. 平台与工程
 
-| 项目         | 决定                                                                                                                                                                                                                      |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 最低系统版本 | iOS／iPadOS 26.0。Apple 2026 年 6 月数据：iOS 26 占全部兼容 iPhone 的 79%、近 4 年机型的 86%；iPadOS 26 为 68% 与 79%。可直接使用 TextKit 2 与 SwiftUI 的新文本编辑、`WebPage`、当前系统材质；支持 iPhone 11 及之后机型。 |
-| Swift        | Swift 6 语言模式，`SWIFT_STRICT_CONCURRENCY = complete`。探针在该配置下零警告构建。                                                                                                                                       |
-| 工程组织     | 提交 `.xcodeproj`，使用 Xcode 文件夹同步（buildable folders）加本地 Swift Package（`StudioKit`、`StudioUI`）。不引入 XcodeGen 或 Tuist；探针为快速生成使用 XcodeGen，只限 `spike/`。                                      |
-| CI runner    | GitHub-hosted `xcode-27`（Apple Silicon，macOS 27，2026-10-15 GA）。固定 Xcode 版本；最低版本回归需要 iOS 26 模拟器运行时，镜像是否预装待 P8 核实。                                                                       |
-| 验收设备     | 用户决定使用 iOS 模拟器：iPhone 18 Pro 与 iPad Pro 11-inch（M5）模拟器，iOS 27.0；最低版本另装 iOS 26 运行时回归。性能预算以模拟器趋势为准，实机差异列为风险。                                                            |
-| Bundle ID    | Release `org.advjs.studio`，Debug `org.advjs.studio.dev`；Team Lan Yang（`QT792GAY4C`），Xcode 自动签名。                                                                                                                 |
+| 项目         | 决定                                                                                                                                                                                                                                                     |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 最低系统版本 | iOS／iPadOS 26.0。Apple 2026 年 6 月数据：iOS 26 占全部兼容 iPhone 的 79%、近 4 年机型的 86%；iPadOS 26 为 68% 与 79%。可直接使用 TextKit 2 与 SwiftUI 的新文本编辑、`WebPage`、当前系统材质；支持 iPhone 11 及之后机型。                                |
+| Swift        | Swift 6 语言模式，`SWIFT_STRICT_CONCURRENCY = complete`。探针在该配置下零警告构建。                                                                                                                                                                      |
+| 工程组织     | 提交 `.xcodeproj`，使用 Xcode 文件夹同步（buildable folders）加本地 Swift Package（`StudioKit`、`StudioUI`）。不引入 XcodeGen 或 Tuist；探针为快速生成使用 XcodeGen，只限 `spike/`。                                                                     |
+| CI runner    | 常规 PR 使用 GitHub-hosted `macos-26`（Apple Silicon）与固定 Xcode 26.6，运行预装的 iOS 26 模拟器。手动选择 `native-runner=xcode-27` 时使用固定 Xcode 27.1 验证 iOS 27；该镜像仍为预览，可能因容量排队，见 [CI 说明](../contributing/ci-deployment.md)。 |
+| 验收设备     | 用户决定使用 iOS 模拟器：iPhone 18 Pro 与 iPad Pro 11-inch（M5）模拟器，iOS 27.0；最低版本另装 iOS 26 运行时回归。性能预算以模拟器趋势为准，实机差异列为风险。                                                                                           |
+| Bundle ID    | Release `org.advjs.studio`，Debug `org.advjs.studio.dev`；Team Lan Yang（`QT792GAY4C`），Xcode 自动签名。                                                                                                                                                |
 
 ### 7. 共享层与内容格式
 

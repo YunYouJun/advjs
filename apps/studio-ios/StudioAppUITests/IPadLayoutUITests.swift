@@ -21,6 +21,7 @@ final class IPadLayoutUITests: XCTestCase {
         let field = app.textFields["project-name"]
         XCTAssertTrue(field.waitForExistence(timeout: 15))
         field.typeText(name)
+        dismissKeyboardIntroduction(in: app)
         app.buttons["template-\(template)"].tap()
         app.buttons["create-project"].tap()
     }
@@ -37,6 +38,7 @@ final class IPadLayoutUITests: XCTestCase {
         let field = app.textFields["project-name"]
         XCTAssertTrue(field.waitForExistence(timeout: 15))
         field.typeText("Harbor")
+        dismissKeyboardIntroduction(in: app)
         app.buttons["template-school-romance"].tap()
         app.buttons["create-project"].tap()
         XCTAssertTrue(app.staticTexts["Project Health"].firstMatch.waitForExistence(timeout: 30))
