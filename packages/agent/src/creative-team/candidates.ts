@@ -38,12 +38,16 @@ export function createCreativeTeamHandoff(run: CreativeTeamRun, taskId: string, 
     ? selected.filter(artifact => artifact.kind !== 'playtest-report' && artifact.kind !== 'delivery-summary')
     : selected
   const feedback = run.tasks.find(state => state.taskId === taskId)?.error
+  // Applying selected upstream writes requires their actual saved baselines, even
+  // when the receiving role did not explicitly request those paths. Never infer
+  // a missing baseline from a candidate's before text.
+  const paths = new Set([...task.sourcePaths, ...candidates.flatMap(artifact => artifact.changes.map(change => change.path))])
   return {
     runId: run.id,
     taskId,
     projectId: run.plan.projectId,
     goal: run.plan.goal,
-    facts: { revision: facts.revision, files: Object.fromEntries(task.sourcePaths.filter(path => path in facts.files).map(path => [path, facts.files[path]])) },
+    facts: { revision: facts.revision, files: Object.fromEntries([...paths].filter(path => path in facts.files).map(path => [path, facts.files[path]])) },
     candidates,
     constraints: [task.instruction, task.expectedOutput, ...(feedback?.code === 'rework_requested' ? [feedback.message] : [])],
     remainingMicroPoints: Math.max(0, run.plan.limits.maxMicroPoints - run.chargedMicroPoints - run.reservedMicroPoints),
