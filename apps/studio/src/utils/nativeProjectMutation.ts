@@ -5,6 +5,10 @@ import { runStudioProjectWrite } from './projectAudio'
 export interface StudioNativeFileChange { path: string, expected: string | null, content: string | null }
 export interface StudioNativeMedia { path: string, blob: Blob, sha256: string, bytes: number }
 
+async function sourceContent(fs: IFileSystem, path: string): Promise<string | null> {
+  return await fs.exists(path) ? fs.readFile(path) : null
+}
+
 /** Exact-byte CAS and rollback, shared by finite voice mutations and JSON Flow. */
 export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioNativeFileChange[], options: { assertCurrent?: () => void, validateCurrent?: (scope: IFileSystem) => Promise<void>, validateAfter?: (scope: IFileSystem) => Promise<void>, media?: StudioNativeMedia | readonly StudioNativeMedia[], acceptsPath: (path: string) => boolean }) {
   if (!Array.isArray(changes) || changes.length > 100 || new Set(changes.map(change => change.path)).size !== changes.length)
@@ -24,11 +28,11 @@ export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioN
     options.assertCurrent?.()
     await options.validateCurrent?.(scope)
     for (const change of changes) {
-      const current = await scope.exists(change.path) ? await scope.readFile(change.path) : null
+      const current = await sourceContent(scope, change.path)
       if (current !== change.expected)
         throw new Error('ADV_STUDIO_SOURCE_CONFLICT')
     }
-    const imported: string[] = []
+    const imported: StudioNativeMedia[] = []
     const written: StudioNativeFileChange[] = []
     try {
       for (const item of media) {
@@ -37,13 +41,18 @@ export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioN
         }
         else {
           options.assertCurrent?.()
-          imported.push(item.path)
+          imported.push(item)
           await scope.writeBlob(item.path, item.blob)
         }
       }
       for (const change of changes) {
         if (change.content === change.expected)
           continue
+        options.assertCurrent?.()
+        // A disk adapter may have another writer between the batch check and
+        // this file. It has no isolated transaction view to protect that gap.
+        if (await sourceContent(scope, change.path) !== change.expected)
+          throw new Error('ADV_STUDIO_SOURCE_CONFLICT')
         options.assertCurrent?.()
         written.push(change)
         if (change.content === null)
@@ -61,20 +70,55 @@ export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioN
       // writes that could overwrite a winning external commit.
       if (scope !== fs)
         throw cause
+      const failures: unknown[] = []
       for (const change of written.reverse()) {
-        if (change.expected === null) {
-          if (await scope.exists(change.path))
+        try {
+          const actual = await sourceContent(scope, change.path)
+          if (actual === change.expected)
+            continue
+          if (actual !== change.content)
+            throw new Error(`ADV_STUDIO_ROLLBACK_SOURCE_CHANGED: ${change.path}`)
+          if (change.expected === null)
             await scope.deleteFile(change.path)
+          else
+            await scope.writeFile(change.path, change.expected)
         }
-        else {
-          await scope.writeFile(change.path, change.expected)
+        catch (error) {
+          failures.push(error)
         }
       }
-      for (const path of imported.reverse()) {
-        if (await scope.exists(path))
-          await scope.deleteFile(path)
+      // An independent author file may now reference these media. Keep the
+      // imported bytes if the saved baseline cannot be restored or verified.
+      if (!failures.length) {
+        try {
+          await options.validateCurrent?.(scope)
+        }
+        catch (error) {
+          failures.push(error)
+        }
       }
-      await scope.flush?.()
+      if (!failures.length) {
+        for (const item of imported.reverse()) {
+          try {
+            await options.validateCurrent?.(scope)
+            if (await scope.exists(item.path)) {
+              await verifyVoiceCandidateBytes(item, await (await scope.readBlob(item.path)).arrayBuffer())
+              await scope.deleteFile(item.path)
+            }
+          }
+          catch (error) {
+            failures.push(error)
+          }
+        }
+      }
+      try {
+        await scope.flush?.()
+      }
+      catch (error) {
+        failures.push(error)
+      }
+      if (failures.length)
+        throw new AggregateError(failures, 'ADV_STUDIO_ROLLBACK_INCOMPLETE', { cause })
       throw cause
     }
   }

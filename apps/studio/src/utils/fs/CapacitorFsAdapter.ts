@@ -95,8 +95,10 @@ export class CapacitorFsAdapter implements IFileSystem {
       await this.stat(path)
       return true
     }
-    catch {
-      return false
+    catch (error) {
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'OS-PLUG-FILE-0008')
+        return false
+      throw error
     }
   }
 

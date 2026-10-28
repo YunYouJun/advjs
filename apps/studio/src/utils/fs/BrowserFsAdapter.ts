@@ -96,8 +96,10 @@ export class BrowserFsAdapter implements IFileSystem {
       await this.stat(path)
       return true
     }
-    catch {
-      return false
+    catch (error) {
+      if ((error as { name?: string })?.name === 'NotFoundError')
+        return false
+      throw error
     }
   }
 
@@ -119,7 +121,9 @@ export class BrowserFsAdapter implements IFileSystem {
       const file = await handle.getFile()
       return { name, type: 'file', size: file.size, mtime: file.lastModified, path }
     }
-    catch {
+    catch (error) {
+      if ((error as { name?: string })?.name !== 'TypeMismatchError')
+        throw error
       // Try as directory
       await parent.getDirectoryHandle(name)
       return { name, type: 'directory', size: 0, mtime: 0, path }
