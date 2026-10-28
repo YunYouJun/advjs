@@ -41,6 +41,7 @@ export function useContentDelete() {
 
     try {
       await fs.deleteFile(filePath)
+      await fs.flush?.()
 
       await reload()
       await showToast(t('common.deleted'))

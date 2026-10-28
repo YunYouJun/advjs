@@ -38,6 +38,8 @@ export interface FsFileEntry {
 export interface IFileSystem {
   /** Optional durable barrier for adapters whose ordinary writes are buffered. */
   flush?: () => Promise<void>
+  /** Refresh persisted paths without discarding local edits; rejects conflicting drafts. */
+  refresh?: () => Promise<void>
   /** Human-readable backend name for debugging */
   readonly backend: 'browser' | 'capacitor' | 'memory'
 

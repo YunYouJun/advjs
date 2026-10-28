@@ -10,11 +10,18 @@
  * Projects can be imported via .advpkg.zip or created from templates.
  */
 
+import type { Table } from 'dexie'
+import type { DbMemfsNode } from '../db'
 import type { FsEntry, FsFileEntry, IFileSystem } from './types'
 import { isTextFile } from './utils'
 
 const TRIM_SLASHES_RE = /^\/+|\/+$/g
 const MULTI_SLASH_RE = /\/+/g
+
+let database: Promise<typeof import('../db')> | undefined
+function openDatabase() {
+  return database ??= import('../db')
+}
 
 /** Internal storage node */
 interface FsNode {
@@ -37,6 +44,22 @@ function dbKey(projectId: string, path: string): string {
   return `memfs:${projectId}:${path}`
 }
 
+function sameStoredNode(before?: DbMemfsNode, current?: DbMemfsNode): boolean {
+  if (!before || !current)
+    return before === current
+  if (before.revision || current.revision)
+    return Boolean(before.revision && before.revision === current.revision)
+  if (before.type !== current.type || before.content !== current.content || before.mtime !== current.mtime || before.size !== current.size || before.mimeType !== current.mimeType)
+    return false
+  if (before.binary || current.binary) {
+    if (!before.binary || !current.binary || before.binary.byteLength !== current.binary.byteLength)
+      return false
+    const bytes = new Uint8Array(current.binary)
+    return new Uint8Array(before.binary).every((byte, index) => byte === bytes[index])
+  }
+  return before.blob?.size === current.blob?.size && before.blob?.type === current.blob?.type
+}
+
 export class MemoryFsAdapter implements IFileSystem {
   readonly backend = 'memory' as const
 
@@ -50,71 +73,152 @@ export class MemoryFsAdapter implements IFileSystem {
     this.projectId = projectId
   }
 
-  /**
-   * Load file system state from IndexedDB.
-   * Call once after construction.
-   */
-  async init(): Promise<void> {
-    try {
-      const { db } = await import('../db')
-      const prefix = `memfs:${this.projectId}:`
-      const rows = await db.table('memfsNodes')
-        .where('key')
-        .startsWith(prefix)
-        .toArray()
-      for (const row of rows) {
-        const path = row.key.slice(prefix.length)
-        this.nodes.set(path, {
-          type: row.type,
-          content: row.content,
-          blob: row.binary ? new Blob([row.binary], { type: row.mimeType ?? '' }) : row.blob,
-          mtime: row.mtime,
-          size: row.size,
-        })
-      }
-    }
-    catch {
-      // memfsNodes table may not exist yet; that's fine, we start empty
+  /** The durable version each local edit was based on. */
+  private baseline = new Map<string, DbMemfsNode>()
+  private dirty = new Map<string, number>()
+  private mutation = 0
+
+  private node(row: DbMemfsNode): FsNode {
+    return {
+      type: row.type,
+      content: row.content,
+      blob: row.binary ? new Blob([row.binary], { type: row.mimeType ?? '' }) : row.blob,
+      mtime: row.mtime,
+      size: row.size,
     }
   }
 
-  /** Schedule a debounced persist to IndexedDB */
+  private async storedNodes(table: Table<DbMemfsNode, string>): Promise<Map<string, DbMemfsNode>> {
+    const prefix = `memfs:${this.projectId}:`
+    const rows = await table.where('key').startsWith(prefix).toArray()
+    return new Map(rows.map(row => [row.key.slice(prefix.length), row]))
+  }
+
+  /** Read failures must not turn an existing project into an apparently empty one. */
+  async init(): Promise<void> {
+    await this.refresh()
+  }
+
+  /** Refresh untouched paths, retaining local drafts and their original compare versions. */
+  async refresh(): Promise<void> {
+    await this.persistQueue
+    const { db } = await openDatabase()
+    const stored = await this.storedNodes(db.table('memfsNodes'))
+    for (const path of this.dirty.keys()) {
+      if (this.nodes.get(path)?.type === 'directory' && stored.get(path)?.type === 'directory')
+        continue
+      if (!sameStoredNode(this.baseline.get(path), stored.get(path)))
+        throw new Error('ADV_STUDIO_SOURCE_CONFLICT')
+    }
+    this.acceptStored(stored)
+  }
+
+  private acceptStored(stored: Map<string, DbMemfsNode>): void {
+    for (const path of new Set([...this.nodes.keys(), ...stored.keys()])) {
+      if (this.dirty.has(path))
+        continue
+      const row = stored.get(path)
+      if (row) {
+        this.baseline.set(path, row)
+        this.nodes.set(path, this.node(row))
+      }
+      else {
+        this.baseline.delete(path)
+        this.nodes.delete(path)
+      }
+    }
+  }
+
+  private change(path: string, node?: FsNode): void {
+    if (node)
+      this.nodes.set(path, node)
+    else
+      this.nodes.delete(path)
+    this.dirty.set(path, ++this.mutation)
+  }
+
+  /** Schedule a debounced persist to IndexedDB. Strict callers use flush(). */
   private schedulePersist(): void {
     if (this.persistTimer)
       clearTimeout(this.persistTimer)
-    this.persistTimer = setTimeout(() => this.persist(), 500)
+    this.persistTimer = setTimeout(() => void this.persist(), 500)
   }
 
-  /** Flush all nodes to IndexedDB */
+  /** Atomically compare and commit changed paths; never replace another window's snapshot. */
   async persist(options: { strict?: boolean } = {}): Promise<void> {
     if (this.persistTimer)
       clearTimeout(this.persistTimer)
     this.persistTimer = null
-    const snapshot = Array.from(this.nodes.entries(), ([path, node]) => [path, { ...node }] as const)
+    // Preserve the portable representation when explicitly flushing legacy Blob rows.
+    const paths = new Set([...this.dirty.keys(), ...[...this.baseline].filter(([, row]) => row.blob && !row.binary).map(([path]) => path)])
+    const snapshot = [...paths].map(path => ({ path, version: this.dirty.get(path), node: this.nodes.get(path) }))
     const operation = this.persistQueue.then(async () => {
-      // Persist raw bytes and reconstruct media on restore, avoiding dependence
-      // on IndexedDB Blob cloning while keeping media and metadata atomic.
-      const rows = await Promise.all(snapshot.map(async ([path, node]) => ({
-        key: dbKey(this.projectId, path),
-        type: node.type,
-        content: node.content ?? '',
-        ...(node.blob ? { binary: await node.blob.arrayBuffer(), mimeType: node.blob.type } : {}),
-        mtime: node.mtime,
-        size: node.size,
+      // Blob conversion must finish before the IndexedDB transaction opens.
+      const changes = await Promise.all(snapshot.map(async ({ path, node, version }) => ({
+        path,
+        version,
+        row: node
+          ? {
+            key: dbKey(this.projectId, path),
+            type: node.type,
+            content: node.content ?? '',
+            ...(node.blob ? { binary: await node.blob.arrayBuffer(), mimeType: node.blob.type } : {}),
+            mtime: node.mtime,
+            size: node.size,
+            revision: crypto.randomUUID(),
+          } satisfies DbMemfsNode
+          : undefined,
       })))
-      const { db } = await import('../db')
-      const table = db.table('memfsNodes')
-      const prefix = `memfs:${this.projectId}:`
-      await db.transaction('rw', table, async () => {
-        const existingKeys = await table.where('key').startsWith(prefix).primaryKeys()
-        if (existingKeys.length)
-          await table.bulkDelete(existingKeys as string[])
+      const { db } = await openDatabase()
+      const table = db.table<DbMemfsNode, string>('memfsNodes')
+      const stored = await db.transaction('rw', table, async () => {
+        const current = await this.storedNodes(table)
+        for (const { path, row } of changes) {
+          // Concurrent creation of the same parent directory is harmless.
+          if (row?.type === 'directory' && current.get(path)?.type === 'directory')
+            continue
+          if (!sameStoredNode(this.baseline.get(path), current.get(path)))
+            throw new Error('ADV_STUDIO_SOURCE_CONFLICT')
+        }
+        const result = new Map(current)
+        for (const { path, row } of changes) {
+          if (row) {
+            if (!(row.type === 'directory' && current.get(path)?.type === 'directory'))
+              result.set(path, row)
+          }
+          else {
+            result.delete(path)
+          }
+        }
+        // A recursive delete must not strand a child created by another window;
+        // a new child must not resurrect a concurrently deleted/replaced parent.
+        for (const [path] of result) {
+          const parts = path.split('/')
+          for (let i = 1; i < parts.length; i++) {
+            if (result.get(parts.slice(0, i).join('/'))?.type !== 'directory')
+              throw new Error('ADV_STUDIO_SOURCE_CONFLICT')
+          }
+        }
+        const deleted = changes.filter(change => !change.row).map(change => dbKey(this.projectId, change.path))
+        const rows = changes.flatMap(change => change.row ? [result.get(change.path)!] : [])
+        if (deleted.length)
+          await table.bulkDelete(deleted)
         if (rows.length)
           await table.bulkPut(rows)
+        return result
       })
+      for (const { path, version } of changes) {
+        const row = stored.get(path)
+        if (row)
+          this.baseline.set(path, row)
+        else
+          this.baseline.delete(path)
+        if (this.dirty.get(path) === version)
+          this.dirty.delete(path)
+      }
+      this.acceptStored(stored)
     })
-    // Preserve the adapter's existing nonfatal storage-failure behavior, while
-    // allowing the next queued snapshot to succeed after a failed transaction.
+    // Ordinary autosave remains nonfatal; critical callers observe failures.
     this.persistQueue = operation.catch(() => {})
     await (options.strict ? operation : this.persistQueue)
   }
@@ -135,7 +239,7 @@ export class MemoryFsAdapter implements IFileSystem {
     for (let i = 1; i < parts.length; i++) {
       const dirPath = parts.slice(0, i).join('/')
       if (!this.nodes.has(dirPath)) {
-        this.nodes.set(dirPath, {
+        this.change(dirPath, {
           type: 'directory',
           mtime: Date.now(),
           size: 0,
@@ -221,7 +325,7 @@ export class MemoryFsAdapter implements IFileSystem {
   async writeFile(path: string, content: string): Promise<void> {
     const p = this.normalizePath(path)
     this.ensureParentDirs(p)
-    this.nodes.set(p, {
+    this.change(p, {
       type: 'file',
       content,
       mtime: Date.now(),
@@ -233,7 +337,7 @@ export class MemoryFsAdapter implements IFileSystem {
   async writeBlob(path: string, data: Blob): Promise<void> {
     const p = this.normalizePath(path)
     this.ensureParentDirs(p)
-    this.nodes.set(p, {
+    this.change(p, {
       type: 'file',
       blob: data,
       mtime: Date.now(),
@@ -246,7 +350,7 @@ export class MemoryFsAdapter implements IFileSystem {
     const p = this.normalizePath(path)
     this.ensureParentDirs(p)
     if (!this.nodes.has(p)) {
-      this.nodes.set(p, {
+      this.change(p, {
         type: 'directory',
         mtime: Date.now(),
         size: 0,
@@ -257,7 +361,7 @@ export class MemoryFsAdapter implements IFileSystem {
 
   async deleteFile(path: string): Promise<void> {
     const p = this.normalizePath(path)
-    this.nodes.delete(p)
+    this.change(p)
     this.schedulePersist()
   }
 
@@ -269,7 +373,7 @@ export class MemoryFsAdapter implements IFileSystem {
       if (key.startsWith(prefix))
         toDelete.push(key)
     }
-    for (const key of toDelete) this.nodes.delete(key)
+    for (const key of toDelete) this.change(key)
     this.schedulePersist()
   }
 
@@ -325,7 +429,7 @@ export class MemoryFsAdapter implements IFileSystem {
     for (const f of files) {
       const p = this.normalizePath(f.path)
       this.ensureParentDirs(p)
-      this.nodes.set(p, {
+      this.change(p, {
         type: 'file',
         content: f.content,
         mtime: Date.now(),

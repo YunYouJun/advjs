@@ -11,6 +11,9 @@ export function createStudioCreativeWorkspace(fs: IFileSystem, projectId: string
 } = {}): CreativeProjectWorkspace {
   async function snapshot() {
     options.assertCurrent?.()
+    if (fs.refresh)
+      await fs.refresh()
+    options.assertCurrent?.()
     const files = selectCreativeProjectFiles(Object.fromEntries((await fs.collectAllFiles()).map(file => [file.path, file.content])))
     options.assertCurrent?.()
     const revision = await computeAgentProjectRevision(files)

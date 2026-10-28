@@ -106,6 +106,8 @@ export interface DbKnowledgeEmbedding {
 export interface DbMemfsNode {
   /** Primary key: 'memfs:{projectId}:{path}' */
   key: string
+  /** Opaque compare version; absent on legacy rows until their next write. */
+  revision?: string
   type: 'file' | 'directory'
   content: string
   /** IndexedDB structured cloning preserves binary bytes and MIME type. */

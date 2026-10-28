@@ -235,6 +235,7 @@ export function useContentSave() {
       }
 
       await fs.writeFile(filePath, content)
+      await fs.flush?.()
 
       return { success: true, filePath }
     }
