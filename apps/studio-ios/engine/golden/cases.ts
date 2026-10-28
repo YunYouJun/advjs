@@ -133,9 +133,42 @@ async function addContentRoundTrips(book: CaseBook, root: string) {
   }
 }
 
+/** Reuse frozen inputs and captured Web author-host files; these are not new creative results. */
+async function addCreativeTeamProjects(book: CaseBook) {
+  const fixture = async (name: string) => JSON.parse(await readFile(resolve(repoRoot, 'packages/agent/test/fixtures', name), 'utf8'))
+  const baseline = await fixture('creative-team/v2/project.json')
+  const media = await fixture('creative-media-author-host.json')
+  const flow = await fixture('creative-playtest-voice-author-host.json')
+  const projects: Array<[string, Record<string, string>]> = [
+    ['creative-baseline', baseline.files],
+    ['creative-art', media.image.after],
+    ['creative-voice-registered', media.voice.registered],
+    ['creative-voice-selected', media.voice.adopted],
+    ['creative-flow-voice', flow.project.files],
+  ]
+  for (const [name, files] of projects) {
+    book.add(`compile:${name}`, 'project.compile', { files, options: { staticAnalysis: true } })
+    await addAuthoringProject(book, name, files)
+    book.add(`player:${name}`, 'project.playerConfig', { files, baseUrl: 'advjs-player://project/' })
+    if (files['adv/assets.json'])
+      book.add(`manifest:${name}`, 'assets.readManifest', { files })
+  }
+  const characterPath = 'adv/characters/lin.character.md'
+  const source = media.voice.adopted[characterPath]
+  const character = await book.result('content.parse', { type: 'character', content: source })
+  book.add('character:creative-voice-unchanged', 'content.stringify', { type: 'character', data: character, source })
+  book.add('character:creative-voice-edit', 'content.stringify', { type: 'character', data: { ...character, name: '林舟（作者修改）' }, source })
+  const chapterPath = 'adv/chapters/intro.adv.md'
+  book.add('player:creative-voice-stale', 'project.playerConfig', {
+    files: { ...media.voice.adopted, [chapterPath]: media.voice.adopted[chapterPath].replace('列车还没有到', '列车即将进站') },
+    baseUrl: 'advjs-player://project/',
+  })
+}
+
 export async function createGoldenCases(call: EngineCall): Promise<GoldenCase[]> {
   const book = new CaseBook(call)
   book.add('info', 'engine.info', {})
+  await addCreativeTeamProjects(book)
 
   // Whole projects compiled the way the CLI loads them from disk.
   const golden = await addLoadedProject(book, 'golden-project', 'tests/launch/fixtures/golden-project', { staticAnalysis: true })

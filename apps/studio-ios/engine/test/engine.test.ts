@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import * as yaml from 'js-yaml'
 import { beforeAll, describe, expect, it } from 'vitest'
+import capturedMedia from '../../../../packages/agent/test/fixtures/creative-media-author-host.json'
 import { buildEngine, findForbiddenGlobals } from '../build'
 import { createGoldenCases, runGoldenCases } from '../golden/cases'
 import { loadEngineSandbox } from '../golden/sandbox'
@@ -44,6 +45,78 @@ let expected: Record<string, string>
 beforeAll(async () => {
   cases = await createGoldenCases(call)
   expected = await runGoldenCases(call, cases)
+})
+
+describe('creative team project handoff', () => {
+  function result(name: string) {
+    const response = JSON.parse(expected[name])
+    expect(response.ok, name).toBe(true)
+    return response.result
+  }
+
+  it('compiles all five captured project states and keeps the frozen two-ending entry', () => {
+    for (const name of ['creative-baseline', 'creative-art', 'creative-voice-registered', 'creative-voice-selected', 'creative-flow-voice'])
+      expect(result(`compile:${name}`).diagnostics.filter((item: { severity: string }) => item.severity === 'error'), name).toEqual([])
+    const program = result('compile:creative-baseline').project.program
+    expect(program.entry).toEqual({ chapterId: 'station', nodeId: 'arrival' })
+    const options = Object.values(program.chapters.station.nodes).flatMap((node: any) => node.kind === 'choices' ? node.data.options : [])
+    expect(options.map((option: any) => option.target)).toEqual([
+      { chapterId: 'stay', nodeId: 'ending-stay' },
+      { chapterId: 'leave', nodeId: 'ending-leave' },
+    ])
+  })
+
+  it('preserves adopted image catalog metadata without certifying native image display', () => {
+    const catalog = result('compile:creative-art').project.assets
+    expect(catalog.assets).toContainEqual(expect.objectContaining({
+      id: 'character/xiaoyun/default',
+      characterId: 'xiaoyun',
+      expression: 'default',
+      sha256: '0013ad9b2e00141cfc089e4bbb8a299f3dd26d6f81f0f159d04557682420d9e1',
+      bytes: 39460,
+      width: 619,
+      height: 619,
+      mimeType: 'image/webp',
+    }))
+    expect(catalog.profiles.local).toEqual({ provider: 'project', root: 'adv/assets' })
+  })
+
+  it('keeps unselected audio out of playback and resolves selected Markdown/Flow takes by stable line ID', () => {
+    const registered = result('player:creative-voice-registered').gameConfig.audio
+    expect(registered.assets).toEqual({})
+    expect(registered.voiceLedger.lines).toEqual({})
+    for (const [name, lineId] of [
+      ['creative-voice-selected', 'line_01900400-0000-7000-8000-000000000001'],
+      ['creative-flow-voice', 'line_01900400-0000-7000-8000-000000000002'],
+    ]) {
+      const config = result(`player:${name}`).gameConfig
+      const audio = config.audio
+      expect(Object.keys(audio.voiceLedger.lines)).toEqual([lineId])
+      const binding = audio.voiceLedger.lines[lineId].locales['zh-CN']
+      expect(binding.takes).toHaveLength(1)
+      expect(binding.selectedTake).toBe(binding.takes[0].id)
+      expect(audio.assets[binding.takes[0].assetId]).toMatchObject({
+        src: expect.stringMatching(/^advjs-player:\/\/project\/adv\/assets\/voice\/creative\/.+\.wav$/u),
+        sha256: '538922a9bbfe31ecd95ab1f8457041d01bdcb0ae8e007fa0253a25bea1177c3e',
+        bytes: 125740,
+        mime: 'audio/wav',
+      })
+      expect(config.characters[0].voiceProfile).toBeUndefined()
+    }
+  })
+
+  it('retains author voice settings on character edits and reports old audio after dialogue changes', () => {
+    const source = capturedMedia.voice.adopted['adv/characters/lin.character.md']
+    expect(result('character:creative-voice-unchanged')).toBe(source)
+    const edited = result('character:creative-voice-edit')
+    expect(edited).toContain('林舟（作者修改）')
+    expect(edited).toContain('voiceId: Tingting')
+    expect(edited).toContain('speakingStyle: 平静')
+    expect(edited).toContain('本机系统语音外部制作示例。')
+    const stale = result('player:creative-voice-stale')
+    expect(stale.diagnostics).toContainEqual(expect.objectContaining({ code: 'VOICE_STALE', severity: 'warning', file: 'adv/audio/voice-ledger.json' }))
+    expect(stale.gameConfig.audio.voiceLedger.lines[capturedMedia.voice.lineId].locales['zh-CN'].selectedTake).toBe(capturedMedia.voice.takeId)
+  })
 })
 
 describe('engine bundle', () => {
