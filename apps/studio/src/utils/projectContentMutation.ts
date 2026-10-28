@@ -8,8 +8,8 @@ export interface StudioContentSource {
   readonly content: string | null
 }
 
-function assertPath(path: string) {
-  if (!/^(?:adv\.config\.json|adv\/.+\.(?:md|json))$/u.test(path) || path.includes('\\')
+function assertPath(path: string, acceptsPath?: (path: string) => boolean) {
+  if (!(acceptsPath ? acceptsPath(path) : /^(?:adv\.config\.json|adv\/.+\.(?:md|json))$/u.test(path)) || /^(?:[a-z]+:|\/)/i.test(path) || path.includes('\\')
     || Array.from(path).some(char => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)
     || path.split('/').some(part => ['', '.', '..', '.git', 'node_modules'].includes(part.toLowerCase()))) {
     throw new Error('ADV_STUDIO_CONTENT_PATH_INVALID')
@@ -17,8 +17,8 @@ function assertPath(path: string) {
 }
 
 /** Read a saved author file without treating permission or storage errors as absence. */
-export async function readStudioContentSource(fs: IFileSystem, path: string, assertCurrent: () => void): Promise<StudioContentSource> {
-  assertPath(path)
+export async function readStudioContentSource(fs: IFileSystem, path: string, assertCurrent: () => void, acceptsPath?: (path: string) => boolean): Promise<StudioContentSource> {
+  assertPath(path, acceptsPath)
   assertCurrent()
   await whenStudioProjectWritesSettle(fs)
   assertCurrent()
@@ -30,8 +30,8 @@ export async function readStudioContentSource(fs: IFileSystem, path: string, ass
 }
 
 /** An open file or delete confirmation authorizes only these exact source bytes. */
-export async function commitStudioContentSource(source: StudioContentSource, content: string | null, assertCurrent: () => void) {
-  assertPath(source.path)
+export async function commitStudioContentSource(source: StudioContentSource, content: string | null, assertCurrent: () => void, acceptsPath?: (path: string) => boolean) {
+  assertPath(source.path, acceptsPath)
   await commitStudioProjectFiles(source.fs, [{ path: source.path, expected: source.content, content }], {
     assertCurrent,
     acceptsPath: path => path === source.path,

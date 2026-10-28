@@ -163,9 +163,9 @@ async function initEditor() {
       scrollBeyondLastLine: false,
       fontSize: 13,
       lineNumbers: 'on',
-      // Markdown has no semantic word provider. Monaco 0.55's delayed occurrence
-      // request otherwise rejects unhandled when an author closes this preview.
-      occurrencesHighlight: lang === 'markdown' ? 'off' : 'singleFile',
+      // Short-lived previews can close while Monaco 0.55's delayed word
+      // highlighter is pending. Its cancellation otherwise rejects unhandled.
+      occurrencesHighlight: 'off',
       renderSideBySide: window.innerWidth >= 768,
     })
 
@@ -188,7 +188,7 @@ async function initEditor() {
       fontSize: isMobile ? 14 : 13,
       lineNumbers: 'on',
       wordWrap: 'on',
-      occurrencesHighlight: lang === 'markdown' ? 'off' : 'singleFile',
+      occurrencesHighlight: 'off',
       theme: document.documentElement.classList.contains('dark') ? 'vs-dark' : 'vs',
     })
 
@@ -268,9 +268,6 @@ watch(() => props.filename, (filename) => {
     if (model)
       monaco.editor.setModelLanguage(model, lang)
   }
-  const options = { occurrencesHighlight: lang === 'markdown' ? 'off' : 'singleFile' }
-  editor?.updateOptions(options)
-  diffEditor?.updateOptions(options)
 })
 
 watch(() => props.content, (value) => {

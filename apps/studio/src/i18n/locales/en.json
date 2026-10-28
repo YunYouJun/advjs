@@ -117,6 +117,14 @@
     "daysAgo": "{n}d ago"
   },
   "workspace": {
+    "loadingFile": "Loading file…",
+    "reloadSaved": "Reload saved version",
+    "reloadDiscardDraft": "This replaces the current editor draft. Copy any text you want to keep before reloading the saved file.",
+    "reloadScopeChanged": "The file, project or draft changed. Review it before trying again.",
+    "sourceChanged": "The file or project changed; the saved version was not overwritten. Your draft remains on this page. Copy it before reloading to compare.",
+    "savedWithNewerDraft": "The submitted version was saved; your newer input is still unsaved.",
+    "fileOperationFailed": "The file could not be read or saved. Existing drafts remain on this page; keep a copy before retrying.",
+    "textFilesOnly": "Only UTF-8 text files can be edited here. Open images or audio through the assets tools.",
     "title": "Workspace",
     "selectFile": "Select a file to preview",
     "switchProject": "Switch Project",

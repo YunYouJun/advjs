@@ -241,12 +241,13 @@ describe('saved source reconciliation', () => {
       f.setServer({ ...f.server(), milestones: [{ id: 'pending', status: 'prepared', operation: 'adopt', artifacts: [{ artifactId: 'candidate1', fingerprint: 'candidate-fp' }], anchors: [], beforeRevision: f.server().plan.projectRevision, afterRevision: 'after', requestFingerprint: 'intent', reason: '明确的准备中事务', at: 1 }] })
       await f.fs.writeFile('adv/world.md', '# 待恢复的中间文件\n')
       await f.settle()
-      expect(f.sync.status.value).toBe('deferred')
+      // Snapshot hashing is asynchronous even after fake debounce timers advance.
+      await vi.waitFor(() => expect(f.sync.status.value).toBe('deferred'))
       expect(f.api.refreshFacts).not.toHaveBeenCalled()
       f.setServer({ ...f.server(), status: 'completed', milestones: [] })
       f.sync.retry()
       await f.settle()
-      expect(f.sync.status.value).toBe('historical')
+      await vi.waitFor(() => expect(f.sync.status.value).toBe('historical'))
       expect(f.api.refreshFacts).not.toHaveBeenCalled()
     }
     finally { f.scope.stop() }

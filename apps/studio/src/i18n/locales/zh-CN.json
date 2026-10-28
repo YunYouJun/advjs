@@ -117,6 +117,14 @@
     "daysAgo": "{n} 天前"
   },
   "workspace": {
+    "loadingFile": "正在读取文件…",
+    "reloadSaved": "重新读取已保存版本",
+    "reloadDiscardDraft": "此操作会替换当前编辑区的草稿。请先复制需要保留的内容，再重新读取文件核对。",
+    "reloadScopeChanged": "文件、项目或草稿已变化，请重新核对后操作。",
+    "sourceChanged": "文件或项目已变化，未覆盖已保存版本。草稿仍在本页，请先复制，再重新读取核对。",
+    "savedWithNewerDraft": "本次内容已保存，之后的新输入仍未保存。",
+    "fileOperationFailed": "无法读取或保存文件；已有草稿仍在本页，请先保留内容再重试。",
+    "textFilesOnly": "此处只编辑 UTF-8 文本文件；图片和音频请通过素材入口查看。",
     "title": "工作区",
     "selectFile": "选择文件以预览",
     "switchProject": "切换项目",
