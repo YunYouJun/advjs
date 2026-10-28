@@ -50,6 +50,8 @@ describe('continuous single-agent evaluation and common isolated tools', () => {
     expect(h.messages[3].slice(0, 6)).toEqual(h.messages[2])
     expect(h.messages[1][3].content).toContain('absent')
     expect(h.messages[3][7].content).toContain('actualEnding')
+    expect(JSON.parse(h.messages[2][5].content).toolResult).toMatchObject({ appliedPaths: [chapter] })
+    expect(JSON.parse(h.messages[2][5].content).toolResult).not.toHaveProperty('files')
     expect(h.remaining[1]).toMatchObject({ maxTotalTokens: budget.maxTotalTokens - 3, maxMicroCny: budget.maxMicroCny - 2 })
     const final = h.evidence.get(`${source.key}/final.json`)
     expect(final.audit.report.executions.map((item: any) => item.actualEnding)).toEqual(frozen.specifiedEndings)

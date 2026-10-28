@@ -1,15 +1,16 @@
 import type { AdvProjectDiagnostic } from '@advjs/types'
-import type { CreativeFileChange } from '../creative-team/contracts'
+import type { CreativeFileChange, CreativeTeamRun } from '../creative-team/contracts'
 import type { CreativePlaytestScenario } from '../creative-team/outputs'
 import type { CreativePlaytestReport } from '../creative-team/playtest-contracts'
 import type { CreativeEvaluationCategory, CreativeEvaluationMode } from './creative-team'
 import { compileProject } from '@advjs/core'
 import { runCreativePlaytest } from '../creative-team/playtest'
+import { creativePlaytestCandidateFiles } from '../creative-team/playtest-snapshot'
 import { overlayCreativeChanges } from '../creative-team/review'
 import { assertCreativeSourcePath } from '../creative-team/validation'
 import { computeAgentProjectRevision } from '../proposals/review'
 
-export const CREATIVE_EVALUATION_TOOLS_VERSION = 'advjs-creative-evaluation-tools-v1'
+export const CREATIVE_EVALUATION_TOOLS_VERSION = 'advjs-creative-evaluation-tools-v2'
 export const CREATIVE_SINGLE_PROMPT_VERSION = 'advjs-creative-evaluation-single-v1'
 
 export interface CreativeEvaluationBudget { maxTotalTokens: number, maxMicroCny: number, deadlineMs: number }
@@ -68,18 +69,36 @@ function text(value: unknown, limit = 32000): string {
 }
 
 /** One isolated source snapshot shared by all modes; no filesystem, network or media writes. */
-export function createCreativeEvaluationWorkspace(project: CreativeEvaluationInput['project']) {
+export function createCreativeEvaluationWorkspace(project: CreativeEvaluationInput['project'], candidate?: { run: CreativeTeamRun, artifacts: CreativePlaytestReport['artifacts'] }) {
   let files = { ...project.files }
+  const provenance = candidate ? structuredClone(candidate) : undefined
+  const ready = async () => {
+    const baseline = { id: project.id, files: project.files, revision: await computeAgentProjectRevision(project.files) }
+    return { baseline, files: provenance ? creativePlaytestCandidateFiles(provenance.run, baseline, provenance.artifacts) : files }
+  }
+  let materialized = !provenance
+  const prepare = async () => {
+    if (!materialized) {
+      files = (await ready()).files
+      materialized = true
+    }
+  }
   let lastReport: CreativePlaytestReport | undefined
   for (const [path, content] of Object.entries(files)) {
     assertCreativeSourcePath(path)
     if (typeof content !== 'string')
       throw new TypeError('Evaluation sources must be text')
   }
-  const snapshot = async () => ({ id: project.id, files: { ...files }, revision: await computeAgentProjectRevision(files) })
+  const snapshot = async () => {
+    await prepare()
+    return { id: project.id, files: { ...files }, revision: await computeAgentProjectRevision(files) }
+  }
   return {
     snapshot,
     async revise(value: unknown) {
+      await prepare()
+      if (provenance)
+        throw new TypeError('Revise crew candidates through their managed Runtime')
       if (!Array.isArray(value) || !value.length || value.length > 64)
         throw new TypeError('Expected 1–64 complete source changes')
       const changes: CreativeFileChange[] = value.map((item) => {
@@ -101,11 +120,13 @@ export function createCreativeEvaluationWorkspace(project: CreativeEvaluationInp
       return snapshot()
     },
     async compile(): Promise<CreativeEvaluationCompilation> {
+      await prepare()
       const result = await compileProject({ id: project.id, files }, { staticAnalysis: true })
       return { revision: (await snapshot()).revision, compiled: Boolean(result.project.program) && !result.diagnostics.some(item => item.severity === 'error'), diagnostics: result.diagnostics }
     },
     async playtest(scenarios: readonly CreativePlaytestScenario[], signal?: AbortSignal) {
-      lastReport = await runCreativePlaytest({ project: await snapshot(), scenarios }, { signal })
+      await prepare()
+      lastReport = await runCreativePlaytest({ project: provenance ? (await ready()).baseline : await snapshot(), ...(provenance ? { candidate: provenance } : {}), scenarios }, { signal })
       return lastReport
     },
     async audit(signal?: AbortSignal) {
@@ -259,7 +280,8 @@ export function createCreativeSingleAgentEvaluator(options: { model: CreativeEva
             const attempts = revisions.get(workItem) ?? 0
             if (attempts >= 3 || (attempts === 0 && revisions.size >= 24))
               throw new TypeError('Work item or its two rework rounds exhausted')
-            observation = await workspace.revise(action.changes)
+            const updated = await workspace.revise(action.changes)
+            observation = { projectId: updated.id, revision: updated.revision, appliedPaths: (action.changes as CreativeFileChange[]).map(change => change.path) }
             revisions.set(workItem, attempts + 1)
             consumption.reworkRounds += Number(attempts > 0)
           }
