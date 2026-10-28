@@ -110,6 +110,8 @@ pnpm --filter @advjs/editor typecheck
 
 预编译的 `adv-editor` 不会因为游戏项目安装了 npm 包而自动加载 UI 插件。当前没有远程安装、更新市场、任意 DOM 注入或不可信代码沙箱。
 
+底部「插件」面板同时提供[官方供应商目录](./plugins)，首批展示 Breeze、Qwen MLX 和 OpenAI TTS 的源码接入、平台要求与显式状态检测。它们是 Node 作者侧供应商，复用通用音频界面，不作为 UI 插件动态注入；目录不下载或执行远程代码，也不代表 npm 已发布。
+
 ## 接口约定
 
 | 声明                           | 行为                                                                                       |

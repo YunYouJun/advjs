@@ -46,6 +46,42 @@
 :root {
   --agui-control-height: 24px;
   --agui-tab-list-height: 28px;
+  --agui-toolbar-min-height: 30px;
+
+  // Shared desktop composition. Rounding does not change compact control heights.
+  --agui-space-1: 4px;
+  --agui-space-2: 8px;
+  --agui-space-3: 12px;
+  --agui-space-4: 16px;
+  --agui-radius-sm: 5px;
+  --agui-radius-md: 8px;
+  --agui-radius-lg: 12px;
+  --agui-radius-pill: 999px;
+  --agui-tag-min-height: 20px;
+  --agui-tag-line-height: 16px;
+  --agui-font-family-ui: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --agui-font-size-caption: 11px;
+  --agui-font-size-body: 12px;
+  --agui-font-size-title: 13px;
+  --agui-font-size-heading: 14px;
+  --agui-font-size-reading: 14px;
+  --agui-line-height: 1.5;
+  --agui-line-height-reading: 1.75;
+  // Shared field geometry and form composition (also used in Portal roots).
+  --agui-control-padding-x: var(--agui-space-2);
+  --agui-control-font-size: var(--agui-font-size-title);
+  --agui-control-line-height: 18px;
+  --agui-control-gap: var(--agui-space-1);
+  --agui-form-row-gap: var(--agui-space-2);
+  --agui-form-column-gap: var(--agui-space-2);
+  --agui-form-label-gap: var(--agui-space-1);
+  --agui-form-columns: minmax(0, 1fr) minmax(0, 2fr);
+  --agui-motion-duration: 120ms;
+  --agui-motion-popup-duration: 150ms;
+  --agui-motion-dialog-duration: 180ms;
+  --agui-motion-exit-duration: 100ms;
+  --agui-motion-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --agui-motion-exit-ease: cubic-bezier(0.4, 0, 1, 1);
 
   // Workspace, content, chrome, fields and floating surfaces.
   --agui-c-bg: var(--agui-c-white-mute);
@@ -106,7 +142,9 @@
   --agui-c-danger-text: #a12c2c;
   --agui-c-danger-soft: #f6e5e5;
   --agui-c-success-text: #276b42;
+  --agui-c-success-soft: #e5f1e9;
   --agui-c-warning-text: #855600;
+  --agui-c-warning-soft: #f7edda;
   --agui-c-axis-x: #ab4141;
   --agui-c-axis-y: #477347;
   --agui-c-axis-z: #35639a;
@@ -163,7 +201,9 @@
   --agui-c-axis-z: #84ade0;
   --agui-c-axis-w: #d9b666;
   --agui-c-success-text: #9dd4af;
+  --agui-c-success-soft: #2e4336;
   --agui-c-warning-text: #e5c071;
+  --agui-c-warning-soft: #493e2a;
   --agui-c-control: #505050;
   --agui-c-control-hover: #5c5c5c;
   --agui-c-control-pressed: #454545;
@@ -200,4 +240,14 @@
   --agui-c-brand-light: var(--agui-c-primary-hover);
   --agui-c-brand-dark: var(--agui-c-primary-pressed);
   --agui-c-brand-highlight: var(--agui-c-link);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root,
+  .dark {
+    --agui-motion-duration: 0ms;
+    --agui-motion-popup-duration: 0ms;
+    --agui-motion-dialog-duration: 0ms;
+    --agui-motion-exit-duration: 0ms;
+  }
 }

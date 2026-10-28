@@ -70,6 +70,7 @@ const model = defineModel<string | number>()
   }
 }
 .agui-tab-list {
+  font-family: var(--agui-font-family-ui);
   min-height: var(--agui-tab-list-height, 28px);
   flex: 1;
   min-width: 0;
@@ -77,6 +78,7 @@ const model = defineModel<string | number>()
   line-height: 1.4;
 
   .agui-tab-btn {
+    font-family: var(--agui-font-family-ui);
     flex: 0 0 auto;
     white-space: nowrap;
   }

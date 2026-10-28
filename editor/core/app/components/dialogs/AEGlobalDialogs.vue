@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useEditorCapabilities } from '../../composables/useEditorCapabilities'
 import { useContentCreationStore } from '../../stores/useContentCreationStore'
+import AELazyDialog from './AELazyDialog.vue'
 
 const AEAboutDialog = defineAsyncComponent(() => import('./AEAboutDialog.vue'))
 const AESettingsDialog = defineAsyncComponent(() => import('./AESettingsDialog.vue'))
@@ -16,11 +17,11 @@ const creation = useContentCreationStore()
 </script>
 
 <template>
-  <AEAboutDialog v-if="dialogStore.openStates.about" v-model:open="dialogStore.openStates.about" />
-  <AESettingsDialog v-if="dialogStore.openStates.settings" v-model:open="dialogStore.openStates.settings" />
-  <AEProjectSettingsDialog v-if="dialogStore.openStates.projectSettings" v-model:open="dialogStore.openStates.projectSettings" />
-  <AEGitHubReposDialog v-if="capabilities.integrations.github && dialogStore.openStates.githubRepos" v-model:open="dialogStore.openStates.githubRepos" />
-  <AEPreferencesDialog v-if="dialogStore.openStates.preferences" v-model:open="dialogStore.openStates.preferences" />
-  <AECodexWorkflowDialog v-if="dialogStore.openStates.codexWorkflow" v-model:open="dialogStore.openStates.codexWorkflow" />
+  <AELazyDialog v-model:open="dialogStore.openStates.about" :dialog="AEAboutDialog" />
+  <AELazyDialog v-model:open="dialogStore.openStates.settings" :dialog="AESettingsDialog" />
+  <AELazyDialog v-model:open="dialogStore.openStates.projectSettings" :dialog="AEProjectSettingsDialog" />
+  <AELazyDialog v-if="capabilities.integrations.github" v-model:open="dialogStore.openStates.githubRepos" :dialog="AEGitHubReposDialog" />
+  <AELazyDialog v-model:open="dialogStore.openStates.preferences" :dialog="AEPreferencesDialog" />
+  <AELazyDialog v-model:open="dialogStore.openStates.codexWorkflow" :dialog="AECodexWorkflowDialog" />
   <AECreateContentDialog v-if="creation.draft" />
 </template>

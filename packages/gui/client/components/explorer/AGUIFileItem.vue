@@ -248,6 +248,7 @@ function onRenameKeydown(e: KeyboardEvent) {
 
 <style lang="scss">
 .agui-file-item {
+  font-family: var(--agui-font-family-ui);
   display: flex;
   align-items: center;
   min-width: 0;

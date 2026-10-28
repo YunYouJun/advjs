@@ -2,7 +2,7 @@ import type { AudioGenerationCost, VoiceGenerationResolvedInput, VoiceGeneration
 import type { CharacterVoiceProfile, RuntimeProgram, VoiceAuthoringSnapshot } from '@advjs/types'
 import type { InjectionKey } from 'vue'
 import type { IFileSystem } from './fs'
-import { audioFingerprint, canonicalAudioJson, createAudioId, isAudioId, normalizeAudioLocale, voiceGenerationInputFingerprint } from '@advjs/audio'
+import { audioFingerprint, canonicalAudioJson, createAudioId, isAudioId, normalizeAudioLocale, voiceGenerationInputFingerprint, voiceGenerationTargetMatches } from '@advjs/audio'
 import { compileProject } from '@advjs/core'
 
 export async function readStudioVoiceJobContext(fs: IFileSystem, snapshot?: VoiceAuthoringSnapshot) {
@@ -147,9 +147,7 @@ export async function reviewStudioVoiceJobLines(context: StudioVoiceJobContext, 
       const binding = snapshot.ledger.lines[line.lineId]?.locales[options.locale]
       const take = binding?.takes.find(take => take.id === binding.selectedTake)
       const fingerprint = await voiceGenerationInputFingerprint(input)
-      if (options.mode === 'missing' && take)
-        continue
-      if (options.mode === 'stale' && (!take || take.inputFingerprint === fingerprint))
+      if (!voiceGenerationTargetMatches(options.mode === 'chapter' ? 'all' : options.mode, take, fingerprint))
         continue
       lines.push(input)
     }

@@ -12,6 +12,7 @@ import AEProjectAudioPanel from './AEProjectAudioPanel.vue'
 import AEVoiceDesignPanel from './AEVoiceDesignPanel.vue'
 import AEVoiceJobsPanel from './AEVoiceJobsPanel.vue'
 import AEVoiceLedgerPanel from './AEVoiceLedgerPanel.vue'
+import AEVoiceProvidersPanel from './AEVoiceProvidersPanel.vue'
 import '../../../styles/resource-panel.scss'
 
 withDefaults(defineProps<{ visible?: boolean }>(), { visible: true })
@@ -26,7 +27,7 @@ watch(() => audio.workspaceRequest, (request) => {
     audio.consumeWorkspaceRequest(request.id)
   }
 }, { immediate: true, flush: 'sync' })
-const tabs = [{ key: 'assets', title: '音频资源' }, { key: 'design', title: '音色设计' }, { key: 'voice', title: '对白配音' }, { key: 'jobs', title: '配音任务' }, { key: 'profiles', title: '旁白声音' }, { key: 'pronunciation', title: '发音词典' }, { key: 'mixer', title: '混音配置' }]
+const tabs = [{ key: 'assets', title: '音频资源' }, { key: 'design', title: '音色设计' }, { key: 'voice', title: '对白配音' }, { key: 'jobs', title: '配音任务' }, { key: 'profiles', title: '旁白声音' }, { key: 'pronunciation', title: '发音词典' }, { key: 'mixer', title: '混音配置' }, { key: 'providers', title: '供应商与清理' }]
 </script>
 
 <template>
@@ -56,6 +57,9 @@ const tabs = [{ key: 'assets', title: '音频资源' }, { key: 'design', title: 
       </AGUIButton>
     </div>
     <AGUITabs v-if="project.workspace" v-model="selected" :list="tabs" label="音频工作区">
+      <AGUITabPanel v-show="selected === 'providers'" value="providers" force-mount>
+        <AEVoiceProvidersPanel :visible="visible && selected === 'providers'" />
+      </AGUITabPanel>
       <AGUITabPanel v-show="selected === 'assets'" value="assets" force-mount>
         <AEProjectAudioPanel :visible="visible && selected === 'assets'" />
       </AGUITabPanel>

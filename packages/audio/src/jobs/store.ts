@@ -2,6 +2,7 @@ import type { VoiceGenerationStore, VoiceGenerationStoreDocument } from './contr
 import { canonicalAudioJson } from '../fingerprint'
 import { assertAudioId } from '../ids'
 import { normalizeAudioLocale } from '../locale'
+import { parseVoiceAlignmentTiming } from '../voice-alignment'
 import { validateAudioGenerationCost, validateVoiceGenerationBudget } from './planner'
 
 export function emptyVoiceGenerationStore(): VoiceGenerationStoreDocument {
@@ -89,7 +90,12 @@ export function parseVoiceGenerationStore(value: unknown): VoiceGenerationStoreD
     if (key !== item.key || !/^[a-f0-9]{64}$/u.test(key) || !/^[a-f0-9]{64}$/u.test(item.inputFingerprint) || ![item.accountId, item.projectId].every(identity) || !['running', 'unknown', 'generated', 'committed', 'failed'].includes(item.status))
       throw new Error('AUDIO_JOB_STORE_INVALID: Invalid idempotency record')
     if (item.candidate) {
-      record(item.candidate, ['id', 'path', 'sha256', 'bytes', 'mimeType', 'durationSeconds', 'sampleRate', 'provider', 'model', 'revision', 'providerVoiceId', 'voiceId', 'voiceVersion'])
+      record(item.candidate, ['id', 'path', 'sha256', 'bytes', 'mimeType', 'durationSeconds', 'sampleRate', 'provider', 'model', 'revision', 'providerVoiceId', 'voiceId', 'voiceVersion', 'alignment'])
+      if (item.candidate.alignment) {
+        const timing = parseVoiceAlignmentTiming(item.candidate.alignment)
+        if (timing.audioSha256 !== item.candidate.sha256 || Math.abs(timing.durationSeconds - item.candidate.durationSeconds) > 0.001)
+          throw new Error('AUDIO_JOB_STORE_INVALID: Alignment receipt does not match generated media')
+      }
       safePath(item.candidate.path)
       if (!/^[a-f0-9]{64}$/u.test(item.candidate.sha256) || !Number.isSafeInteger(item.candidate.bytes) || item.candidate.bytes <= 0 || !Number.isFinite(item.candidate.durationSeconds) || item.candidate.durationSeconds <= 0 || !Number.isInteger(item.candidate.sampleRate) || item.candidate.sampleRate <= 0 || !/^audio\/[\w.+-]+$/u.test(item.candidate.mimeType))
         throw new Error('AUDIO_JOB_STORE_INVALID: Invalid generated media receipt')

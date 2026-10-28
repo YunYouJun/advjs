@@ -32,6 +32,7 @@ const backgroundImageStyle = computed(() => ({
 
 <style scoped>
 .agui-toggle-icon {
+  font-family: var(--agui-font-family-ui);
   appearance: none;
   position: relative;
   background: transparent;

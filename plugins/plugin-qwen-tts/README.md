@@ -6,6 +6,27 @@ ADV.JS 的可选本地配音插件。它提供作者侧的 Qwen3-TTS 预览服�
 
 ## 接入项目
 
+当前作者侧集成按同一源码工作区构建与本地链接使用，不以公共 npm 安装命令声明已发布。把下列路径替换为实际目录：
+
+```bash
+cd /absolute/path/to/advjs
+pnpm install
+pnpm build:advjs
+pnpm editor:build
+pnpm --filter @advjs/plugin-qwen-tts build
+
+cd /absolute/path/to/game
+pnpm add -D "link:/absolute/path/to/advjs/plugins/plugin-qwen-tts"
+```
+
+把下方配置合入项目 `adv.config.ts`，准备预设后，通过同一源码的 CLI 打开：
+
+```bash
+node /absolute/path/to/advjs/packages/advjs/bin/adv.mjs editor /absolute/path/to/game
+```
+
+Editor「插件 → 官方插件目录」提供平台要求、源码接入和显式状态检查。它不执行 `setup` 或下载模型；诊断成功只说明环境就绪，不证明预设权重已校验或音质合格。
+
 ```ts
 import { createQwenTtsProvider } from '@advjs/plugin-qwen-tts'
 import { defineAdvConfig } from 'advjs'

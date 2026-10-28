@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { audioBuses, parseAudioMixerConfig } from '@advjs/audio'
 import AGUIButton from '@advjs/gui/client/components/button/AGUIButton.vue'
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
 import AGUIFormItem from '@advjs/gui/client/components/form/AGUIFormItem.vue'
 import AGUITextarea from '@advjs/gui/client/components/textarea/AGUITextarea.vue'
 import AGUIToolbar from '@advjs/gui/client/components/toolbar/AGUIToolbar.vue'
@@ -73,7 +74,7 @@ async function save() {
         <span>六总线 · {{ audioBuses.join(' / ') }}</span>
       </template>
     </AGUIToolbar>
-    <div class="ae-mixer-editor">
+    <AGUIForm class="ae-mixer-editor" padded>
       <p class="ae-resource-caption">
         项目默认音量、静音、独奏、对白压低音乐与音效并发限制。
       </p>
@@ -103,15 +104,11 @@ async function save() {
       <p class="ae-resource-caption">
         {{ path }}
       </p>
-    </div>
+    </AGUIForm>
   </section>
 </template>
 
 <style scoped>
-.ae-mixer-editor {
-  padding: 8px;
-  min-width: 0;
-}
 .ae-mixer-source {
   width: 100%;
   font-family: monospace;

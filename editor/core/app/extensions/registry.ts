@@ -1,4 +1,5 @@
 import type { EditorCommand, EditorPlugin, EditorPluginContext, EditorRegion, EditorService, EditorView } from '@advjs/editor-sdk'
+import type { VoiceProviderStatusPort } from '@advjs/types'
 import type { InjectionKey } from 'vue'
 import { computed, inject, nextTick, reactive, shallowReactive, watch } from 'vue'
 
@@ -22,7 +23,10 @@ export interface RegisteredView extends EditorView {
   entry: PluginEntry
 }
 
-export type EditorHostServices = Omit<EditorPluginContext, 'signal' | 'onDispose'>
+export type EditorHostServices = Omit<EditorPluginContext, 'signal' | 'onDispose'> & {
+  /** Host-only catalog seam; never passed into third-party plugin contexts. */
+  voiceProviderStatus?: () => VoiceProviderStatusPort | undefined
+}
 
 const regions: EditorRegion[] = ['navigation', 'main', 'bottom', 'inspector']
 const shortId = /^[a-z][a-z0-9-]*$/u
