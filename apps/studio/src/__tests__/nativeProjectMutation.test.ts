@@ -42,6 +42,22 @@ async function fixture(backend: IFileSystem['backend']) {
   return { files, blobs, fs, media, options }
 }
 
+describe('finite media creation authority', () => {
+  it('rejects an exclusive copy when the immutable target already exists', async () => {
+    const f = await fixture('browser')
+    f.blobs.set(f.media.path, f.media.blob)
+    await expect(commitStudioProjectFiles(f.fs, [], { ...f.options, media: { ...f.media, exclusive: true } })).rejects.toThrow('ADV_STUDIO_MEDIA_EXISTS')
+    expect(f.fs.writeBlob).not.toHaveBeenCalled()
+    expect(f.blobs.get(f.media.path)).toBe(f.media.blob)
+  })
+
+  it.each(['../outside.bin', 'adv\\..\\outside.bin', 'file:outside.bin'])('retains canonical project boundaries even with an explicit path extension: %s', async (path) => {
+    const f = await fixture('browser')
+    await expect(commitStudioProjectFiles(f.fs, [], { ...f.options, media: { ...f.media, path }, acceptsMediaPath: () => true })).rejects.toThrow('ADV_STUDIO_TRANSACTION_INVALID')
+    expect(f.fs.writeBlob).not.toHaveBeenCalled()
+  })
+})
+
 describe.each(['browser', 'capacitor'] as const)('%s non-atomic project compensation', (backend) => {
   it('preserves another writer and media while reverting the remaining owned source files', async () => {
     const f = await fixture(backend)

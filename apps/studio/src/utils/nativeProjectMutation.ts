@@ -1,16 +1,16 @@
 import type { IFileSystem } from './fs'
 import { verifyVoiceCandidateBytes } from '@advjs/audio'
-import { runStudioProjectWrite } from './projectAudio'
+import { runStudioProjectWrite } from './projectWriteQueue'
 
 export interface StudioNativeFileChange { path: string, expected: string | null, content: string | null }
-export interface StudioNativeMedia { path: string, blob: Blob, sha256: string, bytes: number }
+export interface StudioNativeMedia { path: string, blob: Blob, sha256: string, bytes: number, exclusive?: boolean }
 
 async function sourceContent(fs: IFileSystem, path: string): Promise<string | null> {
   return await fs.exists(path) ? fs.readFile(path) : null
 }
 
 /** Exact-byte CAS and rollback, shared by finite voice mutations and JSON Flow. */
-export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioNativeFileChange[], options: { assertCurrent?: () => void, validateCurrent?: (scope: IFileSystem) => Promise<void>, validateAfter?: (scope: IFileSystem) => Promise<void>, media?: StudioNativeMedia | readonly StudioNativeMedia[], acceptsPath: (path: string) => boolean }) {
+export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioNativeFileChange[], options: { assertCurrent?: () => void, validateCurrent?: (scope: IFileSystem) => Promise<void>, validateAfter?: (scope: IFileSystem) => Promise<void>, media?: StudioNativeMedia | readonly StudioNativeMedia[], acceptsPath: (path: string) => boolean, acceptsMediaPath?: (path: string) => boolean }) {
   if (!Array.isArray(changes) || changes.length > 100 || new Set(changes.map(change => change.path)).size !== changes.length)
     throw new Error('ADV_STUDIO_TRANSACTION_INVALID')
   for (const change of changes) {
@@ -19,7 +19,7 @@ export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioN
   }
   const media = options.media ? (Array.isArray(options.media) ? options.media : [options.media]) as readonly StudioNativeMedia[] : []
   if (media.length > 32 || new Set(media.map(item => item.path)).size !== media.length || media.reduce((bytes, item) => bytes + item.bytes, 0) > 64 * 1024 * 1024
-    || media.some(item => !/^[\w./-]+$/.test(item.path) || item.path.split('/').some(part => ['', '.', '..'].includes(part)) || changes.some(change => change.path === item.path))) {
+    || media.some(item => !(options.acceptsMediaPath?.(item.path) ?? /^[\w./-]+$/.test(item.path)) || /^(?:[a-z]+:|\/)/i.test(item.path) || item.path.includes('\\') || Array.from(item.path).some(char => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127) || item.path.split('/').some(part => ['', '.', '..', '.git', 'node_modules'].includes(part.toLowerCase())) || changes.some(change => change.path === item.path))) {
     throw new Error('ADV_STUDIO_TRANSACTION_INVALID')
   }
   for (const item of media)
@@ -37,6 +37,8 @@ export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioN
     try {
       for (const item of media) {
         if (await scope.exists(item.path)) {
+          if (item.exclusive)
+            throw new Error('ADV_STUDIO_MEDIA_EXISTS: This import requires a new immutable path')
           await verifyVoiceCandidateBytes(item, await (await scope.readBlob(item.path)).arrayBuffer())
         }
         else {

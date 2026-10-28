@@ -7,11 +7,37 @@ function filesystem(config: Record<string, unknown> = {}) {
   const writes = vi.fn(async (path: string, content: string) => {
     files.set(path, content)
   })
-  const fs = { backend: 'memory', exists: async (path: string) => files.has(path), collectAllFiles: async () => [...files].map(([path, content]) => ({ path, content, lastModified: new Date() })), writeFile: writes } as unknown as IFileSystem
+  const fs = { backend: 'memory', exists: async (path: string) => files.has(path), readFile: async (path: string) => files.get(path)!, collectAllFiles: async () => [...files].map(([path, content]) => ({ path, content, lastModified: new Date() })), writeFile: writes, deleteFile: async (path: string) => {
+    files.delete(path)
+  }, flush: vi.fn(async () => {}) } as unknown as IFileSystem
   return { fs, files, writes }
 }
 
 describe('explicit native audio catalog initialization', () => {
+  it('does not resolve initialization before the durable barrier completes', async () => {
+    const f = filesystem()
+    let release!: () => void
+    const gate = new Promise<void>(resolve => release = resolve)
+    vi.mocked(f.fs.flush!).mockReturnValueOnce(gate)
+    let done = false
+    const pending = initializeStudioAudioCatalog(f.fs, 'durable').then(() => {
+      done = true
+    })
+    await vi.waitFor(() => expect(f.fs.flush).toHaveBeenCalledOnce())
+    expect(done).toBe(false)
+    release()
+    await pending
+    expect(done).toBe(true)
+  })
+
+  it('compensates a failed durable barrier without reporting a created catalog', async () => {
+    const f = filesystem()
+    const before = new Map(f.files)
+    vi.mocked(f.fs.flush!).mockRejectedValueOnce(new Error('Catalog persistence failed'))
+    await expect(initializeStudioAudioCatalog(f.fs, 'failed')).rejects.toThrow('Catalog persistence failed')
+    expect(f.files).toEqual(before)
+    expect(f.fs.flush).toHaveBeenCalledTimes(2)
+  })
   it('establishes a canonical manifest for a QuickStart world and rolls back catalog creation if manifest commit fails', async () => {
     const first = filesystem()
     first.files.delete('adv.config.json')
