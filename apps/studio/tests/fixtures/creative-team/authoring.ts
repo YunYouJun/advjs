@@ -1,5 +1,5 @@
 import type { CreativeArtifact, CreativePartnerOutput, CreativePlaytestReport, CreativeTeamRun } from '@advjs/agent'
-import { computeAgentProjectRevision, createCreativeTeamRun, creativeMilestoneChanges, creativeOutputFileChanges, creativePlaytestCandidateFiles, ManagedCreativeTeamClient, nextCreativeTeamTask, overlayCreativeChanges, parseCreativeCandidateEditRequest, parseCreativeDeliveryRequest, parseCreativeMilestoneCommand, parseCreativePartnerOutput, parseCreativePlaytestReport, parseCreativeProject, parseCreativeTeamPublicDecision, parseCreativeTeamRun, prepareCreativeCandidateEdit, prepareCreativeDirectorSummaryEvidence, prepareCreativeMilestone, prepareCreativePlaytestRepair, reduceCreativeTeamRun, requiredCreativeReviewCapabilities } from '@advjs/agent'
+import { assertCreativePlaytestNarrativeSource, computeAgentProjectRevision, createCreativeTeamRun, creativeMilestoneChanges, creativeOutputFileChanges, creativePlaytestCandidateFiles, ManagedCreativeTeamClient, nextCreativeTeamTask, overlayCreativeChanges, parseCreativeCandidateEditRequest, parseCreativeDeliveryRequest, parseCreativeMilestoneCommand, parseCreativePartnerOutput, parseCreativePlaytestReport, parseCreativeProject, parseCreativeTeamPublicDecision, parseCreativeTeamRun, prepareCreativeCandidateEdit, prepareCreativeDirectorSummaryEvidence, prepareCreativeMilestone, prepareCreativePlaytestRepair, reduceCreativeTeamRun, requiredCreativeReviewCapabilities } from '@advjs/agent'
 import { IonApp, IonContent, IonHeader, IonicVue, IonPage, IonTitle, IonToolbar } from '@ionic/vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { createApp, defineComponent, h } from 'vue'
@@ -24,14 +24,20 @@ import 'virtual:uno.css'
 /** Dedicated UI fixture. No production auth, model, point ledger or network adapter is used. */
 async function main() {
   const summaryMode = new URL(location.href).searchParams.get('case') === 'director-summary'
+  const narrativeMode = new URL(location.href).searchParams.get('case') === 'narrative-review'
   const accountId = 'ui-fixture-author'
-  const projectId = summaryMode ? 'creative-ui-director-summary-fixture' : 'creative-ui-fixture'
+  const projectId = summaryMode ? 'creative-ui-director-summary-fixture' : narrativeMode ? 'creative-ui-narrative-review-fixture' : 'creative-ui-fixture'
   const pinia = createPinia()
   setActivePinia(pinia)
   const fs = new MemoryFsAdapter(projectId)
   await fs.init()
   if (!await fs.exists('adv.config.json')) {
-    fs.bulkLoad(Object.entries(frozenProject.files).map(([path, content]) => ({ path, content })))
+    const initial = { ...frozenProject.files }
+    if (narrativeMode) {
+      initial['adv/world.md'] = '# 雨夜车站\n科技水平与当代相同，不存在超能力。\n'
+      initial['adv/chapters/station.adv.md'] = '# 雨夜车站 {#arrival}\n\n> 林舟没有借助设备，瞬移穿过封闭的站台。\n\n> 乔雨读了一本描写超能力的小说。\n\n- [留下](stay#ending-stay)\n- [离开](leave#ending-leave)\n'
+    }
+    fs.bulkLoad(Object.entries(initial).map(([path, content]) => ({ path, content })))
     await fs.persist()
   }
   const files = Object.fromEntries((await fs.collectAllFiles()).map(file => [file.path, file.content]))
@@ -39,14 +45,15 @@ async function main() {
   const usage = { inputTokens: 0, outputTokens: 0, totalTokens: 0, providerCostMicroCny: 0, chargedMicroPoints: 0 }
   const calls: string[] = []
   let loseMilestoneResponse: 'prepare' | 'confirm' | undefined
-  const cacheKey = `creative-team-authoring-ui-fixture${summaryMode ? '-director' : ''}`
+  const cacheKey = `creative-team-authoring-ui-fixture${summaryMode ? '-director' : narrativeMode ? '-narrative' : ''}`
   const summaryHandoffs: unknown[] = []
   const repairHandoffs: unknown[] = []
+  const playtestSources: Record<string, unknown> = JSON.parse(localStorage.getItem(`${cacheKey}-playtest-sources`) || '{}')
   const playtests: Record<string, CreativePlaytestReport> = JSON.parse(localStorage.getItem(`${cacheKey}-playtests`) || '{}')
   let run: CreativeTeamRun
   async function artifact(taskId: string, output: CreativePartnerOutput): Promise<CreativeArtifact> {
     const task = run.plan.tasks.find(item => item.id === taskId)!
-    const upstream = taskId === 'script' ? run.artifacts.filter(item => item.taskId === 'cast' && item.status === 'selected') : taskId === 'delivery' ? run.artifacts.filter(item => item.kind !== 'delivery-summary' && ['selected', 'adopted'].includes(item.status)) : []
+    const upstream = taskId === 'check' ? run.artifacts.filter(item => ['cast', 'script'].includes(item.taskId) && item.status === 'selected') : taskId === 'script' ? run.artifacts.filter(item => item.taskId === 'cast' && item.status === 'selected') : taskId === 'delivery' ? run.artifacts.filter(item => item.kind !== 'delivery-summary' && ['selected', 'adopted'].includes(item.status)) : []
     const effective = upstream.filter(item => item.status === 'selected').reduce((current, item) => overlayCreativeChanges(current, item.changes), facts.files)
     const changes = creativeOutputFileChanges(output, effective)
     const result: CreativeArtifact = {
@@ -87,6 +94,7 @@ async function main() {
       tasks: [
         { id: 'cast', partner: 'character-designer', capability: 'design-characters', dependsOn: [], sourcePaths: Object.keys(files), instruction: 'UI fixture 人物候选', expectedOutput: '可编辑的两位人物' },
         { id: 'script', partner: 'writer', capability: 'write-chapters', dependsOn: ['cast'], sourcePaths: Object.keys(files), instruction: 'UI fixture 章节交接', expectedOutput: '可编辑的章节' },
+        ...(narrativeMode ? [{ id: 'check', partner: 'playtester' as const, capability: 'playtest-project' as const, dependsOn: ['script'], sourcePaths: Object.keys(files), instruction: '明确的本地 fixture：独立提出成对来源的剧情疑点', expectedOutput: '待作者核对的疑点及双结局计划' }] : []),
         ...(summaryMode ? [{ id: 'delivery', partner: 'director' as const, capability: 'summarize-production' as const, dependsOn: ['script'], sourcePaths: Object.keys(files), instruction: '明确的本地 fixture：作者请求后汇总实际记录', expectedOutput: '导演交付建议，仍须作者独立收尾' }] : []),
       ],
     } })
@@ -107,9 +115,28 @@ async function main() {
     const selected = run.artifacts.find(item => item.taskId === 'cast' && item.status === 'selected')!
     const motivation = selected.output?.kind === 'characters' ? selected.output.characters[0].motivation : ''
     const output: CreativePartnerOutput = { kind: 'chapter', summary: '本地 fixture 章节初稿', entryChapterId: 'station', endingAddresses: ['stay#ending-stay', 'leave#ending-leave'], chapters: [{ id: 'station', title: '雨夜车站', content: `${files['adv/chapters/station.adv.md']}\n\n这是确定性 UI fixture 的交接文本：${motivation}\n` }] }
+    if (narrativeMode && run.tasks.find(task => task.taskId === 'script')?.playtestRepair?.reference.findingId.startsWith('narrative:'))
+      output.chapters = output.chapters.map(chapter => ({ ...chapter, content: chapter.content.replace('没有借助设备，瞬移穿过封闭的站台', '沿着通道，走到站台另一端') }))
     if (summaryMode)
       output.chapters = output.chapters.map(chapter => ({ ...chapter, content: chapter.content.replace('林舟：「你在等谁？」', '@lin\n你在等谁？').replace('乔雨：「一个还没回来的人。」', '@qiao\n一个还没回来的人。') }))
     act({ type: 'settle-task', taskId: 'script', dispatchKey: run.tasks[1].dispatchKey!, status: 'completed', usage, artifacts: [await artifact('script', output)] })
+  }
+
+  async function fixtureNarrativeReview() {
+    if (!narrativeMode || nextCreativeTeamTask(run) !== 'check')
+      return
+    const upstream = run.artifacts.filter(item => ['cast', 'script'].includes(item.taskId) && item.status === 'selected')
+    const effective = upstream.reduce((current, item) => overlayCreativeChanges(current, item.changes), facts.files)
+    const path = 'adv/chapters/station.adv.md'
+    const lines = effective[path].split('\n')
+    const expectation = { path: 'adv/world.md', line: 2, endLine: 2, text: effective['adv/world.md'].split('\n')[1] }
+    const concerns = []
+    if (lines[2].includes('瞬移'))
+      concerns.push({ path, line: 3, expected: '这个世界不允许人物直接使用超能力。', actual: '客观叙述直接描写人物瞬移，缺少设定允许的原因。', suggestion: '交还编剧改写动作或补足合理因果。', evidence: { expected: expectation, actual: { path, line: 3, endLine: 3, text: lines[2] } } })
+    concerns.push({ path, line: 5, expected: '这个世界没有超能力。', actual: '正文出现描写超能力的小说，需要核对是否违背世界规则。', suggestion: '作者可根据虚构作品与现实事件的区别排除此疑点。', evidence: { expected: expectation, actual: { path, line: 5, endLine: 5, text: lines[4] } } })
+    const output = parseCreativePartnerOutput('playtest-plan', { kind: 'playtest-plan', summary: '本地 fixture 剧情检查', scenarios: [{ id: 'stay', choices: [0], expectedEnding: 'stay#ending-stay' }, { id: 'leave', choices: [1], expectedEnding: 'leave#ending-leave' }], concerns }, { projectId, projectRevision: facts.revision, files: effective, characterIds: ['lin', 'qiao'], limits: run.plan.limits })
+    act({ type: 'reserve-next', taskId: 'check', quotedMicroPoints: 0, toolCalls: 0, inputFingerprint: facts.revision })
+    act({ type: 'settle-task', taskId: 'check', dispatchKey: run.tasks.find(task => task.taskId === 'check')!.dispatchKey!, status: 'completed', usage, artifacts: [await artifact('check', output)] })
   }
 
   async function fixtureDirectorSummary() {
@@ -133,7 +160,7 @@ async function main() {
     let value: unknown
     try {
       if (url.pathname.endsWith('/capabilities')) {
-        value = { protocolVersion: 1, enabled: true, serviceVersion: 'UI fixture; no model calls', authoring: { candidateEdits: true, milestoneAdoption: true, playtestReports: true, playtestRepair: true, delivery: summaryMode }, capabilities: ['design-characters', 'write-chapters', ...(summaryMode ? ['summarize-production'] : [])], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } }
+        value = { protocolVersion: 1, enabled: true, serviceVersion: 'UI fixture; no model calls', authoring: { candidateEdits: true, milestoneAdoption: true, playtestReports: true, playtestRepair: true, playtestNarrativeReview: narrativeMode, delivery: summaryMode }, capabilities: ['playtest-project', 'design-characters', 'write-chapters', ...(summaryMode ? ['summarize-production'] : [])], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } }
       }
       else if (method === 'GET' && url.pathname.endsWith('/runs')) {
         value = { protocolVersion: 1, items: [{ id: run.id, projectId, goal: run.plan.goal, status: run.status, revision: run.revision, chargedMicroPoints: 0, reservedMicroPoints: 0, updatedAt: run.updatedAt }] }
@@ -153,8 +180,14 @@ async function main() {
         const expected = report.scope === 'candidate' ? creativePlaytestCandidateFiles(run, project, report.artifacts) : project.files
         if (report.baselineRevision !== project.revision || report.snapshotRevision !== await computeAgentProjectRevision(expected))
           throw new Error('fixture report source mismatch')
+        if (report.narrativeReview)
+          assertCreativePlaytestNarrativeSource(report.narrativeReview, run, expected, project.files)
         const id = `fixture_playtest_${key.replaceAll('-', '')}`
         if (!playtests[id]) {
+          if (narrativeMode) {
+            playtestSources[id] = { project, effectiveFiles: expected, run: structuredClone(run) }
+            localStorage.setItem(`${cacheKey}-playtest-sources`, JSON.stringify(playtestSources))
+          }
           playtests[id] = report
           run = { ...run, playtests: [...(run.playtests ?? []), { id, intentId: key, projectId, baselineRevision: report.baselineRevision, snapshotRevision: report.snapshotRevision, scope: report.scope, artifacts: report.artifacts, runnerVersion: report.runnerVersion, verification: 'author-host', passed: report.executions.filter(item => item.status === 'passed').length, failed: report.executions.filter(item => item.status === 'failed').length, blocked: report.executions.filter(item => item.status === 'blocked').length, cancelled: report.executions.filter(item => item.status === 'cancelled').length, createdAt: Date.now() }], revision: run.revision + 1, updatedAt: Date.now() }
           localStorage.setItem(`${cacheKey}-playtests`, JSON.stringify(playtests))
@@ -221,6 +254,7 @@ async function main() {
         }
         act(action)
         await fixtureChapter()
+        await fixtureNarrativeReview()
         if (summaryMode && action.type === 'request-rework' && action.taskId === 'delivery')
           await fixtureDirectorSummary()
         value = { protocolVersion: 1, run }
@@ -258,6 +292,7 @@ async function main() {
     run: () => structuredClone(run),
     calls: () => [...calls],
     playtests: () => structuredClone(playtests),
+    playtestSources: () => structuredClone(playtestSources),
     repairHandoffs: () => structuredClone(repairHandoffs),
     summaryHandoffs: () => structuredClone(summaryHandoffs),
     route: () => router.currentRoute.value.fullPath,

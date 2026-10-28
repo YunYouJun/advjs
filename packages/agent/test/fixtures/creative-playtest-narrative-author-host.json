@@ -1,0 +1,868 @@
+{
+  "scope": "Captured from actual Chromium author-source review and real core execution. Identity, critic/writer responses, author actions and service persistence are explicitly automated fixtures; does not certify model quality or all narrative consistency.",
+  "capture": {
+    "file": "browser-narrative/creative-team-reviews-grou-2bcfd-ir-against-the-same-endings-chromium/narrative-review-evidence.json",
+    "sha256": "4676ad0a8a16a7db9dc0a63ea3230a128d4e1236c9180a13705ec7620d57c037"
+  },
+  "project": {
+    "id": "creative-ui-narrative-review-fixture",
+    "revision": "sha256:b5797700dacd18b977e0ea399f7c58df9d9240165b28be88d74c3d7e8cfcc543",
+    "files": {
+      "adv/chapters/leave.adv.md": "# 离开 {#ending-leave}\n\n车门合上，林舟还拿着那封信。\n",
+      "adv/chapters/station.adv.md": "# 雨夜车站 {#arrival}\n\n> 林舟没有借助设备，瞬移穿过封闭的站台。\n\n> 乔雨读了一本描写超能力的小说。\n\n- [留下](stay#ending-stay)\n- [离开](leave#ending-leave)\n",
+      "adv/chapters/stay.adv.md": "# 留下 {#ending-stay}\n\n乔雨留下了姐姐的名字。\n",
+      "adv/characters/lin.character.md": "---\nid: lin\nname: 林舟\n---\n失物招领员，谨慎、短句，想归还一封未寄出的信。不能知道信封内未读的内容。\n",
+      "adv/characters/qiao.character.md": "---\nid: qiao\nname: 乔雨\n---\n末班车乘客，克制但好奇，想找到失联的姐姐。不随身携带手机。\n",
+      "adv/outline.md": "# 创作目标\n两位主要人物，雨夜车站悬疑短篇。选择信任或离开，形成两个有因果差异的结局。\n",
+      "adv/settings/game.json": "{\"entryChapterId\": \"station\"}\n",
+      "adv/world.md": "# 雨夜车站\n科技水平与当代相同，不存在超能力。\n",
+      "adv.config.json": "{\"schemaVersion\": 1, \"id\": \"rain-night-station-v2\", \"format\": \"adv-md\", \"root\": \"adv\"}\n"
+    }
+  },
+  "effectiveFiles": {
+    "adv/chapters/leave.adv.md": "# 离开 {#ending-leave}\n\n车门合上，林舟还拿着那封信。\n",
+    "adv/chapters/station.adv.md": "# 雨夜车站 {#arrival}\n\n> 林舟没有借助设备，瞬移穿过封闭的站台。\n\n> 乔雨读了一本描写超能力的小说。\n\n- [留下](stay#ending-stay)\n- [离开](leave#ending-leave)\n\n\n这是确定性 UI fixture 的交接文本：归还信\n",
+    "adv/chapters/stay.adv.md": "# 留下 {#ending-stay}\n\n乔雨留下了姐姐的名字。\n",
+    "adv/characters/lin.character.md": "---\nid: lin\nname: \"林舟\"\nrelationships: [{\"targetId\":\"qiao\",\"type\":\"陌生人\",\"description\":\"初次相遇\"}]\n---\n\n# 林舟\n\n## 背景\n\n失物招领员\n\n## 理念\n\n归还信\n\n## 说话风格\n\n短句\n\n### 音色约束\n\n- 低声\n\n## 外貌\n\n- 旧制服\n",
+    "adv/characters/qiao.character.md": "---\nid: qiao\nname: \"乔雨\"\nrelationships: []\n---\n\n# 乔雨\n\n## 背景\n\n旅客\n\n## 理念\n\n找姐姐\n\n## 说话风格\n\n克制\n\n### 音色约束\n\n\n## 外貌\n\n",
+    "adv/outline.md": "# 创作目标\n两位主要人物，雨夜车站悬疑短篇。选择信任或离开，形成两个有因果差异的结局。\n",
+    "adv/settings/game.json": "{\n  \"entryChapterId\": \"station\"\n}\n",
+    "adv/world.md": "# 雨夜车站\n科技水平与当代相同，不存在超能力。\n",
+    "adv.config.json": "{\"schemaVersion\": 1, \"id\": \"rain-night-station-v2\", \"format\": \"adv-md\", \"root\": \"adv\"}\n"
+  },
+  "run": {
+    "id": "ui_fixture_run",
+    "accountId": "ui-fixture-author",
+    "plan": {
+      "protocolVersion": 1,
+      "projectId": "creative-ui-narrative-review-fixture",
+      "projectRevision": "sha256:b5797700dacd18b977e0ea399f7c58df9d9240165b28be88d74c3d7e8cfcc543",
+      "goal": "本地 UI fixture：人物和章节修订，不代表模型执行",
+      "limits": {
+        "maxTasks": 4,
+        "maxToolCalls": 8,
+        "maxReworkRounds": 2,
+        "maxMicroPoints": 0
+      },
+      "tasks": [
+        {
+          "id": "cast",
+          "partner": "character-designer",
+          "capability": "design-characters",
+          "dependsOn": [],
+          "sourcePaths": [
+            "adv.config.json",
+            "adv/world.md",
+            "adv/outline.md",
+            "adv/characters/lin.character.md",
+            "adv/characters/qiao.character.md",
+            "adv/chapters/station.adv.md",
+            "adv/chapters/stay.adv.md",
+            "adv/chapters/leave.adv.md",
+            "adv/settings/game.json"
+          ],
+          "instruction": "UI fixture 人物候选",
+          "expectedOutput": "可编辑的两位人物"
+        },
+        {
+          "id": "script",
+          "partner": "writer",
+          "capability": "write-chapters",
+          "dependsOn": [
+            "cast"
+          ],
+          "sourcePaths": [
+            "adv.config.json",
+            "adv/world.md",
+            "adv/outline.md",
+            "adv/characters/lin.character.md",
+            "adv/characters/qiao.character.md",
+            "adv/chapters/station.adv.md",
+            "adv/chapters/stay.adv.md",
+            "adv/chapters/leave.adv.md",
+            "adv/settings/game.json"
+          ],
+          "instruction": "UI fixture 章节交接",
+          "expectedOutput": "可编辑的章节"
+        },
+        {
+          "id": "check",
+          "partner": "playtester",
+          "capability": "playtest-project",
+          "dependsOn": [
+            "script"
+          ],
+          "sourcePaths": [
+            "adv.config.json",
+            "adv/world.md",
+            "adv/outline.md",
+            "adv/characters/lin.character.md",
+            "adv/characters/qiao.character.md",
+            "adv/chapters/station.adv.md",
+            "adv/chapters/stay.adv.md",
+            "adv/chapters/leave.adv.md",
+            "adv/settings/game.json"
+          ],
+          "instruction": "明确的本地 fixture：独立提出成对来源的剧情疑点",
+          "expectedOutput": "待作者核对的疑点及双结局计划"
+        }
+      ]
+    },
+    "status": "awaiting_review",
+    "revision": 10,
+    "tasks": [
+      {
+        "taskId": "cast",
+        "status": "completed",
+        "attempt": 1,
+        "artifactIds": [
+          "fixture_artifact_0"
+        ],
+        "dispatchKey": "ui_fixture_run:cast:1",
+        "dispatchStarted": false,
+        "inputFingerprint": "sha256:b5797700dacd18b977e0ea399f7c58df9d9240165b28be88d74c3d7e8cfcc543",
+        "reservedMicroPoints": 0,
+        "usage": {
+          "inputTokens": 0,
+          "outputTokens": 0,
+          "totalTokens": 0,
+          "providerCostMicroCny": 0,
+          "chargedMicroPoints": 0
+        },
+        "history": [
+          {
+            "attempt": 1,
+            "dispatchKey": "ui_fixture_run:cast:1",
+            "inputFingerprint": "sha256:b5797700dacd18b977e0ea399f7c58df9d9240165b28be88d74c3d7e8cfcc543",
+            "status": "completed",
+            "usage": {
+              "inputTokens": 0,
+              "outputTokens": 0,
+              "totalTokens": 0,
+              "providerCostMicroCny": 0,
+              "chargedMicroPoints": 0
+            },
+            "artifactIds": [
+              "fixture_artifact_0"
+            ]
+          }
+        ]
+      },
+      {
+        "taskId": "script",
+        "status": "completed",
+        "attempt": 1,
+        "artifactIds": [
+          "fixture_artifact_1"
+        ],
+        "dispatchKey": "ui_fixture_run:script:1",
+        "dispatchStarted": false,
+        "inputFingerprint": "sha256:b5797700dacd18b977e0ea399f7c58df9d9240165b28be88d74c3d7e8cfcc543",
+        "reservedMicroPoints": 0,
+        "usage": {
+          "inputTokens": 0,
+          "outputTokens": 0,
+          "totalTokens": 0,
+          "providerCostMicroCny": 0,
+          "chargedMicroPoints": 0
+        },
+        "history": [
+          {
+            "attempt": 1,
+            "dispatchKey": "ui_fixture_run:script:1",
+            "inputFingerprint": "sha256:b5797700dacd18b977e0ea399f7c58df9d9240165b28be88d74c3d7e8cfcc543",
+            "status": "completed",
+            "usage": {
+              "inputTokens": 0,
+              "outputTokens": 0,
+              "totalTokens": 0,
+              "providerCostMicroCny": 0,
+              "chargedMicroPoints": 0
+            },
+            "artifactIds": [
+              "fixture_artifact_1"
+            ]
+          }
+        ]
+      },
+      {
+        "taskId": "check",
+        "status": "awaiting_review",
+        "attempt": 1,
+        "artifactIds": [
+          "fixture_artifact_2"
+        ],
+        "dispatchKey": "ui_fixture_run:check:1",
+        "dispatchStarted": false,
+        "inputFingerprint": "sha256:b5797700dacd18b977e0ea399f7c58df9d9240165b28be88d74c3d7e8cfcc543",
+        "reservedMicroPoints": 0,
+        "usage": {
+          "inputTokens": 0,
+          "outputTokens": 0,
+          "totalTokens": 0,
+          "providerCostMicroCny": 0,
+          "chargedMicroPoints": 0
+        },
+        "history": [
+          {
+            "attempt": 1,
+            "dispatchKey": "ui_fixture_run:check:1",
+            "inputFingerprint": "sha256:b5797700dacd18b977e0ea399f7c58df9d9240165b28be88d74c3d7e8cfcc543",
+            "status": "completed",
+            "usage": {
+              "inputTokens": 0,
+              "outputTokens": 0,
+              "totalTokens": 0,
+              "providerCostMicroCny": 0,
+              "chargedMicroPoints": 0
+            },
+            "artifactIds": [
+              "fixture_artifact_2"
+            ]
+          }
+        ]
+      }
+    ],
+    "artifacts": [
+      {
+        "id": "fixture_artifact_0",
+        "runId": "ui_fixture_run",
+        "taskId": "cast",
+        "partner": "character-designer",
+        "projectId": "creative-ui-narrative-review-fixture",
+        "kind": "characters",
+        "summary": "本地 fixture 人物初稿",
+        "output": {
+          "kind": "characters",
+          "summary": "本地 fixture 人物初稿",
+          "characters": [
+            {
+              "id": "lin",
+              "name": "林舟",
+              "description": "失物招领员",
+              "motivation": "归还信",
+              "speakingStyle": "短句",
+              "visualConstraints": [
+                "旧制服"
+              ],
+              "voiceConstraints": [
+                "低声"
+              ],
+              "relationships": [
+                {
+                  "targetId": "qiao",
+                  "type": "陌生人",
+                  "description": "初次相遇"
+                }
+              ]
+            },
+            {
+              "id": "qiao",
+              "name": "乔雨",
+              "description": "旅客",
+              "motivation": "找姐姐",
+              "speakingStyle": "克制",
+              "visualConstraints": [],
+              "voiceConstraints": [],
+              "relationships": []
+            }
+          ]
+        },
+        "changes": [
+          {
+            "path": "adv/characters/lin.character.md",
+            "before": "---\nid: lin\nname: 林舟\n---\n失物招领员，谨慎、短句，想归还一封未寄出的信。不能知道信封内未读的内容。\n",
+            "after": "---\nid: lin\nname: \"林舟\"\nrelationships: [{\"targetId\":\"qiao\",\"type\":\"陌生人\",\"description\":\"初次相遇\"}]\n---\n\n# 林舟\n\n## 背景\n\n失物招领员\n\n## 理念\n\n归还信\n\n## 说话风格\n\n短句\n\n### 音色约束\n\n- 低声\n\n## 外貌\n\n- 旧制服\n"
+          },
+          {
+            "path": "adv/characters/qiao.character.md",
+            "before": "---\nid: qiao\nname: 乔雨\n---\n末班车乘客，克制但好奇，想找到失联的姐姐。不随身携带手机。\n",
+            "after": "---\nid: qiao\nname: \"乔雨\"\nrelationships: []\n---\n\n# 乔雨\n\n## 背景\n\n旅客\n\n## 理念\n\n找姐姐\n\n## 说话风格\n\n克制\n\n### 音色约束\n\n\n## 外貌\n\n"
+          }
+        ],
+        "source": {
+          "projectId": "creative-ui-narrative-review-fixture",
+          "revision": "sha256:b5797700dacd18b977e0ea399f7c58df9d9240165b28be88d74c3d7e8cfcc543",
+          "files": {
+            "adv.config.json": "{\"schemaVersion\": 1, \"id\": \"rain-night-station-v2\", \"format\": \"adv-md\", \"root\": \"adv\"}\n",
+            "adv/world.md": "# 雨夜车站\n科技水平与当代相同，不存在超能力。\n",
+            "adv/outline.md": "# 创作目标\n两位主要人物，雨夜车站悬疑短篇。选择信任或离开，形成两个有因果差异的结局。\n",
+            "adv/characters/lin.character.md": "---\nid: lin\nname: 林舟\n---\n失物招领员，谨慎、短句，想归还一封未寄出的信。不能知道信封内未读的内容。\n",
+            "adv/characters/qiao.character.md": "---\nid: qiao\nname: 乔雨\n---\n末班车乘客，克制但好奇，想找到失联的姐姐。不随身携带手机。\n",
+            "adv/chapters/station.adv.md": "# 雨夜车站 {#arrival}\n\n> 林舟没有借助设备，瞬移穿过封闭的站台。\n\n> 乔雨读了一本描写超能力的小说。\n\n- [留下](stay#ending-stay)\n- [离开](leave#ending-leave)\n",
+            "adv/chapters/stay.adv.md": "# 留下 {#ending-stay}\n\n乔雨留下了姐姐的名字。\n",
+            "adv/chapters/leave.adv.md": "# 离开 {#ending-leave}\n\n车门合上，林舟还拿着那封信。\n",
+            "adv/settings/game.json": "{\"entryChapterId\": \"station\"}\n"
+          },
+          "upstream": []
+        },
+        "fingerprint": "sha256:f18942cfc07c3a0c0642853048b8f83aa7effaad1736d003465001bcd0f9c25b",
+        "status": "selected",
+        "reviewCapabilities": [
+          "modify-source"
+        ]
+      },
+      {
+        "id": "fixture_artifact_1",
+        "runId": "ui_fixture_run",
+        "taskId": "script",
+        "partner": "writer",
+        "projectId": "creative-ui-narrative-review-fixture",
+        "kind": "chapter",
+        "summary": "本地 fixture 章节初稿",
+        "output": {
+          "kind": "chapter",
+          "summary": "本地 fixture 章节初稿",
+          "entryChapterId": "station",
+          "endingAddresses": [
+            "stay#ending-stay",
+            "leave#ending-leave"
+          ],
+          "chapters": [
+            {
+              "id": "station",
+              "title": "雨夜车站",
+              "content": "# 雨夜车站 {#arrival}\n\n> 林舟没有借助设备，瞬移穿过封闭的站台。\n\n> 乔雨读了一本描写超能力的小说。\n\n- [留下](stay#ending-stay)\n- [离开](leave#ending-leave)\n\n\n这是确定性 UI fixture 的交接文本：归还信\n"
+            }
+          ]
+        },
+        "changes": [
+          {
+            "path": "adv/chapters/station.adv.md",
+            "before": "# 雨夜车站 {#arrival}\n\n> 林舟没有借助设备，瞬移穿过封闭的站台。\n\n> 乔雨读了一本描写超能力的小说。\n\n- [留下](stay#ending-stay)\n- [离开](leave#ending-leave)\n",
+            "after": "# 雨夜车站 {#arrival}\n\n> 林舟没有借助设备，瞬移穿过封闭的站台。\n\n> 乔雨读了一本描写超能力的小说。\n\n- [留下](stay#ending-stay)\n- [离开](leave#ending-leave)\n\n\n这是确定性 UI fixture 的交接文本：归还信\n"
+          },
+          {
+            "path": "adv/settings/game.json",
+            "before": "{\"entryChapterId\": \"station\"}\n",
+            "after": "{\n  \"entryChapterId\": \"station\"\n}\n"
+          }
+        ],
+        "source": {
+          "projectId": "creative-ui-narrative-review-fixture",
+          "revision": "sha256:b5797700dacd18b977e0ea399f7c58df9d9240165b28be88d74c3d7e8cfcc543",
+          "files": {
+            "adv/chapters/leave.adv.md": "# 离开 {#ending-leave}\n\n车门合上，林舟还拿着那封信。\n",
+            "adv/chapters/station.adv.md": "# 雨夜车站 {#arrival}\n\n> 林舟没有借助设备，瞬移穿过封闭的站台。\n\n> 乔雨读了一本描写超能力的小说。\n\n- [留下](stay#ending-stay)\n- [离开](leave#ending-leave)\n",
+            "adv/chapters/stay.adv.md": "# 留下 {#ending-stay}\n\n乔雨留下了姐姐的名字。\n",
+            "adv/characters/lin.character.md": "---\nid: lin\nname: 林舟\n---\n失物招领员，谨慎、短句，想归还一封未寄出的信。不能知道信封内未读的内容。\n",
+            "adv/characters/qiao.character.md": "---\nid: qiao\nname: 乔雨\n---\n末班车乘客，克制但好奇，想找到失联的姐姐。不随身携带手机。\n",
+            "adv/outline.md": "# 创作目标\n两位主要人物，雨夜车站悬疑短篇。选择信任或离开，形成两个有因果差异的结局。\n",
+            "adv/settings/game.json": "{\"entryChapterId\": \"station\"}\n",
+            "adv/world.md": "# 雨夜车站\n科技水平与当代相同，不存在超能力。\n",
+            "adv.config.json": "{\"schemaVersion\": 1, \"id\": \"rain-night-station-v2\", \"format\": \"adv-md\", \"root\": \"adv\"}\n"
+          },
+          "upstream": [
+            {
+              "artifactId": "fixture_artifact_0",
+              "fingerprint": "sha256:f18942cfc07c3a0c0642853048b8f83aa7effaad1736d003465001bcd0f9c25b"
+            }
+          ]
+        },
+        "fingerprint": "sha256:465238eb06ccd10c35d3fa5fb2e36032795b20dd547d6256a50ff2fe710cacc9",
+        "status": "selected",
+        "reviewCapabilities": [
+          "candidate-preview",
+          "modify-source"
+        ]
+      },
+      {
+        "id": "fixture_artifact_2",
+        "runId": "ui_fixture_run",
+        "taskId": "check",
+        "partner": "playtester",
+        "projectId": "creative-ui-narrative-review-fixture",
+        "kind": "playtest-plan",
+        "summary": "本地 fixture 剧情检查",
+        "output": {
+          "kind": "playtest-plan",
+          "summary": "本地 fixture 剧情检查",
+          "scenarios": [
+            {
+              "id": "stay",
+              "choices": [
+                0
+              ],
+              "expectedEnding": "stay#ending-stay"
+            },
+            {
+              "id": "leave",
+              "choices": [
+                1
+              ],
+              "expectedEnding": "leave#ending-leave"
+            }
+          ],
+          "concerns": [
+            {
+              "path": "adv/chapters/station.adv.md",
+              "line": 3,
+              "expected": "这个世界不允许人物直接使用超能力。",
+              "actual": "客观叙述直接描写人物瞬移，缺少设定允许的原因。",
+              "suggestion": "交还编剧改写动作或补足合理因果。",
+              "evidence": {
+                "expected": {
+                  "path": "adv/world.md",
+                  "line": 2,
+                  "endLine": 2,
+                  "text": "科技水平与当代相同，不存在超能力。"
+                },
+                "actual": {
+                  "path": "adv/chapters/station.adv.md",
+                  "line": 3,
+                  "endLine": 3,
+                  "text": "> 林舟没有借助设备，瞬移穿过封闭的站台。"
+                }
+              }
+            },
+            {
+              "path": "adv/chapters/station.adv.md",
+              "line": 5,
+              "expected": "这个世界没有超能力。",
+              "actual": "正文出现描写超能力的小说，需要核对是否违背世界规则。",
+              "suggestion": "作者可根据虚构作品与现实事件的区别排除此疑点。",
+              "evidence": {
+                "expected": {
+                  "path": "adv/world.md",
+                  "line": 2,
+                  "endLine": 2,
+                  "text": "科技水平与当代相同，不存在超能力。"
+                },
+                "actual": {
+                  "path": "adv/chapters/station.adv.md",
+                  "line": 5,
+                  "endLine": 5,
+                  "text": "> 乔雨读了一本描写超能力的小说。"
+                }
+              }
+            }
+          ]
+        },
+        "changes": [],
+        "source": {
+          "projectId": "creative-ui-narrative-review-fixture",
+          "revision": "sha256:b5797700dacd18b977e0ea399f7c58df9d9240165b28be88d74c3d7e8cfcc543",
+          "files": {
+            "adv/chapters/leave.adv.md": "# 离开 {#ending-leave}\n\n车门合上，林舟还拿着那封信。\n",
+            "adv/chapters/station.adv.md": "# 雨夜车站 {#arrival}\n\n> 林舟没有借助设备，瞬移穿过封闭的站台。\n\n> 乔雨读了一本描写超能力的小说。\n\n- [留下](stay#ending-stay)\n- [离开](leave#ending-leave)\n",
+            "adv/chapters/stay.adv.md": "# 留下 {#ending-stay}\n\n乔雨留下了姐姐的名字。\n",
+            "adv/characters/lin.character.md": "---\nid: lin\nname: 林舟\n---\n失物招领员，谨慎、短句，想归还一封未寄出的信。不能知道信封内未读的内容。\n",
+            "adv/characters/qiao.character.md": "---\nid: qiao\nname: 乔雨\n---\n末班车乘客，克制但好奇，想找到失联的姐姐。不随身携带手机。\n",
+            "adv/outline.md": "# 创作目标\n两位主要人物，雨夜车站悬疑短篇。选择信任或离开，形成两个有因果差异的结局。\n",
+            "adv/settings/game.json": "{\"entryChapterId\": \"station\"}\n",
+            "adv/world.md": "# 雨夜车站\n科技水平与当代相同，不存在超能力。\n",
+            "adv.config.json": "{\"schemaVersion\": 1, \"id\": \"rain-night-station-v2\", \"format\": \"adv-md\", \"root\": \"adv\"}\n"
+          },
+          "upstream": [
+            {
+              "artifactId": "fixture_artifact_0",
+              "fingerprint": "sha256:f18942cfc07c3a0c0642853048b8f83aa7effaad1736d003465001bcd0f9c25b"
+            },
+            {
+              "artifactId": "fixture_artifact_1",
+              "fingerprint": "sha256:465238eb06ccd10c35d3fa5fb2e36032795b20dd547d6256a50ff2fe710cacc9"
+            }
+          ]
+        },
+        "fingerprint": "sha256:e61719376c10323b34bc5c2737e6b1cd323a0ac71fd3f26badd1d8610e2e60c2",
+        "status": "candidate",
+        "reviewCapabilities": []
+      }
+    ],
+    "decisions": [
+      {
+        "id": "fixture-approval",
+        "action": "approve-plan",
+        "artifactIds": [],
+        "reason": "Author approved the production plan",
+        "projectRevision": "sha256:b5797700dacd18b977e0ea399f7c58df9d9240165b28be88d74c3d7e8cfcc543",
+        "at": 1793180071757
+      },
+      {
+        "id": "a469e33a-1752-45fa-98c2-0994bed44cd3",
+        "action": "select",
+        "artifactIds": [
+          "fixture_artifact_0"
+        ],
+        "reason": "选定供后续伙伴参考；正式项目写入仍需单独审阅采用。后续任务可能消耗剩余预算。",
+        "projectRevision": "sha256:b5797700dacd18b977e0ea399f7c58df9d9240165b28be88d74c3d7e8cfcc543",
+        "at": 1793180072141
+      },
+      {
+        "id": "5069bdfb-f195-4b20-9737-1c42fb3ab8ce",
+        "action": "select",
+        "artifactIds": [
+          "fixture_artifact_1"
+        ],
+        "reason": "选定供后续伙伴参考；正式项目写入仍需单独审阅采用。后续任务可能消耗剩余预算。",
+        "projectRevision": "sha256:b5797700dacd18b977e0ea399f7c58df9d9240165b28be88d74c3d7e8cfcc543",
+        "at": 1793180072229
+      }
+    ],
+    "chargedMicroPoints": 0,
+    "reservedMicroPoints": 0,
+    "toolCalls": 0,
+    "createdAt": 1793180071757,
+    "updatedAt": 1793180072229
+  },
+  "report": {
+    "schemaVersion": 1,
+    "producer": "advjs-author-host",
+    "runnerVersion": "creative-headless-v1",
+    "projectId": "creative-ui-narrative-review-fixture",
+    "baselineRevision": "sha256:b5797700dacd18b977e0ea399f7c58df9d9240165b28be88d74c3d7e8cfcc543",
+    "snapshotRevision": "sha256:dd892b44046448efc9a1a1bbcc31937e33e96c3dbd2c6f065708891268a938b9",
+    "scope": "candidate",
+    "artifacts": [
+      {
+        "artifactId": "fixture_artifact_0",
+        "fingerprint": "sha256:f18942cfc07c3a0c0642853048b8f83aa7effaad1736d003465001bcd0f9c25b"
+      },
+      {
+        "artifactId": "fixture_artifact_1",
+        "fingerprint": "sha256:465238eb06ccd10c35d3fa5fb2e36032795b20dd547d6256a50ff2fe710cacc9"
+      }
+    ],
+    "program": {
+      "id": "creative-ui-narrative-review-fixture",
+      "hash": "c34f9a88dbbee1dedd5ff8f3535931c46146d92ee04c599090186be159526bbe"
+    },
+    "startedAt": 1793180072569,
+    "finishedAt": 1793180072587,
+    "limits": {
+      "maxCommandsPerScenario": 256,
+      "maxTotalCommands": 512,
+      "maxEvidenceBytes": 180224
+    },
+    "diagnostics": [],
+    "diagnosticsOmitted": 0,
+    "executions": [
+      {
+        "scenario": {
+          "id": "stay",
+          "choices": [
+            0
+          ],
+          "expectedEnding": "stay#ending-stay"
+        },
+        "status": "passed",
+        "code": "completed",
+        "reachedExpected": true,
+        "commands": 5,
+        "trace": [
+          {
+            "sequence": 1,
+            "command": "start",
+            "address": "station#node-1",
+            "status": "playing",
+            "source": {
+              "path": "adv/chapters/station.adv.md",
+              "line": 3,
+              "column": 1
+            },
+            "kind": "narration",
+            "text": "林舟没有借助设备，瞬移穿过封闭的站台。",
+            "effects": [
+              "dialogue.voice"
+            ],
+            "variablesChanged": [],
+            "entered": [
+              "station#arrival",
+              "station#node-1"
+            ]
+          },
+          {
+            "sequence": 2,
+            "command": "next",
+            "address": "station#node-2",
+            "status": "playing",
+            "source": {
+              "path": "adv/chapters/station.adv.md",
+              "line": 5,
+              "column": 1
+            },
+            "kind": "narration",
+            "text": "乔雨读了一本描写超能力的小说。",
+            "effects": [
+              "dialogue.voice"
+            ],
+            "variablesChanged": [],
+            "entered": [
+              "station#node-2"
+            ]
+          },
+          {
+            "sequence": 3,
+            "command": "next",
+            "address": "station#node-3",
+            "status": "waiting-choice",
+            "source": {
+              "path": "adv/chapters/station.adv.md",
+              "line": 7,
+              "column": 1
+            },
+            "kind": "choices",
+            "options": [
+              {
+                "id": "choice-1",
+                "label": "留下"
+              },
+              {
+                "id": "choice-2",
+                "label": "离开"
+              }
+            ],
+            "effects": [],
+            "variablesChanged": [],
+            "entered": [
+              "station#node-3"
+            ]
+          },
+          {
+            "sequence": 4,
+            "command": "choose",
+            "address": "stay#node-1",
+            "status": "playing",
+            "choice": {
+              "index": 0,
+              "id": "choice-1",
+              "label": "留下"
+            },
+            "source": {
+              "path": "adv/chapters/stay.adv.md",
+              "line": 3,
+              "column": 1
+            },
+            "kind": "text",
+            "text": "乔雨留下了姐姐的名字。",
+            "effects": [],
+            "variablesChanged": [],
+            "entered": [
+              "stay#ending-stay",
+              "stay#node-1"
+            ]
+          },
+          {
+            "sequence": 5,
+            "command": "next",
+            "address": "stay#end",
+            "status": "ended",
+            "source": {
+              "path": "adv/chapters/stay.adv.md",
+              "line": 4,
+              "column": 1
+            },
+            "kind": "end",
+            "effects": [],
+            "variablesChanged": [],
+            "entered": [
+              "stay#end"
+            ]
+          }
+        ],
+        "terminalAddress": "stay#end",
+        "actualEnding": "stay#ending-stay"
+      },
+      {
+        "scenario": {
+          "id": "leave",
+          "choices": [
+            1
+          ],
+          "expectedEnding": "leave#ending-leave"
+        },
+        "status": "passed",
+        "code": "completed",
+        "reachedExpected": true,
+        "commands": 5,
+        "trace": [
+          {
+            "sequence": 1,
+            "command": "start",
+            "address": "station#node-1",
+            "status": "playing",
+            "source": {
+              "path": "adv/chapters/station.adv.md",
+              "line": 3,
+              "column": 1
+            },
+            "kind": "narration",
+            "text": "林舟没有借助设备，瞬移穿过封闭的站台。",
+            "effects": [
+              "dialogue.voice"
+            ],
+            "variablesChanged": [],
+            "entered": [
+              "station#arrival",
+              "station#node-1"
+            ]
+          },
+          {
+            "sequence": 2,
+            "command": "next",
+            "address": "station#node-2",
+            "status": "playing",
+            "source": {
+              "path": "adv/chapters/station.adv.md",
+              "line": 5,
+              "column": 1
+            },
+            "kind": "narration",
+            "text": "乔雨读了一本描写超能力的小说。",
+            "effects": [
+              "dialogue.voice"
+            ],
+            "variablesChanged": [],
+            "entered": [
+              "station#node-2"
+            ]
+          },
+          {
+            "sequence": 3,
+            "command": "next",
+            "address": "station#node-3",
+            "status": "waiting-choice",
+            "source": {
+              "path": "adv/chapters/station.adv.md",
+              "line": 7,
+              "column": 1
+            },
+            "kind": "choices",
+            "options": [
+              {
+                "id": "choice-1",
+                "label": "留下"
+              },
+              {
+                "id": "choice-2",
+                "label": "离开"
+              }
+            ],
+            "effects": [],
+            "variablesChanged": [],
+            "entered": [
+              "station#node-3"
+            ]
+          },
+          {
+            "sequence": 4,
+            "command": "choose",
+            "address": "leave#node-1",
+            "status": "playing",
+            "choice": {
+              "index": 1,
+              "id": "choice-2",
+              "label": "离开"
+            },
+            "source": {
+              "path": "adv/chapters/leave.adv.md",
+              "line": 3,
+              "column": 1
+            },
+            "kind": "text",
+            "text": "车门合上，林舟还拿着那封信。",
+            "effects": [],
+            "variablesChanged": [],
+            "entered": [
+              "leave#ending-leave",
+              "leave#node-1"
+            ]
+          },
+          {
+            "sequence": 5,
+            "command": "next",
+            "address": "leave#end",
+            "status": "ended",
+            "source": {
+              "path": "adv/chapters/leave.adv.md",
+              "line": 4,
+              "column": 1
+            },
+            "kind": "end",
+            "effects": [],
+            "variablesChanged": [],
+            "entered": [
+              "leave#end"
+            ]
+          }
+        ],
+        "terminalAddress": "leave#end",
+        "actualEnding": "leave#ending-leave"
+      }
+    ],
+    "narrativeReview": {
+      "verification": "author-source-review",
+      "snapshotRevision": "sha256:dd892b44046448efc9a1a1bbcc31937e33e96c3dbd2c6f065708891268a938b9",
+      "artifactId": "fixture_artifact_2",
+      "fingerprint": "sha256:e61719376c10323b34bc5c2737e6b1cd323a0ac71fd3f26badd1d8610e2e60c2",
+      "rows": [
+        {
+          "index": 0,
+          "concern": {
+            "path": "adv/chapters/station.adv.md",
+            "line": 3,
+            "expected": "这个世界不允许人物直接使用超能力。",
+            "actual": "客观叙述直接描写人物瞬移，缺少设定允许的原因。",
+            "suggestion": "交还编剧改写动作或补足合理因果。",
+            "evidence": {
+              "expected": {
+                "path": "adv/world.md",
+                "line": 2,
+                "endLine": 2,
+                "text": "科技水平与当代相同，不存在超能力。"
+              },
+              "actual": {
+                "path": "adv/chapters/station.adv.md",
+                "line": 3,
+                "endLine": 3,
+                "text": "> 林舟没有借助设备，瞬移穿过封闭的站台。"
+              }
+            }
+          },
+          "sourceStatus": "matched",
+          "decision": {
+            "status": "confirmed",
+            "reason": "这是客观事件，没有梦境或误认条件，违反世界规则。"
+          }
+        },
+        {
+          "index": 1,
+          "concern": {
+            "path": "adv/chapters/station.adv.md",
+            "line": 5,
+            "expected": "这个世界没有超能力。",
+            "actual": "正文出现描写超能力的小说，需要核对是否违背世界规则。",
+            "suggestion": "作者可根据虚构作品与现实事件的区别排除此疑点。",
+            "evidence": {
+              "expected": {
+                "path": "adv/world.md",
+                "line": 2,
+                "endLine": 2,
+                "text": "科技水平与当代相同，不存在超能力。"
+              },
+              "actual": {
+                "path": "adv/chapters/station.adv.md",
+                "line": 5,
+                "endLine": 5,
+                "text": "> 乔雨读了一本描写超能力的小说。"
+              }
+            }
+          },
+          "sourceStatus": "matched",
+          "decision": {
+            "status": "dismissed",
+            "reason": "小说可以描写现实世界没有的能力，这里没有人物实际施法。"
+          }
+        }
+      ],
+      "rowsOmitted": 0
+    },
+    "unverified": [
+      "visual-rendering",
+      "audio-playback",
+      "host-activities",
+      "narrative-consistency",
+      "unspecified-paths"
+    ]
+  }
+}

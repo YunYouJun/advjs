@@ -1,4 +1,4 @@
-import type { CreativePlaytestReport, CreativePlaytestScenario, CreativeProjectWorkspace, CreativeTeamRun } from '@advjs/agent'
+import type { CreativeNarrativeDecision, CreativePlaytestReport, CreativePlaytestScenario, CreativeProjectWorkspace, CreativeTeamRun } from '@advjs/agent'
 import type { CreativePlaytestCache, CreativePlaytestCacheEntry } from '../utils/creativePlaytestCache'
 import { computeAgentProjectRevision, creativePlaytestFindings, runCreativePlaytest } from '@advjs/agent'
 import { computed, onBeforeUnmount, shallowRef, watch } from 'vue'
@@ -15,7 +15,7 @@ export function useCreativePlaytest(options: { run: () => CreativeTeamRun, works
   const storedReportId = computed(() => activeEntry.value ? options.run().playtests?.find(item => item.intentId === activeEntry.value?.id)?.id : remoteReportId.value)
   const busy = shallowRef(false)
   const repairBusy = shallowRef(false)
-  const error = shallowRef<'execution' | 'storage' | 'sync' | 'scope' | 'repair' | 'voice-service'>()
+  const error = shallowRef<'execution' | 'storage' | 'sync' | 'scope' | 'repair' | 'voice-service' | 'narrative-service'>()
   const currentRevision = shallowRef<string>()
   let epoch = 0
   let selection = 0
@@ -25,7 +25,8 @@ export function useCreativePlaytest(options: { run: () => CreativeTeamRun, works
     const current = scope()
     return before.accountId === current.accountId && before.projectId === current.projectId && before.runId === current.runId
   }
-  const stale = computed(() => Boolean(report.value && ((currentRevision.value !== report.value.baselineRevision && currentRevision.value !== report.value.snapshotRevision)
+  const narrativeStale = computed(() => Boolean(report.value?.narrativeReview && !options.run().artifacts.some(item => item.id === report.value!.narrativeReview!.artifactId && item.fingerprint === report.value!.narrativeReview!.fingerprint && ['candidate', 'selected', 'adopted'].includes(item.status))))
+  const stale = computed(() => Boolean(report.value && (narrativeStale.value || (currentRevision.value !== report.value.baselineRevision && currentRevision.value !== report.value.snapshotRevision)
     || report.value.artifacts.some(reference => !options.run().artifacts.some(item => item.id === reference.artifactId && item.fingerprint === reference.fingerprint && ['selected', 'adopted'].includes(item.status))))))
   async function checkVersion() {
     const turn = epoch
@@ -76,6 +77,10 @@ export function useCreativePlaytest(options: { run: () => CreativeTeamRun, works
       error.value = 'voice-service'
       return
     }
+    if (entry.report.narrativeReview && !store.availability?.authoring?.playtestNarrativeReview) {
+      error.value = 'narrative-service'
+      return
+    }
     const turn = epoch
     try {
       if (await store.recordPlaytest(entry.project, entry.report, entry.id)) {
@@ -98,13 +103,14 @@ export function useCreativePlaytest(options: { run: () => CreativeTeamRun, works
     }
   }
 
-  async function execute(scenarios: readonly CreativePlaytestScenario[], candidate: boolean) {
+  async function execute(scenarios: readonly CreativePlaytestScenario[], candidate: boolean, narrative?: { artifactId: string, fingerprint: string, decisions: readonly CreativeNarrativeDecision[] }) {
     if (busy.value || repairBusy.value || store.mutating)
       return
     const turn = epoch
     selection += 1
     const before = scope()
     const run = options.run()
+    const narrativeInput = narrative ? { ...narrative, decisions: narrative.decisions.map(item => ({ ...item })), run } : undefined
     controller = new AbortController()
     const signal = controller.signal
     busy.value = true
@@ -128,7 +134,11 @@ export function useCreativePlaytest(options: { run: () => CreativeTeamRun, works
           return evidence
         }
         : undefined
-      const result = await runCreativePlaytest({ project, scenarios, ...(candidate ? { candidate: { run, artifacts: references } } : {}) }, { signal, yieldControl: () => new Promise(resolve => setTimeout(resolve, 0)), inspectVoiceCoverage })
+      const result = await runCreativePlaytest({ project, scenarios, ...(narrativeInput ? { narrative: narrativeInput } : {}), ...(candidate ? { candidate: { run, artifacts: references } } : {}) }, { signal, yieldControl: () => new Promise(resolve => setTimeout(resolve, 0)), inspectVoiceCoverage })
+      if (turn !== epoch || !currentScope(before))
+        return
+      if (narrativeInput && ((await workspace.snapshot()).revision !== snapshot.revision || !options.run().artifacts.some(item => item.id === narrativeInput.artifactId && item.fingerprint === narrativeInput.fingerprint && ['candidate', 'selected', 'adopted'].includes(item.status))))
+        throw new Error('CREATIVE_NARRATIVE_SOURCE_CONFLICT')
       if (turn !== epoch || !currentScope(before))
         return
       report.value = result

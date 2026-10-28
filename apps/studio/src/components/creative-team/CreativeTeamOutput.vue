@@ -2,6 +2,7 @@
 import type { CreativePartnerOutput } from '@advjs/agent'
 import { useI18n } from 'vue-i18n'
 import CreativeDirectorSummaryOutput from './CreativeDirectorSummaryOutput.vue'
+import CreativeNarrativeEvidence from './CreativeNarrativeEvidence.vue'
 
 defineProps<{ output: CreativePartnerOutput }>()
 const { t } = useI18n()
@@ -106,9 +107,7 @@ const { t } = useI18n()
       </h4>
       <article v-for="concern in output.concerns" :key="`${concern.path}:${concern.line}`" class="team-output__item">
         <strong>{{ concern.path }}:{{ concern.line }}</strong>
-        <p>{{ t('creativeTeam.expectedResult') }}: {{ concern.expected }}</p>
-        <p>{{ t('creativeTeam.actual') }}: {{ concern.actual }}</p>
-        <p>{{ t('creativeTeam.suggestion') }}: {{ concern.suggestion }}</p>
+        <CreativeNarrativeEvidence :concern="concern" />
       </article>
     </template>
   </div>

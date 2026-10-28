@@ -5,13 +5,14 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, shallowRef, watch } from 'vue'
+import narrativeCorpus from '../../../../packages/agent/test/fixtures/creative-narrative-review-v1.json'
 import frozen from '../../../../packages/agent/test/fixtures/creative-team/v2/project.json'
 import { useCreativePlaytest } from '../composables/useCreativePlaytest'
 import { useCreativeTeamStore } from '../stores/useCreativeTeamStore'
 
 beforeEach(() => setActivePinia(createPinia()))
-async function fixture(inspectVoiceCoverage?: CreativeProjectWorkspace['inspectVoiceCoverage']) {
-  let files: Record<string, string> = structuredClone(frozen.files)
+async function fixture(inspectVoiceCoverage?: CreativeProjectWorkspace['inspectVoiceCoverage'], initialFiles: Record<string, string> = frozen.files) {
+  let files: Record<string, string> = structuredClone(initialFiles)
   const snapshot = vi.fn(async () => ({ projectId: 'station', files: { ...files }, revision: await computeAgentProjectRevision(files) }))
   const project = { id: 'station', files, revision: (await snapshot()).revision }
   const request = parseCreativeTeamStartRequest({ protocolVersion: 1, project, partner: 'writer', goal: '两个结局', locale: 'zh-CN', limits: { maxTasks: 4, maxToolCalls: 4, maxReworkRounds: 2, maxMicroPoints: 1000 } })
@@ -38,11 +39,81 @@ async function fixture(inspectVoiceCoverage?: CreativeProjectWorkspace['inspectV
     } }))
     return wrapper
   }
-  return { store, client, rows, snapshot, cache, current, open, session: () => session, unavailable, breakSource: () => files = { ...files, 'adv/chapters/station.adv.md': '# 车站 {#arrival}\n\n- [坏链接](missing#ending)' }, edit: () => files = { ...files, 'adv/world.md': '作者修改了世界设定。' } }
+  return { run, store, client, rows, snapshot, cache, current, open, session: () => session, unavailable, breakSource: () => files = { ...files, 'adv/chapters/station.adv.md': '# 车站 {#arrival}\n\n- [坏链接](missing#ending)' }, edit: () => files = { ...files, 'adv/world.md': '作者修改了世界设定。' } }
 }
 const scenarios = [{ id: 'stay', choices: [0], expectedEnding: 'stay#ending-stay' }, { id: 'leave', choices: [1], expectedEnding: 'leave#ending-leave' }]
 
+async function narrativeFixture() {
+  const sample = narrativeCorpus.cases[0]!
+  const chapter = 'adv/chapters/station.adv.md'
+  const files = { ...frozen.files, 'adv/world.md': `# 雨夜车站\n${sample.basisText}\n`, [chapter]: `# 雨夜车站 {#arrival}\n\n> ${sample.statement}\n\n- [留下](stay#ending-stay)\n- [离开](leave#ending-leave)\n` }
+  const f = await fixture(undefined, files)
+  f.run.plan.tasks = [...f.run.plan.tasks, { id: 'check', partner: 'playtester', capability: 'playtest-project', dependsOn: [], sourcePaths: [chapter, 'adv/world.md'], instruction: '独立检查', expectedOutput: '源引文与疑点' }]
+  f.run.tasks = [...f.run.tasks, { taskId: 'check', status: 'completed', attempt: 1, artifactIds: ['narrative-plan'] }]
+  const revision = (await f.snapshot()).revision
+  f.run.artifacts = [{ id: 'narrative-plan', runId: f.run.id, projectId: 'station', taskId: 'check', partner: 'playtester', kind: 'playtest-plan', fingerprint: 'narrative-v1', status: 'candidate', summary: '核对世界规则', source: { projectId: 'station', revision, files, upstream: [] }, changes: [], reviewCapabilities: ['candidate-preview'], output: { kind: 'playtest-plan', summary: '核对世界规则', scenarios, concerns: [{ path: chapter, line: 3, expected: sample.expected, actual: sample.actual, suggestion: '交还编剧修订', evidence: { expected: { path: sample.basisPath, line: sample.basisLine, endLine: sample.basisLine, text: sample.basisText }, actual: { path: chapter, line: 3, endLine: 3, text: `> ${sample.statement}` } } }] } }]
+  f.current.value = structuredClone(f.run)
+  f.store.run = structuredClone(f.run)
+  return { ...f, narrative: { artifactId: 'narrative-plan', fingerprint: 'narrative-v1', decisions: [{ index: 0, status: 'confirmed' as const, reason: sample.reason }] } }
+}
+
 describe('creative path execution, persistence and scope', () => {
+  it('persists explicit narrative judgements and reopens them without a new execution or POST', async () => {
+    const f = await narrativeFixture()
+    const available = await f.client.availability()
+    vi.spyOn(f.client, 'availability').mockResolvedValue({ ...available, authoring: { ...available.authoring!, playtestNarrativeReview: true } })
+    await f.store.refresh()
+    const wrapper = f.open()
+    await flushPromises()
+    await f.session().execute(scenarios, false, f.narrative)
+    expect(f.session().report.value?.narrativeReview?.rows[0]?.decision?.status).toBe('confirmed')
+    expect(f.session().activeEntry.value?.synced).toBe(true)
+    expect(f.session().stale.value).toBe(false)
+    expect(vi.mocked(f.client.recordPlaytest).mock.calls[0]![2].narrativeReview).toEqual(f.session().report.value?.narrativeReview)
+    wrapper.unmount()
+    const reopened = f.open()
+    await flushPromises()
+    expect(f.session().report.value?.narrativeReview).toBeDefined()
+    expect(f.client.recordPlaytest).toHaveBeenCalledTimes(1)
+    expect(f.unavailable).not.toHaveBeenCalled()
+    f.current.value = { ...f.current.value, artifacts: f.current.value.artifacts.map(item => ({ ...item, status: 'stale' })) }
+    expect(f.session().stale.value).toBe(true)
+    reopened.unmount()
+  })
+
+  it('retains an unsynced narrative review when an older service cannot store it', async () => {
+    const f = await narrativeFixture()
+    const wrapper = f.open()
+    await flushPromises()
+    await f.session().execute(scenarios, false, f.narrative)
+    expect(f.session().error.value).toBe('narrative-service')
+    expect(f.session().report.value?.narrativeReview).toBeDefined()
+    expect(f.rows.size).toBe(1)
+    expect(f.client.recordPlaytest).not.toHaveBeenCalled()
+    await f.session().sync()
+    expect(f.client.recordPlaytest).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
+  it('discards narrative observations when the source changes during actual execution', async () => {
+    const f = await narrativeFixture()
+    const wrapper = f.open()
+    await flushPromises()
+    const snapshot = f.snapshot.getMockImplementation()!
+    let reads = 0
+    f.snapshot.mockImplementation(async () => {
+      if (++reads === 2)
+        f.edit()
+      return snapshot()
+    })
+    await f.session().execute(scenarios, false, f.narrative)
+    expect(f.session().error.value).toBe('execution')
+    expect(f.session().report.value).toBeUndefined()
+    expect(f.rows.size).toBe(0)
+    expect(f.client.recordPlaytest).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
   it('negotiates host voice evidence explicitly and preserves it through local and service storage', async () => {
     const inspector = vi.fn<NonNullable<CreativeProjectWorkspace['inspectVoiceCoverage']>>(async source => createCreativePlaytestVoiceCoverage({ snapshotRevision: source.revision, locale: 'zh-CN', complete: true, rows: [] }))
     const f = await fixture(inspector)

@@ -2,12 +2,14 @@ import type { JsonObject, RuntimeAddress, RuntimeChoice, RuntimeProgram } from '
 import type { CreativeTeamRun } from './contracts'
 import type { CreativePlaytestScenario } from './outputs'
 import type { CreativePlaytestDiagnostic, CreativePlaytestExecution, CreativePlaytestObservation, CreativePlaytestReport } from './playtest-contracts'
+import type { CreativePlaytestNarrativeInput } from './playtest-narrative'
 import type { CreativeProjectWorkspace } from './review'
 import type { CreativeTeamStartRequest } from './wire'
 import { compileProject, createAdvRuntime } from '@advjs/core'
 import { computeAgentProjectRevision } from '../proposals/review'
 import { parseCreativePlaytestScenarios } from './outputs'
 import { parseCreativePlaytestReport } from './playtest-contracts'
+import { createCreativePlaytestNarrativeReview } from './playtest-narrative'
 import { creativePlaytestCandidateFiles } from './playtest-snapshot'
 import { parseCreativeProject } from './wire'
 
@@ -39,6 +41,7 @@ export async function runCreativePlaytest(input: {
   project: CreativeTeamStartRequest['project']
   scenarios: readonly CreativePlaytestScenario[]
   candidate?: { run: CreativeTeamRun, artifacts: CreativePlaytestReport['artifacts'] }
+  narrative?: CreativePlaytestNarrativeInput
 }, options: { maxCommandsPerScenario?: number, maxTotalCommands?: number, maxEvidenceBytes?: number, signal?: AbortSignal, yieldControl?: () => Promise<void>, now?: () => number, inspectVoiceCoverage?: CreativeProjectWorkspace['inspectVoiceCoverage'] } = {}): Promise<CreativePlaytestReport> {
   const now = options.now ?? Date.now
   const startedAt = now()
@@ -48,7 +51,7 @@ export async function runCreativePlaytest(input: {
   const scenarios = parseCreativePlaytestScenarios(input.scenarios)
   if (input.candidate && !input.candidate.artifacts.length)
     throw new Error('CREATIVE_EMPTY_CANDIDATE')
-  const limits = { maxCommandsPerScenario: options.maxCommandsPerScenario ?? 256, maxTotalCommands: options.maxTotalCommands ?? 512, maxEvidenceBytes: options.maxEvidenceBytes ?? 196608 }
+  const limits = { maxCommandsPerScenario: options.maxCommandsPerScenario ?? 256, maxTotalCommands: options.maxTotalCommands ?? 512, maxEvidenceBytes: options.maxEvidenceBytes ?? (input.narrative ? 180224 : 196608) }
   for (const [key, value] of Object.entries(limits)) {
     if (!Number.isInteger(value) || value < 1 || value > (key === 'maxEvidenceBytes' ? 196608 : 512))
       throw new TypeError('Invalid deterministic playtest limit')
@@ -56,6 +59,9 @@ export async function runCreativePlaytest(input: {
   const files = input.candidate ? creativePlaytestCandidateFiles(input.candidate.run, project, input.candidate.artifacts) : project.files
   const snapshotRevision = await computeAgentProjectRevision(files)
   parseCreativeProject({ id: project.id, files, revision: snapshotRevision })
+  if (input.narrative && input.narrative.run.plan.projectId !== project.id)
+    throw new Error('CREATIVE_NARRATIVE_SOURCE_CONFLICT')
+  const narrativeReview = input.narrative ? createCreativePlaytestNarrativeReview(input.narrative, { revision: snapshotRevision, files }, project.files) : undefined
   const result = await compileProject({ id: project.id, files }, { staticAnalysis: true })
   const program = result.project.program
   const diagnostics: CreativePlaytestDiagnostic[] = []
@@ -181,5 +187,5 @@ export async function runCreativePlaytest(input: {
   const voiceCoverage = program && !options.signal?.aborted && options.inspectVoiceCoverage
     ? await options.inspectVoiceCoverage({ projectId: project.id, revision: snapshotRevision, files }, options.signal)
     : undefined
-  return parseCreativePlaytestReport({ schemaVersion: 1, producer: 'advjs-author-host', runnerVersion: 'creative-headless-v1', projectId: project.id, baselineRevision: project.revision, snapshotRevision, scope: input.candidate ? 'candidate' : 'saved', artifacts: structuredClone(input.candidate?.artifacts ?? []), ...(program ? { program: { id: program.id, hash: program.hash } } : {}), startedAt, finishedAt: now(), limits, diagnostics, diagnosticsOmitted: result.diagnostics.length - diagnostics.length, executions, ...(voiceCoverage ? { voiceCoverage } : {}), unverified: ['visual-rendering', 'audio-playback', 'host-activities', 'narrative-consistency', 'unspecified-paths'] })
+  return parseCreativePlaytestReport({ schemaVersion: 1, producer: 'advjs-author-host', runnerVersion: 'creative-headless-v1', projectId: project.id, baselineRevision: project.revision, snapshotRevision, scope: input.candidate ? 'candidate' : 'saved', artifacts: structuredClone(input.candidate?.artifacts ?? []), ...(program ? { program: { id: program.id, hash: program.hash } } : {}), startedAt, finishedAt: now(), limits, diagnostics, diagnosticsOmitted: result.diagnostics.length - diagnostics.length, executions, ...(voiceCoverage ? { voiceCoverage } : {}), ...(narrativeReview ? { narrativeReview } : {}), unverified: ['visual-rendering', 'audio-playback', 'host-activities', 'narrative-consistency', 'unspecified-paths'] })
 }

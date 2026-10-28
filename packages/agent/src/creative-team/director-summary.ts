@@ -6,6 +6,7 @@ import { creativeDeliveryPendingMedia } from './delivery'
 import { creativeMediaCanonical } from './media'
 import { parseCreativePlaytestScenarios } from './outputs'
 import { parseCreativePlaytestReport, parseCreativePlaytestSummary } from './playtest-contracts'
+import { parseCreativePlaytestNarrativeReview } from './playtest-narrative'
 import { parseCreativePlaytestVoiceCoverage } from './playtest-voice'
 import { assertCreativeSourcePath } from './validation'
 
@@ -23,6 +24,7 @@ interface SummaryReport {
   diagnostics: CreativePlaytestReport['diagnostics']
   diagnosticsOmitted: number
   voiceCoverage?: CreativePlaytestReport['voiceCoverage']
+  narrativeReview?: CreativePlaytestReport['narrativeReview']
   executions: Array<Pick<CreativePlaytestReport['executions'][number], 'scenario' | 'status' | 'code' | 'actualEnding' | 'terminalAddress' | 'reachedExpected' | 'commands'>>
 }
 export interface CreativeDirectorSummaryEvidence {
@@ -146,7 +148,7 @@ export function prepareCreativeDirectorSummaryEvidence(run: CreativeTeamRun, tas
         || ['passed', 'failed', 'blocked', 'cancelled'].some(status => report.executions.filter(item => item.status === status).length !== summary[status as 'passed'])) {
         throw new Error('CREATIVE_SUMMARY_REPORT_CONFLICT')
       }
-      return { id: summary.id, available: true, diagnostics: report.diagnostics, diagnosticsOmitted: report.diagnosticsOmitted, ...(report.voiceCoverage ? { voiceCoverage: report.voiceCoverage } : {}), executions: report.executions.map(({ scenario, status, code, actualEnding, terminalAddress, reachedExpected, commands }) => ({ scenario, status, code, ...(actualEnding ? { actualEnding } : {}), ...(terminalAddress ? { terminalAddress } : {}), reachedExpected, commands })) }
+      return { id: summary.id, available: true, diagnostics: report.diagnostics, diagnosticsOmitted: report.diagnosticsOmitted, ...(report.voiceCoverage ? { voiceCoverage: report.voiceCoverage } : {}), ...(report.narrativeReview ? { narrativeReview: report.narrativeReview } : {}), executions: report.executions.map(({ scenario, status, code, actualEnding, terminalAddress, reachedExpected, commands }) => ({ scenario, status, code, ...(actualEnding ? { actualEnding } : {}), ...(terminalAddress ? { terminalAddress } : {}), reachedExpected, commands })) }
     }),
   }
   return parseCreativeDirectorSummaryEvidence(evidence)
@@ -184,7 +186,7 @@ export function parseCreativeDirectorSummaryEvidence(value: unknown): CreativeDi
     return { artifactId: text(item.artifactId), target: text(item.target, 600) }
   })
   const reports = array(root.reports, 128).map((value): SummaryReport => {
-    const item = object(value, ['id', 'available', 'diagnostics', 'diagnosticsOmitted', 'executions', 'voiceCoverage'])
+    const item = object(value, ['id', 'available', 'diagnostics', 'diagnosticsOmitted', 'executions', 'voiceCoverage', 'narrativeReview'])
     if (typeof item.available !== 'boolean')
       throw new TypeError('Invalid director report availability')
     const summary = playtests.find(summary => summary.id === item.id)
@@ -214,6 +216,9 @@ export function parseCreativeDirectorSummaryEvidence(value: unknown): CreativeDi
         throw new TypeError('Invalid passing director outcome')
       return { scenario, status, code, reachedExpected: row.reachedExpected, commands: integer(row.commands), ...(row.actualEnding === undefined ? {} : { actualEnding: address(row.actualEnding) }), ...(row.terminalAddress === undefined ? {} : { terminalAddress: address(row.terminalAddress) }) }
     })
+    const narrativeReview = item.narrativeReview === undefined ? undefined : parseCreativePlaytestNarrativeReview(item.narrativeReview)
+    if (narrativeReview && (!item.available || narrativeReview.snapshotRevision !== summary.snapshotRevision))
+      throw new TypeError('Invalid director narrative report snapshot')
     const voiceCoverage = item.voiceCoverage === undefined ? undefined : parseCreativePlaytestVoiceCoverage(item.voiceCoverage)
     if (voiceCoverage && (!item.available || voiceCoverage.snapshotRevision !== summary.snapshotRevision))
       throw new TypeError('Invalid director voice evidence boundary')
@@ -223,7 +228,7 @@ export function parseCreativeDirectorSummaryEvidence(value: unknown): CreativeDi
     if (item.available && (!executions.length || ['passed', 'failed', 'blocked', 'cancelled'].some(status => executions.filter(item => item.status === status).length !== summary[status as 'passed'])))
       throw new TypeError('Director report counts do not match')
     unique(executions.map(item => ({ id: item.scenario.id })))
-    return { id: text(item.id), available: item.available, diagnostics, diagnosticsOmitted, executions, ...(voiceCoverage ? { voiceCoverage } : {}) }
+    return { id: text(item.id), available: item.available, diagnostics, diagnosticsOmitted, executions, ...(voiceCoverage ? { voiceCoverage } : {}), ...(narrativeReview ? { narrativeReview } : {}) }
   })
   for (const items of [tasks, artifacts, pendingArtifacts, milestones, playtests, reports])
     unique(items)

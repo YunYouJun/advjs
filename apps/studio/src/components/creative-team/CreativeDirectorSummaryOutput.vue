@@ -2,6 +2,7 @@
 import type { CreativeDirectorSummaryOutput } from '@advjs/agent'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import CreativeNarrativeReport from './CreativeNarrativeReport.vue'
 import CreativePlaytestVoiceReport from './CreativePlaytestVoiceReport.vue'
 
 const props = defineProps<{ output: CreativeDirectorSummaryOutput }>()
@@ -58,6 +59,7 @@ const priorPoints = computed(() => new Intl.NumberFormat(locale.value, { maximum
       <strong>{{ report.id }}</strong> · {{ t(report.current ? 'creativeTeam.directorSummary.currentReport' : 'creativeTeam.directorSummary.olderReport') }}
       <p><code>{{ report.snapshotRevision }}</code></p>
       <p>{{ t('creativeTeam.delivery.playtestResult', report) }}</p>
+      <CreativeNarrativeReport v-if="report.detail?.narrativeReview" :review="report.detail.narrativeReview" />
       <CreativePlaytestVoiceReport v-if="report.detail?.voiceCoverage" :coverage="report.detail.voiceCoverage" />
       <p v-if="!report.detail?.available" class="director-summary__notice">
         {{ t('creativeTeam.directorSummary.reportUnavailable') }}

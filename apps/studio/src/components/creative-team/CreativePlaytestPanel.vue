@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import type { CreativeProjectWorkspace, CreativeTeamRun } from '@advjs/agent'
+import type { CreativeNarrativeDecision, CreativeProjectWorkspace, CreativeTeamRun } from '@advjs/agent'
 import { parseCreativePlaytestScenarios } from '@advjs/agent'
 import { computed, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useCreativePlaytest } from '../../composables/useCreativePlaytest'
 import { useCreativeTeamStore } from '../../stores/useCreativeTeamStore'
 import SButton from '../ui/SButton.vue'
+import CreativeNarrativeReviewForm from './CreativeNarrativeReviewForm.vue'
 import CreativePlaytestRepairForm from './CreativePlaytestRepairForm.vue'
 import CreativePlaytestReport from './CreativePlaytestReport.vue'
 import CreativePlaytestScenarios from './CreativePlaytestScenarios.vue'
@@ -19,11 +20,19 @@ const { report, entries, activeEntry, busy, repairBusy, error, stale, storedRepo
 const scope = shallowRef<'saved' | 'candidate'>('saved')
 const scenarios = shallowRef([{ id: 'path-1', expectedEnding: '', choices: '' }])
 const inputError = shallowRef(false)
+const includeNarrative = shallowRef(false)
+const narrativeDecisions = shallowRef<CreativeNarrativeDecision[]>([])
 const reportRoot = useTemplateRef<HTMLElement>('reportRoot')
-const plan = computed(() => props.run.artifacts.findLast(item => ['candidate', 'selected', 'adopted'].includes(item.status) && item.output?.kind === 'playtest-plan')?.output)
-const suggested = computed(() => plan.value?.kind === 'playtest-plan' ? plan.value : undefined)
+const plan = computed(() => props.run.artifacts.findLast(item => ['candidate', 'selected', 'adopted'].includes(item.status) && item.output?.kind === 'playtest-plan'))
+const suggested = computed(() => plan.value?.output?.kind === 'playtest-plan' ? plan.value.output : undefined)
 const hasCandidates = computed(() => props.run.artifacts.some(item => item.status === 'selected' && item.changes.length))
 const pending = computed(() => entries.value.filter(item => !item.synced))
+const narrativeSupported = computed(() => !store.availability?.authoring?.playtestReports || store.availability.authoring.playtestNarrativeReview === true)
+const narrativeReasonMissing = computed(() => includeNarrative.value && narrativeDecisions.value.some(item => !item.reason.trim()))
+watch(() => JSON.stringify([props.run.id, plan.value?.id, plan.value?.fingerprint, scope.value]), () => {
+  includeNarrative.value = false
+  narrativeDecisions.value = []
+})
 const closed = computed(() => props.run.status === 'completed')
 const blocked = computed(() => props.busy || busy.value || repairBusy.value)
 watch(() => busy.value || repairBusy.value, value => emit('busy', value))
@@ -45,7 +54,7 @@ async function execute() {
   const previous = report.value
   try {
     const parsed = parseCreativePlaytestScenarios(scenarios.value.map(item => ({ ...item, choices: item.choices.trim() ? item.choices.split(',').map(value => /^\d+$/.test(value.trim()) ? Number(value.trim()) : Number.NaN) : [] })))
-    await session.execute(parsed, scope.value === 'candidate')
+    await session.execute(parsed, scope.value === 'candidate', includeNarrative.value && plan.value ? { artifactId: plan.value.id, fingerprint: plan.value.fingerprint, decisions: narrativeDecisions.value } : undefined)
     if (report.value && report.value !== previous) {
       await nextTick()
       reportRoot.value?.querySelector<HTMLElement>('h3')?.focus()
@@ -95,9 +104,22 @@ async function checkVersion() {
         </ul>
       </details>
     </div>
+    <template v-if="suggested?.concerns.length">
+      <label class="playtest__scope">
+        <input v-model="includeNarrative" type="checkbox" :disabled="blocked || closed || !narrativeSupported">
+        {{ t('creativeTeam.playtest.narrative.include') }}
+      </label>
+      <p v-if="!narrativeSupported">
+        {{ t('creativeTeam.playtest.narrative.unsupported') }}
+      </p>
+      <CreativeNarrativeReviewForm v-if="includeNarrative" :concerns="suggested.concerns" :decisions="narrativeDecisions" :disabled="blocked || closed" @update="narrativeDecisions = $event" @source="(path, line) => emit('source', path, line)" />
+      <p v-if="narrativeReasonMissing" role="status">
+        {{ t('creativeTeam.playtest.narrative.reasonRequired') }}
+      </p>
+    </template>
     <CreativePlaytestScenarios :scenarios="scenarios" :disabled="blocked" @update="scenarios = $event" />
     <div class="playtest__actions">
-      <SButton size="lg" :disabled="blocked || closed" :loading="busy" @click="execute">
+      <SButton size="lg" :disabled="blocked || closed || narrativeReasonMissing" :loading="busy" @click="execute">
         {{ t('creativeTeam.playtest.execute') }}
       </SButton>
       <SButton v-if="busy" size="lg" variant="outline" @click="session.stop">

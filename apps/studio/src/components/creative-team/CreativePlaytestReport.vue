@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CreativePlaytestReport } from '@advjs/agent'
 import { useI18n } from 'vue-i18n'
+import CreativeNarrativeReport from './CreativeNarrativeReport.vue'
 import CreativePlaytestVoiceReport from './CreativePlaytestVoiceReport.vue'
 
 defineProps<{ report: CreativePlaytestReport, stale: boolean }>()
@@ -29,6 +30,7 @@ function sourceLabel(path: string, line?: number) {
     <p v-else>
       {{ t('creativeTeam.playtest.voice.notChecked') }}
     </p>
+    <CreativeNarrativeReport v-if="report.narrativeReview" :review="report.narrativeReview" navigable @source="(path, line) => $emit('source', path, line)" />
     <details v-if="report.diagnostics.length || report.diagnosticsOmitted">
       <summary>{{ t('creativeTeam.playtest.static') }} · {{ report.diagnostics.length }}</summary>
       <ul>

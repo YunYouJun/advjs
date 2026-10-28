@@ -1,8 +1,10 @@
 import type { CreativeFileChange, CreativeTeamLimits, CreativeTeamPlan } from './contracts'
 import type { CreativeDirectorSummaryEvidence, CreativeDirectorSummaryOutput } from './director-summary'
+import type { CreativeNarrativeConcern } from './narrative-concerns'
 import type { CreativeVoiceIntent } from './voice-direction'
 import { parseCreativeDirectorSummaryOutput } from './director-summary'
-import { assertCreativeSourcePath, parseCreativeTeamPlan } from './validation'
+import { parseCreativeNarrativeConcern } from './narrative-concerns'
+import { parseCreativeTeamPlan } from './validation'
 import { assertCreativeDictionaryTerms, creativeVoiceDirectionFileChanges, creativeVoiceLocale, parseCreativeVoiceIntent } from './voice-direction'
 import { matchesCreativeVoiceLineSource } from './voice-lines'
 
@@ -61,7 +63,7 @@ export type CreativePartnerOutput
     | { kind: 'chapter', summary: string, chapters: readonly { id: string, title: string, content: string }[], entryChapterId: string, endingAddresses: readonly string[] }
     | { kind: 'art-direction', summary: string, style: string, requests: readonly CreativeArtRequest[] }
     | { kind: 'voice-direction', summary: string, locale?: string, cast: readonly { speakerId: string, designBrief: string, performance: string, intent?: CreativeVoiceIntent }[], dictionary: readonly { term: string, pronunciation: string }[], lines: readonly CreativeVoiceLine[] }
-    | { kind: 'playtest-plan', summary: string, scenarios: readonly CreativePlaytestScenario[], concerns: readonly { path: string, line: number, expected: string, actual: string, suggestion: string }[] }
+    | { kind: 'playtest-plan', summary: string, scenarios: readonly CreativePlaytestScenario[], concerns: readonly CreativeNarrativeConcern[] }
 
 /** Effective context assembled by Runtime from saved facts and explicitly selected candidates. */
 export interface CreativeOutputContext {
@@ -276,14 +278,7 @@ function parseOutput(kind: CreativePartnerOutput['kind'], value: unknown, contex
     return { kind, summary, cast, dictionary, lines, ...(root.locale === undefined ? {} : { locale: creativeVoiceLocale(root.locale) }) }
   }
   const scenarios = parseCreativePlaytestScenarios(root.scenarios)
-  const concerns = array(root.concerns, 32).map((item) => {
-    const concern = record(item)
-    const path = text(concern.path, 200)
-    assertCreativeSourcePath(path)
-    if (checkReferences && !(path in context.files))
-      throw new TypeError('Unknown playtest concern source')
-    return { path, line: integer(concern.line, 1, checkReferences ? context.files[path].split('\n').length : 100000), expected: text(concern.expected), actual: text(concern.actual), suggestion: text(concern.suggestion) }
-  })
+  const concerns = array(root.concerns, 32).map(item => parseCreativeNarrativeConcern(item, checkReferences ? context.files : undefined))
   return { kind, summary, scenarios, concerns }
 }
 

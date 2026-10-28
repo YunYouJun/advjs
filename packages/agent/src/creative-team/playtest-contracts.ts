@@ -1,6 +1,8 @@
 import type { CreativePlaytestScenario } from './outputs'
+import type { CreativePlaytestNarrativeReview } from './playtest-narrative'
 import type { CreativePlaytestVoiceCoverage } from './playtest-voice'
 import { parseCreativePlaytestScenarios } from './outputs'
+import { parseCreativePlaytestNarrativeReview } from './playtest-narrative'
 import { parseCreativePlaytestVoiceCoverage } from './playtest-voice'
 import { assertCreativeSourcePath } from './validation'
 
@@ -51,6 +53,7 @@ export interface CreativePlaytestReport {
   diagnosticsOmitted: number
   executions: readonly CreativePlaytestExecution[]
   voiceCoverage?: CreativePlaytestVoiceCoverage
+  narrativeReview?: CreativePlaytestNarrativeReview
   /** Never claims rendering, audio playback, model consistency or exhaustive coverage. */
   unverified: readonly ['visual-rendering', 'audio-playback', 'host-activities', 'narrative-consistency', 'unspecified-paths']
 }
@@ -125,7 +128,7 @@ function location(value: unknown): CreativePlaytestSource {
 export function parseCreativePlaytestReport(value: unknown): CreativePlaytestReport {
   if (new TextEncoder().encode(JSON.stringify(value)).length > 262144)
     throw new TypeError('Playtest report exceeds the evidence limit')
-  const root = object(value, ['schemaVersion', 'producer', 'runnerVersion', 'projectId', 'baselineRevision', 'snapshotRevision', 'scope', 'artifacts', 'program', 'startedAt', 'finishedAt', 'limits', 'diagnostics', 'diagnosticsOmitted', 'executions', 'voiceCoverage', 'unverified'])
+  const root = object(value, ['schemaVersion', 'producer', 'runnerVersion', 'projectId', 'baselineRevision', 'snapshotRevision', 'scope', 'artifacts', 'program', 'startedAt', 'finishedAt', 'limits', 'diagnostics', 'diagnosticsOmitted', 'executions', 'voiceCoverage', 'narrativeReview', 'unverified'])
   if (root.schemaVersion !== 1 || root.producer !== 'advjs-author-host' || root.runnerVersion !== 'creative-headless-v1')
     throw new TypeError('Unsupported playtest report protocol')
   const limits = object(root.limits, ['maxCommandsPerScenario', 'maxTotalCommands', 'maxEvidenceBytes'])
@@ -179,6 +182,9 @@ export function parseCreativePlaytestReport(value: unknown): CreativePlaytestRep
   const program = root.program === undefined ? undefined : object(root.program, ['id', 'hash'])
   const artifacts = references(root.artifacts)
   const voiceCoverage = root.voiceCoverage === undefined ? undefined : parseCreativePlaytestVoiceCoverage(root.voiceCoverage)
+  const narrativeReview = root.narrativeReview === undefined ? undefined : parseCreativePlaytestNarrativeReview(root.narrativeReview)
+  if (narrativeReview && narrativeReview.snapshotRevision !== root.snapshotRevision)
+    throw new TypeError('Playtest narrative snapshot mismatch')
   if (voiceCoverage && (voiceCoverage.snapshotRevision !== root.snapshotRevision || !program))
     throw new TypeError('Playtest voice snapshot mismatch')
   if ((root.scope === 'candidate' && !artifacts.length) || (root.scope === 'saved' && artifacts.length))
@@ -189,7 +195,7 @@ export function parseCreativePlaytestReport(value: unknown): CreativePlaytestRep
     throw new TypeError('Invalid playtest execution metadata')
   if (diagnostics.some(item => item.severity === 'error') && executions.some(item => item.status === 'passed'))
     throw new TypeError('Blocking diagnostics cannot be presented as a passing execution')
-  return { schemaVersion: 1, producer: 'advjs-author-host', runnerVersion: 'creative-headless-v1', projectId: text(root.projectId), baselineRevision: text(root.baselineRevision), snapshotRevision: text(root.snapshotRevision), scope: member(root.scope, ['saved', 'candidate']), artifacts, ...(program ? { program: { id: text(program.id), hash: text(program.hash) } } : {}), startedAt, finishedAt, limits: parsedLimits, diagnostics, diagnosticsOmitted: integer(root.diagnosticsOmitted), executions, ...(voiceCoverage ? { voiceCoverage } : {}), unverified }
+  return { schemaVersion: 1, producer: 'advjs-author-host', runnerVersion: 'creative-headless-v1', projectId: text(root.projectId), baselineRevision: text(root.baselineRevision), snapshotRevision: text(root.snapshotRevision), scope: member(root.scope, ['saved', 'candidate']), artifacts, ...(program ? { program: { id: text(program.id), hash: text(program.hash) } } : {}), startedAt, finishedAt, limits: parsedLimits, diagnostics, diagnosticsOmitted: integer(root.diagnosticsOmitted), executions, ...(voiceCoverage ? { voiceCoverage } : {}), ...(narrativeReview ? { narrativeReview } : {}), unverified }
 }
 
 export function parseCreativePlaytestSummary(value: unknown): CreativePlaytestSummary {
