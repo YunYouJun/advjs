@@ -36,6 +36,26 @@ describe('native project readiness', () => {
       resolveFs(fs)
       await ready
       expect(content.getFs()).toBe(fs)
+      let resolveOlder!: (fs: IFileSystem) => void
+      let resolveNewer!: (fs: IFileSystem) => void
+      mocks.createFs.mockImplementationOnce(() => new Promise<IFileSystem>((resolve) => {
+        resolveOlder = resolve
+      }))
+      mocks.createFs.mockImplementationOnce(() => new Promise<IFileSystem>((resolve) => {
+        resolveNewer = resolve
+      }))
+      store.currentProject = { projectId: 'older-project' }
+      await flushPromises()
+      store.currentProject = { projectId: 'newer-project' }
+      const newerReady = content.whenReady()
+      await flushPromises()
+      const newerFs = { ...fs }
+      resolveNewer(newerFs)
+      await newerReady
+      expect(content.getFs()).toBe(newerFs)
+      resolveOlder({ ...fs })
+      await flushPromises()
+      expect(content.getFs()).toBe(newerFs)
     }
     finally {
       scope.stop()

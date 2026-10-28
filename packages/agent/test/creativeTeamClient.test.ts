@@ -9,6 +9,21 @@ function run(): CreativeTeamRun {
 }
 
 describe('managed creative team client', () => {
+  it('reads an atomic source state without writes and rejects invalid or cross-account state', async () => {
+    const projectRevision = `sha256:${'a'.repeat(64)}`
+    const fetch = vi.fn<typeof globalThis.fetch>(async () => new Response(JSON.stringify({ protocolVersion: 1, run: run(), projectRevision })))
+    const client = new ManagedCreativeTeamClient({ baseUrl: 'https://runtime.example', accountId: 'account1', getAccessToken: () => 'session-token', fetch })
+    expect(await client.getSourceState(project.id, 'run1')).toMatchObject({ projectRevision, run: { id: 'run1' } })
+    expect(fetch.mock.calls[0]![0]).toContain('/runs/run1/source-state?projectId=')
+    expect(fetch.mock.calls[0]![1]).toMatchObject({ method: 'GET' })
+    expect(fetch.mock.calls[0]![1]!.body).toBeUndefined()
+    fetch.mockResolvedValueOnce(new Response(JSON.stringify({ protocolVersion: 1, run: run(), projectRevision: 'invented' })))
+    await expect(client.getSourceState(project.id, 'run1')).rejects.toThrow()
+    fetch.mockResolvedValueOnce(new Response(JSON.stringify({ protocolVersion: 1, run: { ...run(), accountId: 'another' }, projectRevision })))
+    await expect(client.getSourceState(project.id, 'run1')).rejects.toThrow()
+    expect(fetch).toHaveBeenCalledTimes(3)
+  })
+
   it('recovers with GET only and sends explicit decisions with the supplied stable intent', async () => {
     const fetch = vi.fn<typeof globalThis.fetch>(async () => new Response(JSON.stringify({ protocolVersion: 1, run: run() })))
     const client = new ManagedCreativeTeamClient({ baseUrl: 'https://runtime.example', accountId: 'account1', getAccessToken: () => 'session-token', fetch })

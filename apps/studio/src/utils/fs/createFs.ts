@@ -9,6 +9,7 @@
  */
 
 import type { CreateFsOptions, IFileSystem } from './types'
+import { observeStudioFileSystem } from './mutations'
 
 /** Detect if running on a Capacitor native platform (iOS/Android) */
 function isNativePlatform(): boolean {
@@ -52,26 +53,26 @@ export async function createFileSystem(options: CreateFsOptions): Promise<IFileS
   // Priority 1: Browser File System Access API (has a dirHandle)
   if (options.dirHandle) {
     const { BrowserFsAdapter } = await import('./BrowserFsAdapter')
-    return new BrowserFsAdapter(options.dirHandle)
+    return observeStudioFileSystem(new BrowserFsAdapter(options.dirHandle))
   }
 
   // Priority 2: Capacitor native platform
   if (isNativePlatform() && options.capacitorPath) {
     const { CapacitorFsAdapter } = await import('./CapacitorFsAdapter')
-    return new CapacitorFsAdapter(options.capacitorPath)
+    return observeStudioFileSystem(new CapacitorFsAdapter(options.capacitorPath))
   }
 
   // Priority 3: Native platform without explicit path → derive from projectId
   if (isNativePlatform() && options.projectId) {
     const { CapacitorFsAdapter } = await import('./CapacitorFsAdapter')
-    return new CapacitorFsAdapter(`advjs/${options.projectId}`)
+    return observeStudioFileSystem(new CapacitorFsAdapter(`advjs/${options.projectId}`))
   }
 
   // Priority 4: Memory fallback (Safari, Firefox, other browsers)
   const { MemoryFsAdapter } = await import('./MemoryFsAdapter')
   const memFs = new MemoryFsAdapter(options.projectId ?? '_default_')
   await memFs.init()
-  return memFs
+  return observeStudioFileSystem(memFs)
 }
 
 /**

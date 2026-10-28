@@ -1,10 +1,11 @@
 import type { CreativeArtifact, CreativePartnerOutput, CreativePlaytestReport, CreativeTeamRun } from '@advjs/agent'
 import { assertCreativePlaytestNarrativeSource, computeAgentProjectRevision, createCreativeTeamRun, creativeMediaCanonical, creativeMilestoneChanges, creativeOutputFileChanges, creativePlaytestCandidateFiles, ManagedCreativeTeamClient, nextCreativeTeamTask, overlayCreativeChanges, parseCreativeCandidateEditRequest, parseCreativeDeliveryRequest, parseCreativeMilestoneCommand, parseCreativePartnerOutput, parseCreativePlaytestReport, parseCreativeProject, parseCreativeTeamPublicDecision, parseCreativeTeamRun, prepareCreativeCandidateEdit, prepareCreativeDirectorSummaryEvidence, prepareCreativeMilestone, prepareCreativePlaytestRepair, reduceCreativeTeamRun, requiredCreativeReviewCapabilities } from '@advjs/agent'
 import { IonApp, IonContent, IonHeader, IonicVue, IonPage, IonTitle, IonToolbar } from '@ionic/vue'
+import { createRouter as createIonicRouter } from '@ionic/vue-router'
 import { createPinia, setActivePinia } from 'pinia'
 import { createApp, defineComponent, h } from 'vue'
 import { createI18n } from 'vue-i18n'
-import { createMemoryHistory, createRouter } from 'vue-router'
+import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
 import frozenProject from '../../../../../packages/agent/test/fixtures/creative-team/v2/project.json'
 import CreativeTeamWorkspace from '../../../src/components/creative-team/CreativeTeamWorkspace.vue'
 import { useProjectContent } from '../../../src/composables/useProjectContent'
@@ -26,9 +27,10 @@ async function main() {
   const summaryMode = new URL(location.href).searchParams.get('case') === 'director-summary'
   const narrativeMode = new URL(location.href).searchParams.get('case') === 'narrative-review'
   const sourceMode = new URL(location.href).searchParams.get('case') === 'source-text'
+  const sourceSyncMode = new URL(location.href).searchParams.get('case') === 'source-sync'
   const oldService = new URL(location.href).searchParams.get('legacyService') === 'old'
   const accountId = 'ui-fixture-author'
-  const projectId = sourceMode ? 'creative-ui-source-text-fixture' : summaryMode ? 'creative-ui-director-summary-fixture' : narrativeMode ? 'creative-ui-narrative-review-fixture' : 'creative-ui-fixture'
+  const projectId = sourceSyncMode ? 'creative-ui-source-sync-fixture' : sourceMode ? 'creative-ui-source-text-fixture' : summaryMode ? 'creative-ui-director-summary-fixture' : narrativeMode ? 'creative-ui-narrative-review-fixture' : 'creative-ui-fixture'
   const pinia = createPinia()
   setActivePinia(pinia)
   const fs = new MemoryFsAdapter(projectId)
@@ -48,8 +50,9 @@ async function main() {
   const calls: string[] = []
   let loseMilestoneResponse: 'prepare' | 'confirm' | undefined
   let loseEditResponse = false
+  let loseFactsResponse = false
   const editRequests: { key: string, requestFingerprint: string }[] = []
-  const cacheKey = `creative-team-authoring-ui-fixture${sourceMode ? '-source' : summaryMode ? '-director' : narrativeMode ? '-narrative' : ''}`
+  const cacheKey = `creative-team-authoring-ui-fixture${sourceSyncMode ? '-source-sync' : sourceMode ? '-source' : summaryMode ? '-director' : narrativeMode ? '-narrative' : ''}`
   const summaryHandoffs: unknown[] = []
   const repairHandoffs: unknown[] = []
   const playtestSources: Record<string, unknown> = JSON.parse(localStorage.getItem(`${cacheKey}-playtest-sources`) || '{}')
@@ -200,7 +203,7 @@ async function main() {
     let value: unknown
     try {
       if (url.pathname.endsWith('/capabilities')) {
-        value = { protocolVersion: 1, enabled: true, serviceVersion: 'UI fixture; no model calls', authoring: { candidateEdits: true, ...(sourceMode && !oldService ? { rawTextEdits: true } : {}), milestoneAdoption: true, playtestReports: true, playtestRepair: true, playtestNarrativeReview: narrativeMode, delivery: summaryMode }, capabilities: ['playtest-project', 'design-characters', 'write-chapters', 'generate-outline', 'generate-chapter-draft', ...(summaryMode ? ['summarize-production'] : [])], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } }
+        value = { protocolVersion: 1, enabled: true, serviceVersion: 'UI fixture; no model calls', authoring: { candidateEdits: true, ...(sourceSyncMode && !oldService ? { sourceSync: true } : {}), ...(sourceMode && !oldService ? { rawTextEdits: true } : {}), milestoneAdoption: true, playtestReports: true, playtestRepair: true, playtestNarrativeReview: narrativeMode, delivery: summaryMode }, capabilities: ['playtest-project', 'design-characters', 'write-chapters', 'generate-outline', 'generate-chapter-draft', ...(summaryMode ? ['summarize-production'] : [])], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } }
       }
       else if (method === 'GET' && url.pathname.endsWith('/runs')) {
         value = { protocolVersion: 1, items: [{ id: run.id, projectId, goal: run.plan.goal, status: run.status, revision: run.revision, chargedMicroPoints: 0, reservedMicroPoints: 0, updatedAt: run.updatedAt }] }
@@ -210,6 +213,9 @@ async function main() {
         if (!report)
           return new Response('{}', { status: 404 })
         value = { protocolVersion: 1, report }
+      }
+      else if (method === 'GET' && url.pathname.endsWith('/source-state')) {
+        value = { protocolVersion: 1, run, projectRevision: facts.revision }
       }
       else if (method === 'GET') {
         value = { protocolVersion: 1, run }
@@ -267,6 +273,11 @@ async function main() {
         const project = parseCreativeProject(body)
         facts = { revision: project.revision, files: { ...project.files } }
         act({ type: 'refresh-facts', files: facts.files })
+        if (loseFactsResponse) {
+          loseFactsResponse = false
+          persist()
+          return new Response(JSON.stringify({ error: { code: 'service_unavailable', message: 'Explicit fixture: facts response lost after durable write' } }), { status: 503 })
+        }
         value = { protocolVersion: 1, run }
       }
       else if (url.pathname.endsWith('/candidate-edits')) {
@@ -327,16 +338,33 @@ async function main() {
   await useStudioStore().switchProject({ projectId, name: '候选编辑 UI fixture', source: 'local', lastOpened: Date.now() })
   const store = useCreativeTeamStore()
   store.configure({ accountId, projectId, client })
-  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/:pathMatch(.*)*', component: { render: () => null } }] })
+  const router = (sourceSyncMode ? createIonicRouter : createRouter)({ history: createMemoryHistory(), routes: [{ path: '/:pathMatch(.*)*', component: { render: () => null } }] })
   await router.push('/')
   const Host = defineComponent({
-    setup: () => () => h(IonApp, {}, () => h(IonPage, {}, () => [
-      h(IonHeader, {}, () => h(IonToolbar, {}, () => h(IonTitle, {}, () => '本地 UI fixture · 未调用模型／未扣点'))),
-      h(IonContent, {}, () => [h('p', { role: 'note', style: 'padding:16px;background:var(--adv-accent-subtle);margin:0' }, '仅验证界面与创作协议，不作为六角色真实交付。'), h(CreativeTeamWorkspace)]),
-    ])),
+    setup: () => () => {
+      const page = h(IonPage, {}, () => [
+        h(IonHeader, {}, () => h(IonToolbar, {}, () => h(IonTitle, {}, () => '本地 UI fixture · 未调用模型／未扣点'))),
+        h(IonContent, {}, () => [h('p', { role: 'note', style: 'padding:16px;background:var(--adv-accent-subtle);margin:0' }, '仅验证界面与创作协议，不作为六角色真实交付。'), h(CreativeTeamWorkspace)]),
+      ])
+      return sourceSyncMode ? page : h(IonApp, {}, () => page)
+    },
   })
-  const app = createApp(Host)
-  app.use(pinia).use(IonicVue, { mode: 'ios', animated: false }).use(router).use(createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { creativeTeam: creativeTeamMessages['zh-CN'] } } }))
+  if (sourceSyncMode) {
+    router.addRoute({ path: '/', component: Host })
+    router.addRoute({ path: '/editor', component: () => import('../../../src/views/EditorPage.vue') })
+    await router.replace('/')
+  }
+  const app = createApp(sourceSyncMode
+    ? defineComponent({ setup: () => () => h(IonApp, {}, () => [
+        h(RouterView),
+        h('nav', { 'style': 'position:fixed;bottom:0;right:0;z-index:10000;background:white;padding:4px', 'aria-label': '本地 fixture 导航' }, [
+          h('button', { onClick: () => router.push({ path: '/editor', query: { file: 'adv/chapters/station.adv.md' } }) }, '普通章节编辑器'),
+          h('button', { onClick: () => router.push('/') }, '返回制作组 fixture'),
+        ]),
+      ]) })
+    : Host)
+  const i18n = sourceSyncMode ? (await import('../../../src/i18n')).default : createI18n({ legacy: false, locale: 'zh-CN', messages: { 'zh-CN': { creativeTeam: creativeTeamMessages['zh-CN'] } } })
+  app.use(pinia).use(IonicVue, { mode: 'ios', animated: false }).use(router).use(i18n)
   app.mount('#app')
   await store.refresh()
   const content = app.runWithContext(() => useProjectContent())
@@ -356,6 +384,7 @@ async function main() {
     },
     loseMilestoneResponse: (phase: 'prepare' | 'confirm') => loseMilestoneResponse = phase,
     loseEditResponse: () => loseEditResponse = true,
+    loseFactsResponse: () => loseFactsResponse = true,
     editRequests: () => structuredClone(editRequests),
     files: async () => {
       await content.whenReady()

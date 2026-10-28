@@ -1,5 +1,6 @@
 export const creativeTeamMessages = {
   'zh-CN': {
+    sourceSync: { checking: '正在核对已保存的项目来源，暂缓选定、采用与生成。', failed: '来源核对未完成。草稿与历史保留，请重试后再继续。', deferred: '先处理下方待恢复的项目写入，再核对来源；不会上传中间状态。', retry: '重新核对来源' },
     directorSummary: {
       request: '生成导演交付建议',
       requestHint: '先审阅前面的成果、采用与试玩记录，再明确请求导演汇总。此操作按本次剩余预算执行模型任务，不会写入项目或结束制作组。',
@@ -438,6 +439,7 @@ export const creativeTeamMessages = {
     oldTask: '账号已有托管任务，完成或停止后再发起新的制作组任务。',
   },
   'en': {
+    sourceSync: { checking: 'Checking saved project sources before selection, adoption or generation.', failed: 'Source checking did not finish. Drafts and history remain. Retry before continuing.', deferred: 'Resolve the pending project write below before checking sources. Partial files will not be uploaded.', retry: 'Check sources again' },
     directorSummary: {
       request: 'Request director delivery advice',
       requestHint: 'Review preceding results, adoption and actual playtests first. This explicit request runs a model task within the remaining budget; it does not write the project or finish the team.',

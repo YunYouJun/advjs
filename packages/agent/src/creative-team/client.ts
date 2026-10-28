@@ -16,7 +16,9 @@ import { parseCreativeTeamRun, parseCreativeTeamRunSummary } from './responses'
 import { parseCreativeProject, parseCreativeTeamAvailability, parseCreativeTeamPublicDecision, parseCreativeTeamStartRequest } from './wire'
 
 export type CreativeTeamDecisionInput = CreativeTeamPublicDecision extends infer T ? T extends CreativeTeamPublicDecision ? Omit<T, 'decisionId'> : never : never
+export interface CreativeTeamSourceState { run: CreativeTeamRun, projectRevision: string }
 export interface CreativeTeamClient {
+  getSourceState?: (projectId: string, runId: string) => Promise<CreativeTeamSourceState>
   availability: () => Promise<CreativeTeamAvailability>
   list: (projectId: string) => Promise<readonly CreativeTeamRunSummary[]>
   get: (projectId: string, runId: string) => Promise<CreativeTeamRun>
@@ -79,6 +81,15 @@ export class ManagedCreativeTeamClient implements CreativeTeamClient {
 
   get(projectId: string, runId: string): Promise<CreativeTeamRun> {
     return this.#transport.requestRaw(this.#path(projectId, runId), value => this.#parse(value, projectId, runId))
+  }
+
+  getSourceState(projectId: string, runId: string): Promise<CreativeTeamSourceState> {
+    return this.#transport.requestRaw(this.#path(projectId, runId, '/source-state'), (value) => {
+      const source = envelope(value)
+      if (typeof source.projectRevision !== 'string' || !/^sha256:[a-f0-9]{64}$/.test(source.projectRevision))
+        throw new TypeError('Invalid creative source state')
+      return { run: this.#parse(value, projectId, runId), projectRevision: source.projectRevision }
+    })
   }
 
   start(request: CreativeTeamStartRequest, idempotencyKey: string): Promise<CreativeTeamRun> {

@@ -401,6 +401,82 @@ test('keeps legacy source candidates read-only when an older service omits raw t
   expect(await page.evaluate(() => (window as any).creativeAuthorFixture.files())).toEqual(before)
 })
 
+test('reconciles a save from the actual file editor on returning to the team and reopens unchanged sources without POST', async ({ page }, info) => {
+  await page.goto('/tests/fixtures/creative-team/authoring.html?case=source-sync')
+  await expect(page).toHaveTitle('Creative candidate UI fixture')
+  await expect(page.getByRole('heading', { name: '候选编辑 UI fixture', exact: true })).toBeVisible()
+  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeAuthorFixture))).toBe(true)
+  await expect(page.getByText('正在核对已保存的项目来源，暂缓选定、采用与生成。', { exact: true })).toHaveCount(0)
+  const calls = () => page.evaluate(() => (window as any).creativeAuthorFixture.calls()) as Promise<string[]>
+  expect((await calls()).filter(call => call.startsWith('POST'))).toEqual([])
+  await page.locator('.team-artifact').filter({ hasText: '本地 fixture 人物初稿' }).getByRole('button', { name: '选定候选并继续', exact: true }).click()
+  await page.locator('.team-artifact').filter({ hasText: '本地 fixture 章节初稿' }).getByRole('button', { name: '选定候选并继续', exact: true }).click()
+  await expect.poll(() => page.evaluate(() => (window as any).creativeAuthorFixture.run().artifacts.find((item: any) => item.taskId === 'script')?.status)).toBe('selected')
+  const before = await page.evaluate(() => (window as any).creativeAuthorFixture.files())
+  const previousCalls = await calls()
+  await page.getByRole('button', { name: '普通章节编辑器', exact: true }).click()
+  const editor = page.locator('.editor-textarea')
+  await expect(editor).toBeVisible()
+  const source = before['adv/chapters/station.adv.md'].replace('你在等谁？', '普通编辑器保存的新对白。')
+  await editor.fill(source)
+  await page.getByRole('button', { name: '保存', exact: true }).click()
+  await expect.poll(() => page.evaluate(async () => (await (window as any).creativeAuthorFixture.files())['adv/chapters/station.adv.md'])).toBe(source)
+  await page.getByRole('button', { name: '返回制作组 fixture', exact: true }).click()
+  await expect.poll(() => page.evaluate(() => (window as any).creativeAuthorFixture.run().artifacts.every((item: any) => item.status === 'stale'))).toBe(true)
+  await expect(page.getByText('正在核对已保存的项目来源，暂缓选定、采用与生成。', { exact: true })).toHaveCount(0)
+  const delta = (await calls()).slice(previousCalls.length)
+  expect(delta.filter(call => call.startsWith('POST'))).toEqual(['POST /ai/v2/apps/advjs-studio-web/creative-team/runs/ui_fixture_run/facts'])
+  await expect(page.getByRole('button', { name: '选定候选并继续', exact: true })).toHaveCount(0)
+  const after = await page.evaluate(() => (window as any).creativeAuthorFixture.files())
+  expect(after).toEqual({ ...before, 'adv/chapters/station.adv.md': source })
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await page.locator('.team-artifact').first().evaluate(element => element.scrollIntoView({ block: 'start' }))
+    await page.screenshot({ path: info.outputPath(`source-sync-stale-${width}.png`), animations: 'disabled' })
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  }
+  await page.reload()
+  await expect(page.getByRole('heading', { name: '候选编辑 UI fixture', exact: true })).toBeVisible()
+  await expect.poll(() => page.evaluate(() => (window as any).creativeAuthorFixture.calls().some((call: string) => call.includes('/source-state')))).toBe(true)
+  await expect(page.getByText('正在核对已保存的项目来源，暂缓选定、采用与生成。', { exact: true })).toHaveCount(0)
+  expect((await calls()).filter(call => call.startsWith('POST'))).toEqual([])
+  expect(await page.evaluate(() => (window as any).creativeAuthorFixture.files())).toEqual(after)
+  await expect(page.locator('vite-error-overlay')).toHaveCount(0)
+  await writeFile(info.outputPath('source-sync-editor-evidence.json'), JSON.stringify({ scope: 'Actual EditorPage file save, filesystem capture/flush, source client, shared invalidation and IndexedDB reload. Explicit auth/model/HTTP service fixture; no model or billing claim.', before, after, delta, run: await page.evaluate(() => (window as any).creativeAuthorFixture.run()) }, null, 2))
+})
+
+test('keeps source uncertainty blocked, allows cancellation and recovers a lost facts response through a read', async ({ page }, info) => {
+  await page.goto('/tests/fixtures/creative-team/authoring.html?case=source-sync')
+  await expect(page.getByRole('heading', { name: '候选编辑 UI fixture', exact: true })).toBeVisible()
+  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeAuthorFixture))).toBe(true)
+  await expect(page.getByText('正在核对已保存的项目来源，暂缓选定、采用与生成。', { exact: true })).toHaveCount(0)
+  const before = await page.evaluate(() => (window as any).creativeAuthorFixture.files())
+  await page.evaluate(async () => {
+    const fixture = (window as any).creativeAuthorFixture
+    fixture.loseFactsResponse()
+    await fixture.editSource('adv/world.md', '# 作者保存的新世界\n')
+  })
+  const warning = page.getByText('来源核对未完成。草稿与历史保留，请重试后再继续。', { exact: true })
+  await expect(warning).toBeVisible()
+  await expect(page.getByRole('button', { name: '选定候选并继续', exact: true })).toBeDisabled()
+  await expect(page.getByRole('button', { name: '停止后续任务', exact: true })).toBeEnabled()
+  const calls = await page.evaluate(() => (window as any).creativeAuthorFixture.calls()) as string[]
+  const factsCalls = calls.filter(call => call.startsWith('POST') && call.endsWith('/facts'))
+  expect(factsCalls).toHaveLength(1)
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await warning.scrollIntoViewIfNeeded()
+    await page.screenshot({ path: info.outputPath(`source-sync-failed-${width}.png`), animations: 'disabled' })
+  }
+  await page.getByRole('button', { name: '重新核对来源', exact: true }).click()
+  await expect(warning).toHaveCount(0)
+  await expect.poll(() => page.evaluate(() => (window as any).creativeAuthorFixture.run().artifacts[0].status)).toBe('stale')
+  const recovered = await page.evaluate(() => (window as any).creativeAuthorFixture.calls()) as string[]
+  expect(recovered.filter(call => call.startsWith('POST'))).toEqual(factsCalls)
+  expect(await page.evaluate(() => (window as any).creativeAuthorFixture.files())).toEqual({ ...before, 'adv/world.md': '# 作者保存的新世界\n' })
+  await writeFile(info.outputPath('source-sync-recovery-evidence.json'), JSON.stringify({ scope: 'Actual file observer and scoped source reconciliation, explicit transport failure after facts persistence. Retry reads existing state without another POST; cancellation remains available.', calls, recovered }, null, 2))
+})
+
 test('imports a real character image, reviews the catalog and renders the adopted bytes in the product player after reopen', async ({ page }, info) => {
   const errors: string[] = []
   const warnings: string[] = []
@@ -749,6 +825,7 @@ test('reviews director advice from actual saved paths, reopens it without genera
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   }
   await card.getByRole('button', { name: '选定候选并继续', exact: true }).click()
+  await expect.poll(() => page.evaluate(() => (window as any).creativeAuthorFixture.run().tasks.find((item: any) => item.taskId === 'delivery')?.status)).toBe('completed')
   const selected = await page.evaluate(() => (window as any).creativeAuthorFixture.run())
   expect(selected.status).toBe('awaiting_review')
   expect(selected.delivery).toBeUndefined()

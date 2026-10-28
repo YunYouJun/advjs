@@ -196,6 +196,40 @@ export const useCreativeTeamStore = defineStore('creative-team', () => {
     await mutate(current => current.client.refreshFacts(project, runId, crypto.randomUUID()))
   }
 
+  /** Free source reconciliation; cancellation may proceed while this network request is pending. */
+  async function checkSource(project: CreativeTeamStartRequest['project'], isCurrent: () => boolean = () => true): Promise<'current' | 'deferred' | 'historical' | 'failed' | 'unsupported'> {
+    const runId = run.value?.id
+    if (!connection || !runId || project.id !== connection.projectId || !availability.value?.authoring?.sourceSync || !connection.client.getSourceState)
+      return 'unsupported'
+    const current = connection
+    const epoch = generation
+    const selected = selection
+    const stillCurrent = () => current === connection && epoch === generation && selected === selection && run.value?.id === runId && isCurrent()
+    try {
+      const source = await current.client.getSourceState!(current.projectId, runId)
+      if (!stillCurrent())
+        return 'failed'
+      let result: 'current' | 'deferred' | 'historical' = 'current'
+      let next = source.run
+      if (source.run.status === 'completed')
+        result = 'historical'
+      else if (source.run.milestones?.some(item => item.status === 'prepared'))
+        result = 'deferred'
+      else if (source.projectRevision !== project.revision)
+        next = await current.client.refreshFacts(project, runId, crypto.randomUUID())
+      if (!stillCurrent())
+        return 'failed'
+      update(next)
+      error.value = undefined
+      return result
+    }
+    catch (cause) {
+      if (stillCurrent())
+        error.value = failure(cause)
+      return 'failed'
+    }
+  }
+
   async function editCandidate(request: CreativeCandidateEditRequest, project: CreativeTeamStartRequest['project']): Promise<boolean> {
     const runId = run.value?.id
     const before = connection
@@ -265,5 +299,5 @@ export const useCreativeTeamStore = defineStore('creative-team', () => {
     return epoch === generation && run.value?.id === runId ? report : undefined
   }
 
-  return { availability, runs, run, loading, mutating, error, connected, canStart, needsPolling, configure, disconnect, refresh, open, start, decide, finish, refreshFacts, editCandidate, registerMediaCandidate, milestoneCoordinator, performMilestone, recordPlaytest, getPlaytest, requestPlaytestRepair }
+  return { availability, runs, run, loading, mutating, error, connected, canStart, needsPolling, configure, disconnect, refresh, open, start, decide, finish, refreshFacts, checkSource, editCandidate, registerMediaCandidate, milestoneCoordinator, performMilestone, recordPlaytest, getPlaytest, requestPlaytestRepair }
 })

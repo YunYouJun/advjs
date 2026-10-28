@@ -7,7 +7,7 @@ import SButton from '../ui/SButton.vue'
 import CreativeTaskRework from './CreativeTaskRework.vue'
 import CreativeTeamArtifactCard from './CreativeTeamArtifactCard.vue'
 
-const props = defineProps<{ run: CreativeTeamRun, busy: boolean, enabled: boolean, authorEditsAvailable: boolean, rawTextEditsAvailable?: boolean, voiceEditsAvailable?: boolean, directorSummaryAvailable?: boolean, savedEditArtifactId?: string, knownCharacterIds?: readonly string[] }>()
+const props = defineProps<{ run: CreativeTeamRun, busy: boolean, sourceBusy?: boolean, enabled: boolean, authorEditsAvailable: boolean, rawTextEditsAvailable?: boolean, voiceEditsAvailable?: boolean, directorSummaryAvailable?: boolean, savedEditArtifactId?: string, knownCharacterIds?: readonly string[] }>()
 defineEmits<{ decide: [decision: CreativeTeamDecisionInput], syncFacts: [], edit: [request: CreativeCandidateEditRequest] }>()
 const { t, locale } = useI18n()
 const active = computed(() => props.run.tasks.some(task => ['running', 'reconcile_required'].includes(task.status)))
@@ -59,7 +59,7 @@ function points(value: number) {
     </p>
     <div v-if="run.status === 'awaiting_plan_review'" class="team-run__approval">
       <p>{{ t('creativeTeam.approveHint') }}</p>
-      <SButton size="lg" :disabled="!enabled" :loading="busy" @click="$emit('decide', { type: 'approve-plan' })">
+      <SButton size="lg" :disabled="!enabled || sourceBusy" :loading="busy" @click="$emit('decide', { type: 'approve-plan' })">
         {{ t('creativeTeam.approve') }}
       </SButton>
     </div>
@@ -84,11 +84,11 @@ function points(value: number) {
           <p class="team-run__hint">
             {{ t(directorSummaryAvailable ? 'creativeTeam.directorSummary.requestHint' : 'creativeTeam.directorSummary.unavailable') }}
           </p>
-          <SButton v-if="task.canRequestSummary" size="lg" variant="outline" :loading="busy" @click="$emit('decide', { type: 'request-rework', taskId: task.id, reason: t('creativeTeam.directorSummary.requestReason') })">
+          <SButton v-if="task.canRequestSummary" size="lg" variant="outline" :loading="busy || sourceBusy" @click="$emit('decide', { type: 'request-rework', taskId: task.id, reason: t('creativeTeam.directorSummary.requestReason') })">
             {{ t('creativeTeam.directorSummary.request') }}
           </SButton>
         </template>
-        <CreativeTaskRework v-if="task.canRework" :task-id="task.id" :busy="busy" :attempt="task.state.attempt" :maximum="1 + run.plan.limits.maxReworkRounds" @request="$emit('decide', $event)" />
+        <CreativeTaskRework v-if="task.canRework" :task-id="task.id" :busy="busy || Boolean(sourceBusy)" :attempt="task.state.attempt" :maximum="1 + run.plan.limits.maxReworkRounds" @request="$emit('decide', $event)" />
         <p v-else-if="task.reworkExhausted" class="team-run__hint" role="status">
           {{ t('creativeTeam.reworkExhausted') }}
         </p>
@@ -98,9 +98,9 @@ function points(value: number) {
     <p v-if="!artifacts.length" class="team-run__hint">
       {{ t('creativeTeam.noArtifacts') }}
     </p>
-    <CreativeTeamArtifactCard v-for="item in artifacts" :key="item.artifact.id" v-bind="item" :busy="busy" :known-character-ids="knownCharacterIds" @decide="$emit('decide', $event)" @edit="$emit('edit', $event)" />
+    <CreativeTeamArtifactCard v-for="item in artifacts" :key="item.artifact.id" v-bind="item" :busy="busy || Boolean(sourceBusy)" :known-character-ids="knownCharacterIds" @decide="$emit('decide', $event)" @edit="$emit('edit', $event)" />
     <div class="team-run__tools">
-      <SButton size="lg" variant="outline" :loading="busy" :disabled="!enabled" @click="$emit('syncFacts')">
+      <SButton size="lg" variant="outline" :loading="busy" :disabled="!enabled || sourceBusy" @click="$emit('syncFacts')">
         {{ t('creativeTeam.syncFacts') }}
       </SButton>
       <SButton v-if="!['cancelled', 'completed', 'cancel_requested'].includes(run.status)" size="lg" variant="ghost" :loading="busy" @click="$emit('decide', { type: 'cancel', reason: t('creativeTeam.cancelReason') })">

@@ -10,11 +10,12 @@ import {
   projectSceneEntry,
 } from '@advjs/core'
 import { parseAudioMd, parseCharacterMd, parseLocationMd, parseSceneMd } from '@advjs/parser'
-import { nextTick, ref, watch } from 'vue'
+import { nextTick, ref, shallowRef, watch } from 'vue'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { downloadFromCloud, listCloudFiles } from '../utils/cloudSync'
 import { AUDIO_EXTENSIONS, createFsForProject } from '../utils/fs'
+import { observeStudioFileSystem } from '../utils/fs/mutations'
 import { loadStudioAssetCatalog } from '../utils/projectAssets'
 import { discoverRuntimeChapterFiles } from '../utils/projectRuntimeFiles'
 import { useKnowledgeBase } from './useKnowledgeBase'
@@ -88,12 +89,13 @@ const isLoading = ref(false)
 const loadErrors = ref<string[]>([])
 
 // Closure variables for reload
-let lastFs: IFileSystem | null = null
+const lastFs = shallowRef<IFileSystem | null>(null)
 let lastCosConfig: { bucket: string, region: string, secretId: string, secretKey: string } | null = null
 let lastCosPrefix: string | null = null
 let currentLoad: Promise<void> = Promise.resolve()
 
 let watchInitialized = false
+let loadGeneration = 0
 
 /**
  * Composable for loading project content (chapters, characters, scenes, knowledge).
@@ -108,7 +110,7 @@ export function useProjectContent() {
    * Load project content from an IFileSystem instance
    */
   async function loadFromFs(fs: IFileSystem) {
-    lastFs = fs
+    lastFs.value = observeStudioFileSystem(fs)
     lastCosConfig = null
     lastCosPrefix = null
 
@@ -255,7 +257,7 @@ export function useProjectContent() {
   async function loadFromCos(cosConfig: { bucket: string, region: string, secretId: string, secretKey: string }, prefix: string) {
     lastCosConfig = cosConfig
     lastCosPrefix = prefix
-    lastFs = null
+    lastFs.value = null
 
     isLoading.value = true
     loadErrors.value = []
@@ -423,8 +425,8 @@ export function useProjectContent() {
    * Reload content from the last-used source
    */
   async function reload() {
-    if (lastFs) {
-      await loadFromFs(lastFs)
+    if (lastFs.value) {
+      await loadFromFs(lastFs.value)
     }
     else if (lastCosConfig && lastCosPrefix) {
       await loadFromCos(lastCosConfig, lastCosPrefix)
@@ -435,7 +437,7 @@ export function useProjectContent() {
    * Get the current IFileSystem instance (for file saving / reading)
    */
   function getFs(): IFileSystem | null {
-    return lastFs
+    return lastFs.value
   }
 
   /** Read-only view of the canonical catalog for overview counts and previews. */
@@ -460,7 +462,7 @@ export function useProjectContent() {
     stats.value = { chapters: 0, characters: 0, scenes: 0, locations: 0, knowledge: 0, audios: 0 }
     isLoading.value = false
     loadErrors.value = []
-    lastFs = null
+    lastFs.value = null
     lastCosConfig = null
     lastCosPrefix = null
     knowledgeBase.$reset()
@@ -472,6 +474,7 @@ export function useProjectContent() {
     const settingsStore = useSettingsStore()
 
     watch(() => studioStore.currentProject, (project) => {
+      const generation = ++loadGeneration
       currentLoad = (async () => {
         if (!project) {
           $reset()
@@ -487,6 +490,8 @@ export function useProjectContent() {
             projectId: project.projectId || project.name,
             source: project.source,
           })
+          if (generation !== loadGeneration)
+            return
           await loadFromFs(fs)
         }
       })()

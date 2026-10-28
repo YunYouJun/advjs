@@ -13,6 +13,15 @@ export async function runStudioProjectWrite<T>(fs: IFileSystem, operation: () =>
   return await next
 }
 
+/** Read after the whole queued transaction, including rollback, rather than between its files. */
+export async function whenStudioProjectWritesSettle(fs: IFileSystem): Promise<void> {
+  let previous: Promise<void> | undefined
+  do {
+    previous = pendingWrites.get(fs)
+    await previous?.catch(() => {})
+  } while (previous !== pendingWrites.get(fs))
+}
+
 /** Explicit first-use action; never replace an existing native or legacy catalog. */
 export async function initializeStudioAudioCatalog(fs: IFileSystem, catalogId: string) {
   const previous = pendingWrites.get(fs) ?? Promise.resolve()
