@@ -92,4 +92,13 @@ describe('evaluation runner readiness and immutable evidence', () => {
     await expect(sink.write('../escape/input.json', {})).rejects.toThrow('name')
     expect(JSON.parse(await readFile(file, 'utf8'))).toEqual({ fixture: true })
   }))
+
+  it('persists a provider invalidation independently without replacing known usage evidence', async () => temporary(async (root) => {
+    const sink = createCreativeEvaluationFileSink(root)
+    const final = await sink.write('local-01:1729:B/final.json', { consumption: { costMicroCny: 25 } })
+    const check = await sink.write('local-01:1729:B/provider-check.json', { executionOutcome: 'completed', result: { outcome: 'system', consumption: { costMicroCny: 25 } } })
+    await expect(sink.write('local-01:1729:B/provider-check.json', {})).rejects.toMatchObject({ code: 'EEXIST' })
+    expect(JSON.parse(await readFile(final, 'utf8')).consumption.costMicroCny).toBe(25)
+    expect(JSON.parse(await readFile(check, 'utf8')).result.outcome).toBe('system')
+  }))
 })

@@ -7,7 +7,7 @@ export function createCreativeEvaluationFileSink(directory: string): CreativeEva
   const root = pathToFileURL(`${directory.replace(/[\\/]$/, '')}/`)
   return {
     async write(name, value) {
-      const match = /^([\w:-]{1,160})\/(input|final|call-[1-9]\d*-(?:intent|result)|tool-[1-9]\d*)\.json$/.exec(name)
+      const match = /^([\w:-]{1,160})\/(input|final|provider-check|call-[1-9]\d*-(?:intent|result)|tool-[1-9]\d*)\.json$/.exec(name)
       if (!match)
         throw new TypeError('Invalid evaluation evidence name')
       const folder = new URL(`${encodeURIComponent(match[1])}/`, root)
