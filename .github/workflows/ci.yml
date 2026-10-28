@@ -2,6 +2,14 @@ name: ADV.JS CI
 
 on:
   workflow_dispatch:
+    inputs:
+      native-runner:
+        description: Native Apple test image (preview images may queue longer)
+        type: choice
+        default: macos-26
+        options:
+          - macos-26
+          - xcode-27
   push:
     branches:
       - dev
@@ -138,10 +146,19 @@ jobs:
     name: studio-ios (JavaScriptCore and App)
     needs: [studio-changes, studio-unit]
     if: needs.studio-changes.outputs.native == 'true'
-    runs-on: xcode-27
+    # The project supports iOS 26. Keep PRs off the capacity-limited Xcode 27
+    # preview pool; retain that image for explicit latest-platform validation.
+    runs-on: ${{ inputs.native-runner == 'xcode-27' && 'xcode-27' || 'macos-26' }}
     timeout-minutes: 60
+    env:
+      DEVELOPER_DIR: ${{ inputs.native-runner == 'xcode-27' && '/Applications/Xcode_27.1.app/Contents/Developer' || '/Applications/Xcode_26.6.app/Contents/Developer' }}
     steps:
       - uses: actions/checkout@v7
+      - name: Inspect Apple toolchain
+        run: |
+          xcodebuild -version
+          xcrun --sdk iphonesimulator --show-sdk-version
+          xcrun simctl list runtimes
       - uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
@@ -173,6 +190,7 @@ jobs:
         if: always()
         with:
           name: studio-ios
+          overwrite: true
           path: |
             apps/studio-ios/engine/dist/engine.report.json
             apps/studio-ios/engine/dist/golden/summary.json

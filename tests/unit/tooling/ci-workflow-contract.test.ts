@@ -15,7 +15,7 @@ interface WorkflowStep {
   if?: string
   run?: string
   uses?: string
-  with?: Record<string, string>
+  with?: Record<string, unknown>
 }
 
 interface WorkflowJob {
@@ -33,6 +33,9 @@ interface WorkflowJob {
 
 interface Workflow {
   on: {
+    workflow_dispatch?: {
+      inputs?: Record<string, { description?: string, type: string, default: string, options: string[] }>
+    }
     push: { branches: string[] }
     pull_request: { branches: string[] }
   }
@@ -60,7 +63,7 @@ function expectCurrentLts(job: WorkflowJob) {
   const setupNode = job.steps.find(step => step.uses?.startsWith('actions/setup-node@'))
   expect(setupNode, 'job must configure Node.js').toBeDefined()
   expect(setupNode?.uses).toBe('actions/setup-node@v7')
-  const declaredVersion = setupNode?.with?.['node-version']
+  const declaredVersion = String(setupNode?.with?.['node-version'])
   const resolvedVersion = declaredVersion?.includes('env.NODE_VERSION')
     ? job.env?.NODE_VERSION
     : declaredVersion
@@ -150,7 +153,7 @@ describe('github Actions launch baseline', () => {
     expect(studio.steps.indexOf(upload)).toBeGreaterThan(studio.steps.findIndex(step => step.run === golden))
     expect(upload.if).toBe('needs.studio-changes.outputs.native == \'true\'')
     expect(upload.with?.['if-no-files-found']).toBe('error')
-    expect(upload.with?.path.trim().split('\n')).toEqual([
+    expect(String(upload.with?.path).trim().split('\n')).toEqual([
       'apps/studio-ios/engine/dist/engine.report.json',
       'apps/studio-ios/engine/dist/golden/summary.json',
       'apps/studio-ios/Packages/StudioKit/Sources/StudioKit/EngineBundle/',
@@ -160,7 +163,7 @@ describe('github Actions launch baseline', () => {
     const native = ci.jobs['studio-ios']
     expect(native.needs).toEqual(['studio-changes', 'studio-unit'])
     expect(native.if).toBe('needs.studio-changes.outputs.native == \'true\'')
-    expect(native['runs-on']).toBe('xcode-27')
+    expect(native['runs-on']).toBe(`$${'{'}{ inputs.native-runner == 'xcode-27' && 'xcode-27' || 'macos-26' }}`)
     const download = native.steps.find(step => step.uses === 'actions/download-artifact@v8')!
     // No token, repository or run-id override: download from this workflow run.
     expect(download.with).toEqual({ name: 'studio-ios-inputs', path: 'apps/studio-ios' })
@@ -178,6 +181,25 @@ describe('github Actions launch baseline', () => {
       expect(command).toContain('-parallel-testing-enabled NO')
       expect(native.steps.indexOf(download)).toBeLessThan(native.steps.findIndex(step => step.run === command))
     }
+  })
+
+  it('uses the stable Apple pool by default while retaining explicit preview validation', () => {
+    const ci = readWorkflow('ci')
+    const native = ci.jobs['studio-ios']
+    expect(ci.on.workflow_dispatch?.inputs?.['native-runner']).toEqual({
+      description: 'Native Apple test image (preview images may queue longer)',
+      type: 'choice',
+      default: 'macos-26',
+      options: ['macos-26', 'xcode-27'],
+    })
+    expect(native.env?.DEVELOPER_DIR).toBe(`$${'{'}{ inputs.native-runner == 'xcode-27' && '/Applications/Xcode_27.1.app/Contents/Developer' || '/Applications/Xcode_26.6.app/Contents/Developer' }}`)
+    const inspection = runCommands(native).find(command => command.includes('xcodebuild -version'))!
+    expect(inspection).toContain('xcrun --sdk iphonesimulator --show-sdk-version')
+    expect(inspection).toContain('xcrun simctl list runtimes')
+    expectCommandBefore(native, inspection, 'node apps/studio-ios/scripts/simulator-destinations.mjs --boot')
+    // A retry must replace its partial result artifact without colliding with it.
+    const results = native.steps.find(step => step.with?.name === 'studio-ios')!
+    expect(results.with?.overwrite).toBe(true)
   })
 
   it('keeps Pages production builds and packed Agent installation checks', () => {

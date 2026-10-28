@@ -42,6 +42,10 @@ gh api repos/YunYouJun/advjs/rulesets --method POST --input /tmp/advjs-required-
 
 原生输入在 Linux 生成，通过 `studio-ios-inputs` artifact 传递到 macOS；仅传递平台无关的 JavaScript、JSON 和示例包，不传递 `node_modules` 或原生二进制。输入保留 7 天以支持失败作业重跑，验收结果仍保留 30 天。iOS 作业依赖输入生成成功，不跨工作流查找其他提交的产物。
 
+常规 PR 的原生检查使用 `macos-26` 和固定的 Xcode 26.6，在镜像预装的 iOS 26 模拟器上执行全部 iPhone/iPad 测试，与项目的最低系统要求一致。工作流先记录实际 Xcode、SDK 和运行时版本。需要验证 iOS 27 时，手动运行主工作流并将 `native-runner` 选择为 `xcode-27`，使用固定的 Xcode 27.1；该镜像仍属预览，GitHub 已说明可能存在[容量与排队问题](https://github.com/actions/runner-images/issues/14404)。常规检查采用稳定池，不承诺托管 runner 零排队。
+
+原生结果 artifact 保持名为 `studio-ios`，重跑时替换前一次的部分结果，避免同一次工作流的同名上传冲突；工作流日志仍可按执行尝试查看。排查耗时时，分别记录作业的 `created_at`、`started_at` 和 `completed_at`，区分等待 runner 与实际执行。
+
 构建复用不减少测试套件或平台覆盖。五项必需检查名称保持稳定；新增主工作流作业时，同时更新 `scripts/ci/launch-required.mjs` 的权威作业清单。合并作业会串行执行其中的检查，实际耗时以 GitHub Actions 新运行结果为准。
 
 ## Cloudflare PR 预览
