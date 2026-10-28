@@ -1,4 +1,4 @@
-/** Literal classes keep the supported icons in the production UnoCSS bundle. */
+/** Supported editor icon IDs and their UnoCSS classes. */
 const icons: Record<string, string> = {
   'ri:earth-line': 'i-ri-earth-line',
   'ri:refresh-line': 'i-ri-refresh-line',
@@ -18,6 +18,11 @@ const icons: Record<string, string> = {
   'ri:book-open-line': 'i-ri-book-open-line',
   'ri:group-line': 'i-ri-group-line',
 }
+const fallbackIcon = 'i-ri-layout-line'
+
+/** Retain dynamically resolved editor icons when UnoCSS scans Vue templates. */
+export const editorIconSafelist = [...Object.values(icons), fallbackIcon]
+
 export function editorIcon(id?: string) {
-  return icons[id ?? ''] ?? 'i-ri-layout-line'
+  return icons[id ?? ''] ?? fallbackIcon
 }
