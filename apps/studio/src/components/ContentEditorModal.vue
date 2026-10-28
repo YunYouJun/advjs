@@ -45,6 +45,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const collab = useCollabRoom()
 const activeTab = ref<'form' | 'markdown' | 'ai'>('form')
+const markdownOpened = ref(false)
 const localMarkdown = ref('')
 const isCollabToggling = ref(false)
 const showCreativeTeam = ref(false)
@@ -80,10 +81,13 @@ watch(() => props.markdown, v => localMarkdown.value = v)
 watch(() => props.isOpen, (open) => {
   if (open) {
     activeTab.value = 'form'
+    markdownOpened.value = false
     localMarkdown.value = props.markdown
   }
-  else if (collab.isInRoom.value) {
-    collab.leaveRoom()
+  else {
+    markdownOpened.value = false
+    if (collab.isInRoom.value)
+      collab.leaveRoom()
   }
 })
 
@@ -91,8 +95,10 @@ function handleTabChange(newTab: 'form' | 'markdown' | 'ai') {
   const oldTab = activeTab.value
   if (oldTab === 'markdown' && newTab !== 'markdown')
     emit('syncFromMarkdown', localMarkdown.value)
-  if (newTab === 'markdown' && oldTab !== 'markdown')
+  if (newTab === 'markdown' && oldTab !== 'markdown') {
+    markdownOpened.value = true
     emit('syncToMarkdown')
+  }
   activeTab.value = newTab
 }
 
@@ -225,6 +231,7 @@ function handleCreativeNavigate() {
           </IonButton>
         </div>
         <FilePreview
+          v-if="markdownOpened"
           :content="localMarkdown"
           :readonly="collab.myRole.value === 'viewer'"
           :filename="collabFilename"

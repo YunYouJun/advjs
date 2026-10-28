@@ -74,7 +74,7 @@ const characterEditor = useContentEditor<AdvCharacter>('character', () => ({
   concept: '',
   speechStyle: '',
   relationships: [],
-}))
+}), { getFs })
 const characterMarkdown = ref('')
 
 function characterToMarkdown() {
@@ -92,10 +92,20 @@ function markdownToCharacter(md: string) {
   }
 }
 
-function handleEditCharacter(character: AdvCharacter) {
+async function handleEditCharacter(character: AdvCharacter) {
   trackAccess({ id: character.id, label: character.name, type: 'character', action: 'edit', avatar: character.avatar })
-  characterEditor.openEdit(character)
-  characterMarkdown.value = stringifyCharacterMd(character)
+  if (!getFs()) {
+    characterEditor.openEdit(character)
+    characterMarkdown.value = stringifyCharacterMd(character)
+    return
+  }
+  try {
+    const data = await characterEditor.openFile(`adv/characters/${character.id}.character.md`)
+    characterMarkdown.value = stringifyCharacterMd(data)
+  }
+  catch (error) {
+    await showToast(t('contentEditor.saveFailed', { error: String(error) }), 'danger')
+  }
 }
 
 function goToChat(character: AdvCharacter) {
@@ -145,16 +155,15 @@ async function handleSaveCharacter() {
     return false
   }
 
-  const result = await saveContent(fs, 'character', characterEditor.mode.value, characterEditor.formData.value, characterEditor.originalId.value)
+  const result = await saveContent(fs, 'character', characterEditor.mode.value, characterEditor.formData.value, characterEditor.originalId.value, characterEditor.saveContext())
   if (result.success) {
-    await showToast(t('contentEditor.saveSuccess'))
-    characterEditor.onSaved()
-    characterEditor.close()
+    const complete = characterEditor.onSaved(result)
+    await showToast(t(complete ? 'contentEditor.saveSuccess' : 'contentEditor.savedWithNewerDraft'))
     await reload()
-    return true
+    return complete
   }
   else {
-    await showToast(t('contentEditor.saveFailed', { error: result.error }), 'danger')
+    await showToast(result.conflict ? t('contentEditor.formSourceChanged') : t('contentEditor.saveFailed', { error: result.error }), 'danger')
     return false
   }
 }

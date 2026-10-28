@@ -851,6 +851,8 @@
     "fixFailed": "Fix failed, please check manually"
   },
   "contentEditor": {
+    "formSourceChanged": "The source file or project changed. Your draft is kept; copy it before reopening the file to compare.",
+    "savedWithNewerDraft": "The submitted version was saved; your newer changes remain in the form.",
     "formTab": "Form",
     "aiTab": "AI Generate",
     "collabStart": "Start collaboration",

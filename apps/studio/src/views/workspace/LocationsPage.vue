@@ -71,7 +71,7 @@ const locationEditor = useContentEditor<LocationFormData>('location', () => ({
   tags: [],
   linkedScenes: [],
   linkedCharacters: [],
-}))
+}), { getFs })
 const locationMarkdown = ref('')
 
 function locationToMarkdown() {
@@ -108,15 +108,14 @@ async function handleSaveLocation() {
     return
   }
 
-  const result = await saveContent(fs, 'location', locationEditor.mode.value, locationEditor.formData.value, locationEditor.originalId.value)
+  const result = await saveContent(fs, 'location', locationEditor.mode.value, locationEditor.formData.value, locationEditor.originalId.value, locationEditor.saveContext())
   if (result.success) {
-    await showToast(t('contentEditor.saveSuccess'))
-    locationEditor.onSaved()
-    locationEditor.close()
+    const complete = locationEditor.onSaved(result)
+    await showToast(t(complete ? 'contentEditor.saveSuccess' : 'contentEditor.savedWithNewerDraft'))
     await reload()
   }
   else {
-    await showToast(t('contentEditor.saveFailed', { error: result.error }), 'danger')
+    await showToast(result.conflict ? t('contentEditor.formSourceChanged') : t('contentEditor.saveFailed', { error: result.error }), 'danger')
   }
 }
 

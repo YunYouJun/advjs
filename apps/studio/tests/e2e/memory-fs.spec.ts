@@ -70,13 +70,15 @@ test('ordinary content save reports a stale persistence failure instead of claim
   await page.evaluate(files => (window as any).memoryFsFixture.write(files), initial)
   await page.evaluate(() => (window as any).memoryFsFixture.flush())
   await open(second, 'content-save')
+  await second.evaluate(() => (window as any).memoryFsFixture.openChapter())
   await page.evaluate(path => (window as any).memoryFsFixture.write({ [path]: '# Author saved {#start}' }), chapter)
   await page.evaluate(() => (window as any).memoryFsFixture.flush())
   const result = await second.evaluate(() => (window as any).memoryFsFixture.saveChapter('Stale form draft'))
   expect(result).toMatchObject({ success: false, error: 'ADV_STUDIO_SOURCE_CONFLICT' })
   await open(page, 'content-save')
   expect(await page.evaluate(path => (window as any).memoryFsFixture.read(path), chapter)).toBe('# Author saved {#start}')
-  expect(await second.evaluate(path => (window as any).memoryFsFixture.read(path), chapter)).toContain('Stale form draft')
+  expect(await second.evaluate(() => (window as any).memoryFsFixture.chapterDraft())).toBe('Stale form draft')
+  expect(await second.evaluate(path => (window as any).memoryFsFixture.read(path), chapter)).toBe('# Author saved {#start}')
 })
 
 test('a real IndexedDB abort preserves the entire previous source/media batch and permits retry', async ({ page, context }) => {

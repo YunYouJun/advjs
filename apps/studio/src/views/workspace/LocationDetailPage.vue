@@ -81,21 +81,21 @@ const locationEditor = useContentEditor<LocationFormData>('location', () => ({
   tags: [],
   linkedScenes: [],
   linkedCharacters: [],
-}))
+}), { getFs })
 
-function openEdit() {
+async function openEdit() {
   if (!location.value)
     return
-  const data: LocationFormData = {
-    id: location.value.id || location.value.name,
-    name: location.value.name,
-    type: location.value.type || 'other',
-    description: location.value.description,
-    tags: location.value.tags,
-    linkedScenes: location.value.linkedScenes,
-    linkedCharacters: location.value.linkedCharacters,
+  if (!getFs()) {
+    locationEditor.openEdit({ id: location.value.id || location.value.name, name: location.value.name, type: location.value.type || 'other', description: location.value.description, tags: location.value.tags, linkedScenes: location.value.linkedScenes, linkedCharacters: location.value.linkedCharacters })
+    return
   }
-  locationEditor.openEdit(data)
+  try {
+    await locationEditor.openFile(location.value.file)
+  }
+  catch (error) {
+    await showToast(t('contentEditor.saveFailed', { error: String(error) }), 'danger')
+  }
 }
 
 async function handleSave() {
@@ -109,15 +109,14 @@ async function handleSave() {
     await showToast(t('contentEditor.saveFailed', { error: 'No file system' }), 'danger')
     return
   }
-  const result = await saveContent(fs, 'location', locationEditor.mode.value, locationEditor.formData.value, locationEditor.originalId.value)
+  const result = await saveContent(fs, 'location', locationEditor.mode.value, locationEditor.formData.value, locationEditor.originalId.value, locationEditor.saveContext())
   if (result.success) {
-    await showToast(t('contentEditor.saveSuccess'))
-    locationEditor.onSaved()
-    locationEditor.close()
+    const complete = locationEditor.onSaved(result)
+    await showToast(t(complete ? 'contentEditor.saveSuccess' : 'contentEditor.savedWithNewerDraft'))
     await reload()
   }
   else {
-    await showToast(t('contentEditor.saveFailed', { error: result.error }), 'danger')
+    await showToast(result.conflict ? t('contentEditor.formSourceChanged') : t('contentEditor.saveFailed', { error: result.error }), 'danger')
   }
 }
 
@@ -133,7 +132,7 @@ function goToCharacter(characterId: string) {
 <template>
   <LayoutPage :title="location?.name || locationId" show-back-button default-href="/tabs/workspace/locations">
     <template #end>
-      <IonButton fill="clear" @click="openEdit">
+      <IonButton fill="clear" :aria-label="t('locations.editLocation')" @click="openEdit">
         <IonIcon :icon="createOutline" />
       </IonButton>
     </template>

@@ -1,255 +1,165 @@
 import type { ChapterFormData, LocationFormData, SceneFormData } from '@advjs/parser'
 import type { AdvCharacter, AdvTachie } from '@advjs/types'
 import type { IFileSystem } from '../utils/fs'
+import type { StudioNativeMedia } from '../utils/nativeProjectMutation'
+import type { StudioContentSource } from '../utils/projectContentMutation'
 import type { ContentType, EditorMode } from './useContentEditor'
 import { stringifyChapterMd, stringifyCharacterMd, stringifyLocationMd, stringifySceneMd } from '@advjs/parser'
 import { ref } from 'vue'
+import { commitStudioProjectFiles } from '../utils/nativeProjectMutation'
+import { isStudioContentConflict } from '../utils/projectContentMutation'
+import { whenStudioProjectWritesSettle } from '../utils/projectWriteQueue'
 
-const DATA_URI_RE = /^data:image\/(\w+);base64,/
-const SAFE_NAME_RE = /[^\w-]/g
-
+export interface ContentSaveContext {
+  source?: StudioContentSource
+  assertCurrent?: () => void
+  session?: object
+}
 export interface SaveResult {
   success: boolean
   filePath?: string
   error?: string
+  conflict?: boolean
+  source?: StudioContentSource
+  submittedData?: string
+  savedId?: string
+  session?: object
 }
 
-/**
- * Check if a file exists via IFileSystem
- */
-async function fileExists(fs: IFileSystem, path: string): Promise<boolean> {
-  return fs.exists(path)
-}
+const DATA_URI_RE = /^data:(image\/([a-z0-9.+-]+));base64,/i
+const ID_RE = /^[\w-]+$/
 
-/**
- * Current file content when editing, so fields and body text the form does
- * not manage survive the save. Unreadable files fall back to a fresh write.
- */
-async function editSource(fs: IFileSystem, mode: EditorMode, path: string): Promise<string | undefined> {
-  if (mode !== 'edit')
-    return undefined
-  try {
-    return await fs.exists(path) ? await fs.readFile(path) : undefined
+function targetPath(type: ContentType, id: string) {
+  const name = type === 'chapter' ? id.replace(/\.adv\.md$/, '') : id
+  if (!ID_RE.test(name))
+    throw new Error('ADV_STUDIO_CONTENT_PATH_INVALID')
+  switch (type) {
+    case 'character': return `adv/characters/${name}.character.md`
+    case 'scene': return `adv/scenes/${name}.md`
+    case 'location': return `adv/locations/${name}.md`
+    case 'chapter': return `adv/chapters/${name}.adv.md`
+    default: throw new Error('ADV_STUDIO_CONTENT_TYPE_INVALID')
   }
-  catch {
-    return undefined
+}
+async function files(fs: IFileSystem) {
+  return Object.fromEntries((await fs.collectAllFiles()).map(file => [file.path, file.content]))
+}
+async function assertFiles(fs: IFileSystem, expected: Record<string, string>) {
+  const actual = await files(fs)
+  if (Object.keys(actual).length !== Object.keys(expected).length || Object.entries(expected).some(([path, content]) => actual[path] !== content))
+    throw new Error('ADV_STUDIO_SOURCE_CONFLICT')
+}
+
+/** Prepare immutable bytes only; no project writes until serialization and source checks succeed. */
+async function characterImages(character: AdvCharacter) {
+  const media = new Map<string, StudioNativeMedia>()
+  async function image(value: string, label: string) {
+    const match = DATA_URI_RE.exec(value)
+    if (!match)
+      throw new Error('ADV_STUDIO_CONTENT_IMAGE_INVALID')
+    const raw = atob(value.slice(match[0].length))
+    const bytes = Uint8Array.from(raw, char => char.charCodeAt(0))
+    const sha256 = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), byte => byte.toString(16).padStart(2, '0')).join('')
+    const name = label.replace(/[^\w-]/g, '_') || 'image'
+    const extension = match[2]!.toLowerCase() === 'svg+xml' ? 'svg' : match[2]!.toLowerCase().replace(/[^\w-]/g, '_')
+    const path = `adv/assets/characters/${character.id}/${name}.${sha256}.${extension}`
+    const blob = new Blob([bytes], { type: match[1]!.toLowerCase() })
+    media.set(path, { path, blob, sha256, bytes: bytes.byteLength })
+    return path.slice(4)
   }
-}
-
-/**
- * Convert a data URI to a Uint8Array for writing as binary
- */
-function dataUriToBytes(dataUri: string): { bytes: Uint8Array, ext: string } {
-  const match = DATA_URI_RE.exec(dataUri)
-  const ext = match?.[1] || 'png'
-  const base64 = dataUri.replace(DATA_URI_RE, '')
-  const binary = atob(base64)
-  const bytes = new Uint8Array(binary.length)
-  for (let i = 0; i < binary.length; i++)
-    bytes[i] = binary.charCodeAt(i)
-  return { bytes, ext }
-}
-
-/**
- * Write a binary file via IFileSystem
- */
-async function writeBinaryToFs(fs: IFileSystem, path: string, data: Uint8Array): Promise<void> {
-  await fs.writeBlob(path, new Blob([data as BlobPart]))
-}
-
-/**
- * Extract and save data URI images from a character, returning updated character with file paths.
- * Saves images to adv/assets/characters/{id}/
- */
-async function extractCharacterImages(
-  fs: IFileSystem,
-  character: AdvCharacter,
-): Promise<AdvCharacter> {
-  const updated = { ...character }
-  const assetDir = `adv/assets/characters/${character.id}`
-
-  // Avatar
-  if (updated.avatar && DATA_URI_RE.test(updated.avatar)) {
-    const { bytes, ext } = dataUriToBytes(updated.avatar)
-    const filePath = `${assetDir}/avatar.${ext}`
-    await writeBinaryToFs(fs, filePath, bytes)
-    updated.avatar = `assets/characters/${character.id}/avatar.${ext}`
+  const next = { ...character }
+  if (next.avatar?.startsWith('data:'))
+    next.avatar = await image(next.avatar, 'avatar')
+  if (next.tachies) {
+    const tachies: Record<string, AdvTachie> = {}
+    for (const [name, tachie] of Object.entries(next.tachies))
+      tachies[name] = tachie.src?.startsWith('data:') ? { ...tachie, src: await image(tachie.src, name) } : { ...tachie }
+    next.tachies = tachies
   }
-
-  // Tachies
-  if (updated.tachies) {
-    const newTachies: Record<string, AdvTachie> = {}
-    for (const [name, tachie] of Object.entries(updated.tachies)) {
-      if (tachie.src && DATA_URI_RE.test(tachie.src)) {
-        const { bytes, ext } = dataUriToBytes(tachie.src)
-        const safeName = name.replace(SAFE_NAME_RE, '_')
-        const filePath = `${assetDir}/${safeName}.${ext}`
-        await writeBinaryToFs(fs, filePath, bytes)
-        newTachies[name] = {
-          ...tachie,
-          src: `assets/characters/${character.id}/${safeName}.${ext}`,
-        }
-      }
-      else {
-        newTachies[name] = tachie
-      }
-    }
-    updated.tachies = newTachies
-  }
-
-  return updated
+  return { character: next, media: [...media.values()] }
 }
 
-/**
- * Content save composable
- * Handles serialization, duplicate detection, image extraction, and file writing
- */
+/** Structured forms share opened-source CAS, atomic staging and conditional compensation. */
 export function useContentSave() {
   const isSaving = ref(false)
-
   async function saveContent(
     fs: IFileSystem,
     contentType: ContentType,
     mode: EditorMode,
     data: AdvCharacter | SceneFormData | ChapterFormData | LocationFormData,
     originalId?: string,
+    context: ContentSaveContext = {},
   ): Promise<SaveResult> {
+    if (isSaving.value)
+      return { success: false, error: 'ADV_STUDIO_CONTENT_SAVE_BUSY' }
     isSaving.value = true
-
     try {
-      let filePath: string
+      const submittedData = JSON.stringify(data)
+      const input = JSON.parse(submittedData) as typeof data
+      const id = 'filename' in input ? input.filename : input.id
+      let filePath = targetPath(contentType, id)
+      const source = context.source
+      const assertCurrent = context.assertCurrent ?? (() => {})
+      assertCurrent()
+      if (mode === 'edit') {
+        if (!source || source.fs !== fs || source.content === null)
+          throw new Error('ADV_STUDIO_EDIT_SOURCE_REQUIRED')
+        const directory = filePath.slice(0, filePath.lastIndexOf('/') + 1)
+        if (!source.path.startsWith(directory) || source.path.slice(directory.length).includes('/') || !source.path.endsWith(contentType === 'character' ? '.character.md' : contentType === 'chapter' ? '.adv.md' : '.md'))
+          throw new Error('ADV_STUDIO_EDIT_SOURCE_REQUIRED')
+        if (originalId === id)
+          filePath = source.path
+      }
+      else if (mode !== 'create') {
+        throw new Error('ADV_STUDIO_CONTENT_TYPE_INVALID')
+      }
+      await whenStudioProjectWritesSettle(fs)
+      assertCurrent()
+      await fs.refresh?.()
+      assertCurrent()
+      const before = await files(fs)
+      assertCurrent()
+      if (source && mode === 'edit' && before[source.path] !== source.content)
+        throw new Error('ADV_STUDIO_SOURCE_CONFLICT')
+      const expected = mode === 'edit' && source!.path === filePath ? source!.content : null
+      if ((before[filePath] ?? null) !== expected)
+        throw new Error('ADV_STUDIO_SOURCE_CONFLICT')
       let content: string
-
+      let media: StudioNativeMedia[] = []
       switch (contentType) {
         case 'character': {
-          let char = data as AdvCharacter
-          filePath = `adv/characters/${char.id}.character.md`
-
-          // Check for duplicate path on create, or rename on edit
-          if (mode === 'create') {
-            if (await fileExists(fs, filePath)) {
-              return {
-                success: false,
-                error: `File already exists: ${filePath}. Please use a different ID.`,
-              }
-            }
-          }
-          else if (originalId && originalId !== char.id) {
-            // ID changed during edit — check new path doesn't conflict
-            if (await fileExists(fs, filePath)) {
-              return {
-                success: false,
-                error: `Cannot rename: ${filePath} already exists.`,
-              }
-            }
-          }
-
-          // Extract data URI images → save to assets, update paths
-          char = await extractCharacterImages(fs, char)
-          content = stringifyCharacterMd(char, {
-            source: await editSource(fs, mode, `adv/characters/${originalId || char.id}.character.md`),
-          })
+          const prepared = await characterImages(input as AdvCharacter)
+          media = prepared.media
+          content = stringifyCharacterMd(prepared.character, { source: source?.content ?? undefined })
           break
         }
-        case 'scene': {
-          const scene = data as SceneFormData
-          filePath = `adv/scenes/${scene.id}.md`
-
-          if (mode === 'create') {
-            if (await fileExists(fs, filePath)) {
-              return {
-                success: false,
-                error: `File already exists: ${filePath}. Please use a different ID.`,
-              }
-            }
-          }
-          else if (originalId && originalId !== scene.id) {
-            if (await fileExists(fs, filePath)) {
-              return {
-                success: false,
-                error: `Cannot rename: ${filePath} already exists.`,
-              }
-            }
-          }
-
-          content = stringifySceneMd(scene, {
-            source: await editSource(fs, mode, `adv/scenes/${originalId || scene.id}.md`),
-          })
+        case 'scene':
+          content = stringifySceneMd(input as SceneFormData, { source: source?.content ?? undefined })
           break
-        }
-        case 'chapter': {
-          const chapter = data as ChapterFormData
-          const filename = chapter.filename.endsWith('.adv.md')
-            ? chapter.filename
-            : `${chapter.filename}.adv.md`
-          filePath = `adv/chapters/${filename}`
-
-          if (mode === 'create') {
-            if (await fileExists(fs, filePath)) {
-              return {
-                success: false,
-                error: `File already exists: ${filePath}. Please use a different filename.`,
-              }
-            }
-          }
-          else if (originalId && originalId !== chapter.filename) {
-            if (await fileExists(fs, filePath)) {
-              return {
-                success: false,
-                error: `Cannot rename: ${filePath} already exists.`,
-              }
-            }
-          }
-
-          content = stringifyChapterMd(chapter)
+        case 'location':
+          content = stringifyLocationMd(input as LocationFormData, { source: source?.content ?? undefined })
           break
-        }
-        case 'location': {
-          const location = data as LocationFormData
-          filePath = `adv/locations/${location.id}.md`
-
-          if (mode === 'create') {
-            if (await fileExists(fs, filePath)) {
-              return {
-                success: false,
-                error: `File already exists: ${filePath}. Please use a different ID.`,
-              }
-            }
-          }
-          else if (originalId && originalId !== location.id) {
-            if (await fileExists(fs, filePath)) {
-              return {
-                success: false,
-                error: `Cannot rename: ${filePath} already exists.`,
-              }
-            }
-          }
-
-          content = stringifyLocationMd(location, {
-            source: await editSource(fs, mode, `adv/locations/${originalId || location.id}.md`),
-          })
+        case 'chapter':
+          content = stringifyChapterMd(input as ChapterFormData)
           break
-        }
-        default:
-          return { success: false, error: `Unknown content type: ${contentType}` }
+        default: throw new Error('ADV_STUDIO_CONTENT_TYPE_INVALID')
       }
-
-      await fs.writeFile(filePath, content)
-      await fs.flush?.()
-
-      return { success: true, filePath }
+      const after = { ...before, [filePath]: content }
+      await commitStudioProjectFiles(fs, [{ path: filePath, expected, content }], {
+        assertCurrent,
+        acceptsPath: path => path === filePath,
+        media,
+        validateCurrent: scope => assertFiles(scope, before),
+        validateAfter: scope => assertFiles(scope, after),
+      })
+      return { success: true, filePath, source: Object.freeze({ fs, path: filePath, content }), submittedData, savedId: id, session: context.session }
     }
-    catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error'
-      return { success: false, error: message }
+    catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : String(error), conflict: isStudioContentConflict(error) || (error instanceof Error && error.message === 'ADV_STUDIO_EDIT_SOURCE_REQUIRED') }
     }
     finally {
       isSaving.value = false
     }
   }
-
-  return {
-    isSaving,
-    saveContent,
-  }
+  return { isSaving, saveContent }
 }

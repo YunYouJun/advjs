@@ -76,7 +76,7 @@ const chapterEditor = useContentEditor<ChapterFormData>('chapter', () => ({
   title: '',
   plotSummary: '',
   content: '',
-}))
+}), { getFs })
 const chapterMarkdown = ref('')
 
 function chapterToMarkdown() {
@@ -118,15 +118,14 @@ async function handleSaveChapter() {
     return
   }
 
-  const result = await saveContent(fs, 'chapter', chapterEditor.mode.value, chapterEditor.formData.value, chapterEditor.originalId.value)
+  const result = await saveContent(fs, 'chapter', chapterEditor.mode.value, chapterEditor.formData.value, chapterEditor.originalId.value, chapterEditor.saveContext())
   if (result.success) {
-    await showToast(t('contentEditor.saveSuccess'))
-    chapterEditor.onSaved()
-    chapterEditor.close()
+    const complete = chapterEditor.onSaved(result)
+    await showToast(t(complete ? 'contentEditor.saveSuccess' : 'contentEditor.savedWithNewerDraft'))
     await reload()
   }
   else {
-    await showToast(t('contentEditor.saveFailed', { error: result.error }), 'danger')
+    await showToast(result.conflict ? t('contentEditor.formSourceChanged') : t('contentEditor.saveFailed', { error: result.error }), 'danger')
   }
 }
 

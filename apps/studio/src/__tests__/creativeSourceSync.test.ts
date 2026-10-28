@@ -107,7 +107,7 @@ describe('saved source reconciliation', () => {
       await vi.waitFor(() => expect(f.sync.status.value).toBe('current'))
       expect(f.api.refreshFacts).not.toHaveBeenCalled()
       expect(f.flush).not.toHaveBeenCalled()
-      const result = await useContentSave().saveContent(f.fs, 'chapter', 'edit', { filename: 'station', title: '雨夜车站', content: '# 作者实际保存的章节\n' }, 'station')
+      const result = await useContentSave().saveContent(f.fs, 'chapter', 'edit', { filename: 'station', title: '雨夜车站', content: '# 作者实际保存的章节\n' }, 'station', { source: { fs: f.fs, path: 'adv/chapters/station.adv.md', content: f.files['adv/chapters/station.adv.md']! } })
       expect(result.success).toBe(true)
       expect(f.sync.blocked.value).toBe(true)
       await f.settle()

@@ -1,17 +1,21 @@
 import type { CreativeFileChange } from '@advjs/agent'
 import type { CloudSyncSnapshot } from '../../../src/utils/cloudSyncWorkspace'
+import type { StudioContentSource } from '../../../src/utils/projectContentMutation'
 import { useContentSave } from '../../../src/composables/useContentSave'
 import { createCloudSyncWorkspace } from '../../../src/utils/cloudSyncWorkspace'
 import { createStudioCreativeWorkspace } from '../../../src/utils/creativeTeamWorkspace'
 import { db, dbReady } from '../../../src/utils/db'
 import { MemoryFsAdapter } from '../../../src/utils/fs/MemoryFsAdapter'
 import { observeStudioFileSystem } from '../../../src/utils/fs/mutations'
+import { readStudioContentSource } from '../../../src/utils/projectContentMutation'
 
 /** Actual adapters, IndexedDB and caller seams; no model or service transport. */
 async function setup() {
   await dbReady
   let fs: MemoryFsAdapter
   let projectId: string
+  let chapterSource: StudioContentSource | undefined
+  let chapterDraft = ''
   let syncSource: CloudSyncSnapshot
   let release: (() => void) | undefined
   let paused = false
@@ -22,6 +26,7 @@ async function setup() {
       fs = new MemoryFsAdapter(id)
       await fs.init()
       observeStudioFileSystem(fs)
+      chapterSource = undefined
     },
     async write(files: Record<string, string>) {
       for (const [path, content] of Object.entries(files))
@@ -35,7 +40,14 @@ async function setup() {
     removeDirectory: (path: string) => fs.rmdir(path),
     snapshot: () => createStudioCreativeWorkspace(fs, projectId).snapshot(),
     adopt: (revision: string, changes: CreativeFileChange[]) => createStudioCreativeWorkspace(fs, projectId).commit(changes, revision),
-    saveChapter: (content: string) => useContentSave().saveContent(fs, 'chapter', 'edit', { filename: 'intro', title: 'Intro', content }),
+    async openChapter() {
+      chapterSource = await readStudioContentSource(fs, 'adv/chapters/intro.adv.md', () => {})
+    },
+    chapterDraft: () => chapterDraft,
+    saveChapter: (content: string) => {
+      chapterDraft = content
+      return useContentSave().saveContent(fs, 'chapter', 'edit', { filename: 'intro', title: 'Intro', content }, 'intro', { source: chapterSource })
+    },
     writeMedia: (path: string, bytes: number[]) => fs.writeBlob(path, new Blob([new Uint8Array(bytes)], { type: 'audio/wav' })),
     async readMedia(path: string) {
       const blob = await fs.readBlob(path)

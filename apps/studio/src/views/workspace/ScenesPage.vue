@@ -65,7 +65,7 @@ const sceneEditor = useContentEditor<SceneFormData>('scene', () => ({
   imagePrompt: '',
   type: 'image' as const,
   tags: [],
-}))
+}), { getFs })
 const sceneMarkdown = ref('')
 
 function sceneToMarkdown() {
@@ -83,21 +83,21 @@ function markdownToScene(md: string) {
   }
 }
 
-function handleEditScene(scene: SceneInfo) {
+async function handleEditScene(scene: SceneInfo) {
   trackAccess({ id: scene.file, label: scene.name, type: 'scene', action: 'edit' })
-  const sceneData: SceneFormData = {
-    id: scene.id || scene.name,
-    name: scene.name,
-    assetId: scene.assetId,
-    src: scene.src,
-    description: scene.description,
-    imagePrompt: scene.imagePrompt,
-    type: scene.type || 'image',
-    tags: scene.tags,
-    linkedLocation: scene.linkedLocation,
+  if (!getFs()) {
+    const data: SceneFormData = { id: scene.id || scene.name, name: scene.name, assetId: scene.assetId, src: scene.src, description: scene.description, imagePrompt: scene.imagePrompt, type: scene.type || 'image', tags: scene.tags, linkedLocation: scene.linkedLocation }
+    sceneEditor.openEdit(data)
+    sceneMarkdown.value = stringifySceneMd(data)
+    return
   }
-  sceneEditor.openEdit(sceneData)
-  sceneMarkdown.value = stringifySceneMd(sceneData)
+  try {
+    const data = await sceneEditor.openFile(scene.file)
+    sceneMarkdown.value = stringifySceneMd(data)
+  }
+  catch (error) {
+    await showToast(t('contentEditor.saveFailed', { error: String(error) }), 'danger')
+  }
 }
 
 // --- Save ---
@@ -114,15 +114,14 @@ async function handleSaveScene() {
     return
   }
 
-  const result = await saveContent(fs, 'scene', sceneEditor.mode.value, sceneEditor.formData.value, sceneEditor.originalId.value)
+  const result = await saveContent(fs, 'scene', sceneEditor.mode.value, sceneEditor.formData.value, sceneEditor.originalId.value, sceneEditor.saveContext())
   if (result.success) {
-    await showToast(t('contentEditor.saveSuccess'))
-    sceneEditor.onSaved()
-    sceneEditor.close()
+    const complete = sceneEditor.onSaved(result)
+    await showToast(t(complete ? 'contentEditor.saveSuccess' : 'contentEditor.savedWithNewerDraft'))
     await reload()
   }
   else {
-    await showToast(t('contentEditor.saveFailed', { error: result.error }), 'danger')
+    await showToast(result.conflict ? t('contentEditor.formSourceChanged') : t('contentEditor.saveFailed', { error: result.error }), 'danger')
   }
 }
 

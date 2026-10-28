@@ -851,6 +851,8 @@
     "fixFailed": "修复失败，请手动检查"
   },
   "contentEditor": {
+    "formSourceChanged": "原文件或项目已变化，草稿仍保留。请先复制草稿，再重新打开文件核对。",
+    "savedWithNewerDraft": "本次内容已保存，之后的新修改仍留在表单中。",
     "formTab": "表单",
     "aiTab": "AI 生成",
     "collabStart": "启用协作",
