@@ -1,4 +1,16 @@
 {
+  "runtimeAuthoring": {
+    "preview": "预览",
+    "program": "执行程序",
+    "diagnostics": "诊断",
+    "tabsLabel": "章节预览与诊断",
+    "compiling": "正在编译…",
+    "noProgram": "当前没有可执行内容。",
+    "noDiagnostics": "未发现编译诊断。",
+    "sourceUnknown": "源位置未知",
+    "editor": "编辑",
+    "mobileView": "章节编辑与预览"
+  },
   "tabs": {
     "workspace": "工作区",
     "chat": "聊天",

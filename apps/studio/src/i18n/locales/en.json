@@ -1,4 +1,16 @@
 {
+  "runtimeAuthoring": {
+    "preview": "Preview",
+    "program": "Program",
+    "diagnostics": "Diagnostics",
+    "tabsLabel": "Chapter preview and diagnostics",
+    "compiling": "Compiling…",
+    "noProgram": "No executable content.",
+    "noDiagnostics": "No compiler diagnostics.",
+    "sourceUnknown": "Unknown source",
+    "editor": "Edit",
+    "mobileView": "Chapter editor and preview"
+  },
   "tabs": {
     "workspace": "Workspace",
     "chat": "Chat",
