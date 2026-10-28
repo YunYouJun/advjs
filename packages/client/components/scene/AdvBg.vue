@@ -123,7 +123,7 @@ async function present(raw: string, transition?: SceneTransition) {
 watch(cue, (value) => {
   if (value)
     void present(value.value.url, value.value.transition)
-})
+}, { immediate: true })
 watch(background, (value) => {
   if (value !== cue.value?.value.url)
     void present(value, 'cut')

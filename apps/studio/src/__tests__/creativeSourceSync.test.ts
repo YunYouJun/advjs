@@ -203,9 +203,11 @@ describe('saved source reconciliation', () => {
       response.resolve(old)
       await flushPromises()
       await f.settle()
-      expect(f.api.refreshFacts).toHaveBeenCalledOnce()
+      await vi.waitFor(() => {
+        expect(f.api.refreshFacts).toHaveBeenCalledOnce()
+        expect(f.sync.status.value).toBe('current')
+      })
       expect(f.api.refreshFacts.mock.calls[0]![0].files['adv/world.md']).toBe('# 改稿后的设定\n')
-      expect(f.sync.status.value).toBe('current')
     }
     finally { f.scope.stop() }
   })

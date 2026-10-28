@@ -42,7 +42,7 @@ describe('creative partner presentation', () => {
     const testPlan = mount(CreativeTeamOutput, { ...options(), props: { output: { kind: 'playtest-plan', summary: '方案', scenarios: [{ id: 'stay', choices: [0], expectedEnding: 'stay#ending' }], concerns: [] } } })
     expect(testPlan.text()).toContain('尚无实际执行轨迹')
     const art = mount(CreativeTeamOutput, { ...options(), props: { output: { kind: 'art-direction', summary: '方案', style: '雨夜', requests: [] } } })
-    expect(art.text()).toContain('尚未绑定可用图片')
+    expect(art.text()).toContain('实际素材状态请在下方图片回流中的“项目图片核对”查看')
     expect(art.text()).not.toContain('生成成功')
   })
 })

@@ -52,6 +52,11 @@ async function main() {
     'adv/chapters/intro.adv.md': '# 等车 {#start}\n\n@lin\n列车还没有到，我们再等一会儿。 {#line_01900400-0000-7000-8000-000000000001}\n\n@lin\n这是下一句，没有绑定配音。',
   }
   const multilineNarration = variant === 'markdown-narration-selected'
+  const artPlayerChapter = '# 画面回流 {#start}\n\n```yaml\ntype: background\nname: station\n```\n\n```yaml\ntype: tachie\nenter: 林\n```\n\n@lin\n默认立绘和背景已经采用。\n\n```yaml\ntype: tachie\nenter:\n  name: 林\n  status: good\n```\n\n@lin\n现在切换到 good 表情。'
+  if (variant.startsWith('art-targets')) {
+    originals['adv/scenes/station.md'] = '---\nid: station\nname: 车站\ncustom: 42\n---\n保留原有场景正文。\n'
+    originals['adv/chapters/intro.adv.md'] = '# 画面回流 {#start}\n\n@lin\n待作者采用素材后添加舞台指令。'
+  }
   const multilineDialogue = variant === 'markdown-dialogue-selected'
   const markdownBlock = multilineNarration ? '> 列车还没有到，\n> 我们再**等一会儿**。 {#line_01900400-0000-7000-8000-000000000001}' : '@lin\n列车还没有到，\n我们再**等一会儿**。 {#line_01900400-0000-7000-8000-000000000001}'
   if (multilineDialogue || multilineNarration)
@@ -95,6 +100,12 @@ async function main() {
     { id: 'art-direction', runId, taskId: 'art', partner: 'art-director', projectId, kind: 'art-direction', source, fingerprint: 'art-v1', summary: '既有图片回流方案 fixture', output: { kind: 'art-direction', summary: '既有图片回流方案 fixture', style: 'Preserve the repository image', requests: [{ assetId: 'character/lin/default', kind: 'portrait', characterId: 'lin', width: 619, height: 619, prompt: 'Existing image for protocol verification', constraints: [] }] }, changes: [], reviewCapabilities: [], status: 'selected' },
     { id: 'voice-direction', runId, taskId: 'voice', partner: 'voice-director', projectId, kind: 'voice-direction', source, fingerprint: 'voice-v1', summary: '真实系统语音回流方案 fixture', output: { kind: 'voice-direction', summary: '真实系统语音回流方案 fixture', cast: [{ speakerId: 'lin', designBrief: 'Tingting system voice', performance: 'Calm' }, { speakerId: 'narrator', designBrief: 'Independent narrator', performance: 'Not produced' }], dictionary: [], lines: [{ path: 'adv/chapters/intro.adv.md', line: 4, speakerId: 'lin', text: '列车还没有到，我们再等一会儿。', instruction: '平静地邀请同伴继续等待' }] }, changes: [], reviewCapabilities: ['voice-take'], status: 'selected' },
   ]
+  if (variant.startsWith('art-targets')) {
+    const output = run.artifacts[0]!.output!
+    if (output.kind === 'art-direction') {
+      output.requests = [...output.requests, { assetId: 'character/lin/good', kind: 'expression', characterId: 'lin', expression: 'good', width: 619, height: 619, prompt: 'Existing expression for protocol verification', constraints: [] }, { assetId: 'background/station', kind: 'background', sceneId: 'station', width: 1920, height: 1088, prompt: 'Existing background for protocol verification', constraints: [] }, { assetId: 'character/lin/missing', kind: 'expression', characterId: 'lin', expression: 'missing', width: 619, height: 619, prompt: 'Explicit unfilled request', constraints: [] }]
+    }
+  }
   if (multilineDialogue || multilineNarration) {
     const output = run.artifacts[1]!.output!
     if (output.kind === 'voice-direction')
@@ -205,11 +216,22 @@ async function main() {
   }
   Object.assign(window, { creativeMediaFixture: {
     originals,
+    artPlayerChapter,
     async pendingDeliveryWrite(pending: boolean) {
       await creativeAdoptionJournal.save({ ...scope, runId: 'other-run', intentId: 'pending-other-run', state: pending ? 'preparing' : 'abandoned', request: {} as never, review: {} as never })
     },
     async editSource(path: string, content: string) {
       await projectFs.writeFile(path, content)
+      await projectFs.flush?.()
+    },
+    async corruptImage(path: string) {
+      const original = await projectFs.readBlob(path)
+      await projectFs.writeBlob(path, new Blob(['Explicit corrupt-image test bytes']))
+      await projectFs.flush?.()
+      return Array.from(new Uint8Array(await original.arrayBuffer()))
+    },
+    async restoreImage(path: string, data: number[]) {
+      await projectFs.writeBlob(path, new Blob([new Uint8Array(data)]))
       await projectFs.flush?.()
     },
     calls: () => [...calls],

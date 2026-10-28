@@ -6,6 +6,7 @@ import { computed, onBeforeUnmount, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useCreativeArtImport } from '../../composables/useCreativeArtImport'
 import { assertCreativeArtImport } from '../../utils/creativeArtImport'
+import CreativeArtCoveragePanel from './CreativeArtCoveragePanel.vue'
 import CreativeArtImportCandidate from './CreativeArtImportCandidate.vue'
 import CreativeArtImportForm from './CreativeArtImportForm.vue'
 
@@ -14,7 +15,7 @@ const emit = defineEmits<{ busy: [value: boolean], changed: [] }>()
 const { t } = useI18n()
 const session = useCreativeArtImport({ run: () => props.run, host: () => props.host(), changed: () => emit('changed'), submitMedia: () => props.submitMedia })
 const { rows, busy, error, inspections } = session
-const visible = computed(() => rows.value.length || props.run.artifacts.some(item => item.output?.kind === 'art-direction' && ['selected', 'adopted'].includes(item.status)))
+const visible = computed(() => rows.value.length || props.run.artifacts.some(item => item.output?.kind === 'art-direction' && ['selected', 'adopted', 'stale'].includes(item.status)))
 const blocked = computed(() => props.busy || busy.value || props.run.tasks.some(task => ['running', 'reconcile_required'].includes(task.status)) || Boolean(props.run.milestones?.some(item => item.status === 'prepared')))
 const candidates = computed(() => rows.value.map((entry) => {
   let stale = false
@@ -44,6 +45,7 @@ onBeforeUnmount(() => emit('busy', false))
     </h2>
     <p>{{ t('creativeTeam.artImport.hint') }}</p>
     <p>{{ t(submitMedia ? 'creativeTeam.mediaMilestone.scope' : 'creativeTeam.artImport.localScope') }}</p>
+    <CreativeArtCoveragePanel :run="run" :disabled="blocked" :host="host" />
     <p v-if="error" class="art-import__error" role="alert">
       {{ t(`creativeTeam.artImport.error.${error}`) }}
     </p>

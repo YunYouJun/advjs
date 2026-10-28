@@ -7,6 +7,7 @@ import type { StudioNativeMedia } from './nativeProjectMutation'
 import { assertCreativeSourcePath, computeAgentProjectRevision, creativeMediaCanonical, creativeMilestoneChanges, overlayCreativeMilestone } from '@advjs/agent'
 import { audioFingerprint, audioProjectMediaPath, canonicalAudioJson, createAudioVoiceProfiles, parseAudioPronunciationDictionary, parseAudioVoiceProfiles, parseVoiceLedger, prepareVoiceSpokenText, voiceInputFingerprint } from '@advjs/audio'
 import { compileProject } from '@advjs/core'
+import { matchesCreativeArtBinding } from './creativeArtBinding'
 import { inspectCreativeImage } from './creativeImage'
 import { creativeMilestoneMediaCache, creativeMilestoneRowArtifact } from './creativeMediaMilestoneCache'
 import { creativeMediaSourceState } from './creativeMediaRecovery'
@@ -52,9 +53,7 @@ export function createStudioCreativeMediaWorkspace(options: {
     if (evidence.target.kind === 'image') {
       const parent = currentRun().artifacts.find(item => item.id === evidence.parent.artifactId && item.fingerprint === evidence.parent.fingerprint)
       const request = parent?.output?.kind === 'art-direction' ? parent.output.requests.find(item => item.assetId === evidence.target.assetId) : undefined
-      if (!request || asset.type !== 'image' || (request.kind === 'background'
-        ? asset.kind !== 'background' || asset.sceneId !== request.sceneId || project.scenes.find(item => item.id === request.sceneId)?.assetId !== asset.id
-        : asset.kind !== 'character' || asset.characterId !== request.characterId || asset.expression !== (request.kind === 'expression' ? request.expression : 'default'))) {
+      if (!request || !matchesCreativeArtBinding(project, request, asset)) {
         throw new Error('CREATIVE_MEDIA_BINDING_CHANGED')
       }
     }

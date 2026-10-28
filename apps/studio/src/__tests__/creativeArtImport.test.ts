@@ -9,7 +9,9 @@ import { computeAgentProjectRevision, createCreativeTeamRun } from '@advjs/agent
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, shallowRef } from 'vue'
+import { useCreativeArtCoverage } from '../composables/useCreativeArtCoverage'
 import { useCreativeArtImport } from '../composables/useCreativeArtImport'
+import { readCreativeArtCoverage } from '../utils/creativeArtCoverage'
 import { commitCreativeArtImport, inspectCreativeArtImport, reviewCreativeArtImport } from '../utils/creativeArtImport'
 import { inspectCreativeImage } from '../utils/creativeImage'
 
@@ -64,6 +66,109 @@ async function freezeFixtureSource(f: Awaited<ReturnType<typeof fixture>>) {
 }
 
 describe('creative image candidates and native adoption', () => {
+  it('clears visible inspection results after source writes, focus changes and unmount', async () => {
+    const f = await fixture()
+    let coverage!: ReturnType<typeof useCreativeArtCoverage>
+    const wrapper = mount(defineComponent({ setup() {
+      coverage = useCreativeArtCoverage({ scope: () => f.run.id, run: () => f.run, host: async () => ({ fs: f.fs, assertCurrent: current }) })
+      return () => h('div')
+    } }))
+    await coverage.load()
+    expect(coverage.result.value?.rows[0]?.status).toBe('missing')
+    await f.fs.writeFile('adv/chapters/intro.adv.md', `${f.files['adv/chapters/intro.adv.md']}\n作者改稿。`)
+    expect(coverage.result.value).toBeUndefined()
+    await coverage.load()
+    expect(coverage.result.value?.rows[0]?.status).toBe('stale')
+    window.dispatchEvent(new Event('focus'))
+    expect(coverage.result.value).toBeUndefined()
+    await coverage.load()
+    wrapper.unmount()
+    expect(coverage.result.value).toBeUndefined()
+  })
+
+  it('discards a late host read after the run scope changes', async () => {
+    const f = await fixture()
+    const scope = shallowRef('first')
+    let release!: () => void
+    const gate = new Promise<void>(resolve => release = resolve)
+    let coverage!: ReturnType<typeof useCreativeArtCoverage>
+    const wrapper = mount(defineComponent({ setup() {
+      coverage = useCreativeArtCoverage({ scope: () => scope.value, run: () => f.run, host: async () => {
+        await gate
+        return { fs: f.fs, assertCurrent: current }
+      } })
+      return () => h('div')
+    } }))
+    const pending = coverage.load()
+    scope.value = 'second'
+    release()
+    await pending
+    expect(coverage.result.value).toBeUndefined()
+    expect(coverage.error.value).toBe(false)
+    expect(coverage.loading.value).toBe(false)
+    wrapper.unmount()
+  })
+
+  it.each([
+    { assetId: 'character/xiaoyun/default', kind: 'portrait', characterId: 'xiaoyun', width: 619, height: 619, prompt: 'portrait', constraints: [] },
+    { assetId: 'character/xiaoyun/good', kind: 'expression', characterId: 'xiaoyun', expression: 'good', width: 619, height: 619, prompt: 'expression', constraints: [] },
+    { assetId: 'background/station', kind: 'background', sceneId: 'station', width: 1920, height: 1088, prompt: 'background', constraints: [] },
+  ] satisfies CreativeArtRequest[])('inspects $kind project bytes, binding and source without treating private candidates as saved media', async (request) => {
+    const f = await fixture(request)
+    const writeFile = vi.mocked(f.fs.writeFile)
+    const inspect = (blob: Blob) => inspectCreativeImage(blob, async () => ({ width: 619, height: 619 }))
+    const read = () => readCreativeArtCoverage(f.fs, f.run, current, inspect)
+    expect((await read()).rows[0]?.status).toBe('missing')
+    expect(f.entry.data?.byteLength).toBeGreaterThan(0)
+    const review = await reviewCreativeArtImport(f.fs, f.run, f.entry, false, current)
+    expect((await read()).rows[0]?.status).toBe('missing')
+    await commitCreativeArtImport(f.fs, { ...f.entry, review }, current)
+    const changes = review.changes.map(change => ({ path: change.path, before: f.before[change.path] ?? null, after: change.content }))
+    f.run.artifacts = [...f.run.artifacts, { ...f.run.artifacts[0]!, id: 'media', fingerprint: 'media-fingerprint', kind: 'media-adoption', output: undefined, changes }]
+    f.run.milestones = [{ id: 'adoption', operation: 'adopt', status: 'confirmed', artifacts: [{ artifactId: 'media', fingerprint: 'media-fingerprint' }], anchors: ['art1'], beforeRevision: f.run.plan.projectRevision, afterRevision: await computeAgentProjectRevision(f.files), requestFingerprint: 'request', reason: 'Unit source-anchor verification', at: 0 }]
+    // Exact confirmed changes advance the plan's source without mutating its original snapshot.
+    const writes = writeFile.mock.calls.length
+    expect((await read()).rows).toMatchObject([{ status: 'ready', path: review.mediaPath, sha256: f.entry.image.sha256 }])
+    f.blobs.set(review.mediaPath, new Blob(['corrupt']))
+    expect((await read()).rows[0]?.status).toBe('unavailable')
+    f.blobs.set(review.mediaPath, new Blob([realImage]))
+    expect((await read()).rows[0]?.status).toBe('ready')
+    f.files['adv/characters/xiaoyun.character.md'] += '\n作者改动角色。'
+    expect((await read()).rows[0]?.status).toBe('stale')
+    expect(writeFile.mock.calls.length).toBe(writes)
+  })
+
+  it('rejects a late byte-inspection result if the project changes while decoding', async () => {
+    const f = await fixture()
+    const review = await reviewCreativeArtImport(f.fs, f.run, f.entry, false, current)
+    await commitCreativeArtImport(f.fs, { ...f.entry, review }, current)
+    await freezeFixtureSource(f)
+    await expect(readCreativeArtCoverage(f.fs, f.run, current, async (blob) => {
+      const value = await inspectCreativeImage(blob, async () => ({ width: 619, height: 619 }))
+      await f.fs.writeBlob(review.mediaPath, new Blob(['changed during read']))
+      return value
+    })).rejects.toThrow('CREATIVE_ART_SOURCE_CHANGED')
+  })
+
+  it('reports an incorrect expression binding and refuses metadata-only proof', async () => {
+    const f = await fixture()
+    const review = await reviewCreativeArtImport(f.fs, f.run, f.entry, false, current)
+    await commitCreativeArtImport(f.fs, { ...f.entry, review }, current)
+    const fragment = JSON.parse(f.files['adv/assets/other.json'])
+    fragment.assets[0].expression = 'wrong'
+    f.files['adv/assets/other.json'] = JSON.stringify(fragment)
+    await freezeFixtureSource(f)
+    const inspect = (blob: Blob) => inspectCreativeImage(blob, async () => ({ width: 619, height: 619 }))
+    expect((await readCreativeArtCoverage(f.fs, f.run, current, inspect)).rows[0]?.status).toBe('binding')
+    fragment.assets[0].expression = 'default'
+    fragment.assets[0].width = 620
+    f.files['adv/assets/other.json'] = JSON.stringify(fragment)
+    await freezeFixtureSource(f)
+    expect((await readCreativeArtCoverage(f.fs, f.run, current, inspect)).rows[0]?.status).toBe('unavailable')
+    f.blobs.clear()
+    expect((await readCreativeArtCoverage(f.fs, f.run, current, inspect)).rows[0]?.status).toBe('unavailable')
+  })
+
   it('sniffs and hashes real bytes independently of filename MIME and requires the host decoder', async () => {
     const decode = vi.fn(async () => ({ width: 619, height: 619 }))
     const result = await inspectCreativeImage(new Blob([realImage], { type: 'image/png' }), decode)
