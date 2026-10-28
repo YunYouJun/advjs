@@ -5,6 +5,13 @@ import Testing
 
 @Suite("App models")
 struct StudioAppTests {
+    @Test("Keeps system app-language selection available on single-language devices")
+    func languageSettings() {
+        #expect(Bundle.main.object(forInfoDictionaryKey: "UIPrefersShowingLanguageSettings") as? Bool == true)
+        #expect(Bundle.main.localizations.contains("en"))
+        #expect(Bundle.main.localizations.contains("zh-Hans"))
+    }
+
     @Test("Lists one folder at a time from project paths")
     func folderListing() {
         let paths = ["README.md", "adv/chapters/one.adv.md", "adv/chapters/Two.adv.md", "adv/assets/a.png", "adv.config.json", "adv/world.md"]

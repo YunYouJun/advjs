@@ -170,7 +170,9 @@ final class ProjectLifecycleUITests: XCTestCase {
             XCTAssertTrue(entry.waitForExistence(timeout: 10))
             entry.tap()
             let settings = openAppPageInSettings()
-            settings.buttons.matching(NSPredicate(format: "label BEGINSWITH '语言' OR label BEGINSWITH 'Language'")).firstMatch.tap()
+            let language = settings.buttons.matching(NSPredicate(format: "label BEGINSWITH '语言' OR label BEGINSWITH 'Language'")).firstMatch
+            XCTAssertTrue(language.waitForExistence(timeout: 15), settings.debugDescription)
+            language.tap()
             let option = settings.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", choice)).firstMatch
             if !option.waitForExistence(timeout: 10) {
                 settings.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", choice)).firstMatch.tap()

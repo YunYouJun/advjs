@@ -325,6 +325,10 @@ P2 的首轮 CI（[YunYouJun/advjs#82](https://github.com/YunYouJun/advjs/pull/8
 - 新增 `studio-changes` 作业（`scripts/ci/studio-changes.mjs`）：只有引擎打包的工作区源码、golden 用到的 fixture、`apps/studio-ios` 或共享构建配置变化时才运行 `studio-ios`；`studio-unit` 另覆盖 `apps/studio` 与全部工作区包。`launch-required` 改用 `scripts/ci/launch-required.mjs`，仅在 `studio-changes` 成功且报告无需运行时接受跳过；引擎测试校验打包进 `engine.js` 的每个源码文件都在过滤范围内，防止依赖新增后漏跑。
 - `studio-ios` 作业：StudioKit（含 iOS JavaScriptCore golden 一致性）与 App 单测只在 iPhone 上跑一次；iPad 只跑自己的 UI 测试；去掉与 iOS 重复的 macOS `swift test`；依赖安装期间预先启动模拟器，减少「test runner timed out while preparing」这类等待（`dev` 上 P1 合并后的失败即为此）。
 
+2026-10-28 继续核对 PR #82 的 [CI 失败运行](https://github.com/YunYouJun/advjs/actions/runs/39662323643)：构建和 App 单测成功，`testSwitchingLanguageInSystemSettings` 在系统设置中找不到语言入口。`UITests-iPhone.xcresult` 的失败附件 `App UI hierarchy for com.apple.Preferences` 确认已进入本 App 设置页，但页面只有 Siri、Search 和蜂窝数据，没有语言选项。单语言设备默认隐藏这个入口，不能仅增加等待时间修复。
+
+Debug 和 Release 均启用 `UIPrefersShowingLanguageSettings`，按照 [Apple 的多语言应用说明](https://developer.apple.com/videos/play/wwdc2024/10185/)让系统始终显示 App 语言设置。App 单测校验生成的 Info.plist 配置和本地化资源，UI 测试仍真实切换 English／简体中文并验证界面及相对日期，仅在点击前增加有明确失败信息的存在性等待。修复以最新 PR head 的完整 CI 结果验收，不跳过语言测试或放宽 `launch-required`。
+
 ### 与清单的差异
 
 - W06 独立部署包依赖 P4 的播放器打包，移到 P4；`.advpkg.zip` 导出已完成（分享面板与 `fileMover`）。
