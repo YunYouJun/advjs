@@ -80,6 +80,55 @@ export class MemoryFsAdapter implements IFileSystem {
   private transactionActive = false
   private staging = false
   private expired = false
+  private observerId = crypto.randomUUID()
+
+  /** Notifications carry no project bytes and grant no write or adoption authority. */
+  subscribeExternalChanges(listener: () => void): () => void {
+    if (this.expired || this.staging || typeof BroadcastChannel !== 'function')
+      return () => {}
+    let channel: BroadcastChannel
+    try {
+      channel = new BroadcastChannel(`advjs-studio:memfs:v1:${this.projectId}`)
+    }
+    catch {
+      return () => {}
+    }
+    let active = true
+    const receive = (event: MessageEvent) => {
+      const hint = event.data
+      if (!active || hint?.protocolVersion !== 1 || typeof hint.sender !== 'string' || hint.sender === this.observerId)
+        return
+      try {
+        listener()
+      }
+      catch {}
+    }
+    channel.addEventListener('message', receive)
+    return () => {
+      active = false
+      channel.removeEventListener('message', receive)
+      channel.close()
+    }
+  }
+
+  private announcePersistedChange(): void {
+    if (typeof BroadcastChannel !== 'function')
+      return
+    let channel: BroadcastChannel | undefined
+    try {
+      channel = new BroadcastChannel(`advjs-studio:memfs:v1:${this.projectId}`)
+      channel.postMessage({ protocolVersion: 1, sender: this.observerId })
+    }
+    catch {
+      // Notification failure cannot turn an already committed batch into a write failure.
+    }
+    finally {
+      try {
+        channel?.close()
+      }
+      catch {}
+    }
+  }
 
   private node(row: DbMemfsNode): FsNode {
     return {
@@ -232,6 +281,8 @@ export class MemoryFsAdapter implements IFileSystem {
           this.dirty.delete(path)
       }
       this.acceptStored(stored)
+      if (changes.length)
+        this.announcePersistedChange()
     })
     // Ordinary autosave remains nonfatal; critical callers observe failures.
     this.persistQueue = operation.catch(() => {})
@@ -261,6 +312,7 @@ export class MemoryFsAdapter implements IFileSystem {
       staged.nodes = new Map(this.nodes)
       staged.baseline = new Map(this.baseline)
       staged.staging = true
+      staged.observerId = this.observerId
       const expected = new Map(this.baseline)
       const scope: IFileSystem = staged
       scope.transaction = undefined

@@ -65,8 +65,15 @@ export function useCreativeSourceSync(busy: () => boolean) {
         return
       }
       const result = await store.checkSource({ id: projectId, revision: snapshot.revision, files: snapshot.files }, isCurrent)
-      if (isCurrent() && !dirty)
-        status.value = result === 'unsupported' ? 'idle' : result
+      if (isCurrent()) {
+        if (result === 'failed') {
+          dirty = false
+          status.value = 'failed'
+        }
+        else if (!dirty) {
+          status.value = result === 'unsupported' ? 'idle' : result
+        }
+      }
     }
     catch {
       if (scope === epoch && !dirty)
@@ -89,6 +96,8 @@ export function useCreativeSourceSync(busy: () => boolean) {
     if (!supported() || !fs)
       return
     unsubscribe = subscribeStudioFileMutations(fs, (event) => {
+      if (event.external && status.value === 'failed')
+        return
       if (event.path === 'adv' || event.path.startsWith('adv/') || event.path === 'adv.config.json')
         schedule()
     })
@@ -100,11 +109,28 @@ export function useCreativeSourceSync(busy: () => boolean) {
     else if (status.value === 'deferred' && !store.run?.milestones?.some(item => item.status === 'prepared'))
       schedule()
   })
+  function resume() {
+    if (typeof document !== 'undefined' && document.visibilityState !== 'hidden' && status.value !== 'failed')
+      schedule()
+  }
+  // Broadcasts are hints and can be unavailable or missed while suspended.
+  if (typeof window !== 'undefined') {
+    window.addEventListener('focus', resume)
+    window.addEventListener('pageshow', resume)
+  }
+  if (typeof document !== 'undefined')
+    document.addEventListener('visibilitychange', resume)
   onScopeDispose(() => {
     disposed = true
     epoch += 1
     clearTimeout(timer)
     unsubscribe?.()
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('focus', resume)
+      window.removeEventListener('pageshow', resume)
+    }
+    if (typeof document !== 'undefined')
+      document.removeEventListener('visibilitychange', resume)
   })
   return { status, blocked: computed(() => ['checking', 'failed', 'deferred'].includes(status.value)), retry: schedule }
 }

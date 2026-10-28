@@ -45,6 +45,8 @@ export interface IFileSystem {
    * Validation runs again immediately before the durable write. The scoped view expires on return.
    */
   transaction?: (operation: (scope: IFileSystem) => Promise<void>, validate?: () => void) => Promise<void>
+  /** Durable external-change hints only; callers must re-read and unsubscribe on scope exit. */
+  subscribeExternalChanges?: (listener: () => void) => () => void
   /** Human-readable backend name for debugging */
   readonly backend: 'browser' | 'capacitor' | 'memory'
 

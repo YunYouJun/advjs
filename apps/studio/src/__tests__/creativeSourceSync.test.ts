@@ -31,8 +31,14 @@ function deferred<T = void>() {
 function fileSystem() {
   const files = { ...frozen.files } as Record<string, string>
   const flush = vi.fn(async () => {})
+  const external = new Set<() => void>()
+  const subscribeExternalChanges = vi.fn((listener: () => void) => {
+    external.add(listener)
+    return () => external.delete(listener)
+  })
   const fs = observeStudioFileSystem({
     backend: 'memory',
+    subscribeExternalChanges,
     exists: async (path: string) => path in files,
     readFile: async (path: string) => files[path]!,
     writeFile: async (path: string, content: string) => { files[path] = content },
@@ -40,10 +46,13 @@ function fileSystem() {
     flush,
     collectAllFiles: async () => Object.entries(files).map(([path, content]) => ({ path, content, lastModified: new Date() })),
   } as unknown as IFileSystem)
-  return { fs, files, flush }
+  return { fs, files, flush, subscribeExternalChanges, external: () => {
+    for (const listener of external)
+      listener()
+  } }
 }
 async function fixture() {
-  const { fs, files, flush } = fileSystem()
+  const { fs, files, flush, external, subscribeExternalChanges } = fileSystem()
   let project = { id: 'station', files: { ...files }, revision: await computeAgentProjectRevision(files) }
   let server = createCreativeTeamRun({ id: 'run1', accountId: auth.userId, now: 1, plan: { protocolVersion: 1, projectId: 'station', projectRevision: project.revision, goal: '核对正常编辑器的保存', limits: { maxTasks: 1, maxToolCalls: 8, maxMicroPoints: 100, maxReworkRounds: 2 }, tasks: [{ id: 'script', partner: 'writer', capability: 'generate-chapter-draft', dependsOn: [], sourcePaths: Object.keys(files), instruction: '改写开场', expectedOutput: '候选章节' }] } })
   server = { ...server, status: 'awaiting_review', tasks: [{ ...server.tasks[0]!, status: 'awaiting_review', artifactIds: ['candidate1'] }], artifacts: [{ id: 'candidate1', runId: 'run1', taskId: 'script', partner: 'writer', projectId: 'station', kind: 'chapter', summary: '读取旧世界设定的章节', status: 'candidate', fingerprint: 'candidate-fp', reviewCapabilities: ['modify-source', 'candidate-preview'], source: { projectId: 'station', revision: project.revision, files: { ...files }, upstream: [] }, changes: [{ path: 'adv/chapters/station.adv.md', before: files['adv/chapters/station.adv.md']!, after: '# 旧候选' }] }] }
@@ -75,7 +84,7 @@ async function fixture() {
     await vi.advanceTimersByTimeAsync(250)
     await flushPromises()
   }
-  return { fs, files, flush, api, store, scope, busy, sync, settle, server: () => server, setServer: (next: CreativeTeamRun) => {
+  return { fs, files, flush, external, subscribeExternalChanges, api, store, scope, busy, sync, settle, server: () => server, setServer: (next: CreativeTeamRun) => {
     server = next
   } }
 }
@@ -285,6 +294,137 @@ describe('saved source reconciliation', () => {
       expect(f.api.getSourceState).toHaveBeenCalledTimes(reads)
     }
     finally { f.scope.stop() }
+  })
+})
+
+describe('external saved source hints and resume', () => {
+  it('re-reads a foreign save without flushing a clean local adapter or generating work', async () => {
+    const f = await fixture()
+    try {
+      await f.settle()
+      f.files['adv/world.md'] = '# 另一窗口保存的设定\n'
+      f.external()
+      expect(f.sync.blocked.value).toBe(true)
+      await f.settle()
+      await vi.waitFor(() => expect(f.sync.status.value).toBe('current'))
+      expect(f.flush).not.toHaveBeenCalled()
+      expect(f.api.refreshFacts).toHaveBeenCalledOnce()
+      expect(f.api.refreshFacts.mock.calls[0]![0].files['adv/world.md']).toBe('# 另一窗口保存的设定\n')
+      expect(f.store.run!.artifacts[0]!.status).toBe('stale')
+      expect(f.api.start).not.toHaveBeenCalled()
+    }
+    finally { f.scope.stop() }
+  })
+
+  it('discards an older response after a second external save and uploads only the latest complete source', async () => {
+    const f = await fixture()
+    const response = deferred<Awaited<ReturnType<NonNullable<CreativeTeamClient['getSourceState']>>>>()
+    try {
+      await f.settle()
+      const old = await f.api.getSourceState.getMockImplementation()!()
+      f.api.getSourceState.mockReturnValueOnce(response.promise)
+      f.files['adv/world.md'] = 'Older foreign source'
+      f.external()
+      await f.settle()
+      f.files['adv/world.md'] = 'Latest foreign source'
+      f.external()
+      response.resolve(old)
+      await f.settle()
+      await vi.waitFor(() => expect(f.sync.status.value).toBe('current'))
+      expect(f.api.refreshFacts).toHaveBeenCalledOnce()
+      expect(f.api.refreshFacts.mock.calls[0]![0].files['adv/world.md']).toBe('Latest foreign source')
+    }
+    finally { f.scope.stop() }
+  })
+
+  it('retains an unknown-response failure across external hints and focus until explicit retry reads the saved state', async () => {
+    const f = await fixture()
+    try {
+      await f.settle()
+      const save = f.api.refreshFacts.getMockImplementation()!
+      f.api.refreshFacts.mockImplementationOnce(async (project) => {
+        await save(project)
+        throw new Error('stored response lost')
+      })
+      f.files['adv/world.md'] = 'Foreign source with lost response'
+      f.external()
+      await f.settle()
+      await vi.waitFor(() => expect(f.sync.status.value).toBe('failed'))
+      const reads = f.api.getSourceState.mock.calls.length
+      f.external()
+      window.dispatchEvent(new Event('focus'))
+      window.dispatchEvent(new Event('pageshow'))
+      document.dispatchEvent(new Event('visibilitychange'))
+      await vi.advanceTimersByTimeAsync(10000)
+      expect(f.sync.status.value).toBe('failed')
+      expect(f.api.getSourceState).toHaveBeenCalledTimes(reads)
+      expect(f.api.refreshFacts).toHaveBeenCalledOnce()
+      f.sync.retry()
+      await f.settle()
+      await vi.waitFor(() => expect(f.sync.status.value).toBe('current'))
+      expect(f.api.refreshFacts).toHaveBeenCalledOnce()
+    }
+    finally { f.scope.stop() }
+  })
+
+  it('does not let a queued resume hint clear a later unknown-response failure', async () => {
+    const visible = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible')
+    const f = await fixture()
+    const release = deferred()
+    try {
+      await f.settle()
+      const save = f.api.refreshFacts.getMockImplementation()!
+      f.api.refreshFacts.mockImplementationOnce(async (project) => {
+        await save(project)
+        await release.promise
+        throw new Error('stored response lost after focus')
+      })
+      f.files['adv/world.md'] = 'Foreign source'
+      f.external()
+      await f.settle()
+      expect(f.api.refreshFacts).toHaveBeenCalledOnce()
+      window.dispatchEvent(new Event('focus'))
+      release.resolve()
+      await f.settle()
+      await vi.waitFor(() => expect(f.sync.status.value).toBe('failed'))
+      const reads = f.api.getSourceState.mock.calls.length
+      await vi.advanceTimersByTimeAsync(10000)
+      expect(f.api.getSourceState).toHaveBeenCalledTimes(reads)
+      expect(f.api.refreshFacts).toHaveBeenCalledOnce()
+    }
+    finally {
+      visible.mockRestore()
+      release.resolve()
+      f.scope.stop()
+    }
+  })
+
+  it('rechecks on resume without a broadcast and removes external and page listeners on disposal', async () => {
+    const visible = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible')
+    const f = await fixture()
+    try {
+      await f.settle()
+      f.files['adv/world.md'] = 'Saved while suspended'
+      window.dispatchEvent(new Event('focus'))
+      await f.settle()
+      await vi.waitFor(() => expect(f.sync.status.value).toBe('current'))
+      expect(f.api.refreshFacts).toHaveBeenCalledOnce()
+      expect(f.flush).not.toHaveBeenCalled()
+      expect(f.subscribeExternalChanges).toHaveBeenCalledOnce()
+      f.scope.stop()
+      const reads = f.api.getSourceState.mock.calls.length
+      f.files['adv/world.md'] = 'Out of scope'
+      f.external()
+      window.dispatchEvent(new Event('focus'))
+      window.dispatchEvent(new Event('pageshow'))
+      document.dispatchEvent(new Event('visibilitychange'))
+      await f.settle()
+      expect(f.api.getSourceState).toHaveBeenCalledTimes(reads)
+    }
+    finally {
+      visible.mockRestore()
+      f.scope.stop()
+    }
   })
 })
 

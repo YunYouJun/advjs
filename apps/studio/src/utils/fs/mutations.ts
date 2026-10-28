@@ -1,7 +1,7 @@
 import type { IFileSystem } from './types'
 
-export interface StudioFileMutation { path: string, revision: number, pending: number }
-interface State { revision: number, flushed: number, pending: number, listeners: Set<(event: StudioFileMutation) => void>, waiters: Set<() => void> }
+export interface StudioFileMutation { path: string, revision: number, pending: number, external?: boolean }
+interface State { revision: number, flushed: number, pending: number, listeners: Set<(event: StudioFileMutation) => void>, waiters: Set<() => void>, unsubscribeExternal?: () => void, external?: () => void }
 const states = new WeakMap<IFileSystem, State>()
 const methods = ['writeFile', 'writeBlob', 'mkdir', 'deleteFile', 'rmdir'] as const
 
@@ -16,9 +16,9 @@ export function observeStudioFileSystem(fs: IFileSystem): IFileSystem {
     return fs
   const current: State = { revision: 0, flushed: 0, pending: 0, listeners: new Set(), waiters: new Set() }
   states.set(fs, current)
-  function notify(path: string) {
+  function notify(path: string, external = false) {
     current.revision += 1
-    const event = { path: typeof path === 'string' ? path.replace(/^\/+|\/+$/g, '').replace(/\/+/g, '/') : '', revision: current.revision, pending: current.pending }
+    const event = { path: typeof path === 'string' ? path.replace(/^\/+|\/+$/g, '').replace(/\/+/g, '/') : '', revision: current.revision, pending: current.pending, ...(external ? { external: true } : {}) }
     for (const listener of current.listeners) {
       // Observations cannot turn a successful file operation into a write failure.
       try {
@@ -31,6 +31,15 @@ export function observeStudioFileSystem(fs: IFileSystem): IFileSystem {
         done()
       current.waiters.clear()
     }
+  }
+  current.external = () => {
+    const clean = current.revision === current.flushed && !current.pending
+    const revision = current.revision + 1
+    notify('adv', true)
+    // A remote hint is not a local draft. Preserve dirty local writes, including
+    // any write a listener starts synchronously while processing this hint.
+    if (clean && current.revision === revision && !current.pending)
+      current.flushed = revision
   }
   for (const method of methods) {
     if (typeof fs[method] !== 'function')
@@ -89,7 +98,22 @@ export async function flushStudioFileMutations(fs: IFileSystem): Promise<void> {
 export function subscribeStudioFileMutations(fs: IFileSystem, listener: (event: StudioFileMutation) => void): () => void {
   const current = state(fs)
   current.listeners.add(listener)
-  return () => current.listeners.delete(listener)
+  if (current.listeners.size === 1 && !current.unsubscribeExternal) {
+    try {
+      current.unsubscribeExternal = fs.subscribeExternalChanges?.(current.external!)
+    }
+    catch {}
+  }
+  return () => {
+    current.listeners.delete(listener)
+    if (!current.listeners.size) {
+      try {
+        current.unsubscribeExternal?.()
+      }
+      catch {}
+      current.unsubscribeExternal = undefined
+    }
+  }
 }
 
 export function studioFileMutationRevision(fs: IFileSystem): number {

@@ -305,3 +305,153 @@ describe('independent Studio memory workspaces', () => {
     finally { unsubscribe() }
   })
 })
+
+/** Transport-only fixture; real two-page delivery is covered separately in Playwright. */
+function broadcastFixture() {
+  const channels = new Set<Channel>()
+  const messages: Array<{ name: string, data: unknown }> = []
+  class Channel {
+    listeners = new Set<(event: MessageEvent) => void>()
+    active = true
+    constructor(readonly name: string) { channels.add(this) }
+    addEventListener(_type: string, listener: (event: MessageEvent) => void) { this.listeners.add(listener) }
+    removeEventListener(_type: string, listener: (event: MessageEvent) => void) { this.listeners.delete(listener) }
+    postMessage(data: unknown) {
+      messages.push({ name: this.name, data: structuredClone(data) })
+      for (const peer of channels) {
+        if (peer !== this && peer.name === this.name) {
+          queueMicrotask(() => {
+            if (peer.active) {
+              for (const listener of peer.listeners)
+                listener({ data: structuredClone(data) } as MessageEvent)
+            }
+          })
+        }
+      }
+    }
+
+    close() {
+      this.active = false
+      channels.delete(this)
+    }
+  }
+  vi.stubGlobal('BroadcastChannel', Channel)
+  return { channels, messages }
+}
+
+describe('durable cross-window memory hints', () => {
+  async function pair() {
+    const first = new MemoryFsAdapter('notified')
+    await first.writeFile('adv/world.md', 'Original world')
+    await first.writeFile('adv/chapters/intro.adv.md', 'Original chapter')
+    await first.flush()
+    const second = new MemoryFsAdapter('notified')
+    await second.init()
+    return { first, second }
+  }
+
+  it('notifies another instance only after durable commits, with no source bytes or self echo', async () => {
+    const transport = broadcastFixture()
+    const { first, second } = await pair()
+    const own = vi.fn()
+    const remote = vi.fn()
+    const stopOwn = first.subscribeExternalChanges(own)
+    const stopRemote = second.subscribeExternalChanges(remote)
+    try {
+      await first.writeFile('adv/world.md', 'Saved secret source')
+      expect(remote).not.toHaveBeenCalled()
+      await first.flush()
+      expect(remote).toHaveBeenCalledOnce()
+      expect(own).not.toHaveBeenCalled()
+      await first.transaction(scope => scope.writeFile('adv/world.md', 'Atomic saved source'))
+      expect(remote).toHaveBeenCalledTimes(2)
+      expect(own).not.toHaveBeenCalled()
+      await first.writeFile('adv/world.md', 'Failed source')
+      storage.failNext = true
+      await expect(first.flush()).rejects.toThrow('simulated storage failure')
+      expect(remote).toHaveBeenCalledTimes(2)
+      await first.flush()
+      expect(remote).toHaveBeenCalledTimes(3)
+      for (const message of transport.messages)
+        expect(message.data).toEqual({ protocolVersion: 1, sender: expect.any(String) })
+    }
+    finally {
+      stopOwn()
+      stopRemote()
+      vi.unstubAllGlobals()
+    }
+    expect(transport.channels.size).toBe(0)
+  })
+
+  it('revises observation state without flushing a clean adapter or accepting message contents as files', async () => {
+    const transport = broadcastFixture()
+    const { first, second } = await pair()
+    observeStudioFileSystem(second)
+    const events: boolean[] = []
+    const stop = subscribeStudioFileMutations(second, event => events.push(Boolean(event.external)))
+    try {
+      await first.writeFile('adv/world.md', 'Durable remote world')
+      await first.flush()
+      expect(events).toEqual([true])
+      const writes = storage.transactions
+      await flushStudioFileMutations(second)
+      expect(storage.transactions).toBe(writes)
+      expect(await second.readFile('adv/world.md')).toBe('Original world')
+      await second.refresh()
+      expect(await second.readFile('adv/world.md')).toBe('Durable remote world')
+      stop()
+      await first.writeFile('adv/world.md', 'After unsubscribe')
+      await first.flush()
+      expect(events).toEqual([true])
+    }
+    finally {
+      stop()
+      vi.unstubAllGlobals()
+    }
+    expect(transport.channels.size).toBe(0)
+  })
+
+  it('preserves a dirty local draft and isolates other project notifications', async () => {
+    const transport = broadcastFixture()
+    const { first, second } = await pair()
+    observeStudioFileSystem(second)
+    const remote = vi.fn()
+    const stop = subscribeStudioFileMutations(second, event => event.external && remote())
+    try {
+      await second.writeFile('adv/chapters/intro.adv.md', 'My draft')
+      const other = new MemoryFsAdapter('other-project')
+      await other.writeFile('adv/world.md', 'Different project')
+      await other.flush()
+      expect(remote).not.toHaveBeenCalled()
+      await first.writeFile('adv/world.md', 'Remote world')
+      await first.flush()
+      expect(remote).toHaveBeenCalledOnce()
+      await flushStudioFileMutations(second)
+      expect(storage.rows.get('memfs:notified:adv/chapters/intro.adv.md')?.content).toBe('My draft')
+      expect(await second.readFile('adv/world.md')).toBe('Remote world')
+    }
+    finally {
+      stop()
+      vi.unstubAllGlobals()
+    }
+    expect(transport.channels.size).toBe(0)
+  })
+
+  it('keeps persistence and explicit refresh available when the broadcast API is unavailable', async () => {
+    vi.stubGlobal('BroadcastChannel', undefined)
+    const { first, second } = await pair()
+    const remote = vi.fn()
+    const stop = second.subscribeExternalChanges(remote)
+    try {
+      await first.writeFile('adv/world.md', 'Without notification')
+      await first.flush()
+      expect(remote).not.toHaveBeenCalled()
+      await second.refresh()
+      expect(await second.readFile('adv/world.md')).toBe('Without notification')
+    }
+    finally {
+      stop()
+      vi.unstubAllGlobals()
+    }
+  })
+})

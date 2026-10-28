@@ -51,6 +51,8 @@ async function main() {
   let loseMilestoneResponse: 'prepare' | 'confirm' | undefined
   let loseEditResponse = false
   let loseFactsResponse = false
+  let heldSourceState: Promise<void> | undefined
+  let releaseSourceState: (() => void) | undefined
   const editRequests: { key: string, requestFingerprint: string }[] = []
   const cacheKey = `creative-team-authoring-ui-fixture${sourceSyncMode ? '-source-sync' : sourceMode ? '-source' : summaryMode ? '-director' : narrativeMode ? '-narrative' : ''}`
   const summaryHandoffs: unknown[] = []
@@ -215,6 +217,11 @@ async function main() {
         value = { protocolVersion: 1, report }
       }
       else if (method === 'GET' && url.pathname.endsWith('/source-state')) {
+        if (heldSourceState) {
+          const pending = heldSourceState
+          heldSourceState = undefined
+          await pending
+        }
         value = { protocolVersion: 1, run, projectRevision: facts.revision }
       }
       else if (method === 'GET') {
@@ -385,6 +392,15 @@ async function main() {
     loseMilestoneResponse: (phase: 'prepare' | 'confirm') => loseMilestoneResponse = phase,
     loseEditResponse: () => loseEditResponse = true,
     loseFactsResponse: () => loseFactsResponse = true,
+    holdNextSourceState() {
+      heldSourceState = new Promise<void>((resolve) => {
+        releaseSourceState = resolve
+      })
+    },
+    releaseSourceState() {
+      releaseSourceState?.()
+      releaseSourceState = undefined
+    },
     editRequests: () => structuredClone(editRequests),
     files: async () => {
       await content.whenReady()
