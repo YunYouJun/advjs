@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ChapterFormData } from '@advjs/parser'
 import type { ChapterInfo } from '../../composables/useProjectContent'
-import { stringifyChapterMd } from '@advjs/parser'
 import {
   IonButton,
   IonFab,
@@ -77,19 +76,6 @@ const chapterEditor = useContentEditor<ChapterFormData>('chapter', () => ({
   plotSummary: '',
   content: '',
 }), { getFs })
-const chapterMarkdown = ref('')
-
-function chapterToMarkdown() {
-  chapterMarkdown.value = stringifyChapterMd(chapterEditor.formData.value)
-}
-
-function markdownToChapter(md: string) {
-  chapterMarkdown.value = md
-  chapterEditor.formData.value = {
-    ...chapterEditor.formData.value,
-    content: md,
-  }
-}
 
 // --- Navigation ---
 function handleEditChapter(file: string) {
@@ -207,16 +193,18 @@ async function handleDeleteChapter(file: string) {
 
       <!-- Chapter Editor Modal -->
       <ContentEditorModal
+        v-model:active-tab="chapterEditor.activeTab.value"
         :is-open="chapterEditor.isOpen.value"
         :title="chapterEditor.mode.value === 'create' ? t('contentEditor.createChapter') : t('contentEditor.editChapter')"
         :mode="chapterEditor.mode.value"
         :is-saving="isSaving"
-        :markdown="chapterMarkdown"
+        :markdown="chapterEditor.markdown.value"
+        :markdown-error="chapterEditor.markdownError.value"
         :monaco-filename="`${chapterEditor.formData.value.filename || 'chapter'}.adv.md`"
         @update:is-open="(v: boolean) => { if (!v) chapterEditor.close() }"
-        @update:markdown="chapterMarkdown = $event"
-        @sync-to-markdown="chapterToMarkdown()"
-        @sync-from-markdown="markdownToChapter($event)"
+        @update:markdown="chapterEditor.updateMarkdown($event)"
+        @sync-to-markdown="chapterEditor.syncToMarkdown()"
+        @sync-from-markdown="chapterEditor.updateMarkdown($event)"
         @save="handleSaveChapter"
         @cancel="chapterEditor.close()"
       >

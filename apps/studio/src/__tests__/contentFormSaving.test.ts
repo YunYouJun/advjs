@@ -238,3 +238,100 @@ describe('structured form immutable media staging', () => {
     expect(f.fs.writeBlob).toHaveBeenCalledOnce()
   })
 })
+
+describe('raw Markdown drafts and saved source baselines', () => {
+  it('round trips unknown author metadata and sections while applying later form edits', async () => {
+    const f = fixture()
+    await f.editor.openFile(f.path)
+    const raw = `${f.original.replace('keep-me', 'author-added').replace('Unmanaged exact body', 'New raw preamble')}\n## Author note\nUnpublished detail\n`
+    f.editor.updateMarkdown(raw)
+    f.editor.syncToMarkdown()
+    expect(f.editor.markdown.value).toBe(raw)
+    f.editor.formData.value.name = 'New form name'
+    const result = await f.save()
+    expect(result.success).toBe(true)
+    expect(f.files[f.path]).toContain('opaque: author-added')
+    expect(f.files[f.path]).toContain('New raw preamble')
+    expect(f.files[f.path]).toContain('Unpublished detail')
+    expect(parseCharacterMd(f.files[f.path]!).name).toBe('New form name')
+  })
+
+  it('keeps incomplete YAML across close and restoration and refuses direct saves', async () => {
+    const f = fixture()
+    await f.editor.openFile(f.path)
+    const raw = f.original.replace('opaque: keep-me', 'opaque: [incomplete')
+    f.editor.activeTab.value = 'markdown'
+    f.editor.updateMarkdown(raw)
+    expect(f.editor.validate().join()).toContain('Markdown')
+    f.editor.close()
+    expect(f.editor.restoreDraft()).toBe(true)
+    expect(f.editor.activeTab.value).toBe('markdown')
+    expect(f.editor.markdown.value).toBe(raw)
+    expect(f.editor.markdownError.value).not.toBe('')
+    f.editor.syncToMarkdown()
+    expect(f.editor.markdown.value).toBe(raw)
+    expect(await f.save()).toMatchObject({ success: false })
+    expect(f.fs.writeFile).not.toHaveBeenCalled()
+    expect(f.files[f.path]).toBe(f.original)
+    f.editor.updateMarkdown(f.original.replace('林舟', 'Fixed raw'))
+    expect(f.editor.validate()).toEqual([])
+    expect(await f.save()).toMatchObject({ success: true })
+    expect(parseCharacterMd(f.files[f.path]!).name).toBe('Fixed raw')
+  })
+
+  it('never rebases the write baseline onto an authored raw draft or a newer saved file', async () => {
+    const f = fixture()
+    await f.editor.openFile(f.path)
+    f.editor.updateMarkdown(`${f.original}\n## New private note\nNot adopted\n`)
+    f.editor.close()
+    f.files[f.path] = f.original.replace('林舟', 'Independent author')
+    expect(f.editor.restoreDraft()).toBe(true)
+    expect(await f.save()).toMatchObject({ success: false, conflict: true })
+    expect(f.files[f.path]).toContain('name: Independent author')
+    expect(f.editor.markdown.value).toContain('Not adopted')
+  })
+
+  it('preserves raw-only changes arriving while an earlier version saves', async () => {
+    const f = fixture()
+    await f.editor.openFile(f.path)
+    const first = `${f.original}\n## Private note\nFirst\n`
+    const later = first.replace('First', 'Later')
+    f.editor.updateMarkdown(first)
+    let release!: () => void
+    vi.mocked(f.fs.flush!).mockReturnValueOnce(new Promise<void>((resolve) => {
+      release = resolve
+    }))
+    const pending = f.save()
+    await vi.waitFor(() => expect(f.fs.flush).toHaveBeenCalled())
+    f.editor.updateMarkdown(later)
+    release()
+    const result = await pending
+    expect(f.files[f.path]).toBe(first)
+    expect(f.editor.onSaved(result)).toBe(false)
+    expect(f.editor.isOpen.value).toBe(true)
+    expect(f.editor.markdown.value).toBe(later)
+    const next = await f.save()
+    expect(next.success).toBe(true)
+    expect(f.editor.onSaved(next)).toBe(true)
+    expect(f.files[f.path]).toBe(later)
+  })
+
+  it('restores form changes from a legacy draft with its saved source intact', async () => {
+    const f = fixture()
+    const data = { ...parseCharacterMd(f.original), name: 'Legacy changed name' }
+    localStorage.setItem('advjs-studio-draft-original-character', JSON.stringify({ mode: 'edit', originalId: 'lin', data, source: { path: f.path, content: f.original }, timestamp: Date.now() }))
+    expect(f.editor.restoreDraft()).toBe(true)
+    expect(await f.save()).toMatchObject({ success: true })
+    expect(f.files[f.path]).toContain('name: Legacy changed name')
+    expect(f.files[f.path]).toContain('opaque: keep-me')
+  })
+
+  it('rejects raw/form identity mismatches before any project write', async () => {
+    const f = fixture()
+    await f.editor.openFile(f.path)
+    const context = f.editor.saveContext()
+    context.markdown = f.original.replace('id: lin', 'id: other')
+    expect(await f.service.saveContent(f.fs, 'character', 'edit', f.editor.formData.value, 'lin', context)).toMatchObject({ success: false, error: 'ADV_STUDIO_CONTENT_DRAFT_MISMATCH' })
+    expect(f.fs.writeFile).not.toHaveBeenCalled()
+  })
+})

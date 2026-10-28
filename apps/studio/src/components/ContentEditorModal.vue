@@ -27,6 +27,7 @@ const props = defineProps<{
   isSaving?: boolean
   aiEnabled?: boolean
   markdown: string
+  markdownError?: string
   monacoFilename?: string
 }>()
 
@@ -44,7 +45,7 @@ const CreativeTeamModal = defineAsyncComponent(() => import('./creative-team/Cre
 const router = useRouter()
 const authStore = useAuthStore()
 const collab = useCollabRoom()
-const activeTab = ref<'form' | 'markdown' | 'ai'>('form')
+const activeTab = defineModel<'form' | 'markdown' | 'ai'>('activeTab', { default: 'form' })
 const markdownOpened = ref(false)
 const localMarkdown = ref('')
 const isCollabToggling = ref(false)
@@ -80,8 +81,7 @@ watch(() => props.markdown, v => localMarkdown.value = v)
 
 watch(() => props.isOpen, (open) => {
   if (open) {
-    activeTab.value = 'form'
-    markdownOpened.value = false
+    markdownOpened.value = activeTab.value === 'markdown'
     localMarkdown.value = props.markdown
   }
   else {
@@ -133,6 +133,8 @@ function handleCancel() {
 }
 
 function handleSave() {
+  if (props.isSaving || props.markdownError)
+    return
   if (activeTab.value === 'markdown')
     emit('syncFromMarkdown', localMarkdown.value)
   emit('save')
@@ -165,7 +167,7 @@ function handleCreativeNavigate() {
             {{ t('creativeTeam.title') }}
           </IonButton>
           <IonButton
-            :disabled="isSaving"
+            :disabled="isSaving || Boolean(markdownError)"
             color="primary"
             fill="solid"
             size="small"
@@ -196,8 +198,12 @@ function handleCreativeNavigate() {
     </IonHeader>
 
     <IonContent>
+      <div v-if="markdownError" role="alert" class="cem-markdown-error">
+        <p>{{ t('contentEditor.markdownInvalid') }}</p>
+        <pre>{{ markdownError }}</pre>
+      </div>
       <!-- Form -->
-      <div v-show="activeTab === 'form'" class="cem-panel cem-panel--form ion-padding">
+      <div v-show="activeTab === 'form'" :inert="Boolean(markdownError)" class="cem-panel cem-panel--form ion-padding">
         <slot name="form" />
       </div>
 
@@ -235,6 +241,7 @@ function handleCreativeNavigate() {
           :content="localMarkdown"
           :readonly="collab.myRole.value === 'viewer'"
           :filename="collabFilename"
+          preserve-session-on-rename
           :collab-text="collabText"
           @update:content="handleMarkdownUpdate"
           @save="handleSave"
@@ -252,6 +259,23 @@ function handleCreativeNavigate() {
 </template>
 
 <style scoped>
+.cem-markdown-error {
+  padding: var(--adv-space-sm) var(--adv-space-md);
+  color: var(--ion-color-danger);
+  background: var(--adv-surface-card);
+}
+
+.cem-markdown-error p {
+  margin: 0;
+}
+
+.cem-markdown-error pre {
+  margin-bottom: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: var(--adv-font-body-sm);
+}
+
 .cem-save-btn {
   --border-radius: var(--adv-radius-md, 8px);
   text-transform: none;

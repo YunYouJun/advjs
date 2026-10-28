@@ -46,6 +46,8 @@ async function main() {
   const router = createRouter({ history: createMemoryHistory(), routes: [
     { path: '/tabs/workspace/characters', component: CharactersPage },
     { path: '/tabs/workspace/scenes', component: () => import('../../../src/views/workspace/ScenesPage.vue') },
+    { path: '/tabs/workspace/chapters', component: () => import('../../../src/views/workspace/ChaptersPage.vue') },
+    { path: '/tabs/workspace/locations', component: () => import('../../../src/views/workspace/LocationsPage.vue') },
     { path: '/tabs/workspace/locations/:id', component: () => import('../../../src/views/workspace/LocationDetailPage.vue') },
   ] })
   await router.push('/tabs/workspace/characters')
@@ -66,8 +68,9 @@ async function main() {
   Object.assign(window, { formSavingFixture: {
     path,
     original,
-    async navigate(kind: 'scene' | 'location') {
-      await router.push(kind === 'scene' ? '/tabs/workspace/scenes' : '/tabs/workspace/locations/station')
+    async navigate(kind: 'scene' | 'location' | 'locations' | 'chapter') {
+      const paths = { scene: '/tabs/workspace/scenes', location: '/tabs/workspace/locations/station', locations: '/tabs/workspace/locations', chapter: '/tabs/workspace/chapters' }
+      await router.push(paths[kind])
     },
     async authorEdit() {
       const fs = content.getFs()!

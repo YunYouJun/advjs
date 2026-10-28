@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { LocationFormData } from '@advjs/parser'
 import type { LocationInfo, SceneInfo } from '../../composables/useProjectContent'
-import { stringifyLocationMd } from '@advjs/parser'
 import {
   IonButton,
   IonCard,
@@ -229,12 +228,17 @@ function goToCharacter(characterId: string) {
 
     <!-- Editor Modal -->
     <ContentEditorModal
+      v-model:active-tab="locationEditor.activeTab.value"
       :is-open="locationEditor.isOpen.value"
       :title="t('locations.editLocation')"
       :mode="locationEditor.mode.value"
       :is-saving="isSaving"
-      :markdown="stringifyLocationMd(locationEditor.formData.value)"
+      :markdown="locationEditor.markdown.value"
+      :markdown-error="locationEditor.markdownError.value"
       :monaco-filename="`${locationEditor.formData.value.id || 'location'}.md`"
+      @update:markdown="locationEditor.updateMarkdown($event)"
+      @sync-to-markdown="locationEditor.syncToMarkdown()"
+      @sync-from-markdown="locationEditor.updateMarkdown($event)"
       @update:is-open="(v: boolean) => { if (!v) locationEditor.close() }"
       @save="handleSave"
       @cancel="locationEditor.close()"

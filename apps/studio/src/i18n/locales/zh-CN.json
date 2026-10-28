@@ -851,6 +851,7 @@
     "fixFailed": "修复失败，请手动检查"
   },
   "contentEditor": {
+    "markdownInvalid": "Markdown 尚未解析成功。请修正原文后保存；当前原文会保留在草稿中。",
     "formSourceChanged": "原文件或项目已变化，草稿仍保留。请先复制草稿，再重新打开文件核对。",
     "savedWithNewerDraft": "本次内容已保存，之后的新修改仍留在表单中。",
     "formTab": "表单",

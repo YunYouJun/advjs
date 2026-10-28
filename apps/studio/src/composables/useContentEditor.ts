@@ -1,14 +1,15 @@
 import type { AudioFormData, ChapterFormData, LocationFormData, SceneFormData } from '@advjs/parser'
 import type { AdvCharacter } from '@advjs/types'
+import type { ContentType } from '../utils/contentFormMarkdown'
 import type { IFileSystem } from '../utils/fs'
 import type { StudioContentSource } from '../utils/projectContentMutation'
 import type { ContentSaveContext, SaveResult } from './useContentSave'
-import { parseChapterMd, parseCharacterMd, parseLocationMd, parseSceneMd } from '@advjs/parser'
 import { computed, ref, shallowRef, watch } from 'vue'
+import { parseContentFormMarkdown, stringifyContentFormMarkdown } from '../utils/contentFormMarkdown'
 import { readStudioContentSource } from '../utils/projectContentMutation'
 import { getCurrentProjectId } from '../utils/projectScope'
 
-export type ContentType = 'character' | 'scene' | 'chapter' | 'audio' | 'location'
+export type { ContentType } from '../utils/contentFormMarkdown'
 export type EditorMode = 'create' | 'edit'
 const ID_RE = /^[\w-]+$/
 const DRAFT_PREFIX = 'advjs-studio-draft-'
@@ -25,11 +26,56 @@ export function useContentEditor<T extends AdvCharacter | SceneFormData | Chapte
   const originalId = shallowRef('')
   const hasDraft = shallowRef(false)
   const source = shallowRef<StudioContentSource>()
+  const markdown = shallowRef('')
+  const markdownError = shallowRef('')
+  const activeTab = shallowRef<'form' | 'markdown' | 'ai'>('form')
+  let markdownReady = false
+  let projectedForm = ''
   const draftKey = computed(() => `${DRAFT_PREFIX}${getCurrentProjectId()}-${contentType}`)
   let epoch = 0
   let active: { fs: IFileSystem | null, projectId: string, token: object, epoch: number } | undefined
   let activeDraftKey = ''
   const clone = (data: T): T => JSON.parse(JSON.stringify(data))
+
+  function filename() {
+    return 'filename' in formData.value ? formData.value.filename : ''
+  }
+  function resetMarkdown(raw?: string) {
+    markdownReady = raw !== undefined
+    markdown.value = raw ?? ''
+    markdownError.value = ''
+    projectedForm = JSON.stringify(formData.value)
+    activeTab.value = 'form'
+  }
+  function syncToMarkdown() {
+    // An incomplete raw draft must be repaired in Markdown, never replaced by old fields.
+    if (markdownError.value || (markdownReady && projectedForm === JSON.stringify(formData.value)))
+      return
+    try {
+      markdown.value = stringifyContentFormMarkdown(contentType, formData.value, markdownReady ? markdown.value : source.value?.content ?? undefined)
+      markdownReady = true
+      projectedForm = JSON.stringify(formData.value)
+    }
+    catch (error) {
+      markdownError.value = error instanceof Error ? error.message : String(error)
+    }
+  }
+  function updateMarkdown(raw: string) {
+    // Monaco also emits for programmatic setValue; don't reparse our own form projection.
+    if (markdownReady && raw === markdown.value)
+      return
+    markdown.value = raw
+    markdownReady = true
+    try {
+      formData.value = parseContentFormMarkdown(contentType, raw, filename()) as T
+      projectedForm = JSON.stringify(formData.value)
+      markdownError.value = ''
+    }
+    catch (error) {
+      markdownError.value = error instanceof Error ? error.message : String(error)
+    }
+    saveDraft()
+  }
 
   function begin() {
     epoch += 1
@@ -61,6 +107,8 @@ export function useContentEditor<T extends AdvCharacter | SceneFormData | Chapte
         mode: mode.value,
         originalId: originalId.value,
         data: formData.value,
+        markdown: markdownReady ? markdown.value : undefined,
+        activeTab: activeTab.value,
         source: source.value ? { path: source.value.path, content: source.value.content } : undefined,
         timestamp: Date.now(),
       }))
@@ -72,7 +120,7 @@ export function useContentEditor<T extends AdvCharacter | SceneFormData | Chapte
     removeDraft(draftKey.value)
   }
   watch(draftKey, refreshDraftFlag, { immediate: true })
-  watch(formData, () => {
+  watch([formData, activeTab], () => {
     if (isOpen.value)
       saveDraft()
   }, { deep: true })
@@ -83,6 +131,7 @@ export function useContentEditor<T extends AdvCharacter | SceneFormData | Chapte
     mode.value = 'create'
     originalId.value = ''
     formData.value = clone(createDefault())
+    resetMarkdown()
     isOpen.value = true
   }
   function openEdit(data: T, opened?: StudioContentSource) {
@@ -91,6 +140,7 @@ export function useContentEditor<T extends AdvCharacter | SceneFormData | Chapte
     mode.value = 'edit'
     formData.value = clone(data)
     originalId.value = 'id' in data ? data.id : 'filename' in data ? data.filename : ''
+    resetMarkdown(opened?.content ?? undefined)
     isOpen.value = true
   }
   async function openFile(path: string): Promise<T> {
@@ -106,24 +156,15 @@ export function useContentEditor<T extends AdvCharacter | SceneFormData | Chapte
     const opened = await readStudioContentSource(fs, path, assertCurrent)
     if (opened.content === null)
       throw new Error('ADV_STUDIO_CONTENT_MISSING')
-    const data = contentType === 'character'
-      ? parseCharacterMd(opened.content)
-      : contentType === 'scene'
-        ? parseSceneMd(opened.content)
-        : contentType === 'location'
-          ? parseLocationMd(opened.content)
-          : contentType === 'chapter'
-            ? parseChapterMd(opened.content, path.split('/').pop()!.replace(/\.adv\.md$/, ''))
-            : undefined
-    if (!data)
-      throw new Error('ADV_STUDIO_CONTENT_TYPE_INVALID')
+    const data = parseContentFormMarkdown(contentType, opened.content, path.split('/').pop()!.replace(/\.adv\.md$/, ''))
     assertCurrent()
     openEdit(data as T, opened)
     return formData.value
   }
   function saveContext(): ContentSaveContext {
+    syncToMarkdown()
     const session = active
-    return { source: source.value, session: session?.token, assertCurrent() {
+    return { source: source.value, markdown: markdownReady ? markdown.value : undefined, session: session?.token, assertCurrent() {
       if (!session?.fs || active !== session || epoch !== session.epoch || options.getFs() !== session.fs || getCurrentProjectId() !== session.projectId)
         throw new Error('ADV_STUDIO_CONTENT_SCOPE_CHANGED')
     } }
@@ -147,6 +188,16 @@ export function useContentEditor<T extends AdvCharacter | SceneFormData | Chapte
       source.value = fs && typeof draft.source?.path === 'string' && typeof draft.source.content === 'string'
         ? Object.freeze({ fs, path: draft.source.path, content: draft.source.content })
         : undefined
+      resetMarkdown(typeof draft.markdown === 'string' ? draft.markdown : source.value?.content ?? undefined)
+      if (markdownReady) {
+        try {
+          projectedForm = JSON.stringify(parseContentFormMarkdown(contentType, markdown.value, filename()))
+        }
+        catch (error) {
+          markdownError.value = error instanceof Error ? error.message : String(error)
+        }
+      }
+      activeTab.value = markdownError.value || draft.activeTab === 'markdown' ? 'markdown' : 'form'
       isOpen.value = true
       return true
     }
@@ -173,7 +224,7 @@ export function useContentEditor<T extends AdvCharacter | SceneFormData | Chapte
     source.value = result.source
     mode.value = 'edit'
     originalId.value = result.savedId
-    if (JSON.stringify(formData.value) !== result.submittedData) {
+    if (JSON.stringify(formData.value) !== result.submittedData || (result.submittedMarkdown !== undefined && markdown.value !== result.submittedMarkdown)) {
       saveDraft()
       return false
     }
@@ -184,6 +235,8 @@ export function useContentEditor<T extends AdvCharacter | SceneFormData | Chapte
 
   function validate(): string[] {
     const errors: string[] = []
+    if (markdownError.value)
+      errors.push(`Markdown: ${markdownError.value}`)
     const data = formData.value
 
     if (contentType === 'character') {
@@ -225,5 +278,5 @@ export function useContentEditor<T extends AdvCharacter | SceneFormData | Chapte
     return errors
   }
 
-  return { isOpen, mode, formData, originalId, hasDraft, openCreate, openEdit, openFile, saveContext, restoreDraft, close, onSaved, clearDraft, validate }
+  return { isOpen, mode, formData, originalId, hasDraft, markdown, markdownError, activeTab, syncToMarkdown, updateMarkdown, openCreate, openEdit, openFile, saveContext, restoreDraft, close, onSaved, clearDraft, validate }
 }

@@ -4,14 +4,16 @@ import type { IFileSystem } from '../utils/fs'
 import type { StudioNativeMedia } from '../utils/nativeProjectMutation'
 import type { StudioContentSource } from '../utils/projectContentMutation'
 import type { ContentType, EditorMode } from './useContentEditor'
-import { stringifyChapterMd, stringifyCharacterMd, stringifyLocationMd, stringifySceneMd } from '@advjs/parser'
 import { ref } from 'vue'
+import { parseContentFormMarkdown, stringifyContentFormMarkdown } from '../utils/contentFormMarkdown'
 import { commitStudioProjectFiles } from '../utils/nativeProjectMutation'
 import { isStudioContentConflict } from '../utils/projectContentMutation'
 import { whenStudioProjectWritesSettle } from '../utils/projectWriteQueue'
 
 export interface ContentSaveContext {
   source?: StudioContentSource
+  /** Authored private text, never the baseline used to authorize replacing a saved file. */
+  markdown?: string
   assertCurrent?: () => void
   session?: object
 }
@@ -22,6 +24,7 @@ export interface SaveResult {
   conflict?: boolean
   source?: StudioContentSource
   submittedData?: string
+  submittedMarkdown?: string
   savedId?: string
   session?: object
 }
@@ -96,7 +99,13 @@ export function useContentSave() {
     try {
       const submittedData = JSON.stringify(data)
       const input = JSON.parse(submittedData) as typeof data
+      const submittedMarkdown = context.markdown
       const id = 'filename' in input ? input.filename : input.id
+      if (submittedMarkdown !== undefined) {
+        const parsed = parseContentFormMarkdown(contentType, submittedMarkdown, 'filename' in input ? input.filename : '')
+        if (('filename' in parsed ? parsed.filename : 'id' in parsed ? parsed.id : '') !== id)
+          throw new Error('ADV_STUDIO_CONTENT_DRAFT_MISMATCH')
+      }
       let filePath = targetPath(contentType, id)
       const source = context.source
       const assertCurrent = context.assertCurrent ?? (() => {})
@@ -124,26 +133,15 @@ export function useContentSave() {
       const expected = mode === 'edit' && source!.path === filePath ? source!.content : null
       if ((before[filePath] ?? null) !== expected)
         throw new Error('ADV_STUDIO_SOURCE_CONFLICT')
-      let content: string
+      const draftSource = submittedMarkdown ?? source?.content ?? undefined
       let media: StudioNativeMedia[] = []
-      switch (contentType) {
-        case 'character': {
-          const prepared = await characterImages(input as AdvCharacter)
-          media = prepared.media
-          content = stringifyCharacterMd(prepared.character, { source: source?.content ?? undefined })
-          break
-        }
-        case 'scene':
-          content = stringifySceneMd(input as SceneFormData, { source: source?.content ?? undefined })
-          break
-        case 'location':
-          content = stringifyLocationMd(input as LocationFormData, { source: source?.content ?? undefined })
-          break
-        case 'chapter':
-          content = stringifyChapterMd(input as ChapterFormData)
-          break
-        default: throw new Error('ADV_STUDIO_CONTENT_TYPE_INVALID')
+      let preparedInput = input
+      if (contentType === 'character') {
+        const prepared = await characterImages(input as AdvCharacter)
+        media = prepared.media
+        preparedInput = prepared.character
       }
+      const content = stringifyContentFormMarkdown(contentType, preparedInput, draftSource)
       const after = { ...before, [filePath]: content }
       await commitStudioProjectFiles(fs, [{ path: filePath, expected, content }], {
         assertCurrent,
@@ -152,7 +150,7 @@ export function useContentSave() {
         validateCurrent: scope => assertFiles(scope, before),
         validateAfter: scope => assertFiles(scope, after),
       })
-      return { success: true, filePath, source: Object.freeze({ fs, path: filePath, content }), submittedData, savedId: id, session: context.session }
+      return { success: true, filePath, source: Object.freeze({ fs, path: filePath, content }), submittedData, submittedMarkdown, savedId: id, session: context.session }
     }
     catch (error) {
       return { success: false, error: error instanceof Error ? error.message : String(error), conflict: isStudioContentConflict(error) || (error instanceof Error && error.message === 'ADV_STUDIO_EDIT_SOURCE_REQUIRED') }

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { AdvCharacter } from '@advjs/types'
-import { parseCharacterMd, stringifyCharacterMd } from '@advjs/parser'
 import {
   actionSheetController,
   IonButton,
@@ -75,33 +74,15 @@ const characterEditor = useContentEditor<AdvCharacter>('character', () => ({
   speechStyle: '',
   relationships: [],
 }), { getFs })
-const characterMarkdown = ref('')
-
-function characterToMarkdown() {
-  characterMarkdown.value = stringifyCharacterMd(characterEditor.formData.value)
-}
-
-function markdownToCharacter(md: string) {
-  characterMarkdown.value = md
-  try {
-    const parsed = parseCharacterMd(md)
-    characterEditor.formData.value = parsed
-  }
-  catch {
-    // If md is invalid, keep formData unchanged
-  }
-}
 
 async function handleEditCharacter(character: AdvCharacter) {
   trackAccess({ id: character.id, label: character.name, type: 'character', action: 'edit', avatar: character.avatar })
   if (!getFs()) {
     characterEditor.openEdit(character)
-    characterMarkdown.value = stringifyCharacterMd(character)
     return
   }
   try {
-    const data = await characterEditor.openFile(`adv/characters/${character.id}.character.md`)
-    characterMarkdown.value = stringifyCharacterMd(data)
+    await characterEditor.openFile(`adv/characters/${character.id}.character.md`)
   }
   catch (error) {
     await showToast(t('contentEditor.saveFailed', { error: String(error) }), 'danger')
@@ -295,16 +276,18 @@ async function handleExportCSV() {
 
     <!-- Character Editor Modal -->
     <ContentEditorModal
+      v-model:active-tab="characterEditor.activeTab.value"
       :is-open="characterEditor.isOpen.value"
       :title="characterEditor.mode.value === 'create' ? t('contentEditor.createCharacter') : t('contentEditor.editCharacter')"
       :mode="characterEditor.mode.value"
       :is-saving="isSaving"
-      :markdown="characterMarkdown"
+      :markdown="characterEditor.markdown.value"
+      :markdown-error="characterEditor.markdownError.value"
       :monaco-filename="`${characterEditor.formData.value.id || 'character'}.character.md`"
       @update:is-open="(v: boolean) => { if (!v) characterEditor.close() }"
-      @update:markdown="characterMarkdown = $event"
-      @sync-to-markdown="characterToMarkdown()"
-      @sync-from-markdown="markdownToCharacter($event)"
+      @update:markdown="characterEditor.updateMarkdown($event)"
+      @sync-to-markdown="characterEditor.syncToMarkdown()"
+      @sync-from-markdown="characterEditor.updateMarkdown($event)"
       @save="handleSaveCharacter"
       @cancel="characterEditor.close()"
     >

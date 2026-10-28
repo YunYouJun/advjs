@@ -851,6 +851,7 @@
     "fixFailed": "Fix failed, please check manually"
   },
   "contentEditor": {
+    "markdownInvalid": "Markdown could not be parsed. Fix the text before saving; your raw text is kept in the draft.",
     "formSourceChanged": "The source file or project changed. Your draft is kept; copy it before reopening the file to compare.",
     "savedWithNewerDraft": "The submitted version was saved; your newer changes remain in the form.",
     "formTab": "Form",

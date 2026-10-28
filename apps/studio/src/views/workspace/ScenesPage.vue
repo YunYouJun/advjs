@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { SceneFormData } from '@advjs/parser'
 import type { SceneInfo } from '../../composables/useProjectContent'
-import { parseSceneMd, stringifySceneMd } from '@advjs/parser'
 import {
   IonButton,
   IonFab,
@@ -66,34 +65,16 @@ const sceneEditor = useContentEditor<SceneFormData>('scene', () => ({
   type: 'image' as const,
   tags: [],
 }), { getFs })
-const sceneMarkdown = ref('')
-
-function sceneToMarkdown() {
-  sceneMarkdown.value = stringifySceneMd(sceneEditor.formData.value)
-}
-
-function markdownToScene(md: string) {
-  sceneMarkdown.value = md
-  try {
-    const parsed = parseSceneMd(md)
-    sceneEditor.formData.value = parsed
-  }
-  catch {
-    // keep formData unchanged on parse failure
-  }
-}
 
 async function handleEditScene(scene: SceneInfo) {
   trackAccess({ id: scene.file, label: scene.name, type: 'scene', action: 'edit' })
   if (!getFs()) {
     const data: SceneFormData = { id: scene.id || scene.name, name: scene.name, assetId: scene.assetId, src: scene.src, description: scene.description, imagePrompt: scene.imagePrompt, type: scene.type || 'image', tags: scene.tags, linkedLocation: scene.linkedLocation }
     sceneEditor.openEdit(data)
-    sceneMarkdown.value = stringifySceneMd(data)
     return
   }
   try {
-    const data = await sceneEditor.openFile(scene.file)
-    sceneMarkdown.value = stringifySceneMd(data)
+    await sceneEditor.openFile(scene.file)
   }
   catch (error) {
     await showToast(t('contentEditor.saveFailed', { error: String(error) }), 'danger')
@@ -220,16 +201,18 @@ async function handlePublishScene(scene: SceneInfo) {
 
     <!-- Scene Editor Modal -->
     <ContentEditorModal
+      v-model:active-tab="sceneEditor.activeTab.value"
       :is-open="sceneEditor.isOpen.value"
       :title="sceneEditor.mode.value === 'create' ? t('contentEditor.createScene') : t('contentEditor.editScene')"
       :mode="sceneEditor.mode.value"
       :is-saving="isSaving"
-      :markdown="sceneMarkdown"
+      :markdown="sceneEditor.markdown.value"
+      :markdown-error="sceneEditor.markdownError.value"
       :monaco-filename="`${sceneEditor.formData.value.id || 'scene'}.md`"
       @update:is-open="(v: boolean) => { if (!v) sceneEditor.close() }"
-      @update:markdown="sceneMarkdown = $event"
-      @sync-to-markdown="sceneToMarkdown()"
-      @sync-from-markdown="markdownToScene($event)"
+      @update:markdown="sceneEditor.updateMarkdown($event)"
+      @sync-to-markdown="sceneEditor.syncToMarkdown()"
+      @sync-from-markdown="sceneEditor.updateMarkdown($event)"
       @save="handleSaveScene"
       @cancel="sceneEditor.close()"
     >
