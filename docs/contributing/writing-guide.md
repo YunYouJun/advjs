@@ -19,7 +19,7 @@
 
 - `docs/plans/`：[实施计划](/plans/)，保存任务分解、验收标准和执行交接；文件名推荐 `YYYY-MM-DD-topic.md`。
 - `docs/specs/`：[技术规格与设计记录](/specs/)，保存技术方案和需求基线；包含多份材料的方案使用 `YYYY-MM-DD-topic/` 目录。
-- `docs/reports/`：保存实际验证结果、环境和证据，与计划中的目标区分。截图、录屏和 `.xcresult` 等证据文件不提交到仓库，保存为测试附件或 CI artifact，报告中引用附件名。
+- `docs/reports/`：保存实际验证结果、环境和证据，与计划中的目标区分。截图、录屏和 `.xcresult` 等证据文件不提交到仓库，保存为测试附件或 CI artifact，报告中引用附件名。根目录 `.gitignore` 忽略 `evidence/` 目录、`*.xcresult`，以及 macOS 默认录屏文件名。
 - `docs/about/design/`：面向维护者的长期设计规范；已稳定的规则应在此维护，相关计划链接到该规范。
 - `docs/archive/`：[历史资料](/archive/)，保留已被取代的计划、阶段状态和运维证据；注明当前替代入口，页面设置 `search: false`，避免进入站内本地搜索结果。
 
