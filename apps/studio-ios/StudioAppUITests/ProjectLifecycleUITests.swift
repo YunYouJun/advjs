@@ -154,6 +154,32 @@ final class ProjectLifecycleUITests: XCTestCase {
         screenshot(settings, "system-settings-for-app")
     }
 
+    func testSystemSettingsOpensAppPageFromAppsList() {
+        let app = launch()
+        app.buttons["Me"].tap()
+        app.buttons["language-settings"].tap()
+        let settings = XCUIApplication(bundleIdentifier: "com.apple.Preferences")
+        XCTAssertTrue(settings.wait(for: .runningForeground, timeout: 15))
+        let appsPage = settings.navigationBars.matching(NSPredicate(format: "identifier IN {'Apps', 'App', '应用', '应用程序'}")).firstMatch
+        for _ in 0..<5 where !appsPage.exists {
+            let back = settings.navigationBars.buttons["BackButton"].firstMatch
+            if back.exists {
+                back.tap()
+            }
+            else {
+                let apps = settings.buttons.matching(NSPredicate(format: "identifier ENDSWITH[c] '.Apps' OR label IN {'Apps', 'App', '应用', '应用程序'}")).firstMatch
+                for _ in 0..<6 where !apps.isHittable { settings.swipeUp() }
+                apps.tap()
+            }
+        }
+        XCTAssertTrue(appsPage.waitForExistence(timeout: 15), settings.debugDescription)
+        // The Apps list contains the App's name too; it is not the App page.
+        XCTAssertTrue(settings.staticTexts["ADV.JS Studio"].firstMatch.exists)
+        _ = openAppPageInSettings()
+        let appPage = settings.navigationBars["ADV.JS Studio"].firstMatch
+        XCTAssertTrue(appPage.waitForExistence(timeout: 15), settings.debugDescription)
+    }
+
     /// Change the per-app language in Settings, as an author would, and check
     /// that the interface and date formatting follow without relaunch arguments.
     func testSwitchingLanguageInSystemSettings() {
@@ -203,25 +229,32 @@ final class ProjectLifecycleUITests: XCTestCase {
         }
     }
 
-    /// Settings opened from the App: wait for this App's page. Some simulator
-    /// builds stop at the Settings root, so go to Apps → ADV.JS Studio if needed.
+    /// Settings can restore its root, Apps list, or a language subpage. Verify
+    /// the navigation bar: the Apps list also contains the App's display name.
     private func openAppPageInSettings() -> XCUIApplication {
         let settings = XCUIApplication(bundleIdentifier: "com.apple.Preferences")
         XCTAssertTrue(settings.wait(for: .runningForeground, timeout: 15))
-        let appTitle = settings.staticTexts["ADV.JS Studio"].firstMatch
-        if !appTitle.waitForExistence(timeout: 10) {
-            let apps = settings.buttons.matching(NSPredicate(format: "identifier CONTAINS[c] 'APPS' OR label == 'App' OR label == 'Apps'")).firstMatch
-            for _ in 0..<6 where !apps.isHittable {
+        let appPage = settings.navigationBars["ADV.JS Studio"].firstMatch
+        let appsPage = settings.navigationBars.matching(NSPredicate(format: "identifier IN {'Apps', 'App', '应用', '应用程序'}")).firstMatch
+        let appRow = settings.buttons.matching(NSPredicate(format: "identifier == 'org.advjs.studio.dev' OR label == 'ADV.JS Studio'")).firstMatch
+        let apps = settings.buttons.matching(NSPredicate(format: "identifier ENDSWITH[c] '.Apps' OR label IN {'Apps', 'App', '应用', '应用程序'}")).firstMatch
+        for _ in 0..<10 {
+            if appPage.waitForExistence(timeout: 2) { break }
+            if appsPage.exists {
+                if appRow.isHittable { appRow.tap() }
+                else { settings.swipeDown() }
+            }
+            else if settings.navigationBars.buttons["BackButton"].firstMatch.exists {
+                settings.navigationBars.buttons["BackButton"].firstMatch.tap()
+            }
+            else if apps.isHittable {
+                apps.tap()
+            }
+            else {
                 settings.swipeUp()
             }
-            apps.tap()
-            let row = settings.buttons["ADV.JS Studio"].firstMatch
-            for _ in 0..<8 where !row.waitForExistence(timeout: 2) {
-                settings.swipeUp()
-            }
-            row.tap()
         }
-        XCTAssertTrue(appTitle.waitForExistence(timeout: 15), settings.debugDescription)
+        XCTAssertTrue(appPage.waitForExistence(timeout: 15), settings.debugDescription)
         sleep(2)
         return settings
     }
