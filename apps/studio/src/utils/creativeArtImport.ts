@@ -5,10 +5,10 @@ import type { CreativeMediaProjectState } from './creativeMediaRecovery'
 import type { IFileSystem } from './fs'
 import { computeAgentProjectRevision, creativeArtifactExpectedFiles, parseCreativeProject } from '@advjs/agent'
 import { compileProject, planAdvAssetManifestUpsert } from '@advjs/core'
+import { dumpYamlFrontmatter } from '@advjs/parser'
 import * as yaml from 'js-yaml'
 import { inspectCreativeMediaWrite, recoverCreativeMediaWrite } from './creativeMediaRecovery'
 import { createStudioCreativeWorkspace } from './creativeTeamWorkspace'
-import { dumpYamlFrontmatter } from './mdFrontmatter'
 import { commitStudioProjectFiles } from './nativeProjectMutation'
 
 /** Reject older proposal versions and mismatched request identities before reviewing or writing. */
