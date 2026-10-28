@@ -8,7 +8,7 @@ struct StudioAppTests {
     @Test("Keeps system app-language selection available on single-language devices")
     func languageSettings() {
         #expect(Bundle.main.object(forInfoDictionaryKey: "UIPrefersShowingLanguageSettings") as? Bool == true)
-        #expect(Bundle.main.localizations.contains("en"))
+        #expect(Bundle.main.developmentLocalization == "en")
         #expect(Bundle.main.localizations.contains("zh-Hans"))
     }
 

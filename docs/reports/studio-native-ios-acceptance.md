@@ -327,7 +327,7 @@ P2 的首轮 CI（[YunYouJun/advjs#82](https://github.com/YunYouJun/advjs/pull/8
 
 2026-10-28 继续核对 PR #82 的 [CI 失败运行](https://github.com/YunYouJun/advjs/actions/runs/39662323643)：构建和 App 单测成功，`testSwitchingLanguageInSystemSettings` 在系统设置中找不到语言入口。`UITests-iPhone.xcresult` 的失败附件 `App UI hierarchy for com.apple.Preferences` 确认已进入本 App 设置页，但页面只有 Siri、Search 和蜂窝数据，没有语言选项。单语言设备默认隐藏这个入口，不能仅增加等待时间修复。
 
-Debug 和 Release 均启用 `UIPrefersShowingLanguageSettings`，按照 [Apple 的多语言应用说明](https://developer.apple.com/videos/play/wwdc2024/10185/)让系统始终显示 App 语言设置。App 单测校验生成的 Info.plist 配置和本地化资源，UI 测试仍真实切换 English／简体中文并验证界面及相对日期，仅在点击前增加有明确失败信息的存在性等待。修复以最新 PR head 的完整 CI 结果验收，不跳过语言测试或放宽 `launch-required`。
+在 Debug 和 Release 共用的 `Config/StudioApp-Info.plist` 中启用布尔值 `UIPrefersShowingLanguageSettings`，本地 `build-for-testing` 已核对最终 App 产物中的配置，按照 [Apple 的多语言应用说明](https://developer.apple.com/videos/play/wwdc2024/10185/)让系统始终显示 App 语言设置。App 单测校验生成的 Info.plist 配置和本地化资源，UI 测试仍真实切换 English／简体中文并验证界面及相对日期，仅在点击前增加有明确失败信息的存在性等待。修复以最新 PR head 的完整 CI 结果验收，不跳过语言测试或放宽 `launch-required`。
 
 ### 与清单的差异
 
