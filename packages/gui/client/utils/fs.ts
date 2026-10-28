@@ -82,7 +82,8 @@ export function getFileTypeFromPath(path: string) {
 
   if (path.endsWith('/'))
     return 'folder'
-  const ext = path.split('.').pop()
+  const filename = path.split(/[\\/]/).pop() ?? ''
+  const ext = filename.includes('.') ? filename.split('.').pop() : undefined
   if (!ext)
     return 'file'
   if (isImage(path))
