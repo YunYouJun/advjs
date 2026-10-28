@@ -80,6 +80,14 @@ describe('continuous single-agent evaluation and common isolated tools', () => {
     }
   })
 
+  it('preserves portable read-only project documentation while refusing model changes to it', async () => {
+    const source = input().project
+    const workspace = createCreativeEvaluationWorkspace({ ...source, files: { ...source.files, 'ASSETS.md': 'License and source notes' } })
+    expect((await workspace.snapshot()).files['ASSETS.md']).toBe('License and source notes')
+    await expect(workspace.revise([{ path: 'ASSETS.md', before: 'License and source notes', after: 'overwrite' }])).rejects.toThrow('source path')
+    expect((await workspace.snapshot()).files['ASSETS.md']).toBe('License and source notes')
+  })
+
   it('keeps malformed replies and tool rejection in context so B can repair without an invisible retry', async () => {
     const h = harness(['not JSON', repair, { action: 'finish', summary: '已修订' }])
     const result = await h.evaluator.run(input(), { budget, versions, signal: new AbortController().signal })

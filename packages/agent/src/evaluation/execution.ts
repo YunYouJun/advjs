@@ -85,7 +85,8 @@ export function createCreativeEvaluationWorkspace(project: CreativeEvaluationInp
   }
   let lastReport: CreativePlaytestReport | undefined
   for (const [path, content] of Object.entries(files)) {
-    assertCreativeSourcePath(path)
+    if (!/^(?:README|ASSETS|LICENSE)\.md$/.test(path))
+      assertCreativeSourcePath(path)
     if (typeof content !== 'string')
       throw new TypeError('Evaluation sources must be text')
   }

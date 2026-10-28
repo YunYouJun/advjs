@@ -115,6 +115,8 @@ describe('crew comparison controller and actual isolated host', () => {
     expect(h.reports[1].executions.every(item => item.status === 'passed')).toBe(true)
     const final = h.evidence.get(`${source.key}/final.json`)
     expect(final.run.status).toBe('cancelled')
+    expect(final.run.plan.goal).toContain(JSON.stringify(source.input.checks))
+    expect(final.run.plan.goal).toContain(JSON.stringify(budget))
     expect(final.project.files[chapter]).toContain('等谁回来')
     expect(source.project.files).toEqual(frozen.files)
     expect(h.decisions.some(item => item.type === 'finish')).toBe(false)

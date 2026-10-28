@@ -60,7 +60,7 @@ export function createCreativeComparisonEvaluator(options: { model: CreativeEval
       await save('input.json', { executionKey, input, versions: context.versions, crew: current.crew, benchmarkPolicy: 'first-single-candidate, actual-runtime, independent-review, bounded-system-rework-v1', authorConfirmations: 0 })
       const session = await options.crew.open({ key: executionKey, budget: context.budget, signal: context.signal, write: save })
       const project = await createCreativeEvaluationWorkspace(input.project).snapshot()
-      const goal = `${input.input.prompt}\n评测执行规则：原始要求不变。导演按需选择已开放伙伴，包含独立 playtest-project，依赖所有制作任务；原始任务的语义质量须另由作者盲评。用相同固定素材，未生成媒体不能谎称已有。种子 ${input.seed} 仅是独立尝试标签。计划保留本目标、版本和预算；非人工的评测控制器会机械选定单个有效候选并执行真实核心检查，不代表作者采纳。`
+      const goal = `${input.input.prompt}\n原始验收要求：${JSON.stringify(input.input.checks)}\n评测总上限：${JSON.stringify(context.budget)}\n评测执行规则：原始要求不变。导演按需选择已开放伙伴，包含独立 playtest-project，依赖所有制作任务；原始任务的语义质量须另由作者盲评。用相同固定素材，未生成媒体不能谎称已有。种子 ${input.seed} 仅是独立尝试标签。计划保留本目标、版本和预算；非人工的评测控制器会机械选定单个有效候选并执行真实核心检查，不代表作者采纳。`
       let run = await session.client.start({ protocolVersion: 1, project, goal, partner: 'director', limits: session.limits, locale: 'zh-CN' }, `evaluation:${executionKey}`)
       const decide = async (decision: Parameters<typeof session.client.decide>[2]) => {
         const key = `evaluation:${input.key}:${sequence + 1}`
