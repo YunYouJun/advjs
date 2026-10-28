@@ -117,19 +117,21 @@ function onUpdateModelValue(value: string) {
 }
 
 .agui-combobox-empty {
-  padding: 4px 8px;
-  font-size: 12px;
+  padding: var(--agui-space-1) var(--agui-control-padding-x);
+  font-size: var(--agui-font-size-body);
+  line-height: var(--agui-control-line-height);
   color: var(--agui-c-text-2);
 }
 
 .agui-combobox-item {
-  font-size: 12px;
-  line-height: 1;
+  box-sizing: border-box;
+  font-size: var(--agui-font-size-body);
+  line-height: var(--agui-control-line-height);
   border-radius: var(--agui-radius-sm);
   display: flex;
   align-items: center;
   min-height: var(--agui-control-height);
-  padding: 0 var(--agui-control-height);
+  padding: 2px var(--agui-control-padding-x) 2px var(--agui-control-height);
   position: relative;
   user-select: none;
 
@@ -139,9 +141,25 @@ function onUpdateModelValue(value: string) {
   }
   &[data-highlighted] {
     outline: none;
-    background-color: var(--agui-c-active);
-    color: var(--agui-c-on-accent);
+    background-color: var(--agui-c-selection);
+    color: var(--agui-c-selection-text);
     cursor: pointer;
+  }
+  &:hover:not([data-disabled]) {
+    background-color: var(--agui-c-item-hover);
+    color: var(--agui-c-text-1);
+  }
+  &:active:not([data-disabled]) {
+    background-color: var(--agui-c-item-pressed);
+  }
+  &[data-state='checked'] {
+    background-color: var(--agui-c-selection);
+    color: var(--agui-c-selection-text);
+  }
+
+  &-indicator > div {
+    width: var(--agui-icon-size);
+    height: var(--agui-icon-size);
   }
 
   &-indicator {

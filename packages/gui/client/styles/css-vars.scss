@@ -21,19 +21,19 @@
   --agui-c-gray-dark-3: #3a3a3a;
   --agui-c-gray-dark-4: #282828;
   --agui-c-gray-dark-5: #202020;
-  --agui-c-divider-light-1: #c7c7c7;
-  --agui-c-divider-light-2: #e2e2e2;
-  --agui-c-divider-dark-1: #545454;
-  --agui-c-divider-dark-2: #484848;
+  --agui-c-divider-light-1: #e2e2e2;
+  --agui-c-divider-light-2: #e6e6e6;
+  --agui-c-divider-dark-1: #3b3b3b;
+  --agui-c-divider-dark-2: #353535;
   --agui-c-text-light-1: #303030;
   --agui-c-text-light-2: #595959;
   --agui-c-text-light-3: #858585;
   --agui-c-text-light-4: #a6a6a6;
   --agui-c-text-light-code: var(--agui-c-indigo-soft);
-  --agui-c-text-dark-1: rgba(255, 255, 255, 0.8);
-  --agui-c-text-dark-2: rgba(235, 235, 235, 0.6);
-  --agui-c-text-dark-3: rgba(235, 235, 235, 0.38);
-  --agui-c-text-dark-4: rgba(235, 235, 235, 0.18);
+  --agui-c-text-dark-1: #dedede;
+  --agui-c-text-dark-2: #b0b0b0;
+  --agui-c-text-dark-3: #808080;
+  --agui-c-text-dark-4: #636363;
   --agui-c-text-dark-code: var(--agui-c-indigo-light);
   --agui-c-blue: #3b8eed;
   --agui-c-blue-light: #549ced;
@@ -45,8 +45,15 @@
 // Light desktop theme. Every semantic token has a default before dark overrides.
 :root {
   --agui-control-height: 24px;
+  --agui-control-height-lg: 28px;
   --agui-tab-list-height: 28px;
-  --agui-toolbar-min-height: 30px;
+  --agui-toolbar-min-height: 28px;
+  --agui-icon-size: 14px;
+  --agui-disclosure-header-height: 28px;
+  --agui-disclosure-chevron-size: 12px;
+  --agui-disclosure-chevron-slot: 16px;
+  --agui-focus-width: 2px;
+  --agui-focus-offset: -2px;
 
   // Shared desktop composition. Rounding does not change compact control heights.
   --agui-space-1: 4px;
@@ -85,16 +92,19 @@
 
   // Workspace, content, chrome, fields and floating surfaces.
   --agui-c-bg: var(--agui-c-white-mute);
-  --agui-c-bg-soft: var(--agui-c-white-soft);
+  --agui-c-bg-soft: #f6f6f6;
   --agui-c-bg-mute: var(--agui-c-gray-light-4);
-  --agui-c-bg-panel: var(--agui-c-white);
-  --agui-c-bg-panel-title: var(--agui-c-gray-light-5);
-  --agui-c-bg-hover: var(--agui-c-control-hover);
+  --agui-c-bg-panel: #fcfcfc;
+  --agui-c-bg-panel-title: #f6f6f6;
+  --agui-c-bg-hover: var(--agui-c-item-hover);
   --agui-c-bg-1: var(--agui-c-control-hover);
   --agui-c-bg-2: var(--agui-c-control-pressed);
-  --agui-c-field: var(--agui-c-white);
+  --agui-c-field: #f3f3f3;
+  --agui-c-field-border: #dcdcdc;
+  --agui-c-field-border-hover: #bcbcbc;
+  --agui-c-popup: var(--agui-c-white);
 
-  // Panel separators are quieter than control outlines.
+  // Dividers and field boundaries stay quieter than essential control outlines.
   --agui-c-border: var(--agui-c-divider-light-1);
   --agui-c-border-hover: #757575;
   --agui-c-divider: var(--agui-c-border);
@@ -118,11 +128,14 @@
   --agui-c-text-inverse-4: var(--agui-c-text-dark-4);
 
   // Shared desktop controls. Action colors are independent of status colors.
-  --agui-c-control: #eeeeee;
-  --agui-c-control-hover: #e2e2e2;
-  --agui-c-control-pressed: #d4d4d4;
+  --agui-c-control: #f0f0f0;
+  --agui-c-control-hover: #e7e7e7;
+  --agui-c-control-pressed: #dedede;
   --agui-c-control-border: #878787;
-  --agui-c-button-border: #b8b8b8;
+  --agui-c-button-border: #d9d9d9;
+  // Rows have their own states; a hover is quieter than a persistent selection.
+  --agui-c-item-hover: #f0f0f0;
+  --agui-c-item-pressed: #e5e5e5;
   // Transparent icon tools use a quiet overlay that adapts to their host surface.
   --agui-c-icon-hover: rgba(0, 0, 0, 0.06);
   --agui-c-icon-pressed: rgba(0, 0, 0, 0.12);
@@ -133,7 +146,7 @@
   --agui-c-focus: var(--agui-c-link);
   --agui-c-on-accent: var(--agui-c-white);
   --agui-c-link: #245d9d;
-  --agui-c-selection: #dce8f6;
+  --agui-c-selection: #e1ebf7;
   --agui-c-selection-text: #24466c;
 
   --agui-c-danger: #aa3b3b;
@@ -151,7 +164,7 @@
   --agui-c-axis-w: #855600;
 
   --agui-c-overlay: rgba(0, 0, 0, 0.32);
-  --agui-shadow-popup: 0 4px 16px rgba(0, 0, 0, 0.16), 0 1px 3px rgba(0, 0, 0, 0.08);
+  --agui-shadow-popup: 0 6px 20px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.06);
   --agui-c-scrollbar: #b8b8b8;
   --agui-c-scrollbar-hover: var(--agui-c-gray);
   --agui-layout-splitter-color: var(--agui-c-divider);
@@ -163,15 +176,18 @@
   --agui-c-bg-soft: var(--agui-c-black-soft);
   --agui-c-bg-mute: var(--agui-c-black-mute);
 
-  --agui-c-bg-panel: #383838;
-  --agui-c-bg-panel-title: #464646;
-  --agui-c-bg-hover: #474747;
-  --agui-c-bg-1: #585858;
-  --agui-c-bg-2: #636363;
-  --agui-c-field: #2a2a2a;
+  --agui-c-bg-panel: #2b2b2b;
+  --agui-c-bg-panel-title: #303030;
+  --agui-c-bg-hover: var(--agui-c-item-hover);
+  --agui-c-bg-1: var(--agui-c-control-hover);
+  --agui-c-bg-2: var(--agui-c-control-pressed);
+  --agui-c-field: #232323;
+  --agui-c-field-border: #404040;
+  --agui-c-field-border-hover: #5c5c5c;
+  --agui-c-popup: #303030;
 
   --agui-c-border: var(--agui-c-divider-dark-1);
-  --agui-c-border-hover: #747474;
+  --agui-c-border-hover: #8b8b8b;
 
   --agui-c-divider: var(--agui-c-border);
   --agui-c-divider-light: var(--agui-c-divider-dark-2);
@@ -194,7 +210,7 @@
 
   --agui-c-active: var(--agui-c-blue-darker);
   --agui-c-focus: var(--agui-c-blue);
-  --agui-c-selection: #304866;
+  --agui-c-selection: #2c435e;
   --agui-c-selection-text: #e1ecfa;
   --agui-c-axis-x: #d77979;
   --agui-c-axis-y: #86b886;
@@ -204,13 +220,15 @@
   --agui-c-success-soft: #2e4336;
   --agui-c-warning-text: #e5c071;
   --agui-c-warning-soft: #493e2a;
-  --agui-c-control: #505050;
-  --agui-c-control-hover: #5c5c5c;
-  --agui-c-control-pressed: #454545;
-  --agui-c-control-border: #646464;
-  --agui-c-button-border: #646464;
+  --agui-c-control: #383838;
+  --agui-c-control-hover: #414141;
+  --agui-c-control-pressed: #303030;
+  --agui-c-control-border: #747474;
+  --agui-c-button-border: #464646;
+  --agui-c-item-hover: #353535;
+  --agui-c-item-pressed: #3b3b3b;
   --agui-c-icon-hover: rgba(255, 255, 255, 0.1);
-  --agui-c-icon-pressed: rgba(255, 255, 255, 0.06);
+  --agui-c-icon-pressed: rgba(255, 255, 255, 0.16);
   --agui-c-primary: #3c659b;
   --agui-c-primary-hover: #436fa8;
   --agui-c-primary-pressed: #315480;
@@ -233,13 +251,31 @@
 .dark {
   --agui-c-syntax-punctuation: var(--agui-c-text-2);
   --agui-c-bg-summary: var(--agui-c-bg-panel-title);
-  --agui-c-popup: var(--agui-c-bg-panel);
   --agui-c-label: var(--agui-c-text-1);
   --agui-c-text: var(--agui-c-text-1);
   --agui-c-brand: var(--agui-c-primary);
   --agui-c-brand-light: var(--agui-c-primary-hover);
   --agui-c-brand-dark: var(--agui-c-primary-pressed);
   --agui-c-brand-highlight: var(--agui-c-link);
+}
+
+@media (prefers-contrast: more) {
+  :root,
+  .dark {
+    --agui-c-field-border: var(--agui-c-control-border);
+    --agui-c-field-border-hover: var(--agui-c-border-hover);
+    --agui-c-button-border: var(--agui-c-control-border);
+  }
+}
+
+@media (forced-colors: active) {
+  :root,
+  .dark {
+    --agui-c-field: Field;
+    --agui-c-field-border: ButtonText;
+    --agui-c-field-border-hover: Highlight;
+    --agui-c-focus: Highlight;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

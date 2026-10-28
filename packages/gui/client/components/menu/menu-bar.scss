@@ -1,8 +1,11 @@
 .MenubarRoot {
   font-family: var(--agui-font-family-ui);
+  box-sizing: border-box;
   display: flex;
+  align-items: center;
   background-color: var(--agui-c-bg);
-  padding: 3px;
+  padding: 2px var(--agui-space-1);
+  gap: 2px;
   height: var(--agui-menu-bar-height);
 }
 
@@ -15,34 +18,41 @@
   cursor: pointer;
   color: var(--agui-c-text-1);
 
-  padding: 4px 8px;
+  box-sizing: border-box;
+  min-height: var(--agui-control-height);
+  padding: 2px var(--agui-control-padding-x);
   outline: none;
   user-select: none;
-  font-weight: 500;
-  line-height: 1;
-  border-radius: 4px;
+  font-weight: 400;
+  line-height: var(--agui-control-line-height);
+  border-radius: var(--agui-radius-sm);
 
-  font-size: 12px;
+  font-size: var(--agui-font-size-body);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 2px;
 }
 
-.MenubarTrigger:not([data-disabled]):is(:hover, [data-highlighted], [data-state='open']) {
-  background-color: var(--agui-c-active);
-  color: var(--agui-c-on-accent);
+.MenubarTrigger:not([data-disabled]):hover {
+  background-color: var(--agui-c-item-hover);
+}
+
+.MenubarTrigger:not([data-disabled]):is([data-highlighted], [data-state='open']) {
+  background-color: var(--agui-c-selection);
+  color: var(--agui-c-selection-text);
 }
 
 .MenubarContent,
 .MenubarSubContent {
   font-family: var(--agui-font-family-ui);
   min-width: 220px;
+  max-width: calc(100vw - var(--agui-space-4));
   background-color: var(--agui-c-popup);
   border: 1px solid var(--agui-c-border);
 
-  border-radius: 4px;
-  padding: 5px;
+  border-radius: var(--agui-radius-md);
+  padding: var(--agui-space-1);
   box-shadow: var(--agui-shadow-popup);
 
   z-index: 1000;
@@ -53,15 +63,17 @@
 .MenubarCheckboxItem,
 .MenubarRadioItem {
   all: unset;
+  box-sizing: border-box;
   font-family: var(--agui-font-family-ui);
   color: var(--agui-c-text-1);
-  font-size: 12px;
-  line-height: 1;
-  border-radius: 4px;
+  font-size: var(--agui-font-size-body);
+  line-height: var(--agui-control-line-height);
+  border-radius: var(--agui-radius-sm);
   display: flex;
   align-items: center;
-  height: 25px;
-  padding: 0 10px;
+  min-height: var(--agui-control-height);
+  padding: 2px var(--agui-control-padding-x);
+  overflow-wrap: anywhere;
 
   position: relative;
   user-select: none;
@@ -71,23 +83,36 @@
 .MenubarSubTrigger.inset,
 .MenubarCheckboxItem.inset,
 .MenubarRadioItem.inset {
-  padding-left: 20px;
+  padding-left: calc(var(--agui-control-height) + var(--agui-space-1));
 }
 
 // Use hover as a fallback so keyboard navigation only highlights the focused item.
 :is(.MenubarContent, .MenubarSubContent):not(:has([data-highlighted]))
-  :is(.MenubarItem, .MenubarSubTrigger, .MenubarCheckboxItem, .MenubarRadioItem):not([data-disabled]):hover,
+  :is(.MenubarItem, .MenubarSubTrigger, .MenubarCheckboxItem, .MenubarRadioItem):not([data-disabled]):hover {
+  background-color: var(--agui-c-item-hover);
+}
+
 :is(.MenubarItem, .MenubarSubTrigger, .MenubarCheckboxItem, .MenubarRadioItem):not([data-disabled]):is(
     :focus-visible,
     [data-highlighted],
     [data-state='open']
   ) {
-  background-color: var(--agui-c-active);
-  color: var(--agui-c-on-accent);
+  background-color: var(--agui-c-selection);
+  color: var(--agui-c-selection-text);
 
   > .RightSlot {
     color: inherit;
   }
+}
+
+:is(.MenubarItem, .MenubarSubTrigger, .MenubarCheckboxItem, .MenubarRadioItem):not([data-disabled]):active {
+  background-color: var(--agui-c-item-pressed);
+  color: var(--agui-c-text-1);
+}
+
+:is(.MenubarItem, .MenubarSubTrigger, .MenubarCheckboxItem, .MenubarRadioItem):focus-visible {
+  outline: var(--agui-focus-width) solid var(--agui-c-focus);
+  outline-offset: var(--agui-focus-offset);
 }
 
 .MenubarItem[data-disabled],
@@ -101,21 +126,27 @@
 .MenubarItemIndicator {
   position: absolute;
   left: 0;
-  width: 20px;
+  width: var(--agui-control-height);
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  > * {
+    width: var(--agui-icon-size);
+    height: var(--agui-icon-size);
+  }
 }
 
 .MenubarSeparator {
   height: 1px;
-  background-color: var(--agui-c-divider);
-  margin: 5px;
+  background-color: var(--agui-c-divider-light);
+  margin: var(--agui-space-1);
 }
 
 .RightSlot {
   margin-left: auto;
-  padding-left: 20px;
+  flex-shrink: 0;
+  padding-left: var(--agui-space-4);
   color: var(--agui-c-text-2);
 }
 
@@ -124,6 +155,6 @@
 }
 
 .MenubarTrigger:focus-visible {
-  outline: 2px solid var(--agui-c-focus);
-  outline-offset: -2px;
+  outline: var(--agui-focus-width) solid var(--agui-c-focus);
+  outline-offset: var(--agui-focus-offset);
 }

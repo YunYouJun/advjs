@@ -41,7 +41,7 @@ defineProps<{
         :value="subItem.label"
       >
         <ContextMenuItemIndicator class="ContextMenuItemIndicator">
-          <div class="i-radix-icons:dot-filled" />
+          <div class="i-radix-icons:dot-filled" aria-hidden="true" />
         </ContextMenuItemIndicator>
         {{ subItem.label }}
       </ContextMenuRadioItem>
@@ -55,7 +55,7 @@ defineProps<{
     @click="item.onClick?.()"
   >
     <ContextMenuItemIndicator class="ContextMenuItemIndicator">
-      <Icon v-if="item.icon" :icon="item.icon" />
+      <Icon v-if="item.icon" :icon="item.icon" aria-hidden="true" />
     </ContextMenuItemIndicator>
 
     {{ item.label }}
@@ -70,7 +70,7 @@ defineProps<{
     >
       {{ item.label }}
       <div class="RightSlot">
-        <div class="i-radix-icons:chevron-right" />
+        <div class="i-radix-icons:chevron-right" aria-hidden="true" />
       </div>
     </ContextMenuSubTrigger>
     <ContextMenuPortal>

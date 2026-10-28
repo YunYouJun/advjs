@@ -18,24 +18,17 @@ const model = defineModel<string | number>()
   >
     <div class="agui-tab-heading">
       <TabsList
-        class="agui-tab-list bg-$agui-c-bg-soft flex justify-start"
+        class="agui-tab-list"
         :aria-label="label || 'AETabs'"
       >
         <TabsTrigger
           v-for="item in list"
           :key="item.key"
           :value="item.key"
-          class="agui-tab-btn border-none inline-flex"
+          class="agui-tab-btn"
         >
-          <div
-            class="text-xs text-$agui-c-text-1 inline-flex h-full cursor-pointer items-center justify-center"
-            mr-1 px-2
-          >
-            <div v-if="item.icon" mr-1 :class="item.icon" />
-            <div>
-              {{ item.title }}
-            </div>
-          </div>
+          <span v-if="item.icon" class="agui-tab-icon" :class="item.icon" aria-hidden="true" />
+          <span>{{ item.title }}</span>
         </TabsTrigger>
       </TabsList>
       <div v-if="$slots.actions" class="agui-tab-actions">
@@ -70,32 +63,63 @@ const model = defineModel<string | number>()
   }
 }
 .agui-tab-list {
+  display: flex;
+  justify-content: flex-start;
   font-family: var(--agui-font-family-ui);
   min-height: var(--agui-tab-list-height, 28px);
   flex: 1;
   min-width: 0;
   overflow-x: auto;
-  line-height: 1.4;
+  line-height: var(--agui-control-line-height);
 
   .agui-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--agui-control-gap);
+    box-sizing: border-box;
+    min-height: var(--agui-tab-list-height, 28px);
+    padding: 2px var(--agui-control-padding-x);
+    appearance: none;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--agui-c-text-2);
     font-family: var(--agui-font-family-ui);
+    font-size: var(--agui-font-size-body);
+    font-weight: 400;
     flex: 0 0 auto;
     white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color var(--agui-motion-duration) var(--agui-motion-ease),
+      color var(--agui-motion-duration) var(--agui-motion-ease);
   }
 
-  .active {
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
+  .agui-tab-btn:hover:not([data-disabled]) {
+    background: var(--agui-c-item-hover);
+    color: var(--agui-c-text-1);
   }
 
-  .agui-tab-btn[data-state='inactive'] {
-    opacity: 1;
+  .agui-tab-btn:active:not([data-disabled]) {
+    background: var(--agui-c-item-pressed);
   }
 
   .agui-tab-btn[data-state='active'] {
-    opacity: 0.8;
     background-color: var(--agui-c-bg-panel);
-    color: var(--agui-c-text);
+    color: var(--agui-c-text-1);
+    box-shadow: inset 0 -2px var(--agui-c-focus);
+  }
+
+  .agui-tab-btn:focus-visible {
+    outline: var(--agui-focus-width) solid var(--agui-c-focus);
+    outline-offset: var(--agui-focus-offset);
+  }
+
+  .agui-tab-icon {
+    flex-shrink: 0;
+    width: var(--agui-icon-size);
+    height: var(--agui-icon-size);
   }
 }
 </style>

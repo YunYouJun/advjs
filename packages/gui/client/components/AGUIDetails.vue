@@ -1,5 +1,7 @@
 <script lang="ts" setup>
+import AGUIDisclosureChevron from './disclosure/AGUIDisclosureChevron.vue'
 import AGUIForm from './form/AGUIForm.vue'
+import './disclosure/disclosure.scss'
 
 defineProps<{
   icon?: string
@@ -10,9 +12,10 @@ defineProps<{
 <template>
   <details class="agui-details">
     <slot name="summary">
-      <summary class="agui-summary">
-        <span v-if="icon" class="agui-summary-icon" :class="icon" aria-hidden="true" />
-        <span class="title">{{ title }}</span>
+      <summary class="agui-summary agui-disclosure-heading">
+        <AGUIDisclosureChevron />
+        <span v-if="icon" class="agui-summary-icon agui-disclosure-icon" :class="icon" aria-hidden="true" />
+        <span class="title agui-disclosure-title">{{ title }}</span>
       </summary>
     </slot>
     <AGUIForm class="content">
@@ -25,10 +28,10 @@ defineProps<{
 .agui-details {
   width: 100%;
   min-width: 0;
-  border-top: 1px solid var(--agui-c-divider);
+  border-top: 1px solid var(--agui-c-divider-light);
   color: var(--agui-c-text-1);
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: var(--agui-font-size-body);
+  line-height: var(--agui-line-height);
   container: agui-properties / inline-size;
 
   &:first-child {
@@ -36,29 +39,14 @@ defineProps<{
   }
 
   > .agui-summary {
-    font-family: var(--agui-font-family-ui);
-    box-sizing: border-box;
-    min-height: 28px;
-    margin: 0;
-    padding: 5px 8px;
-    cursor: pointer;
-    user-select: none;
-    overflow-wrap: anywhere;
-    background-color: var(--agui-c-bg-summary);
+    list-style: none;
 
-    &:hover {
-      background-color: var(--agui-c-bg-hover);
+    &::marker {
+      content: '';
     }
 
-    &:focus-visible {
-      outline: 2px solid var(--agui-c-focus);
-      outline-offset: -2px;
-    }
-
-    .agui-summary-icon {
-      display: inline-block;
-      margin-right: 4px;
-      vertical-align: middle;
+    &::-webkit-details-marker {
+      display: none;
     }
   }
 

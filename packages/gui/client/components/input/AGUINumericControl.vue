@@ -149,16 +149,17 @@ const vNumberDrag = numberDrag({
   height: var(--agui-control-height);
   color: var(--agui-c-text-1);
   background: var(--agui-c-field);
-  border: 1px solid var(--agui-c-control-border);
+  border: 1px solid var(--agui-c-field-border);
   border-radius: var(--agui-radius-sm);
   font-size: 12px;
   font-variant-numeric: tabular-nums;
+  transition: border-color var(--agui-motion-duration) var(--agui-motion-ease);
   &:hover:not(.is-disabled) {
-    border-color: var(--agui-c-text-2);
+    border-color: var(--agui-c-field-border-hover);
   }
   &:focus-within {
-    outline: 2px solid var(--agui-c-focus);
-    outline-offset: -2px;
+    outline: var(--agui-focus-width) solid var(--agui-c-focus);
+    outline-offset: var(--agui-focus-offset);
   }
   &.is-disabled {
     opacity: 0.5;

@@ -18,6 +18,10 @@ AGUI 是 ADV.JS 编辑器的 GUI 组件库。桌面编辑器采用**中性灰、
 
 以 [Blender 的区域与面板组织](https://docs.blender.org/manual/en/latest/interface/window_system/index.html)为主参考，借鉴其主编辑区、局部工具栏与可折叠面板；以 [Godot Inspector](https://docs.godotengine.org/en/stable/tutorials/editor/inspector_dock.html)补充属性分组、搜索与随选择更新内容的交互参考。
 
+参考 [HyperFrames Studio 的 token](https://github.com/heygen-com/hyperframes/blob/main/packages/studio/src/styles/theme.css)收近相邻表面的灰阶、统一控件密度并区分交互状态。AGUI 沿用自己的蓝色语义、圆角层级和停靠布局，由 Vue / Reka UI 提供交互底座。
+
+边界层次同时参考 [Figma 公开主题的语义划分](https://developers.figma.com/docs/plugins/css-variables/)：分区分隔线、强调轮廓与输入焦点分别管理，部分输入区通过次级底色识别。该文档面向插件主题，不将其公开值视为当前 Figma 编辑器内部样式的完整规格。
+
 参考这些工具的组织方式，不逐像素复制皮肤。ADV.JS 的长篇中文剧本需要独立的阅读字号与行高；桌面控件也要保留清晰标签、键盘焦点和合理的点击区域。
 
 ## 设计原则
@@ -78,60 +82,67 @@ AGUI 通过 CSS 自定义属性（`--agui-c-*`）定义色彩。下表列出现�
 
 ### 共享控件 token
 
-按钮统一使用 `--agui-control-height: 24px`；有底色的普通按钮使用 `--agui-c-control` / `control-hover` / `control-pressed`，透明图标按钮使用独立的 `--agui-c-icon-hover` / `icon-pressed`。图标悬停采用轻量叠加色（亮色为 6% 黑色、暗色为 10% 白色），随所在表面适配；按下态分别为 12% 黑色、6% 白色，比悬停态略深。普通文字按钮的边框使用较轻的 `--agui-c-button-border`，字段、复选框等需要轮廓识别的控件使用 `--agui-c-control-border`。主操作和危险操作分别使用 `--agui-c-primary*`、`--agui-c-danger*`，文字使用 `--agui-c-on-accent`、`--agui-c-danger-text` 与 `--agui-c-link`。它们在共享 token 文件中提供亮暗两套值。折叠分组使用 `--agui-c-bg-summary`，业务面板不自行覆盖这些颜色。
+按钮统一使用 `--agui-control-height: 24px`，大号变体使用 `--agui-control-height-lg: 28px`；有底色的普通按钮使用 `--agui-c-control` / `control-hover` / `control-pressed`，透明图标和文字按钮使用独立的 `--agui-c-icon-hover` / `icon-pressed`。图标悬停采用轻量叠加色（亮色为 6% 黑色、暗色为 10% 白色），随所在表面适配；按下态分别为 12% 黑色、16% 白色，反馈比悬停更强。普通文字按钮的边框使用较轻的 `--agui-c-button-border`。文本、数值、下拉与组合字段使用 `--agui-c-field-border` / `field-border-hover`，复选框、开关和滑轨等识别性轮廓继续使用 `--agui-c-control-border`，不将强轮廓复用于整张属性表。主操作和危险操作分别使用 `--agui-c-primary*`、`--agui-c-danger*`，文字使用 `--agui-c-on-accent`、`--agui-c-danger-text` 与 `--agui-c-link`。它们在共享 token 文件中提供亮暗两套值。折叠标题常态透明，悬停使用 `item-hover`；业务面板不自行覆盖这些颜色。
 
-字段底色使用 `--agui-c-field`；成功、待处理文字使用 `--agui-c-success-text` / `--agui-c-warning-text`；危险提示底色使用 `--agui-c-danger-soft`，搭配 `--agui-c-danger-text`；模态遮罩使用 `--agui-c-overlay`。不要将状态色用作普通操作的背景。亮色 `text-2` 使用实色 `#595959`，在白色面板与 `#f2f2f2` 标题背景上的对比度分别约 7.00:1 与 6.26:1，在按下态 `#d4d4d4` 上仍约 4.73:1；暗色面板上的 `text-2` 约 4.67:1。其他背景或叠加透明度需重新检查。
+字段底色使用 `--agui-c-field`；成功、待处理文字使用 `--agui-c-success-text` / `--agui-c-warning-text`；危险提示底色使用 `--agui-c-danger-soft`，搭配 `--agui-c-danger-text`；模态遮罩使用 `--agui-c-overlay`。不要将状态色用作普通操作的背景。亮色 `text-2` 使用实色 `#595959`，在 `#fcfcfc` 面板上的对比度约 6.83:1；暗色 `text-2` 使用实色 `#b0b0b0`，在面板及普通控件的悬停背景上均超过 4.5:1。其他背景或叠加透明度需重新检查。
 
-菜单、下拉框与组合框统一使用 `--agui-c-popup`、`--agui-c-border` 和 `--agui-shadow-popup`，弹窗也复用边框与阴影。面板边界和普通分隔线共用 `border` / `divider`（亮色 `#c7c7c7`、暗色 `#545454`），弱分隔线使用 `divider-light`（亮色 `#e2e2e2`、暗色 `#484848`）；暗色也使用实色，避免同一条线在不同表面上显出不同颜色。浮层阴影与模态遮罩分开定义，避免亮色菜单出现过重的黑色阴影。通知使用中性浮层和正文色，通过状态边线与图标表达信息、成功、警告或错误；普通通知不使用白色文字覆盖亮色背景。滚动条使用 `--agui-c-scrollbar` / `--agui-c-scrollbar-hover`，分割条的常态颜色是 `divider` 的别名，拖动区域与悬停提示继续使用共享尺寸和颜色 token。
+菜单、下拉框与组合框统一使用 `--agui-c-popup`（亮色 `#ffffff`、暗色 `#303030`）、`--agui-c-border` 和 `--agui-shadow-popup`，弹窗也复用边框与阴影。浮层比内容面板略亮，以一层边框和轻量阴影表达层级。面板边界和普通分隔线共用 `border` / `divider`（亮色 `#e2e2e2`、暗色 `#3b3b3b`），弱分隔线使用 `divider-light`（亮色 `#e6e6e6`、暗色 `#353535`）；暗色也使用实色，避免同一条线在不同表面上显出不同颜色。浮层阴影与模态遮罩分开定义，避免亮色菜单出现过重的黑色阴影。通知使用中性浮层和正文色，通过状态边线与图标表达信息、成功、警告或错误；普通通知不使用白色文字覆盖亮色背景。滚动条使用 `--agui-c-scrollbar` / `--agui-c-scrollbar-hover`，分割条的常态颜色是 `divider` 的别名，拖动区域与悬停提示继续使用共享尺寸和颜色 token。
+
+文本字段以浅填充和 1px 轻描边表达可编辑区域，悬停略加强，聚焦使用独立 2px 蓝色描边；不通过缩成 0.5px、叠加阴影或切换边框宽度制造轻量感。亮色字段底色为 `#f3f3f3`，常态／悬停边框为 `#dcdcdc` / `#bcbcbc`；暗色字段底色为 `#232323`，边框为 `#404040` / `#5c5c5c`。普通按钮边框分别为 `#d9d9d9` / `#464646`。
+
+普通行悬停／按下使用 `--agui-c-item-hover` / `item-pressed`，与持久的 `selection` / `selection-text` 选中态分开。菜单和建议列表的键盘高亮使用选中配色；已选选项保留勾选标记。标签页以内容表面、正文色和底部细蓝线表达当前页，非当前页使用次级文字，悬停不降低整组透明度。键盘焦点消费 `--agui-focus-width` / `focus-offset` 的 2px 内侧描边，主操作／危险操作的填充按钮与开启的开关改用 `on-accent` 描边，保持在彩色背景上的可辨识度。焦点不能仅靠与选中态相同的底色表达。
 
 共享文件按「基础调色板 → 亮色语义默认值 → 暗色覆盖 → 主题别名」组织。`--agui-c-label`、`--agui-c-text`、`--agui-c-bg-summary` 与品牌兼容别名在 `:root` 和 `.dark` 边界重新解析；`--agui-c-bg-1/2` 在亮暗两种模式均有默认值。业务组件消费语义 token，不直接引用 `text-light-*` / `divider-dark-*` 等调色板值，以免切换主题后仍保留旧色。
 
 ### 主色
 
-| Token                     | 亮色值    | 暗色值    | 用途                     |
-| ------------------------- | --------- | --------- | ------------------------ |
-| `--agui-c-primary`        | `#35639a` | `#3c659b` | 主操作                   |
-| `--agui-c-primary-hover`  | `#2f5788` | `#436fa8` | 主操作悬停               |
-| `--agui-c-active`         | `#35639a` | `#255489` | 菜单高亮，搭配 on-accent |
-| `--agui-c-focus`          | `#245d9d` | `#3b8eed` | 键盘焦点环               |
-| `--agui-c-selection`      | `#dce8f6` | `#304866` | 列表、树与范围选中底色   |
-| `--agui-c-selection-text` | `#24466c` | `#e1ecfa` | 选中内容文字             |
+| Token                     | 亮色值    | 暗色值    | 用途                               |
+| ------------------------- | --------- | --------- | ---------------------------------- |
+| `--agui-c-primary`        | `#35639a` | `#3c659b` | 主操作                             |
+| `--agui-c-primary-hover`  | `#2f5788` | `#436fa8` | 主操作悬停                         |
+| `--agui-c-active`         | `#35639a` | `#255489` | 强激活态兼容 token，搭配 on-accent |
+| `--agui-c-focus`          | `#245d9d` | `#3b8eed` | 键盘焦点环                         |
+| `--agui-c-selection`      | `#e1ebf7` | `#2c435e` | 列表、树、菜单与范围选中底色       |
+| `--agui-c-selection-text` | `#24466c` | `#e1ecfa` | 选中内容文字                       |
 
 `--agui-c-blue*` 保留为基础调色板；`--agui-c-brand*` 为兼容别名，指向现有蓝色操作 token，不引用未定义的绿色变量。亮色焦点使用较深的蓝色，避免浅蓝描边在白色背景上不明显；选中浅蓝底色与焦点环分别表达内容选中和键盘位置。
 
 ### 中性色（暗色模式）
 
-| Token                     | 值                       | 用途          |
-| ------------------------- | ------------------------ | ------------- |
-| `--agui-c-bg`             | `#1a1a1a`                | 主背景        |
-| `--agui-c-bg-soft`        | `#242424`                | 次级背景      |
-| `--agui-c-bg-panel`       | `rgba(56,56,56,1)`       | 面板背景      |
-| `--agui-c-bg-panel-title` | `rgba(70,70,70,1)`       | 面板标题栏    |
-| `--agui-c-border`         | `rgba(84,84,84,1)`       | 边框          |
-| `--agui-c-text-1`         | `rgba(255,255,255,0.8)`  | 主文本        |
-| `--agui-c-text-2`         | `rgba(235,235,235,0.6)`  | 次级文本      |
-| `--agui-c-text-3`         | `rgba(235,235,235,0.38)` | 弱化/禁用文本 |
+| Token                     | 值        | 用途          |
+| ------------------------- | --------- | ------------- |
+| `--agui-c-bg`             | `#1a1a1a` | 主背景        |
+| `--agui-c-bg-soft`        | `#242424` | 次级背景      |
+| `--agui-c-bg-panel`       | `#2b2b2b` | 面板背景      |
+| `--agui-c-bg-panel-title` | `#303030` | 面板标题栏    |
+| `--agui-c-border`         | `#3b3b3b` | 边框          |
+| `--agui-c-text-1`         | `#dedede` | 主文本        |
+| `--agui-c-text-2`         | `#b0b0b0` | 次级文本      |
+| `--agui-c-text-3`         | `#808080` | 弱化/禁用文本 |
 
 ### 中性色（亮色模式）
 
-| Token                         | 值                    | 用途                       |
-| ----------------------------- | --------------------- | -------------------------- |
-| `--agui-c-bg`                 | `#f1f1f1`             | 工作区底色                 |
-| `--agui-c-bg-soft`            | `#f9f9f9`             | 次级表面、标签栏           |
-| `--agui-c-bg-mute`            | `#e5e5e5`             | 弱化表面                   |
-| `--agui-c-bg-panel`           | `#ffffff`             | 内容面板                   |
-| `--agui-c-bg-panel-title`     | `#f2f2f2`             | 面板标题、工具栏与折叠摘要 |
-| `--agui-c-field` / `popup`    | `#ffffff`             | 输入区与不透明浮层         |
-| `--agui-c-border` / `divider` | `#c7c7c7`             | 面板边界、分割条与分隔线   |
-| `--agui-c-divider-light`      | `#e2e2e2`             | 弱分隔线                   |
-| `--agui-c-button-border`      | `#b8b8b8`             | 普通文字按钮的辅助边框     |
-| `--agui-c-control-border`     | `#878787`             | 字段、复选框等控件轮廓     |
-| `--agui-c-border-hover`       | `#757575`             | 字段悬停轮廓               |
-| `--agui-c-text-1`             | `#303030`             | 正文、标签与主要信息       |
-| `--agui-c-text-2`             | `#595959`             | 必要说明、路径与元信息     |
-| `--agui-c-text-3` / `text-4`  | `#858585` / `#a6a6a6` | 禁用及非必要的弱化信息     |
+| Token                         | 值                    | 用途                     |
+| ----------------------------- | --------------------- | ------------------------ |
+| `--agui-c-bg`                 | `#f1f1f1`             | 工作区底色               |
+| `--agui-c-bg-soft`            | `#f6f6f6`             | 次级表面、标签栏         |
+| `--agui-c-bg-mute`            | `#e5e5e5`             | 弱化表面                 |
+| `--agui-c-bg-panel`           | `#fcfcfc`             | 内容面板                 |
+| `--agui-c-bg-panel-title`     | `#f6f6f6`             | 面板标题与工具栏         |
+| `--agui-c-field`              | `#f3f3f3`             | 输入区                   |
+| `--agui-c-popup`              | `#ffffff`             | 不透明浮层               |
+| `--agui-c-field-border`       | `#dcdcdc`             | 字段常态辅助边界         |
+| `--agui-c-field-border-hover` | `#bcbcbc`             | 字段悬停边界             |
+| `--agui-c-border` / `divider` | `#e2e2e2`             | 面板边界、分割条与分隔线 |
+| `--agui-c-divider-light`      | `#e6e6e6`             | 弱分隔线                 |
+| `--agui-c-button-border`      | `#d9d9d9`             | 普通文字按钮的辅助边框   |
+| `--agui-c-control-border`     | `#878787`             | 复选框等控件的识别性轮廓 |
+| `--agui-c-border-hover`       | `#757575`             | 强轮廓控件的悬停反馈     |
+| `--agui-c-text-1`             | `#303030`             | 正文、标签与主要信息     |
+| `--agui-c-text-2`             | `#595959`             | 必要说明、路径与元信息   |
+| `--agui-c-text-3` / `text-4`  | `#858585` / `#a6a6a6` | 禁用及非必要的弱化信息   |
 
-亮色文字和常规边框采用实色，避免透明颜色在不同表面上改变层级。字段轮廓在白色底色上的对比度约 3.59:1；普通文字按钮通过标签、位置和交互反馈识别，辅助边框保持较轻；工具栏图标按钮常态不显示边框。[WCAG 非文本对比度](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html)要求用于识别控件及状态的必要视觉信息达到 3:1，并不要求所有装饰边框都达到该值。按实际背景检查图标与焦点环，不能仅以弱边框识别控件。`text-3/4` 不承载必要说明或表单标签，也不通过白色文字绘制普通侧栏。
+亮色文字和常规边框采用实色，避免透明颜色在不同表面上改变层级。常态字段的辅助描边不作为满足 3:1 非文本对比度的证据；字段必须保留可见标签、值与独立焦点反馈。[WCAG 非文本对比度](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html)要求用于识别控件及状态的必要视觉信息达到 3:1，涉及此要求的场景仍需按实际背景验证。`prefers-contrast: more` 下字段和普通按钮恢复强轮廓；`forced-colors: active` 下使用系统 Field、ButtonText 和 Highlight，并保留浏览器的强制配色调整。复选框、开关等识别性轮廓不随常态字段减弱。`text-3/4` 不承载必要说明或表单标签，也不通过白色文字绘制普通侧栏。
 
 ## 组件风格规范
 
@@ -162,6 +173,10 @@ AGUI 通过 CSS 自定义属性（`--agui-c-*`）定义色彩。下表列出现�
 | Token                                              | 值与用途                                      |
 | -------------------------------------------------- | --------------------------------------------- |
 | `--agui-space-1/2/3/4`                             | 4 / 8 / 12 / 16px，用于同级控件间距与分组留白 |
+| `--agui-control-height` / `height-lg`              | 24 / 28px，常规与大号控件点击区域             |
+| `--agui-tab-list-height` / `toolbar-min-height`    | 28px，单行标签栏与工具栏基线                  |
+| `--agui-icon-size`                                 | 14px，常规按钮、菜单与标签页图标              |
+| `--agui-focus-width` / `focus-offset`              | 2 / -2px，控件内侧的可见键盘焦点              |
 | `--agui-radius-sm`                                 | 5px 基础控件、菜单项与代码区                  |
 | `--agui-radius-md`                                 | 8px 内容分组、下拉与上下文菜单浮层            |
 | `--agui-radius-lg`                                 | 12px 模态对话框                               |
@@ -187,6 +202,21 @@ AGUI 通过 CSS 自定义属性（`--agui-c-*`）定义色彩。下表列出现�
 标签使用统一的 pill 圆角、20px 最小高度与 16px 文字行高，由共享组件按 border-box 计算背景范围，并以 inline-flex 垂直居中。周围标题／操作行同样使用居中对齐；不要继承正文阅读行高撑高标签背景，也不要用位移补偿中英文基线。较长标签随所在操作组换行，避免挤压主要内容。
 
 标签显式消费 `--agui-font-family-ui`，避免旧面板的 Helvetica 与中文回退字体产生不同的字形基线。行盒居中不等于字形视觉居中；验收时同时检查真实系统字体的字形边界与截图，不能只比较 DOM 矩形。本规则作用于 AGUI 状态标签及媒体区域，不改游戏字体 token 或整个页面的字体。
+
+### 折叠分组（Details / Accordion）
+
+`AGUIDetails` 与 `AGUIAccordionItem` 共用折叠标题样式和 `AGUIDisclosureChevron`。原生 Details 的 `open`、`toggle` 与 `summary` 插槽，以及 Accordion 的 value、单开／多开和命名插槽保持原有契约。自定义 `summary` 插槽仍由调用方提供完整摘要；默认摘要使用统一视觉。
+
+- 标题行最小 28px，整行可点击；标题 12px、600 字重，正文沿用所在面板的内容／阅读排版。标题长于一行时允许换行，箭头槽位不收缩，不截掉必要标题。
+- 线性箭头视觉尺寸 12px，占固定 16px 宽槽位；收起向右、展开向下。箭头旋转不改变标题水平位置，不再混用浏览器默认三角与图标字体 caret。
+- 常态标题背景透明，悬停／按下消费 `item-hover` / `item-pressed`，分组使用 `divider-light`；展开状态保持中性，由箭头方向表达。键盘焦点使用共享内侧焦点 token。
+- 箭头按 `--agui-motion-duration` 在 120ms 内旋转，正文即时收放，不对长表单和阅读内容做高度插值。减少动态效果偏好下箭头和悬停过渡为 0ms。
+- 折叠保留已初始化内容的草稿、校验与组件实例。Accordion 的初始关闭内容在首次展开时挂载，后续折叠隐藏并设为 inert，不进入键盘顺序和辅助技术阅读顺序；父面板卸载时释放内容。原生 Details 保留浏览器自己的开合语义与内容生命周期。
+- 属性面板中已有的多开策略继续由调用方选择；本轮不改变 Accordion 默认单开 API，不引入新的折叠偏好存储。右侧操作不应嵌套在折叠触发按钮中。
+
+共享尺寸由 `--agui-disclosure-header-height`（28px）、`--agui-disclosure-chevron-size`（12px）、`--agui-disclosure-chevron-slot`（16px）定义。标题行视觉与状态在 `components/disclosure/disclosure.scss` 维护，业务面板不复制另一套箭头与悬停规则。
+
+创作上下文的稳定分类使用「折叠箭头 → 语义图标 → 文字标题」：世界观为地球，大纲为列表，章节为打开的书，人物为人物轮廓，场景为山景，术语表为书籍。沿用 Remix Icons，14px 单色并消费 `text-2`，持续显示以辅助扫视；图标对辅助技术隐藏，可访问名称由文字标题提供。分类图标与折叠箭头分别表达内容类型和开合状态；带完整文字标题的分类图标无需重复释义气泡。
 
 ### Button
 
@@ -226,7 +256,7 @@ AGUI 通过 CSS 自定义属性（`--agui-c-*`）定义色彩。下表列出现�
 
 按钮最大宽度受所在容器约束，长标识符等连续文本也允许换行，不能将提案、列表或窄栏撑出横向滚动；完整操作名称和标识符仍须保留。
 
-颜色选择器和文件拖放框也采用 24px 高度与字段边框／底色 token。颜色选择器保留系统色盘和可见焦点；文件拖入使用选中态 token，禁用时拒绝投递。属性表中的只读文字或单独复选框行至少高 24px，与相邻输入字段保持一致。
+颜色选择器和文件拖放框也采用 24px 高度，保留 `control-border` 强轮廓并复用 `field` 底色。颜色选择器保留系统色盘和可见焦点；文件拖入使用选中态 token，禁用时拒绝投递。属性表中的只读文字或单独复选框行至少高 24px，与相邻输入字段保持一致。
 
 下拉框的选中文本随选项标签更新，切换语言不改变选中的值；长文本在触发器内省略，完整值可通过提示或展开菜单查看。
 
@@ -236,8 +266,8 @@ AGUI 通过 CSS 自定义属性（`--agui-c-*`）定义色彩。下表列出现�
 
 复用 AGUI 菜单组件，以中性表面、边框和轻量阴影区分浮层。默认采用足够不透明的背景，避免复杂游戏画面透过弹层影响阅读；不新增装饰性毛玻璃效果。
 
-- 菜单项高度 25px，字号 12px
-- 高亮态使用 `--agui-c-active`（蓝色系）
+- 菜单项最小高度 24px，字号 12px，文字行高 18px；长标签允许换行
+- 普通悬停／按下使用中性 `item-hover` / `item-pressed`，键盘高亮／展开态使用 `selection` / `selection-text`
 - `AGUIDropdownMenu` 的 `trigger` 插槽允许用共享图标按钮触发菜单，保留可访问名称、当前状态和完整提示；默认文字触发器继续可用。
 
 `AGUIDialog` 统一使用 28px 标题栏和中性关闭按钮，正文区独立滚动，宽高不超出当前视口。菜单样式只重置自身控件，不允许全局 `button { all: unset }`。
@@ -250,20 +280,20 @@ AGUI 通过 CSS 自定义属性（`--agui-c-*`）定义色彩。下表列出现�
 
 动效只表达操作与状态变化，使用 Vue、Reka UI Presence／Portal 和 CSS，不新增运行时依赖。参数是 ADV.JS 的设计值，参考 [Apple Motion 指南](https://developer.apple.com/design/human-interface-guidelines/motion) 的目的性与及时反馈原则，不代表 Apple 系统精确参数。
 
-| Token                           | 值                               | 用途                                       |
-| ------------------------------- | -------------------------------- | ------------------------------------------ |
-| `--agui-motion-duration`        | 120ms                            | 按钮、字段、Switch 与 Accordion 的既有反馈 |
-| `--agui-motion-popup-duration`  | 150ms                            | Popover、Select、菜单与 Toast 入场         |
-| `--agui-motion-dialog-duration` | 180ms                            | Dialog 与遮罩入场                          |
-| `--agui-motion-exit-duration`   | 100ms                            | 浮层、Dialog 与 Toast 退出                 |
-| `--agui-motion-ease`            | `cubic-bezier(0.2, 0.8, 0.2, 1)` | 入场与状态减速                             |
-| `--agui-motion-exit-ease`       | `cubic-bezier(0.4, 0, 1, 1)`     | 退出                                       |
+| Token                           | 值                               | 用途                               |
+| ------------------------------- | -------------------------------- | ---------------------------------- |
+| `--agui-motion-duration`        | 120ms                            | 按钮、字段、Switch 与折叠箭头反馈  |
+| `--agui-motion-popup-duration`  | 150ms                            | Popover、Select、菜单与 Toast 入场 |
+| `--agui-motion-dialog-duration` | 180ms                            | Dialog 与遮罩入场                  |
+| `--agui-motion-exit-duration`   | 100ms                            | 浮层、Dialog 与 Toast 退出         |
+| `--agui-motion-ease`            | `cubic-bezier(0.2, 0.8, 0.2, 1)` | 入场与状态减速                     |
+| `--agui-motion-exit-ease`       | `cubic-bezier(0.4, 0, 1, 1)`     | 退出                               |
 
 - Popover、Select、DropdownMenu、Menubar 及子菜单在实际 Content 根消费 `agui-motion-popup`。淡入最多位移 3px，按 Reka 的 `data-side` 跟随碰撞方向；没有方向的 item-aligned Select 只淡入。改变定位不重启动画，不对 Popper 定位 wrapper 应用 transform。
 - Dialog 遮罩淡入，内容从 `scale: 0.98` 到 `1`；独立 scale 属性保留既有居中 transform。Portal 样式绑定显式 AGUI 类，不能依赖父级 DOM 或作用域属性。
 - 浮层依据 `data-state` 开始入退场，由 [Reka Presence](https://reka-ui.com/docs/guides/animation) 保留退出节点并卸载。关闭态立即停止接收指针，交互状态不等待动画结束；不增加业务计时器或重复维护 open。
 - Toast 的 open 状态立即更新，内容被 Presence 卸载后释放列表记录；自动超时、手动关闭和滑动关闭共享该生命周期。滑动跟手读取 `--reka-toast-swipe-*`；超过三条时即时回收最旧项，宿主卸载同样优先即时回收，不为退场延迟通知上限或布局切换。
-- `prefers-reduced-motion: reduce` 下所有时长 token 为 `0ms`，浮层、Dialog、Toast 与 Accordion 显式 `animation: none`，控件 `transition: none`。首帧前取消动画可能没有 animationend／animationcancel；运行中切换偏好时只重建已关闭的 Presence 边界，保留打开控件和它们的输入状态。Menubar 为根菜单提供稳定 value，子菜单与 Select 使用 Reka 暴露的 open，不另存一份开合状态。
+- `prefers-reduced-motion: reduce` 下所有时长 token 为 `0ms`，浮层、Dialog 与 Toast 显式 `animation: none`，控件及折叠箭头 `transition: none`。首帧前取消动画可能没有 animationend／animationcancel；运行中切换偏好时只重建需要退场的已关闭浮层 Presence 边界，保留打开控件和它们的输入状态；Accordion 不再通过 key 重建内容。Menubar 为根菜单提供稳定 value，子菜单与 Select 使用 Reka 暴露的 open，不另存一份开合状态。
 - Editor 的 `AELazyDialog` 在首次打开时异步加载，关闭后等 `AGUIDialog` 内容卸载事件 `after-close` 再回收实例；异步加载期间取消、快速重开和整个宿主卸载仍安全。事件只回收呈现层实例，业务 open 不等待动画。带项目草稿的创建对话框仍在草稿撤销时即时卸载。
 - 懒加载宿主在开始打开时捕获 `returnFocus`，共享 Dialog 通过 Reka 自动焦点事件记住真实按钮，或所属菜单的触发器；语言切换重建菜单项时退回同一菜单位置。另一个 Dialog 已打开时不抢回焦点，不添加全局焦点监听。
 - Toast 队列清空时卸载 Provider，清理原语的暂停计时和滑动状态，下一条通知重新计时；悬停、键盘焦点或窗口失焦时仍沿用 Reka 的暂停语义。
@@ -345,13 +375,13 @@ three-kingdoms · 已保存的创作资料
 
 参照 [Blender 编辑器 HIG](https://developer.blender.org/docs/features/interface/human_interface_guidelines/editors/) 的区域分工：编辑器头部承载当前区域的操作与显示控制，主区域承载作品，侧栏承载属性。ADV.JS 保留自身组件 API 和主题值，借鉴这种层级组织。
 
-| 区域 / 行为 | ADV.JS 组件与约束                                                                                                                                    |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 区域头部    | `AGUIToolbar`，中性背景，默认约 30px；`label` 命名工具栏，箭头键导航操作；默认可换行，使用 `wrap=false` 时由调用方提供窄面板溢出菜单，不能裁切按钮。 |
-| 属性分组    | `AGUIDetails` 原生 disclosure；摘要最小 28px，分隔线、可见键盘焦点、默认正文 12px。                                                                  |
-| 属性行      | `AGUIProperty` 标签与控件按 1:2 排列，`for` 关联真实控件 id；长标签可换行，分组窄于 240px 时改为上下排列。                                           |
-| 图标操作    | `AGUIIconButton` 最小点击区 24px，默认 14px 图标，mini 不再缩成 9px；`title` 命名，`active` 仅用于切换操作。                                         |
-| 长篇内容    | 多行编辑仍可使用顶部标签的 `AGUIFormItem`，通过 `for` 关联输入；不要把正文压成单行属性。                                                             |
+| 区域 / 行为 | ADV.JS 组件与约束                                                                                                                                  |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 区域头部    | `AGUIToolbar`，中性背景，默认 28px；`label` 命名工具栏，箭头键导航操作；默认可换行，使用 `wrap=false` 时由调用方提供窄面板溢出菜单，不能裁切按钮。 |
+| 属性分组    | `AGUIDetails` 原生 disclosure；摘要最小 28px，分隔线、可见键盘焦点、默认正文 12px。                                                                |
+| 属性行      | `AGUIProperty` 标签与控件按 1:2 排列，`for` 关联真实控件 id；长标签可换行，分组窄于 240px 时改为上下排列。                                         |
+| 图标操作    | `AGUIIconButton` 最小点击区 24px，默认 14px 图标，mini 不再缩成 9px；`title` 命名，`active` 仅用于切换操作。                                       |
+| 长篇内容    | 多行编辑仍可使用顶部标签的 `AGUIFormItem`，通过 `for` 关联输入；不要把正文压成单行属性。                                                           |
 
 角色检查器已接入共享工具栏；角色表单按「基本属性 → 详细描述 → 底部提交操作」组织。字段使用实例内唯一 id，多个检查器不会串联标签。亮暗配色来自 AGUI token，不再为这些区域写固定深灰背景。
 

@@ -26,6 +26,8 @@ withDefaults(defineProps<{
 
 <style lang="scss">
 .agui-icon-button {
+  --icon-focus: var(--agui-c-focus);
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -33,14 +35,14 @@ withDefaults(defineProps<{
   flex-shrink: 0;
   min-width: var(--agui-control-height);
   min-height: var(--agui-control-height);
-  padding: 4px;
+  padding: var(--agui-space-1);
   border: 1px solid transparent;
   border-radius: var(--agui-radius-sm);
   color: var(--agui-c-text-1);
   background: transparent;
   appearance: none;
   font-family: var(--agui-font-family-ui);
-  font-size: 14px;
+  font-size: var(--agui-icon-size);
   line-height: 1;
   cursor: pointer;
   transition: background-color var(--agui-motion-duration) var(--agui-motion-ease);
@@ -60,6 +62,8 @@ withDefaults(defineProps<{
   }
 
   &.active {
+    --icon-focus: var(--agui-c-on-accent);
+
     color: var(--agui-c-on-accent);
     background: var(--agui-c-primary);
   }
@@ -73,14 +77,14 @@ withDefaults(defineProps<{
   }
 
   &.large {
-    min-width: 28px;
-    min-height: 28px;
+    min-width: var(--agui-control-height-lg);
+    min-height: var(--agui-control-height-lg);
     font-size: 16px;
   }
 
   &:focus-visible {
-    outline: 2px solid var(--agui-c-focus);
-    outline-offset: -2px;
+    outline: var(--agui-focus-width) solid var(--icon-focus);
+    outline-offset: var(--agui-focus-offset);
   }
 
   &:disabled {

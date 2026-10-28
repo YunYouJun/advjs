@@ -168,18 +168,16 @@ withDefaults(defineProps<{
 </template>
 
 <style lang="scss">
-// trigger
-// .ContextMenuTrigger {}
-
 .ContextMenuContent,
 .ContextMenuSubContent {
   font-family: var(--agui-font-family-ui);
   min-width: 220px;
+  max-width: calc(100vw - var(--agui-space-4));
   background-color: var(--agui-c-popup);
   border: 1px solid var(--agui-c-border);
   border-radius: var(--agui-radius-md);
   overflow: hidden;
-  padding: 5px;
+  padding: var(--agui-space-1);
   box-shadow: var(--agui-shadow-popup);
 }
 
@@ -187,22 +185,25 @@ withDefaults(defineProps<{
 .ContextMenuCheckboxItem,
 .ContextMenuRadioItem,
 .ContextMenuSubTrigger {
-  font-size: 13px;
-  line-height: 1;
-  color: var(--agui-c-text);
+  box-sizing: border-box;
+  font-size: var(--agui-font-size-body);
+  line-height: var(--agui-control-line-height);
+  color: var(--agui-c-text-1);
   border-radius: var(--agui-radius-sm);
   display: flex;
   align-items: center;
-  height: 25px;
-  padding: 0 5px;
+  min-height: var(--agui-control-height);
+  gap: var(--agui-control-gap);
+  padding: 2px var(--agui-control-padding-x);
   position: relative;
-  padding-left: 25px;
+  padding-left: calc(var(--agui-control-height) + var(--agui-space-1));
+  overflow-wrap: anywhere;
   user-select: none;
   outline: none;
 }
 .ContextMenuSubTrigger[data-state='open'] {
-  background-color: var(--agui-c-active);
-  color: var(--agui-c-on-accent);
+  background-color: var(--agui-c-selection);
+  color: var(--agui-c-selection-text);
 }
 .agui-context-menu-item[data-disabled],
 .ContextMenuCheckboxItem[data-disabled],
@@ -215,39 +216,65 @@ withDefaults(defineProps<{
 .ContextMenuCheckboxItem[data-highlighted],
 .ContextMenuRadioItem[data-highlighted],
 .ContextMenuSubTrigger[data-highlighted] {
-  background-color: var(--agui-c-active);
-  color: var(--agui-c-on-accent);
+  background-color: var(--agui-c-selection);
+  color: var(--agui-c-selection-text);
+}
+
+:is(.ContextMenuContent, .ContextMenuSubContent):not(:has([data-highlighted]))
+  :is(.agui-context-menu-item, .ContextMenuCheckboxItem, .ContextMenuRadioItem, .ContextMenuSubTrigger):not(
+    [data-disabled]
+  ):hover {
+  background-color: var(--agui-c-item-hover);
+}
+
+:is(.agui-context-menu-item, .ContextMenuCheckboxItem, .ContextMenuRadioItem, .ContextMenuSubTrigger):not(
+    [data-disabled]
+  ):active {
+  background-color: var(--agui-c-item-pressed);
+  color: var(--agui-c-text-1);
+}
+
+:is(.agui-context-menu-item, .ContextMenuCheckboxItem, .ContextMenuRadioItem, .ContextMenuSubTrigger):focus-visible {
+  outline: var(--agui-focus-width) solid var(--agui-c-focus);
+  outline-offset: var(--agui-focus-offset);
 }
 
 .agui-context-menu-label {
-  padding-left: 25px;
-  font-size: 12px;
-  line-height: 25px;
+  padding: 2px var(--agui-control-padding-x);
+  padding-left: calc(var(--agui-control-height) + var(--agui-space-1));
+  font-size: var(--agui-font-size-body);
+  line-height: var(--agui-control-line-height);
   color: var(--agui-c-text-2);
 }
 
 .ContextMenuSeparator {
   height: 1px;
-  background-color: var(--agui-c-divider);
-  margin: 5px;
+  background-color: var(--agui-c-divider-light);
+  margin: var(--agui-space-1);
 }
 
 .ContextMenuItemIndicator {
   position: absolute;
   left: 0;
-  width: 25px;
+  width: var(--agui-control-height);
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  > * {
+    width: var(--agui-icon-size);
+    height: var(--agui-icon-size);
+  }
 }
 
 .RightSlot {
   margin-left: auto;
-  padding-left: 20px;
+  flex-shrink: 0;
+  padding-left: var(--agui-space-4);
   color: var(--agui-c-text-2);
 }
 [data-highlighted] > .RightSlot {
-  color: var(--agui-c-on-accent);
+  color: inherit;
 }
 [data-disabled] .RightSlot {
   color: var(--agui-c-text-4);

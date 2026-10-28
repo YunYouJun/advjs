@@ -31,7 +31,8 @@ const switchState = defineModel({ type: Boolean, default: false })
   align-items: center;
   gap: var(--agui-space-2);
   min-width: 0;
-  font-size: 12px;
+  font-size: var(--agui-font-size-body);
+  line-height: var(--agui-control-line-height);
   color: var(--agui-c-text-1);
 }
 .agui-switch {
@@ -45,16 +46,33 @@ const switchState = defineModel({ type: Boolean, default: false })
   padding: 3px;
   background: var(--agui-c-field);
   border: 1px solid var(--agui-c-control-border);
-  border-radius: 12px;
+  border-radius: var(--agui-radius-pill);
   cursor: pointer;
-  transition: background-color var(--agui-motion-duration) var(--agui-motion-ease);
+  transition:
+    background-color var(--agui-motion-duration) var(--agui-motion-ease),
+    border-color var(--agui-motion-duration) var(--agui-motion-ease);
+}
+.agui-switch:hover:not([data-disabled]) {
+  border-color: var(--agui-c-border-hover);
 }
 .agui-switch[data-state='checked'] {
   background: var(--agui-c-primary);
+  border-color: var(--agui-c-primary);
+}
+.agui-switch[data-state='checked']:hover:not([data-disabled]) {
+  background: var(--agui-c-primary-hover);
+  border-color: var(--agui-c-primary-hover);
+}
+.agui-switch[data-state='checked']:active:not([data-disabled]) {
+  background: var(--agui-c-primary-pressed);
+  border-color: var(--agui-c-primary-pressed);
 }
 .agui-switch:focus-visible {
-  outline: 2px solid var(--agui-c-focus);
-  outline-offset: 2px;
+  outline: var(--agui-focus-width) solid var(--agui-c-focus);
+  outline-offset: var(--agui-focus-offset);
+}
+.agui-switch[data-state='checked']:focus-visible {
+  outline-color: var(--agui-c-on-accent);
 }
 .agui-switch[data-disabled] {
   opacity: 0.5;

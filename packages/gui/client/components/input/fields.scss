@@ -5,7 +5,7 @@
   min-width: 0;
   color: var(--agui-c-text-1);
   background: var(--agui-c-field);
-  border: 1px solid var(--agui-c-control-border);
+  border: 1px solid var(--agui-c-field-border);
   border-radius: var(--agui-radius-sm);
   padding: 2px var(--agui-control-padding-x);
   font: inherit;
@@ -18,11 +18,11 @@
     color: var(--agui-c-text-2);
   }
   &:hover:not(:disabled) {
-    border-color: var(--agui-c-border-hover);
+    border-color: var(--agui-c-field-border-hover);
   }
   &:focus-visible {
-    outline: 2px solid var(--agui-c-focus);
-    outline-offset: -2px;
+    outline: var(--agui-focus-width) solid var(--agui-c-focus);
+    outline-offset: var(--agui-focus-offset);
   }
   &:disabled {
     opacity: 0.5;

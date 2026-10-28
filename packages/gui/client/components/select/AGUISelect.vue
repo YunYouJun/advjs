@@ -75,7 +75,7 @@ const reducedMotion = usePreferredReducedMotion()
         {{ selectedLabel }}
       </SelectValue>
       <SelectValue v-else :placeholder="placeholder" />
-      <div class="i-radix-icons:chevron-down" op="60" />
+      <div class="i-radix-icons:chevron-down" op="60" aria-hidden="true" />
     </SelectTrigger>
 
     <SelectPortal :key="Number(!open && reducedMotion === 'reduce')">
@@ -118,7 +118,7 @@ const reducedMotion = usePreferredReducedMotion()
                 <SelectItemIndicator class="agui-select-item-indicator">
                   <div class="i-radix-icons:check" />
                 </SelectItemIndicator>
-                <div mr-1 :class="option.icon" />
+                <div v-if="option.icon" class="agui-select-item-icon" :class="option.icon" aria-hidden="true" />
                 <SelectItemText>
                   {{ option.label }}
                 </SelectItemText>
@@ -151,19 +151,20 @@ const reducedMotion = usePreferredReducedMotion()
   gap: var(--agui-control-gap);
   padding: 2px var(--agui-control-padding-x);
   background: var(--agui-c-field);
-  border: 1px solid var(--agui-c-control-border);
+  border: 1px solid var(--agui-c-field-border);
   border-radius: var(--agui-radius-sm);
   text-align: left;
   height: var(--agui-control-height);
   min-width: 0;
   cursor: pointer;
+  transition: border-color var(--agui-motion-duration) var(--agui-motion-ease);
 
   &:focus-visible {
-    outline: 2px solid var(--agui-c-focus);
-    outline-offset: 1px;
+    outline: var(--agui-focus-width) solid var(--agui-c-focus);
+    outline-offset: var(--agui-focus-offset);
   }
   &:hover:not(:disabled) {
-    border-color: var(--agui-c-border-hover);
+    border-color: var(--agui-c-field-border-hover);
   }
   &:disabled {
     opacity: 0.5;
@@ -180,6 +181,8 @@ const reducedMotion = usePreferredReducedMotion()
   }
   > div:last-child {
     flex-shrink: 0;
+    width: var(--agui-icon-size);
+    height: var(--agui-icon-size);
   }
 }
 .agui-select-content {
@@ -195,13 +198,15 @@ const reducedMotion = usePreferredReducedMotion()
   padding: var(--agui-space-1);
 }
 .agui-select-item {
-  font-size: 12px;
-  line-height: 1.4;
+  box-sizing: border-box;
+  font-size: var(--agui-font-size-body);
+  line-height: var(--agui-control-line-height);
   border-radius: var(--agui-radius-sm);
   display: flex;
   align-items: center;
+  gap: var(--agui-control-gap);
   min-height: var(--agui-control-height);
-  padding: 0 var(--agui-control-height);
+  padding: 2px var(--agui-control-padding-x) 2px var(--agui-control-height);
   position: relative;
   user-select: none;
 
@@ -211,9 +216,30 @@ const reducedMotion = usePreferredReducedMotion()
   }
   &[data-highlighted] {
     outline: none;
-    background: var(--agui-c-active);
-    color: var(--agui-c-on-accent);
+    background: var(--agui-c-selection);
+    color: var(--agui-c-selection-text);
     cursor: pointer;
+  }
+  &:hover:not([data-disabled]) {
+    background: var(--agui-c-item-hover);
+    color: var(--agui-c-text-1);
+  }
+  &:active:not([data-disabled]) {
+    background: var(--agui-c-item-pressed);
+  }
+  &[data-state='checked'] {
+    background: var(--agui-c-selection);
+    color: var(--agui-c-selection-text);
+  }
+  &:focus-visible {
+    outline: var(--agui-focus-width) solid var(--agui-c-focus);
+    outline-offset: var(--agui-focus-offset);
+  }
+  &-icon,
+  &-indicator > div {
+    flex-shrink: 0;
+    width: var(--agui-icon-size);
+    height: var(--agui-icon-size);
   }
   &-indicator {
     position: absolute;
@@ -222,6 +248,11 @@ const reducedMotion = usePreferredReducedMotion()
     display: inline-flex;
     align-items: center;
     justify-content: center;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .agui-select-trigger {
+    transition: none;
   }
 }
 .agui-select-scroll-button {

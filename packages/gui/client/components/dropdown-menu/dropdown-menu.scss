@@ -2,11 +2,12 @@
 .agui-dropdown-menu-sub-content {
   font-family: var(--agui-font-family-ui);
   min-width: 220px;
+  max-width: calc(100vw - var(--agui-space-4));
   background-color: var(--agui-c-popup);
   border: 1px solid var(--agui-c-border);
 
-  border-radius: 4px;
-  padding: 5px;
+  border-radius: var(--agui-radius-md);
+  padding: var(--agui-space-1);
   box-shadow: var(--agui-shadow-popup);
 
   z-index: 1000;
@@ -14,18 +15,25 @@
 
 .agui-dropdown-menu-item {
   all: unset;
+  box-sizing: border-box;
   font-family: var(--agui-font-family-ui);
   color: var(--agui-c-text-1);
-  font-size: 12px;
-  line-height: 1;
-  border-radius: 4px;
+  font-size: var(--agui-font-size-body);
+  line-height: var(--agui-control-line-height);
+  border-radius: var(--agui-radius-sm);
   display: flex;
   align-items: center;
-  height: 25px;
-  padding: 0 10px;
+  min-height: var(--agui-control-height);
+  gap: var(--agui-control-gap);
+  padding: 2px var(--agui-control-padding-x);
+  overflow-wrap: anywhere;
 
   position: relative;
   user-select: none;
+}
+
+.agui-dropdown-menu-content:not(:has([data-highlighted])) .agui-dropdown-menu-item:not([data-disabled]):hover {
+  background-color: var(--agui-c-item-hover);
 }
 
 .agui-dropdown-menu-item {
@@ -34,7 +42,21 @@
     pointer-events: none;
   }
   &[data-highlighted] {
-    background-color: var(--agui-c-active);
-    color: var(--agui-c-on-accent);
+    background-color: var(--agui-c-selection);
+    color: var(--agui-c-selection-text);
+  }
+  &:active:not([data-disabled]) {
+    background-color: var(--agui-c-item-pressed);
+    color: var(--agui-c-text-1);
+  }
+  &:focus-visible {
+    outline: var(--agui-focus-width) solid var(--agui-c-focus);
+    outline-offset: var(--agui-focus-offset);
+  }
+  > [class*='i-'] {
+    flex-shrink: 0;
+    width: var(--agui-icon-size);
+    height: var(--agui-icon-size);
+    margin: 0;
   }
 }
