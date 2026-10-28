@@ -9,12 +9,12 @@ export function createStudioCreativeWorkspace(fs: IFileSystem, projectId: string
   assertCurrent?: () => void
   verifyMedia?: CreativeProjectWorkspace['verifyMedia']
 } = {}): CreativeProjectWorkspace {
-  async function snapshot() {
+  async function snapshot(source = fs) {
     options.assertCurrent?.()
-    if (fs.refresh)
-      await fs.refresh()
+    if (source.refresh)
+      await source.refresh()
     options.assertCurrent?.()
-    const files = selectCreativeProjectFiles(Object.fromEntries((await fs.collectAllFiles()).map(file => [file.path, file.content])))
+    const files = selectCreativeProjectFiles(Object.fromEntries((await source.collectAllFiles()).map(file => [file.path, file.content])))
     options.assertCurrent?.()
     const revision = await computeAgentProjectRevision(files)
     options.assertCurrent?.()
@@ -46,8 +46,8 @@ export function createStudioCreativeWorkspace(fs: IFileSystem, projectId: string
           assertCreativeSourcePath(path)
           return true
         },
-        async validateCurrent() {
-          const current = await snapshot()
+        async validateCurrent(scope) {
+          const current = await snapshot(scope)
           if (current.revision !== expectedRevision)
             throw new Error('CREATIVE_SOURCE_CONFLICT')
           const files = overlayCreativeChanges(current.files, changes)

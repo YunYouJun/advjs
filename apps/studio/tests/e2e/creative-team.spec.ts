@@ -128,6 +128,7 @@ test('executes actual core paths, retains private reports across reload and rete
     const route = new URL((window as any).creativeAuthorFixture.route(), location.origin)
     return { path: route.pathname, file: route.searchParams.get('file'), line: route.searchParams.get('line'), column: route.searchParams.get('column') }
   })).toEqual({ path: '/editor', file: 'adv/chapters/stay.adv.md', line: '3', column: '1' })
+  await expect.poll(() => page.evaluate(() => Object.keys((window as any).creativeAuthorFixture.playtests()).length)).toBe(3)
   const records = await page.evaluate(() => (window as any).creativeAuthorFixture.playtests())
   expect(Object.keys(records)).toHaveLength(3)
   expect(errors).toEqual([])
@@ -187,6 +188,7 @@ test('returns an actual candidate compiler finding to the writer, reviews a repa
   const run = await page.evaluate(() => (window as any).creativeAuthorFixture.run()) as any
   expect(run.tasks.find((item: any) => item.taskId === 'script').attempt).toBe(2)
   expect(run.decisions.filter((item: any) => item.playtestRepair)).toHaveLength(1)
+  await expect(panel.getByText('已同步作者宿主报告，服务端未重放', { exact: true })).toBeVisible()
   const reports = await page.evaluate(() => (window as any).creativeAuthorFixture.playtests()) as any
   expect(Object.values(reports).map((item: any) => item.executions[0].code)).toEqual(['compile_failed', 'completed'])
   expect(Object.values(reports).map((item: any) => item.executions[0].scenario)).toEqual([{ id: 'path-1', expectedEnding: 'stay#ending-stay', choices: [0] }, { id: 'path-1', expectedEnding: 'stay#ending-stay', choices: [0] }])
@@ -680,6 +682,7 @@ test('edits cast and chapter candidates with an explicit fixture and restores th
   await playtest.getByRole('button', { name: '执行这些路径', exact: true }).click()
   const pathReport = page.getByTestId('creative-playtest-report')
   await expect(pathReport.getByRole('heading', { name: /指定路径通过/ })).toHaveCount(1)
+  await expect(playtest.getByText('已同步作者宿主报告，服务端未重放', { exact: true })).toBeVisible()
   const executed = await page.evaluate(() => Object.values((window as any).creativeAuthorFixture.playtests())[0]) as any
   expect(executed.scope).toBe('candidate')
   expect(executed.snapshotRevision).not.toBe(executed.baselineRevision)
@@ -751,6 +754,7 @@ test('prepares actual dialogue identities in an author revision, reaches both en
   await playtest.getByLabel('选择序列（从 0 开始，以英文逗号分隔）', { exact: true }).nth(1).fill('1')
   await playtest.getByRole('button', { name: '执行这些路径', exact: true }).click()
   await expect(page.getByTestId('creative-playtest-report').getByRole('heading', { name: /指定路径通过/ })).toHaveCount(2)
+  await expect(playtest.getByText('已同步作者宿主报告，服务端未重放', { exact: true })).toBeVisible()
   const reports = await page.evaluate(() => (window as any).creativeAuthorFixture.playtests())
   const report = Object.values(reports)[0] as any
   expect(report.executions.every((execution: any) => execution.trace.some((step: any) => step.kind === 'dialog' && step.text === '列车还没有到，\n我们再等一会儿。'))).toBe(true)
@@ -929,6 +933,7 @@ test('opens creative partners, prevents unavailable generation and preserves the
 })
 
 test('returns real external speech to a stable line, auditions and adopts it, and plays it through the product audio backend', async ({ page }, info) => {
+  test.setTimeout(90000)
   const audioPath = process.env.STUDIO_CREATIVE_VOICE_WAV
   test.skip(!audioPath, 'Requires a genuine spoken WAV supplied by STUDIO_CREATIVE_VOICE_WAV; no placeholder tone is substituted')
   const errors: string[] = []
@@ -1002,6 +1007,7 @@ test('returns real external speech to a stable line, auditions and adopts it, an
   expect(calls.filter(call => call.startsWith('POST'))).toEqual([])
   await page.goto(reviewUrl)
   const workspace = page.getByTestId('audio-workspace')
+  await expect(workspace).toBeVisible({ timeout: 30000 })
   const take = workspace.locator('.voice-review__take')
   await expect(take).toHaveCount(1)
   await expect(take.locator('.voice-review__warning')).toHaveCount(0)
@@ -1095,7 +1101,7 @@ for (const destination of ['after', 'before'] as const) {
     await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeVoiceFixture))).toBe(true)
     expect(await files()).toEqual(result)
     expect(await page.evaluate(() => (window as any).creativeVoiceFixture.writes())).toEqual([])
-    await writeFile(info.outputPath('partial-voice-recovery.json'), JSON.stringify({ scope: 'Actual browser navigation interrupts a live native transaction after durable binary and first text write; actual private journal, filesystem recovery and original genuine speech bytes.', destination, before, interrupted, result, pending, journal }, null, 2))
+    await writeFile(info.outputPath('partial-voice-recovery.json'), JSON.stringify({ scope: 'Explicit legacy per-file adapter injection disables atomic staging before navigation interrupts durable binary and first text write; reload uses the current atomic adapter to recover the actual private journal and original genuine speech bytes.', destination, before, interrupted, result, pending, journal }, null, 2))
   })
 }
 
@@ -1149,7 +1155,7 @@ test('blocks another media write while an image is partially adopted and restore
   await art.getByRole('button', { name: '恢复图片采用前文件', exact: true }).click()
   await expect(art.getByText('图片候选，未写入项目', { exact: false })).toBeVisible()
   expect(await files()).toEqual(before)
-  await writeFile(info.outputPath('cross-media-pending-recovery.json'), JSON.stringify({ scope: 'Actual image transaction interrupted after durable first text file; common IndexedDB intent guard refuses a new voice write; explicit original-file restoration preserves image bytes.', before, partial }, null, 2))
+  await writeFile(info.outputPath('cross-media-pending-recovery.json'), JSON.stringify({ scope: 'Explicit legacy per-file adapter injection interrupts image adoption after its durable first text file; reload restores the current atomic adapter, the common IndexedDB intent guard refuses a new voice write, and explicit recovery preserves image bytes.', before, partial }, null, 2))
 })
 
 test('upgrades the original image journal without losing its pending candidate bytes', async ({ page }, info) => {

@@ -145,8 +145,8 @@ export async function commitCreativeArtImport(fs: IFileSystem, entry: CreativeAr
     assertCurrent,
     acceptsPath: path => /^adv\/(?:assets(?:\.json|\/[\w./-]+\.json)|scenes\/[\w-]+\.md)$/.test(path) && !path.split('/').some(part => ['.', '..', ''].includes(part)),
     ...(undo ? {} : { media: { path: review.mediaPath, blob: new Blob([entry.data!], { type: entry.image.mimeType }), sha256: entry.image.sha256, bytes: entry.image.bytes } }),
-    async validateCurrent() {
-      const snapshot = await createStudioCreativeWorkspace(fs, entry.projectId, { assertCurrent }).snapshot()
+    async validateCurrent(scope) {
+      const snapshot = await createStudioCreativeWorkspace(scope, entry.projectId, { assertCurrent }).snapshot()
       if (snapshot.revision !== (undo ? review.afterRevision : review.beforeRevision))
         throw new Error('CREATIVE_IMAGE_SOURCE_CHANGED')
     },

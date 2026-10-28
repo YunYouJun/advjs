@@ -100,11 +100,33 @@ async function main() {
     writes.push(path)
     await writeBlob(path, value)
   }
+  // Observe the real isolated view as well as direct author writes.
+  const transaction = projectFs.transaction?.bind(projectFs)
+  if (transaction) {
+    projectFs.transaction = async (operation, validate) => transaction(async (scope) => {
+      const text = scope.writeFile.bind(scope)
+      const binary = scope.writeBlob.bind(scope)
+      scope.writeFile = async (path, value) => {
+        writes.push(path)
+        await text(path, value)
+      }
+      scope.writeBlob = async (path, value) => {
+        writes.push(path)
+        await binary(path, value)
+      }
+      await operation(scope)
+    }, validate)
+  }
   Object.assign(window, { creativeVoiceFixture: {
     calls: () => [...calls],
     originals,
     writes: () => [...writes],
-    crashAfterText: (count: number) => { crashAfterText = count },
+    crashAfterText: (count: number) => {
+      // Explicit legacy per-file fault injection. Reload restores the current
+      // atomic adapter, which must still recover a pre-existing partial journal.
+      projectFs.transaction = undefined
+      crashAfterText = count
+    },
     crashed: () => crashed,
     loseRegistrationAck() {
       const save = creativeVoiceImportCache.save.bind(creativeVoiceImportCache)

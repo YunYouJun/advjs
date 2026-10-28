@@ -187,8 +187,8 @@ export async function commitCreativeVoiceImport(fs: IFileSystem, run: CreativeTe
     assertCurrent,
     acceptsPath: path => /^adv\/(?:assets(?:\.json|\/[\w./-]+\.json)|audio\/voice-ledger\.json)$/.test(path) && !path.split('/').some(part => ['.', '..', ''].includes(part)),
     media: { path: review.mediaPath, blob: new Blob([review.data], { type: 'audio/wav' }), sha256: review.sha256, bytes: review.data.byteLength },
-    async validateCurrent() {
-      const source = await createStudioCreativeWorkspace(fs, run.plan.projectId, { assertCurrent }).snapshot()
+    async validateCurrent(scope) {
+      const source = await createStudioCreativeWorkspace(scope, run.plan.projectId, { assertCurrent }).snapshot()
       if (source.revision !== review.beforeRevision)
         throw new Error('CREATIVE_VOICE_SOURCE_CHANGED')
       const artifact = run.artifacts.find(item => item.id === review.target.artifactId && item.fingerprint === review.target.artifactFingerprint)

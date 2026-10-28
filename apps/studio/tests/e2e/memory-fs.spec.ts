@@ -104,7 +104,7 @@ test('an author edit between adoption validation and durable flush wins without 
   await page.evaluate(() => (window as any).memoryFsFixture.flush())
   await open(second, 'adoption-race')
   const before = await second.evaluate(() => (window as any).memoryFsFixture.snapshot())
-  await second.evaluate(({ revision, chapter, original }) => (window as any).memoryFsFixture.pauseAdoption('adv/world.md', revision, [
+  await second.evaluate(({ revision, chapter, original }) => (window as any).memoryFsFixture.pauseAdoption(revision, [
     { path: 'adv/world.md', before: 'Original world', after: 'Candidate world' },
     { path: chapter, before: original, after: '# Dependent candidate {#start}' },
   ]), { revision: before.revision, chapter, original })
@@ -115,4 +115,33 @@ test('an author edit between adoption validation and durable flush wins without 
   await open(page, 'adoption-race')
   expect(await page.evaluate(() => (window as any).memoryFsFixture.read('adv/world.md'))).toBe('Author saved during adoption')
   expect(await page.evaluate(path => (window as any).memoryFsFixture.read(path), chapter)).toBe(original)
+})
+
+test('staged adoption stays invisible beyond the autosave delay and rejects a different source changing before commit', async ({ page, context }) => {
+  const second = await context.newPage()
+  await open(page, 'whole-project-race')
+  await page.evaluate(files => (window as any).memoryFsFixture.write(files), initial)
+  await page.evaluate(() => (window as any).memoryFsFixture.flush())
+  await open(second, 'whole-project-race')
+  const before = await second.evaluate(() => (window as any).memoryFsFixture.snapshot())
+  await second.evaluate(({ revision, chapter, original }) => (window as any).memoryFsFixture.pauseAdoption(revision, [
+    { path: chapter, before: original, after: '# Candidate based on old world {#start}' },
+  ]), { revision: before.revision, chapter, original })
+  await second.waitForFunction(() => (window as any).memoryFsFixture.adoptionPaused())
+  // An awaited validation may outlast ordinary autosave; staging must have no timer.
+  await second.evaluate(() => new Promise(resolve => setTimeout(resolve, 650)))
+  expect(await second.evaluate(path => (window as any).memoryFsFixture.read(path), chapter)).toBe(original)
+  await open(page, 'whole-project-race')
+  expect(await page.evaluate(path => (window as any).memoryFsFixture.read(path), chapter)).toBe(original)
+  await page.evaluate(() => (window as any).memoryFsFixture.write({ 'adv/world.md': 'Author changed the story constraints' }))
+  await page.evaluate(() => (window as any).memoryFsFixture.flush())
+  expect(await second.evaluate(() => (window as any).memoryFsFixture.resumeAdoption())).toMatchObject({ success: false, error: expect.stringContaining('ADV_STUDIO_SOURCE_CONFLICT') })
+  const after = await second.evaluate(() => (window as any).memoryFsFixture.snapshot())
+  expect(after.files[chapter]).toBe(original)
+  expect(after.files['adv/world.md']).toBe('Author changed the story constraints')
+  // An explicit new revision can be reviewed and adopted using the reusable candidate.
+  await second.evaluate(({ revision, chapter, original }) => (window as any).memoryFsFixture.adopt(revision, [{ path: chapter, before: original, after: '# Reviewed with new world {#start}' }]), { revision: after.revision, chapter, original })
+  await open(page, 'whole-project-race')
+  expect(await page.evaluate(path => (window as any).memoryFsFixture.read(path), chapter)).toBe('# Reviewed with new world {#start}')
+  expect(await page.evaluate(() => (window as any).memoryFsFixture.read('adv/world.md'))).toBe('Author changed the story constraints')
 })

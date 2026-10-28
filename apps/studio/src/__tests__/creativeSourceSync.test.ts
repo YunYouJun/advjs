@@ -209,7 +209,7 @@ describe('saved source reconciliation', () => {
       })
       await f.fs.writeFile('adv/world.md', '# 唯一的新稿\n')
       await f.settle()
-      expect(f.sync.status.value).toBe('failed')
+      await vi.waitFor(() => expect(f.sync.status.value).toBe('failed'))
       await vi.advanceTimersByTimeAsync(10000)
       expect(f.api.refreshFacts).toHaveBeenCalledOnce()
       f.sync.retry()

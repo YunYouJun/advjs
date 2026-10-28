@@ -38,18 +38,18 @@ async function setup() {
       const blob = await fs.readBlob(path)
       return { bytes: [...new Uint8Array(await blob.arrayBuffer())], mimeType: blob.type }
     },
-    pauseAdoption(path: string, revision: string, changes: CreativeFileChange[]) {
-      const write = fs.writeFile.bind(fs)
+    pauseAdoption(revision: string, changes: CreativeFileChange[]) {
+      const transaction = fs.transaction.bind(fs)
       const gate = new Promise<void>((resolve) => {
         release = resolve
       })
-      fs.writeFile = async (target, content) => {
-        if (target === path) {
-          fs.writeFile = write
+      fs.transaction = async (operation, validate) => {
+        fs.transaction = transaction
+        await transaction(async (scope) => {
+          await operation(scope)
           paused = true
           await gate
-        }
-        await write(target, content)
+        }, validate)
       }
       adoption = createStudioCreativeWorkspace(fs, projectId).commit(changes, revision).then(() => ({ success: true }), error => ({ success: false, error: String(error) }))
     },

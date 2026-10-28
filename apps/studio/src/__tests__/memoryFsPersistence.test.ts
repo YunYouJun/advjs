@@ -1,6 +1,8 @@
+import type { IFileSystem } from '../utils/fs'
 import { Blob as NodeBlob } from 'node:buffer'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { MemoryFsAdapter } from '../utils/fs/MemoryFsAdapter'
+import { flushStudioFileMutations, observeStudioFileSystem, subscribeStudioFileMutations, whenStudioFileMutationsSettle } from '../utils/fs/mutations'
 
 const storage = vi.hoisted(() => ({ rows: new Map<string, Record<string, unknown>>(), failNext: false, failRead: false, transactions: 0, queue: Promise.resolve() }))
 vi.mock('../utils/db', () => {
@@ -219,5 +221,87 @@ describe('independent Studio memory workspaces', () => {
     storage.failRead = true
     await expect(new MemoryFsAdapter('shared').init()).rejects.toThrow('simulated read failure')
     expect(storage.rows.get('memfs:shared:adv/world.md')?.content).toBe('Original world')
+  })
+
+  it.each(['modify', 'create', 'delete'] as const)('rejects a whole-project transaction when another instance performs an unrelated %s', async (operation) => {
+    const { first, second } = await pair()
+    await expect(second.transaction(async (scope) => {
+      await scope.writeFile('adv/chapters/intro.adv.md', 'Candidate')
+      await scope.flush?.()
+      expect(await second.readFile('adv/chapters/intro.adv.md')).toBe('Original chapter')
+      if (operation === 'modify')
+        await first.writeFile('adv/world.md', 'Author changed the constraints')
+      else if (operation === 'create')
+        await first.writeFile('adv/new.md', 'New constraint')
+      else
+        await first.deleteFile('adv/world.md')
+      await first.flush()
+    })).rejects.toThrow('ADV_STUDIO_SOURCE_CONFLICT')
+    await second.refresh()
+    expect(await second.readFile('adv/chapters/intro.adv.md')).toBe('Original chapter')
+    expect(await second.exists('adv/world.md')).toBe(operation !== 'delete')
+    expect(await second.exists('adv/new.md')).toBe(operation === 'create')
+  })
+
+  it('isolates staged files, blocks concurrent same-instance writes and expires the scoped view', async () => {
+    const { first } = await pair()
+    let view: IFileSystem | undefined
+    await first.transaction(async (scope) => {
+      view = scope
+      await scope.writeFile('adv/world.md', 'Validated candidate')
+      await scope.flush?.()
+      await scope.refresh?.()
+      expect(await scope.readFile('adv/world.md')).toBe('Validated candidate')
+      expect(await first.readFile('adv/world.md')).toBe('Original world')
+      await expect(first.writeFile('adv/new.md', 'Concurrent draft')).rejects.toThrow('ADV_STUDIO_TRANSACTION_BUSY')
+    })
+    expect(await first.readFile('adv/world.md')).toBe('Validated candidate')
+    expect(await first.exists('adv/new.md')).toBe(false)
+    await expect(view!.readFile('adv/world.md')).rejects.toThrow('ADV_STUDIO_TRANSACTION_BUSY')
+    await expect(view!.writeFile('adv/world.md', 'Late write')).rejects.toThrow('ADV_STUDIO_TRANSACTION_BUSY')
+  })
+
+  it('discards failed validation without compensating writes and allows a fresh transaction after storage failure', async () => {
+    const { first } = await pair()
+    await expect(first.transaction(async (scope) => {
+      await scope.writeFile('adv/world.md', 'Rejected candidate')
+      throw new Error('post-write validation rejected')
+    })).rejects.toThrow('post-write validation rejected')
+    expect(await first.readFile('adv/world.md')).toBe('Original world')
+    storage.failNext = true
+    await expect(first.transaction(scope => scope.writeFile('adv/world.md', 'Storage candidate'))).rejects.toThrow('simulated storage failure')
+    expect(await first.readFile('adv/world.md')).toBe('Original world')
+    expect(storage.rows.get('memfs:shared:adv/world.md')?.content).toBe('Original world')
+    await first.transaction(scope => scope.writeFile('adv/world.md', 'Reviewed retry'))
+    expect(await first.readFile('adv/world.md')).toBe('Reviewed retry')
+  })
+
+  it('revalidates scope inside the actual durable transaction and aborts changes already issued to storage', async () => {
+    const { first } = await pair()
+    await expect(first.transaction(scope => scope.writeFile('adv/world.md', 'Candidate'), () => {
+      if (storage.rows.get('memfs:shared:adv/world.md')?.content === 'Candidate')
+        throw new Error('account changed while committing')
+    })).rejects.toThrow('account changed while committing')
+    expect(storage.rows.get('memfs:shared:adv/world.md')?.content).toBe('Original world')
+    expect(await first.readFile('adv/world.md')).toBe('Original world')
+  })
+
+  it('does not mark a fresh observer-triggered author edit as part of the completed durable transaction', async () => {
+    const { first } = await pair()
+    observeStudioFileSystem(first)
+    let written = false
+    const unsubscribe = subscribeStudioFileMutations(first, (event) => {
+      if (!event.pending && !written) {
+        written = true
+        void first.writeFile('adv/world.md', 'Next author edit')
+      }
+    })
+    try {
+      await first.transaction(scope => scope.writeFile('adv/world.md', 'Candidate'))
+      await whenStudioFileMutationsSettle(first)
+      await flushStudioFileMutations(first)
+      expect(storage.rows.get('memfs:shared:adv/world.md')?.content).toBe('Next author edit')
+    }
+    finally { unsubscribe() }
   })
 })

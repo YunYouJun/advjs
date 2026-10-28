@@ -77,6 +77,9 @@ export class MemoryFsAdapter implements IFileSystem {
   private baseline = new Map<string, DbMemfsNode>()
   private dirty = new Map<string, number>()
   private mutation = 0
+  private transactionActive = false
+  private staging = false
+  private expired = false
 
   private node(row: DbMemfsNode): FsNode {
     return {
@@ -101,6 +104,10 @@ export class MemoryFsAdapter implements IFileSystem {
 
   /** Refresh untouched paths, retaining local drafts and their original compare versions. */
   async refresh(): Promise<void> {
+    if (this.expired)
+      throw new Error('ADV_STUDIO_TRANSACTION_BUSY')
+    if (this.staging)
+      return
     await this.persistQueue
     const { db } = await openDatabase()
     const stored = await this.storedNodes(db.table('memfsNodes'))
@@ -130,6 +137,8 @@ export class MemoryFsAdapter implements IFileSystem {
   }
 
   private change(path: string, node?: FsNode): void {
+    if (this.expired || this.transactionActive)
+      throw new Error('ADV_STUDIO_TRANSACTION_BUSY')
     if (node)
       this.nodes.set(path, node)
     else
@@ -139,13 +148,15 @@ export class MemoryFsAdapter implements IFileSystem {
 
   /** Schedule a debounced persist to IndexedDB. Strict callers use flush(). */
   private schedulePersist(): void {
+    if (this.staging)
+      return
     if (this.persistTimer)
       clearTimeout(this.persistTimer)
     this.persistTimer = setTimeout(() => void this.persist(), 500)
   }
 
   /** Atomically compare and commit changed paths; never replace another window's snapshot. */
-  async persist(options: { strict?: boolean } = {}): Promise<void> {
+  async persist(options: { strict?: boolean, expected?: ReadonlyMap<string, DbMemfsNode>, validate?: () => void } = {}): Promise<void> {
     if (this.persistTimer)
       clearTimeout(this.persistTimer)
     this.persistTimer = null
@@ -173,6 +184,9 @@ export class MemoryFsAdapter implements IFileSystem {
       const table = db.table<DbMemfsNode, string>('memfsNodes')
       const stored = await db.transaction('rw', table, async () => {
         const current = await this.storedNodes(table)
+        options.validate?.()
+        if (options.expected && (current.size !== options.expected.size || [...options.expected].some(([path, row]) => !sameStoredNode(row, current.get(path)))))
+          throw new Error('ADV_STUDIO_SOURCE_CONFLICT')
         for (const { path, row } of changes) {
           // Concurrent creation of the same parent directory is harmless.
           if (row?.type === 'directory' && current.get(path)?.type === 'directory')
@@ -205,6 +219,7 @@ export class MemoryFsAdapter implements IFileSystem {
           await table.bulkDelete(deleted)
         if (rows.length)
           await table.bulkPut(rows)
+        options.validate?.()
         return result
       })
       for (const { path, version } of changes) {
@@ -225,12 +240,50 @@ export class MemoryFsAdapter implements IFileSystem {
 
   /** Critical project transactions must await durable bytes and observe storage errors. */
   async flush(): Promise<void> {
-    await this.persist({ strict: true })
+    if (this.expired || this.transactionActive)
+      throw new Error('ADV_STUDIO_TRANSACTION_BUSY')
+    if (!this.staging)
+      await this.persist({ strict: true })
+  }
+
+  /** No staged file or debounce timer can leak out before the full-project CAS. */
+  async transaction(operation: (scope: IFileSystem) => Promise<void>, validate?: () => void): Promise<void> {
+    if (this.transactionActive || this.staging || this.expired)
+      throw new Error('ADV_STUDIO_TRANSACTION_BUSY')
+    this.transactionActive = true
+    let staged: MemoryFsAdapter | undefined
+    try {
+      validate?.()
+      await this.persist({ strict: true })
+      await this.refresh()
+      validate?.()
+      staged = new MemoryFsAdapter(this.projectId)
+      staged.nodes = new Map(this.nodes)
+      staged.baseline = new Map(this.baseline)
+      staged.staging = true
+      const expected = new Map(this.baseline)
+      const scope: IFileSystem = staged
+      scope.transaction = undefined
+      await operation(scope)
+      await staged.persist({ strict: true, expected, validate })
+      this.acceptStored(staged.baseline)
+    }
+    finally {
+      if (staged) {
+        staged.expired = true
+        staged.nodes.clear()
+        staged.baseline.clear()
+        staged.dirty.clear()
+      }
+      this.transactionActive = false
+    }
   }
 
   // --- helpers ---
 
   private normalizePath(path: string): string {
+    if (this.expired)
+      throw new Error('ADV_STUDIO_TRANSACTION_BUSY')
     return path.replace(TRIM_SLASHES_RE, '').replace(MULTI_SLASH_RE, '/')
   }
 

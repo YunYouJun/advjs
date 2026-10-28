@@ -40,6 +40,11 @@ export interface IFileSystem {
   flush?: () => Promise<void>
   /** Refresh persisted paths without discarding local edits; rejects conflicting drafts. */
   refresh?: () => Promise<void>
+  /**
+   * Stage writes in an isolated view, then atomically compare the complete durable baseline.
+   * Validation runs again immediately before the durable write. The scoped view expires on return.
+   */
+  transaction?: (operation: (scope: IFileSystem) => Promise<void>, validate?: () => void) => Promise<void>
   /** Human-readable backend name for debugging */
   readonly backend: 'browser' | 'capacitor' | 'memory'
 

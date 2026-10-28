@@ -116,9 +116,9 @@ export async function recoverCreativeMediaWrite(options: {
     assertCurrent,
     acceptsPath: options.acceptsPath,
     ...(blob ? { media: { ...media, path: review.mediaPath, blob } } : {}),
-    async validateCurrent() {
-      const current = await createStudioCreativeWorkspace(fs, projectId, { assertCurrent }).snapshot()
-      if (current.revision !== snapshot.revision || await inspectCreativeMediaWrite(fs, projectId, review, media, assertCurrent) === 'conflict')
+    async validateCurrent(scope) {
+      const current = await createStudioCreativeWorkspace(scope, projectId, { assertCurrent }).snapshot()
+      if (current.revision !== snapshot.revision || await inspectCreativeMediaWrite(scope, projectId, review, media, assertCurrent) === 'conflict')
         throw new Error('CREATIVE_MEDIA_RECOVERY_CONFLICT')
     },
   })

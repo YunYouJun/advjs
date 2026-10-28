@@ -6,7 +6,7 @@ export interface StudioNativeFileChange { path: string, expected: string | null,
 export interface StudioNativeMedia { path: string, blob: Blob, sha256: string, bytes: number }
 
 /** Exact-byte CAS and rollback, shared by finite voice mutations and JSON Flow. */
-export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioNativeFileChange[], options: { assertCurrent?: () => void, validateCurrent?: () => Promise<void>, validateAfter?: () => Promise<void>, media?: StudioNativeMedia | readonly StudioNativeMedia[], acceptsPath: (path: string) => boolean }) {
+export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioNativeFileChange[], options: { assertCurrent?: () => void, validateCurrent?: (scope: IFileSystem) => Promise<void>, validateAfter?: (scope: IFileSystem) => Promise<void>, media?: StudioNativeMedia | readonly StudioNativeMedia[], acceptsPath: (path: string) => boolean }) {
   if (!Array.isArray(changes) || changes.length > 100 || new Set(changes.map(change => change.path)).size !== changes.length)
     throw new Error('ADV_STUDIO_TRANSACTION_INVALID')
   for (const change of changes) {
@@ -20,11 +20,11 @@ export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioN
   }
   for (const item of media)
     await verifyVoiceCandidateBytes(item, await item.blob.arrayBuffer())
-  return await runStudioProjectWrite(fs, async () => {
+  async function commit(scope: IFileSystem) {
     options.assertCurrent?.()
-    await options.validateCurrent?.()
+    await options.validateCurrent?.(scope)
     for (const change of changes) {
-      const current = await fs.exists(change.path) ? await fs.readFile(change.path) : null
+      const current = await scope.exists(change.path) ? await scope.readFile(change.path) : null
       if (current !== change.expected)
         throw new Error('ADV_STUDIO_SOURCE_CONFLICT')
     }
@@ -32,13 +32,13 @@ export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioN
     const written: StudioNativeFileChange[] = []
     try {
       for (const item of media) {
-        if (await fs.exists(item.path)) {
-          await verifyVoiceCandidateBytes(item, await (await fs.readBlob(item.path)).arrayBuffer())
+        if (await scope.exists(item.path)) {
+          await verifyVoiceCandidateBytes(item, await (await scope.readBlob(item.path)).arrayBuffer())
         }
         else {
           options.assertCurrent?.()
           imported.push(item.path)
-          await fs.writeBlob(item.path, item.blob)
+          await scope.writeBlob(item.path, item.blob)
         }
       }
       for (const change of changes) {
@@ -47,31 +47,41 @@ export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioN
         options.assertCurrent?.()
         written.push(change)
         if (change.content === null)
-          await fs.deleteFile(change.path)
+          await scope.deleteFile(change.path)
         else
-          await fs.writeFile(change.path, change.content)
+          await scope.writeFile(change.path, change.content)
       }
-      await fs.flush?.()
+      await scope.flush?.()
       options.assertCurrent?.()
-      await options.validateAfter?.()
+      await options.validateAfter?.(scope)
       options.assertCurrent?.()
     }
     catch (cause) {
+      // Atomic adapters discard their isolated view; never issue compensating
+      // writes that could overwrite a winning external commit.
+      if (scope !== fs)
+        throw cause
       for (const change of written.reverse()) {
         if (change.expected === null) {
-          if (await fs.exists(change.path))
-            await fs.deleteFile(change.path)
+          if (await scope.exists(change.path))
+            await scope.deleteFile(change.path)
         }
         else {
-          await fs.writeFile(change.path, change.expected)
+          await scope.writeFile(change.path, change.expected)
         }
       }
       for (const path of imported.reverse()) {
-        if (await fs.exists(path))
-          await fs.deleteFile(path)
+        if (await scope.exists(path))
+          await scope.deleteFile(path)
       }
-      await fs.flush?.()
+      await scope.flush?.()
       throw cause
     }
+  }
+  return await runStudioProjectWrite(fs, async () => {
+    if (fs.transaction)
+      await fs.transaction(commit, options.assertCurrent)
+    else
+      await commit(fs)
   })
 }

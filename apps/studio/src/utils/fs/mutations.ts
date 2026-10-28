@@ -48,6 +48,25 @@ export function observeStudioFileSystem(fs: IFileSystem): IFileSystem {
       }
     } })
   }
+  if (fs.transaction) {
+    const original = fs.transaction.bind(fs)
+    fs.transaction = async (operation, validate) => {
+      current.pending += 1
+      notify('adv')
+      let committed = false
+      try {
+        await original(operation, validate)
+        committed = true
+      }
+      finally {
+        current.pending -= 1
+        const revision = current.revision + 1
+        notify('adv')
+        if (committed && current.revision === revision && !current.pending)
+          current.flushed = revision
+      }
+    }
+  }
   if (fs.flush) {
     const original = fs.flush.bind(fs)
     fs.flush = async () => {

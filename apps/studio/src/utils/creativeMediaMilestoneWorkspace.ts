@@ -96,12 +96,12 @@ export function createStudioCreativeMediaWorkspace(options: {
     }
     assertCurrent()
   }
-  async function verifyMedia(files: Readonly<Record<string, string>>, evidence: readonly CreativeMediaEvidence[]) {
+  async function verifyMedia(files: Readonly<Record<string, string>>, evidence: readonly CreativeMediaEvidence[], source = fs) {
     currentRun()
     const all = [...new Map(evidence.map(item => [creativeMediaCanonical(item), item])).values()]
     const project = await compile(files)
     for (const item of all) {
-      const blob = await fs.readBlob(item.mediaPath)
+      const blob = await source.readBlob(item.mediaPath)
       assertCurrent()
       await verifyBlob(project, files, item, blob)
     }
@@ -132,19 +132,19 @@ export function createStudioCreativeMediaWorkspace(options: {
     }
     return [...media.values()]
   }
-  async function inspectRecovery(review: CreativeMilestoneReview) {
+  async function inspectRecovery(review: CreativeMilestoneReview, source = fs) {
     if (review.projectId !== scope.projectId)
       throw new Error('CREATIVE_PROJECT_MISMATCH')
-    const snapshot = await base.snapshot()
+    const snapshot = await createStudioCreativeWorkspace(source, scope.projectId, { assertCurrent }).snapshot()
     const changes = review.changes.map(item => ({ path: item.path, expected: item.before, content: item.after }))
     const state = await creativeMediaSourceState(snapshot.files, snapshot.revision, { beforeRevision: review.baselineRevision, afterRevision: review.candidateRevision, changes })
     if (state === 'conflict')
       return state
     for (const artifact of artifacts(review.artifactIds).filter(item => item.changes.every(change => review.changes.some(reviewed => reviewed.path === change.path && reviewed.before === change.before && reviewed.after === change.after)))) {
-      if (await fs.exists(artifact.media.mediaPath)) {
+      if (await source.exists(artifact.media.mediaPath)) {
         try {
           const project = await compile(review.files)
-          await verifyBlob(project, review.files, artifact.media, await fs.readBlob(artifact.media.mediaPath))
+          await verifyBlob(project, review.files, artifact.media, await source.readBlob(artifact.media.mediaPath))
         }
         catch {
           assertCurrent()
@@ -191,14 +191,14 @@ export function createStudioCreativeMediaWorkspace(options: {
           assertCreativeSourcePath(path)
           return true
         },
-        async validateCurrent() {
-          if ((await base.snapshot()).revision !== expectedRevision)
+        async validateCurrent(source) {
+          if ((await createStudioCreativeWorkspace(source, scope.projectId, { assertCurrent }).snapshot()).revision !== expectedRevision)
             throw new Error('CREATIVE_SOURCE_CONFLICT')
         },
-        async validateAfter() {
-          if ((await base.snapshot()).revision !== intent.afterRevision)
+        async validateAfter(source) {
+          if ((await createStudioCreativeWorkspace(source, scope.projectId, { assertCurrent }).snapshot()).revision !== intent.afterRevision)
             throw new Error('CREATIVE_COMMIT_INCOMPLETE')
-          await verifyMedia(files, intent.operation === 'adopt' ? media.map(item => item.media) : [])
+          await verifyMedia(files, intent.operation === 'adopt' ? media.map(item => item.media) : [], source)
         },
       })
       return base.snapshot()
@@ -233,15 +233,15 @@ export function createStudioCreativeMediaWorkspace(options: {
           assertCreativeSourcePath(path)
           return true
         },
-        async validateCurrent() {
-          if ((await base.snapshot()).revision !== snapshot.revision || await inspectRecovery(review) === 'conflict')
+        async validateCurrent(source) {
+          if ((await createStudioCreativeWorkspace(source, scope.projectId, { assertCurrent }).snapshot()).revision !== snapshot.revision || await inspectRecovery(review, source) === 'conflict')
             throw new Error('CREATIVE_SOURCE_CONFLICT')
         },
-        async validateAfter() {
-          if ((await base.snapshot()).revision !== revision)
+        async validateAfter(source) {
+          if ((await createStudioCreativeWorkspace(source, scope.projectId, { assertCurrent }).snapshot()).revision !== revision)
             throw new Error('CREATIVE_COMMIT_INCOMPLETE')
           if (media.length)
-            await verifyMedia(files, destination === 'after' && intent.operation === 'adopt' ? media.map(item => item.media) : [])
+            await verifyMedia(files, destination === 'after' && intent.operation === 'adopt' ? media.map(item => item.media) : [], source)
         },
       })
       return base.snapshot()
