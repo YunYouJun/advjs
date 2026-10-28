@@ -149,7 +149,8 @@ jobs:
     # The project supports iOS 26. Keep PRs off the capacity-limited Xcode 27
     # preview pool; retain that image for explicit latest-platform validation.
     runs-on: ${{ inputs.native-runner == 'xcode-27' && 'xcode-27' || 'macos-26' }}
-    timeout-minutes: 60
+    # Cold hosted builds plus both device UI suites can exceed one hour.
+    timeout-minutes: 90
     env:
       DEVELOPER_DIR: ${{ inputs.native-runner == 'xcode-27' && '/Applications/Xcode_27.1.app/Contents/Developer' || '/Applications/Xcode_26.6.app/Contents/Developer' }}
     steps:
