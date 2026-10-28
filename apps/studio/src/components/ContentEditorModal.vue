@@ -48,6 +48,12 @@ const activeTab = ref<'form' | 'markdown' | 'ai'>('form')
 const localMarkdown = ref('')
 const isCollabToggling = ref(false)
 const showCreativeTeam = ref(false)
+const creativeTeamOpened = ref(false)
+
+function openCreativeTeam() {
+  creativeTeamOpened.value = true
+  showCreativeTeam.value = true
+}
 
 const collabFilename = computed(() => props.monacoFilename || 'content.md')
 const collabText = computed(() => {
@@ -149,7 +155,7 @@ function handleCreativeNavigate() {
         <IonTitle>{{ title }}</IonTitle>
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonButtons slot="end">
-          <IonButton fill="clear" @click="showCreativeTeam = true">
+          <IonButton fill="clear" @click="openCreativeTeam">
             {{ t('creativeTeam.title') }}
           </IonButton>
           <IonButton
@@ -234,7 +240,8 @@ function handleCreativeNavigate() {
       </div>
     </IonContent>
   </IonModal>
-  <CreativeTeamModal v-if="showCreativeTeam" :is-open="showCreativeTeam" :initial-partner="monacoFilename?.includes('character') ? 'character-designer' : 'writer'" @close="showCreativeTeam = false" @navigate="handleCreativeNavigate" />
+  <!-- Keep the wrapper mounted through Ionic dismissal; modal content remains lazy. -->
+  <CreativeTeamModal v-if="creativeTeamOpened" :is-open="showCreativeTeam" :initial-partner="monacoFilename?.includes('character') ? 'character-designer' : 'writer'" @close="showCreativeTeam = false" @navigate="handleCreativeNavigate" />
 </template>
 
 <style scoped>
