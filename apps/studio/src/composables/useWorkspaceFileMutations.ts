@@ -10,12 +10,13 @@ import { notifyStudioFileSystemRefresh } from '../utils/fs/mutations'
 import { setStudioProjectWriteBarrier, whenStudioProjectWritesSettle } from '../utils/projectWriteQueue'
 import { commitWorkspaceFileMutation, recoverWorkspaceFileMutation, reviewWorkspaceMutation } from '../utils/workspaceFileMutation'
 import { assertWorkspacePath, snapshotWorkspaceFiles, validateWorkspaceEntries, workspaceBytesHash, workspaceContains, workspaceEntryEqual } from '../utils/workspaceFileSnapshot'
-import { refreshWorkspaceMutationBarrier, subscribeWorkspaceMutationChanges, validateWorkspaceMutationRecord } from '../utils/workspaceMutationJournal'
+import { isLocalWorkspaceMutation, refreshWorkspaceMutationBarrier, subscribeWorkspaceMutationChanges, validateWorkspaceMutationRecord } from '../utils/workspaceMutationJournal'
+import { snapshotWorkspaceMutation, workspaceMutationAfter } from '../utils/workspaceTransferRecord'
 
 const html = (value: string) => value.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' })[char]!)
 
 /** Native file CRUD, author confirmation and persistent interrupted-operation recovery. */
-export function useWorkspaceFileMutations(getScope: () => WorkspaceTextScope | null, editor: ReturnType<typeof useWorkspaceTextEditor>, reloadContent: () => Promise<void>) {
+export function useWorkspaceFileMutations(getScope: () => WorkspaceTextScope | null, editor: ReturnType<typeof useWorkspaceTextEditor>, reloadContent: () => Promise<void>, refreshFiles: () => void = () => {}) {
   const { t } = useI18n()
   const records = shallowRef<WorkspaceMutationRecord[]>([])
   const error = shallowRef('')
@@ -39,11 +40,15 @@ export function useWorkspaceFileMutations(getScope: () => WorkspaceTextScope | n
       if (revision !== refreshRevision)
         return
       const wasBlocked = records.value.length > 0 || Boolean(error.value)
+      const externalRecovery = Boolean(error.value) || records.value.some(record => !isLocalWorkspaceMutation(record))
       records.value = next
       error.value = ''
       notifyStudioFileSystemRefresh(scope.fs)
-      if (wasBlocked && !next.length && !busy.value)
+      if (wasBlocked && !next.length && !busy.value) {
         await reloadContent().catch(() => {})
+        if (revision === refreshRevision && getScope()?.fs === scope.fs && externalRecovery)
+          refreshFiles()
+      }
     }
     catch {
       if (revision === refreshRevision && getScope()?.fs === scope.fs)
@@ -223,7 +228,7 @@ export function useWorkspaceFileMutations(getScope: () => WorkspaceTextScope | n
       const actual = await reviewWorkspaceMutation(scope.fs, record, validate)
       const before = new Map(record.before.map(entry => [entry.path, entry]))
       const current = new Map(actual.map(entry => [entry.path, entry]))
-      const paths = [...new Set([...record.before, ...record.after, ...actual].map(entry => entry.path))].sort()
+      const paths = [...new Set([...record.before, ...workspaceMutationAfter(record), ...actual].map(entry => entry.path))].sort()
       const previews = paths.slice(0, 16).map((path) => {
         const entry = current.get(path)
         const status = !entry ? 'workspace.recoveryMissing' : workspaceEntryEqual(entry, before.get(path)) ? 'workspace.recoveryOriginal' : 'workspace.recoveryCurrent'
@@ -246,8 +251,11 @@ export function useWorkspaceFileMutations(getScope: () => WorkspaceTextScope | n
     catch (cause) { await failure(cause) }
     finally {
       await refresh()
-      if (getScope()?.fs === scope.fs && !records.value.length && !error.value)
+      if (getScope()?.fs === scope.fs && !records.value.length && !error.value) {
         await reloadContent().catch(() => {})
+        if (getScope()?.fs === scope.fs)
+          refreshFiles()
+      }
       busy.value = false
     }
   }
@@ -266,7 +274,7 @@ export function useWorkspaceFileMutations(getScope: () => WorkspaceTextScope | n
       let current: WorkspaceFileEntry[] = []
       let currentUnavailable = false
       try {
-        current = await snapshotWorkspaceFiles(scope.fs, record.roots, () => check(scope))
+        current = await snapshotWorkspaceMutation(scope.fs, record, () => check(scope))
       }
       catch {
         check(scope)
@@ -275,7 +283,7 @@ export function useWorkspaceFileMutations(getScope: () => WorkspaceTextScope | n
       const zip = new JSZip()
       if (currentUnavailable)
         zip.file('CURRENT-UNAVAILABLE.txt', t('workspace.recoveryCurrentUnavailable'))
-      for (const [prefix, entries] of [['saved', record.before], ['pending-imports', record.after], ['current', current]] as const) {
+      for (const [prefix, entries] of [['saved', record.before], ['pending-imports', workspaceMutationAfter(record)], ['current', current]] as const) {
         for (const entry of entries) {
           if (entry.kind === 'directory')
             zip.folder(`${prefix}/${entry.path}`)
@@ -301,12 +309,16 @@ export function useWorkspaceFileMutations(getScope: () => WorkspaceTextScope | n
   async function retry() {
     if (busy.value)
       return
+    const scope = getScope()
     busy.value = true
     try {
       restartSubscription()
       await refresh()
-      if (!records.value.length && !error.value)
+      if (scope && getScope()?.fs === scope.fs && !records.value.length && !error.value) {
         await reloadContent()
+        if (getScope()?.fs === scope.fs)
+          refreshFiles()
+      }
     }
     catch (cause) { await failure(cause) }
     finally { busy.value = false }

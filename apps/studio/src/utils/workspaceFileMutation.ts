@@ -3,14 +3,15 @@ import type { WorkspaceFileEntry } from './workspaceFileSnapshot'
 import type { WorkspaceMutationRecord } from './workspaceMutationJournal'
 import { notifyStudioFileSystemRefresh } from './fs/mutations'
 import { runStudioProjectWrite, setStudioProjectWriteBarrier } from './projectWriteQueue'
-import { readWorkspaceEntry, snapshotWorkspaceFiles, workspaceEntryEqual, workspaceSnapshotsEqual } from './workspaceFileSnapshot'
+import { readWorkspaceEntry, workspaceEntryEqual, workspaceSnapshotsEqual } from './workspaceFileSnapshot'
 import { assertWorkspaceMutationRecorded, persistWorkspaceMutationRecord, removeWorkspaceMutationRecord, validateWorkspaceMutationRecord } from './workspaceMutationJournal'
+import { snapshotWorkspaceMutation, workspaceMutationAfter } from './workspaceTransferRecord'
 
 function conflict(path: string) {
   return new Error(`ADV_STUDIO_SOURCE_CONFLICT: ${path}`)
 }
 async function verify(fs: IFileSystem, record: WorkspaceMutationRecord, entries: WorkspaceFileEntry[], check: () => void) {
-  if (!workspaceSnapshotsEqual(await snapshotWorkspaceFiles(fs, record.roots, check), entries))
+  if (!workspaceSnapshotsEqual(await snapshotWorkspaceMutation(fs, record, check), entries))
     throw conflict(record.roots.join(', '))
   check()
 }
@@ -47,12 +48,14 @@ async function restoreBefore(fs: IFileSystem, record: WorkspaceMutationRecord, c
   }
   // Unexpected or changed files may reference imported copies. Keep all copies
   // until their ownership and the original tree can be established again.
-  const actual = await snapshotWorkspaceFiles(fs, record.roots, check)
-  const allowed = new Map([...record.before, ...record.after].map(entry => [entry.path, entry]))
+  const actual = await snapshotWorkspaceMutation(fs, record, check)
+  const after = workspaceMutationAfter(record)
+  const originals = new Set(record.before.map(entry => entry.path))
+  const allowed = new Map([...record.before, ...after].map(entry => [entry.path, entry]))
   if (actual.some(entry => !workspaceEntryEqual(entry, allowed.get(entry.path))))
     failures.push(conflict(record.roots.join(', ')))
   if (!failures.length) {
-    for (const entry of [...record.after].sort((a, b) => b.path.split('/').length - a.path.split('/').length)) {
+    for (const entry of [...after].filter(entry => !originals.has(entry.path)).sort((a, b) => b.path.split('/').length - a.path.split('/').length)) {
       try {
         check()
         const current = await readWorkspaceEntry(fs, entry.path)
@@ -90,7 +93,15 @@ export async function commitWorkspaceFileMutation(fs: IFileSystem, prepare: () =
     try {
       // Persisting the journal is asynchronous; reconfirm the entire source before I/O.
       await verify(fs, record, record.before, options.check)
-      for (const entry of [...record.after].sort((a, b) => a.path.split('/').length - b.path.split('/').length)) {
+      const after = workspaceMutationAfter(record)
+      const original = new Map(record.before.map(entry => [entry.path, entry]))
+      const retained = new Set(after.map(entry => entry.path))
+      for (const entry of [...after].sort((a, b) => a.path.split('/').length - b.path.split('/').length)) {
+        if (original.has(entry.path)) {
+          if (!workspaceEntryEqual(original.get(entry.path), entry))
+            throw conflict(entry.path)
+          continue
+        }
         if (await fs.exists(entry.path))
           throw conflict(entry.path)
         options.check()
@@ -100,6 +111,8 @@ export async function commitWorkspaceFileMutation(fs: IFileSystem, prepare: () =
           throw conflict(entry.path)
       }
       for (const entry of [...record.before].sort((a, b) => b.path.split('/').length - a.path.split('/').length)) {
+        if (retained.has(entry.path))
+          continue
         if (!workspaceEntryEqual(await readWorkspaceEntry(fs, entry.path), entry))
           throw conflict(entry.path)
         options.check()
@@ -107,7 +120,7 @@ export async function commitWorkspaceFileMutation(fs: IFileSystem, prepare: () =
         await removeEntry(fs, entry)
       }
       await fs.flush?.()
-      await verify(fs, record, record.after, options.check)
+      await verify(fs, record, after, options.check)
       receiptApplied = Boolean(options.applied)
       options.applied?.()
       await removeWorkspaceMutationRecord(record.id)
@@ -137,7 +150,7 @@ export async function commitWorkspaceFileMutation(fs: IFileSystem, prepare: () =
 export async function reviewWorkspaceMutation(fs: IFileSystem, record: WorkspaceMutationRecord, check: () => void) {
   await assertWorkspaceMutationRecorded(record)
   await validateWorkspaceMutationRecord(record)
-  return snapshotWorkspaceFiles(fs, record.roots, check)
+  return snapshotWorkspaceMutation(fs, record, check)
 }
 export async function recoverWorkspaceFileMutation(fs: IFileSystem, record: WorkspaceMutationRecord, reviewed: WorkspaceFileEntry[], mode: 'restore' | 'keep', options: {
   check: () => void

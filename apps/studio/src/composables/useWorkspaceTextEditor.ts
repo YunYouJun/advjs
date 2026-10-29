@@ -264,7 +264,7 @@ export function useWorkspaceTextEditor(getScope: () => WorkspaceTextScope | null
   async function prepareRelocation(scope: WorkspaceTextScope, transfers: readonly StudioFileTransfer[]) {
     const moves = transfers.filter(transfer => transfer.move)
     const under = (parent: string, path: string) => path === parent || path.startsWith(`${parent}/`)
-    const affected: { draft: Draft, path: string }[] = []
+    const affected: { draft: Draft, source: StudioContentSource, path: string }[] = []
     const owned = await ownedDrafts(scope)
     if (transfers.some(transfer => owned.some(draft => draft.source.path === transfer.target)))
       throw new Error('ADV_STUDIO_TRANSFER_DRAFT_CONFLICT')
@@ -275,13 +275,17 @@ export function useWorkspaceTextEditor(getScope: () => WorkspaceTextScope | null
       const path = move.target + draft.source.path.slice(move.source.length)
       if (draft.saving || moving.has(draft) || owned.some(other => other !== draft && other.source.path === path))
         throw new Error('ADV_STUDIO_TRANSFER_DRAFT_CONFLICT')
-      affected.push({ draft, path })
+      affected.push({ draft, source: draft.source, path })
     }
     affected.forEach(({ draft }) => moving.add(draft))
     let reopen: Request | undefined
+    let previousRequest: Request | undefined
+    let relocatedRequest: Request | undefined
     return {
+      drafts: owned.filter(draft => draft.content !== draft.source.content && transfers.some(transfer => under(transfer.source, draft.source.path))).map(draft => ({ path: draft.source.path, source: draft.source.content, content: draft.content })),
       commit() {
         assertScope(scope)
+        previousRequest = request.value
         for (const { draft, path } of affected) {
           draft.source = Object.freeze({ ...draft.source, path })
           if (active.value === draft && request.value)
@@ -295,6 +299,18 @@ export function useWorkspaceTextEditor(getScope: () => WorkspaceTextScope | null
           isLoading.value = false
           readError.value = ''
         }
+        relocatedRequest = request.value
+      },
+      rollback() {
+        for (const { draft, source } of affected) {
+          if ([...drafts].some(other => other !== draft && (other.scope.root === scope.root || other.scope.root === draft.scope.root) && other.source.path === source.path && other.content !== draft.content))
+            throw new Error('ADV_STUDIO_TRANSFER_DRAFT_CONFLICT')
+        }
+        for (const { draft, source } of affected)
+          draft.source = source
+        if (request.value === relocatedRequest && getScope()?.fs === scope.fs)
+          request.value = previousRequest
+        reopen = undefined
       },
       async after() {
         if (reopen && request.value === reopen)

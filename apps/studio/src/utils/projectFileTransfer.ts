@@ -1,5 +1,9 @@
 import type { IFileSystem } from './fs'
-import { runStudioProjectWrite } from './projectWriteQueue'
+import type { WorkspaceFileEntry, WorkspacePrivateDraft } from './workspaceFileSnapshot'
+import type { WorkspaceMutationRecord } from './workspaceMutationJournal'
+import { runStudioProjectWrite, setStudioProjectWriteBarrier } from './projectWriteQueue'
+import { validateWorkspaceEntries } from './workspaceFileSnapshot'
+import { persistWorkspaceMutationRecord, removeWorkspaceMutationRecord } from './workspaceMutationJournal'
 
 export interface StudioFileTransfer { source: string, target: string, move: boolean }
 interface Entry { path: string, kind: 'file' | 'directory', blob?: Blob, hash?: string }
@@ -21,6 +25,8 @@ async function digest(blob: Blob) {
 export async function transferStudioProjectFiles(fs: IFileSystem, prepare: () => Promise<readonly StudioFileTransfer[]>, options: {
   assertCurrent: () => void
   applied?: (transfers: readonly StudioFileTransfer[]) => void
+  rollbackApplied?: () => void
+  journal?: { projectId: string, root: FileSystemDirectoryHandle, drafts: () => readonly WorkspacePrivateDraft[] }
 }) {
   return runStudioProjectWrite(fs, async () => {
     const check = options.assertCurrent
@@ -119,7 +125,27 @@ export async function transferStudioProjectFiles(fs: IFileSystem, prepare: () =>
     }
     const created: { entry: Entry, path: string }[] = []
     const removed = new Set<string>()
+    let record: WorkspaceMutationRecord | undefined
+    let receiptApplied = false
+    if (options.journal) {
+      const before: WorkspaceFileEntry[] = []
+      for (const transfer of transfers) {
+        for (const entry of transfer.entries)
+          before.push(entry.kind === 'directory' ? { path: entry.path, kind: 'directory' } : { path: entry.path, kind: 'file', data: await entry.blob!.arrayBuffer(), sha256: entry.hash })
+      }
+      const drafts = options.journal.drafts().map(draft => ({ ...draft }))
+      record = { id: crypto.randomUUID(), projectId: options.journal.projectId, root: options.journal.root, kind: 'transfer', roots, before, after: [], drafts, transfers: intents, createdAt: Date.now(), bytes: await validateWorkspaceEntries(intents.map(intent => intent.source), before, drafts) }
+      await persistWorkspaceMutationRecord(record)
+      setStudioProjectWriteBarrier(fs, 'ADV_STUDIO_WORKSPACE_RECOVERY_REQUIRED')
+    }
     try {
+      // Journal persistence yields to other writers; reconfirm before the first I/O.
+      for (const transfer of transfers) {
+        await verifyTree(transfer)
+        if (await fs.exists(transfer.intent.target))
+          throw conflict(transfer.intent.target)
+        check()
+      }
       for (const transfer of transfers) {
         for (const entry of transfer.entries) {
           check()
@@ -171,13 +197,18 @@ export async function transferStudioProjectFiles(fs: IFileSystem, prepare: () =>
         await verifyTree(transfer, false, removed)
       }
       check()
+      receiptApplied = Boolean(options.applied)
       options.applied?.(intents)
+      if (record) {
+        await removeWorkspaceMutationRecord(record.id)
+        setStudioProjectWriteBarrier(fs)
+      }
     }
     catch (cause) {
       const failures: unknown[] = []
       // Restore missing source entries only; independently changed author files
       // always win. If restoration is uncertain, keep every destination copy.
-      for (const transfer of transfers) {
+      for (const transfer of created.length || removed.size ? transfers : []) {
         for (const entry of transfer.entries) {
           if (!removed.has(entry.path))
             continue
@@ -226,6 +257,19 @@ export async function transferStudioProjectFiles(fs: IFileSystem, prepare: () =>
       }
       catch (error) {
         failures.push(error)
+      }
+      if (receiptApplied) {
+        try {
+          options.rollbackApplied?.()
+        }
+        catch (error) { failures.push(error) }
+      }
+      if (!failures.length && record) {
+        try {
+          await removeWorkspaceMutationRecord(record.id)
+          setStudioProjectWriteBarrier(fs)
+        }
+        catch (error) { failures.push(error) }
       }
       if (failures.length)
         throw new AggregateError(failures, `ADV_STUDIO_TRANSFER_RECOVERY_REQUIRED: ${intents.map(intent => intent.target).join(', ')}`, { cause })

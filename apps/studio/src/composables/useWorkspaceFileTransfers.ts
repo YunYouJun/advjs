@@ -1,5 +1,6 @@
 import type { AGUIFileTransferRequest, AGUIFileTransferResult } from '@advjs/gui'
 import type { StudioFileTransfer } from '../utils/projectFileTransfer'
+import type { WorkspacePrivateDraft } from '../utils/workspaceFileSnapshot'
 import type { WorkspaceTextScope } from './useWorkspaceTextEditor'
 import { transferStudioProjectFiles } from '../utils/projectFileTransfer'
 
@@ -7,7 +8,7 @@ import { transferStudioProjectFiles } from '../utils/projectFileTransfer'
 export function useWorkspaceFileTransfers(options: {
   getScope: () => WorkspaceTextScope | null
   draftPaths: (scope: WorkspaceTextScope) => Promise<Set<string>>
-  prepareRelocation: (scope: WorkspaceTextScope, transfers: readonly StudioFileTransfer[]) => Promise<{ commit: () => void, after?: () => Promise<void>, release: () => void }>
+  prepareRelocation: (scope: WorkspaceTextScope, transfers: readonly StudioFileTransfer[]) => Promise<{ drafts: readonly WorkspacePrivateDraft[], commit: () => void, rollback: () => void, after?: () => Promise<void>, release: () => void }>
   onFailure: (error: unknown) => Promise<void>
 }) {
   return async (request: AGUIFileTransferRequest): Promise<AGUIFileTransferResult> => {
@@ -65,7 +66,7 @@ export function useWorkspaceFileTransfers(options: {
         assertCurrent()
         relocation = await options.prepareRelocation(scope, intents)
         return intents
-      }, { assertCurrent, applied: (transfers) => {
+      }, { assertCurrent, journal: { projectId: scope.projectId, root: scope.root, drafts: () => relocation?.drafts ?? [] }, rollbackApplied: () => relocation?.rollback(), applied: (transfers) => {
         relocation?.commit()
         completed = transfers
       } })

@@ -1,20 +1,29 @@
 import type { IFileSystem } from './fs'
+import type { StudioFileTransfer } from './projectFileTransfer'
 import type { WorkspaceFileEntry, WorkspacePrivateDraft } from './workspaceFileSnapshot'
 import Dexie, { liveQuery } from 'dexie'
 import { setStudioProjectWriteBarrier, studioProjectBarrierRevision } from './projectWriteQueue'
 import { validateWorkspaceEntries } from './workspaceFileSnapshot'
+import { validateWorkspaceTransferRecord } from './workspaceTransferRecord'
 
 export interface WorkspaceMutationRecord {
   id: string
   projectId: string
   root: FileSystemDirectoryHandle
-  kind: 'create' | 'delete' | 'import'
+  kind: 'create' | 'delete' | 'import' | 'transfer'
   createdAt: number
   roots: string[]
   before: WorkspaceFileEntry[]
   after: WorkspaceFileEntry[]
   drafts: WorkspacePrivateDraft[]
   bytes: number
+  transfers?: readonly StudioFileTransfer[]
+  owner?: string
+}
+let localOwner: string | undefined
+/** A UI refresh hint only; it grants no write or recovery permission. */
+export function isLocalWorkspaceMutation(record: WorkspaceMutationRecord) {
+  return localOwner !== undefined && record.owner === localOwner
 }
 const database = new Dexie('advjs-studio-workspace-mutations')
 database.version(1).stores({ entries: 'id, projectId' })
@@ -52,6 +61,15 @@ export async function refreshWorkspaceMutationBarrier(fs: IFileSystem, projectId
   }
 }
 export async function validateWorkspaceMutationRecord(record: WorkspaceMutationRecord) {
+  if (record.owner !== undefined && (typeof record.owner !== 'string' || !/^[\w-]{1,128}$/.test(record.owner)))
+    throw new Error('ADV_STUDIO_WORKSPACE_JOURNAL_INVALID')
+  if (record.kind === 'transfer') {
+    if (await validateWorkspaceTransferRecord(record) !== record.bytes)
+      throw new Error('ADV_STUDIO_WORKSPACE_JOURNAL_INVALID')
+    return
+  }
+  if (record.transfers !== undefined)
+    throw new Error('ADV_STUDIO_WORKSPACE_JOURNAL_INVALID')
   const before = await validateWorkspaceEntries(record.roots, record.before, record.drafts)
   const after = await validateWorkspaceEntries(record.roots, record.after)
   if (before + after > 64 * 1024 * 1024 || record.bytes !== before + after || !['create', 'delete', 'import'].includes(record.kind))
@@ -60,6 +78,7 @@ export async function validateWorkspaceMutationRecord(record: WorkspaceMutationR
     throw new Error('ADV_STUDIO_WORKSPACE_JOURNAL_INVALID')
 }
 export async function persistWorkspaceMutationRecord(record: WorkspaceMutationRecord) {
+  record.owner = localOwner ??= crypto.randomUUID()
   await validateWorkspaceMutationRecord(record)
   const observed = await entries.toArray()
   for (const entry of observed) {

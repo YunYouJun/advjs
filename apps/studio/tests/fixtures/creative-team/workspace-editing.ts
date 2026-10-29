@@ -78,6 +78,7 @@ async function main() {
   const createWritable = FileSystemFileHandle.prototype.createWritable
   const removeEntry = FileSystemDirectoryHandle.prototype.removeEntry
   const addRecord = IDBObjectStore.prototype.add
+  const deleteRecord = IDBObjectStore.prototype.delete
   const getAllRecords = IDBObjectStore.prototype.getAll
   let release: (() => void) | undefined
   const closes = new Set<Promise<void>>()
@@ -154,6 +155,16 @@ async function main() {
         return addRecord.call(this, value, key)
       }
     },
+    failJournalClear(times = 1) {
+      let remaining = times
+      IDBObjectStore.prototype.delete = function (key) {
+        if (remaining > 0 && this.transaction.db.name === 'advjs-studio-workspace-mutations') {
+          remaining--
+          throw new DOMException('Explicit fixture journal confirmation failure', 'UnknownError')
+        }
+        return deleteRecord.call(this, key)
+      }
+    },
     async imageBlob() { return fs.readBlob('adv/assets/master.webp') },
     async binary(path = 'adv/assets/master.webp') {
       const bytes = await (await fs.readBlob(path)).arrayBuffer()
@@ -227,7 +238,7 @@ async function main() {
     async exists(path: string) { return fs.exists(path) },
     async read(path: string) { return await fs.exists(path) ? fs.readFile(path) : null },
     async externalEdit(path: string, value: string) { await fs.writeFile(path, value) },
-    holdWrite(path: string, fail: boolean) {
+    holdWrite(path: string, fail: boolean, afterClose = false) {
       let armed = true
       const gate = new Promise<void>(resolve => release = resolve)
       FileSystemFileHandle.prototype.createWritable = async function (options) {
@@ -241,9 +252,12 @@ async function main() {
             if (key === 'close') {
               return () => {
                 const operation = (async () => {
+                  if (afterClose)
+                    await target.close()
                   state.phase = 'waiting'
                   await gate
-                  await target.close()
+                  if (!afterClose)
+                    await target.close()
                   state.phase = 'closed'
                   if (fail)
                     throw new Error('Explicit fixture failure after actual native close')
@@ -268,6 +282,7 @@ async function main() {
       FileSystemFileHandle.prototype.createWritable = createWritable
       FileSystemDirectoryHandle.prototype.removeEntry = removeEntry
       IDBObjectStore.prototype.add = addRecord
+      IDBObjectStore.prototype.delete = deleteRecord
       IDBObjectStore.prototype.getAll = getAllRecords
       for (const adapter of adapters) {
         try {

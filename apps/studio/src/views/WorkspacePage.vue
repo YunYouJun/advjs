@@ -66,7 +66,7 @@ function getFileScope() {
     : null
 }
 const fileEditor = useWorkspaceTextEditor(getFileScope)
-const fileMutations = useWorkspaceFileMutations(getFileScope, fileEditor, projectContent.reload)
+const fileMutations = useWorkspaceFileMutations(getFileScope, fileEditor, projectContent.reload, refreshWorkspaceFiles)
 const transferFiles = useWorkspaceFileTransfers({
   getScope: getFileScope,
   draftPaths: fileEditor.draftPaths,
@@ -105,6 +105,14 @@ const isMobilePreviewOpen = ref(false)
 // AGUI Explorer state
 const rootDir = ref<FSDirItem>()
 const curDir = ref<FSDirItem>()
+
+function refreshWorkspaceFiles() {
+  const project = studioStore.currentProject
+  if (project?.dirHandle) {
+    curDir.value = undefined
+    rootDir.value = getDirItemFromHandle(project.dirHandle)
+  }
+}
 
 // Responsive — use composable instead of manual resize listener
 const isMobile = computed(() => !isDesktop.value)
