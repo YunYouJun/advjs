@@ -6,6 +6,7 @@ import {
   actionSheetController,
   alertController,
   IonButton,
+  IonButtons,
   IonContent,
   IonHeader,
   IonIcon,
@@ -973,18 +974,18 @@ function getFileIconClass(name: string): string {
         >
           <IonHeader>
             <IonToolbar>
-              <IonTitle>
+              <IonTitle class="modal-preview-title">
                 <span v-if="selectedFile" class="modal-title-with-icon">
                   <span class="modal-file-icon" :class="getFileIconClass(selectedFile.name)" />
-                  {{ selectedFile.name }}
+                  <span class="modal-file-name" :title="selectedFile.name">{{ selectedFile.name }}</span>
                 </span>
               </IonTitle>
               <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-              <div slot="end" class="modal-toolbar-actions">
+              <IonButtons slot="end" class="modal-toolbar-actions">
                 <IonButton fill="clear" @click="isMobilePreviewOpen = false">
                   {{ t('common.ok') }}
                 </IonButton>
-              </div>
+              </IonButtons>
             </IonToolbar>
           </IonHeader>
           <IonContent>
@@ -1277,10 +1278,25 @@ function getFileIconClass(name: string): string {
 
 /* No mobile CSS hacks needed — isMobile ref controls which component renders */
 
+.modal-preview-title {
+  position: static;
+  width: auto;
+  min-width: 0;
+}
+
 .modal-title-with-icon {
-  display: inline-flex;
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
   align-items: center;
   gap: 6px;
+}
+
+.modal-file-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .modal-file-icon {

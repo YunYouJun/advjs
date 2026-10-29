@@ -25,7 +25,7 @@ test.beforeEach(async ({ page }) => {
   await page.waitForFunction(() => Boolean((window as any).workspaceEditingFixture))
   await expect(page.locator('vite-error-overlay')).toHaveCount(0)
   await page.locator('.workspace-segment ion-segment-button').filter({ hasText: '文件' }).click()
-  await expect(page.locator('.workspace-text-preview:visible .monaco-editor')).toBeVisible()
+  await expect(page.locator('.workspace-text-preview:visible .monaco-editor')).toBeVisible({ timeout: 15000 })
 })
 test.afterEach(async ({ page }, info) => {
   await expect(page.locator('.workspace-file-operations')).toHaveAttribute('aria-busy', 'false')
@@ -43,6 +43,7 @@ test.afterEach(async ({ page }, info) => {
 const editor = (page: Page) => page.locator('.workspace-text-preview:visible .monaco-editor')
 const save = (page: Page) => page.locator('.workspace-text-preview:visible').getByRole('button', { name: '保存', exact: true })
 const read = (page: Page, path = 'README.md') => page.evaluate(path => (window as any).workspaceEditingFixture.read(path), path)
+const recovery = (page: Page) => page.getByRole('region', { name: '文件操作恢复', exact: true })
 async function replace(page: Page, text: string) {
   await editor(page).click()
   const mod = await page.evaluate(() => navigator.userAgent.includes('Macintosh')) ? 'Meta' : 'Control'
@@ -264,6 +265,148 @@ async function rename(page: Page, source: string, target: string) {
 }
 const exists = (page: Page, path: string) => page.evaluate(path => (window as any).workspaceEditingFixture.exists(path), path)
 
+async function startTreeRename(page: Page, name: string) {
+  const tree = page.getByRole('tree', { name: 'Project folders', exact: true })
+  await tree.getByRole('treeitem', { name, exact: true }).locator('.agui-tree-node').first().click({ button: 'right' })
+  await page.getByRole('menuitem', { name: 'Rename', exact: true }).click()
+  const input = page.getByRole('textbox', { name: `Rename ${name}`, exact: true })
+  await expect(input).toBeVisible()
+  await expect(input).toBeFocused()
+  return input
+}
+interface TreeRenameFixture {
+  failJournal: () => void
+  holdDirectoryListing: (path: string) => void
+  releaseDirectory: () => void
+  switchProject: () => Promise<void>
+  readOther: (path: string) => Promise<string>
+  holdRemove: (path: string, authorAfter: undefined, fail: boolean, afterRemoval: boolean) => void
+  binary: (path?: string) => Promise<{ bytes: number, sha256: string }>
+  state: () => { phase: string }
+}
+
+test('tree rename opens the actual parent, preserves the open private draft and saves at its new path', async ({ page }, info) => {
+  await page.getByRole('option', { name: 'adv', exact: true }).dblclick()
+  await page.getByRole('option', { name: 'world.md', exact: true }).dblclick()
+  await replace(page, '# Private world from the tree menu\n')
+  await page.getByRole('navigation', { name: 'breadcrumb' }).getByRole('link').first().click()
+  const tree = page.getByRole('tree', { name: 'Project folders', exact: true })
+  await tree.getByRole('button', { name: 'Expand adv', exact: true }).click()
+  const input = await startTreeRename(page, 'world.md')
+  const target = '雨夜车站世界观与人物关系修订稿.md'
+  await input.fill(target)
+  const panelWidths: { viewport: number, content: number }[] = []
+  for (const width of [1440, 846]) {
+    await page.setViewportSize({ width, height: 900 })
+    const panel = await page.locator('.agui-assets-panel').boundingBox()
+    expect(panel).not.toBeNull()
+    panelWidths.push({ viewport: width, content: panel!.width })
+    if (width === 846)
+      expect(Math.abs(panel!.width - 320)).toBeLessThan(10)
+    await expect(input).toBeFocused()
+    for (const dark of [false, true]) {
+      await page.evaluate(value => document.documentElement.classList.toggle('dark', value), dark)
+      await page.screenshot({ path: info.outputPath(`tree-rename-${dark ? 'dark' : 'light'}-${width}.png`) })
+      await expect(input).toBeFocused()
+    }
+  }
+  await page.evaluate(() => {
+    document.documentElement.classList.remove('dark')
+    document.documentElement.style.zoom = '2'
+  })
+  await page.locator('.agui-explorer-content').hover()
+  await page.mouse.wheel(0, 600)
+  await expect(input).toBeInViewport()
+  await expect(input).toBeFocused()
+  await page.screenshot({ path: info.outputPath('tree-rename-css-200-percent.png') })
+  await input.press('Enter')
+  await page.evaluate(() => document.documentElement.style.zoom = '')
+  await expect.poll(() => read(page, 'adv/world.md')).toBe(null)
+  expect(await read(page, `adv/${target}`)).toBe('# Original world\n')
+  await expect(editor(page).locator('.view-lines')).toContainText('# Private world from the tree menu')
+  await save(page).click()
+  await expect.poll(() => read(page, `adv/${target}`)).toBe('# Private world from the tree menu\n')
+  await expect(page.getByRole('option', { name: target, exact: true })).toBeVisible()
+  await tree.getByRole('button', { name: 'Expand adv', exact: true }).click()
+  await expect(tree.getByRole('treeitem', { name: target, exact: true })).toBeVisible()
+  await tree.getByRole('treeitem').first().locator('.agui-tree-node').first().click({ button: 'right' })
+  await expect(page.getByRole('menuitem', { name: 'Rename', exact: true })).toBeDisabled()
+  await page.keyboard.press('Escape')
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.locator('.mobile-file-tree').getByRole('button', { name: target, exact: true }).click()
+  await expect(editor(page).locator('.view-lines')).toContainText('# Private world from the tree menu')
+  await expect(page.locator('ion-toast')).not.toBeVisible({ timeout: 10000 })
+  const modal = page.locator('ion-modal.show-modal')
+  const title = await modal.locator('.modal-title-with-icon').boundingBox()
+  const close = await modal.getByRole('button', { name: '确定', exact: true }).boundingBox()
+  expect(title).not.toBeNull()
+  expect(close).not.toBeNull()
+  const titleLayout = await modal.locator('ion-title').evaluate((element) => {
+    const style = getComputedStyle(element)
+    const inner = element.shadowRoot?.querySelector('.toolbar-title')
+    return { host: element.getBoundingClientRect().toJSON(), paddingStart: style.paddingInlineStart, paddingEnd: style.paddingInlineEnd, position: style.position, mode: element.getAttribute('mode'), inner: inner?.getBoundingClientRect().toJSON(), shadow: Boolean(element.shadowRoot) }
+  })
+  await writeFile(info.outputPath('mobile-title-layout.json'), JSON.stringify({ title, close, titleLayout }))
+  expect(title!.x + title!.width).toBeLessThanOrEqual(close!.x)
+  await page.screenshot({ path: info.outputPath('tree-renamed-mobile-390.png') })
+  await modal.getByRole('button', { name: '确定', exact: true }).click()
+  await expect(modal).toHaveCount(0)
+  await writeFile(info.outputPath('tree-rename-draft.json'), JSON.stringify({ source: await read(page, 'adv/world.md'), target: await read(page, `adv/${target}`), panelWidths, mobile: { title, close } }))
+})
+
+test('tree rename journal failure refuses destination writes and preserves native source', async ({ page }) => {
+  const tree = page.getByRole('tree', { name: 'Project folders', exact: true })
+  await tree.getByRole('button', { name: 'Expand adv', exact: true }).click()
+  const input = await startTreeRename(page, 'world.md')
+  await page.evaluate(() => (window as unknown as { workspaceEditingFixture: TreeRenameFixture }).workspaceEditingFixture.failJournal())
+  await input.fill('universe.md')
+  await input.press('Enter')
+  await expect(page.locator('ion-toast')).toBeVisible()
+  await expect(page.locator('.workspace-file-operations')).toHaveAttribute('aria-busy', 'false')
+  expect(await read(page, 'adv/world.md')).toBe('# Original world\n')
+  expect(await read(page, 'adv/universe.md')).toBe(null)
+})
+
+test('tree rename ignores a delayed parent listing after the author switches projects', async ({ page }, info) => {
+  const tree = page.getByRole('tree', { name: 'Project folders', exact: true })
+  await tree.getByRole('button', { name: 'Expand adv', exact: true }).click()
+  await page.evaluate(() => (window as unknown as { workspaceEditingFixture: TreeRenameFixture }).workspaceEditingFixture.holdDirectoryListing('adv'))
+  await tree.getByRole('treeitem', { name: 'world.md', exact: true }).locator('.agui-tree-node').first().click({ button: 'right' })
+  await page.getByRole('menuitem', { name: 'Rename', exact: true }).click()
+  await expect.poll(() => page.evaluate(() => (window as unknown as { workspaceEditingFixture: TreeRenameFixture }).workspaceEditingFixture.state().phase)).toBe('directory-list-waiting')
+  await page.evaluate(() => (window as unknown as { workspaceEditingFixture: TreeRenameFixture }).workspaceEditingFixture.switchProject())
+  await page.evaluate(() => (window as unknown as { workspaceEditingFixture: TreeRenameFixture }).workspaceEditingFixture.releaseDirectory())
+  await expect.poll(() => page.evaluate(() => (window as unknown as { workspaceEditingFixture: TreeRenameFixture }).workspaceEditingFixture.state().phase)).toBe('directory-list-complete')
+  await expect(page.locator('.agui-rename-input')).toHaveCount(0)
+  await expect(page.getByRole('option', { name: 'README.md', exact: true })).toBeVisible()
+  expect(await read(page, 'adv/world.md')).toBe('# Original world\n')
+  const current = await page.evaluate(() => (window as unknown as { workspaceEditingFixture: TreeRenameFixture }).workspaceEditingFixture.readOther('README.md'))
+  expect(current).toBe('# Other project README\n')
+  await writeFile(info.outputPath('tree-rename-project-switch.json'), JSON.stringify({ original: await read(page, 'adv/world.md'), current }))
+})
+
+test('tree directory rename restores its real binary after an interrupted native deletion', async ({ page }, info) => {
+  const before = await page.evaluate(() => (window as unknown as { workspaceEditingFixture: TreeRenameFixture }).workspaceEditingFixture.binary())
+  const tree = page.getByRole('tree', { name: 'Project folders', exact: true })
+  await tree.getByRole('button', { name: 'Expand adv', exact: true }).click()
+  const input = await startTreeRename(page, 'assets')
+  await page.evaluate(() => (window as unknown as { workspaceEditingFixture: TreeRenameFixture }).workspaceEditingFixture.holdRemove('adv/assets/master.webp', undefined, false, true))
+  await input.fill('art')
+  await input.press('Enter')
+  await expect.poll(() => page.evaluate(() => (window as unknown as { workspaceEditingFixture: TreeRenameFixture }).workspaceEditingFixture.state().phase)).toBe('remove-waiting')
+  expect(await exists(page, 'adv/assets/master.webp')).toBe(false)
+  expect(await page.evaluate(() => (window as unknown as { workspaceEditingFixture: TreeRenameFixture }).workspaceEditingFixture.binary('adv/art/master.webp'))).toEqual(before)
+  await page.reload()
+  await page.waitForFunction(() => Boolean((window as unknown as { workspaceEditingFixture?: TreeRenameFixture }).workspaceEditingFixture))
+  await expect(recovery(page)).toContainText('adv/art')
+  await recovery(page).getByRole('button', { name: '恢复操作前状态', exact: true }).click()
+  await page.locator('ion-alert').getByRole('button', { name: '恢复操作前状态', exact: true }).click()
+  await expect(recovery(page)).toHaveCount(0)
+  expect(await page.evaluate(() => (window as unknown as { workspaceEditingFixture: TreeRenameFixture }).workspaceEditingFixture.binary())).toEqual(before)
+  expect(await exists(page, 'adv/art')).toBe(false)
+  await writeFile(info.outputPath('tree-rename-recovery.json'), JSON.stringify({ before, restored: await page.evaluate(() => (window as unknown as { workspaceEditingFixture: TreeRenameFixture }).workspaceEditingFixture.binary()) }))
+})
+
 test('a successful rename preserves an open private draft and saves it at its new path', async ({ page }, info) => {
   await replace(page, '# Private input follows the renamed file\n')
   await rename(page, 'README.md', 'renamed.md')
@@ -421,7 +564,6 @@ async function dropText(page: Page, files: { name: string, text: string }[]) {
   }, files)
 }
 const pending = (page: Page) => page.evaluate(() => (window as any).workspaceEditingFixture.pending())
-const recovery = (page: Page) => page.getByRole('region', { name: '文件操作恢复', exact: true })
 async function dismissToasts(page: Page) {
   await page.locator('ion-toast').evaluateAll(elements => Promise.all(elements.map(element => (element as any).dismiss())))
 }

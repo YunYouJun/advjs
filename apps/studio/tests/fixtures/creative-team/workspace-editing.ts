@@ -74,8 +74,11 @@ async function main() {
   }
   const reading = new Set<Promise<unknown>>()
   let releaseRead: (() => void) | undefined
+  let releaseDirectory: (() => void) | undefined
+  const listings = new Set<Promise<void>>()
   const getFile = FileSystemFileHandle.prototype.getFile
   const createWritable = FileSystemFileHandle.prototype.createWritable
+  const directoryValues = FileSystemDirectoryHandle.prototype.values
   const removeEntry = FileSystemDirectoryHandle.prototype.removeEntry
   const addRecord = IDBObjectStore.prototype.add
   const deleteRecord = IDBObjectStore.prototype.delete
@@ -135,6 +138,32 @@ async function main() {
           throw new Error('Explicit native removal persisted before failed receipt')
       }
     },
+    holdDirectoryListing(path: string) {
+      let armed = true
+      const gate = new Promise<void>(resolve => releaseDirectory = resolve)
+      FileSystemDirectoryHandle.prototype.values = async function* () {
+        const resolved = await root.resolve(this)
+        const held = armed && resolved?.join('/') === path
+        let finish!: () => void
+        const done = new Promise<void>(resolve => finish = resolve)
+        listings.add(done)
+        try {
+          if (held) {
+            armed = false
+            state.phase = 'directory-list-waiting'
+            await gate
+          }
+          yield* directoryValues.call(this)
+        }
+        finally {
+          if (held)
+            state.phase = 'directory-list-complete'
+          finish()
+        }
+        return undefined
+      }
+    },
+    releaseDirectory: () => releaseDirectory?.(),
     failJournalRead(times = 2) {
       let remaining = times
       IDBObjectStore.prototype.getAll = function (query, count) {
@@ -277,10 +306,12 @@ async function main() {
     async cleanup() {
       release?.()
       releaseRead?.()
-      await Promise.allSettled([...closes, ...reading])
+      releaseDirectory?.()
+      await Promise.allSettled([...closes, ...reading, ...listings])
       FileSystemFileHandle.prototype.getFile = getFile
       FileSystemFileHandle.prototype.createWritable = createWritable
       FileSystemDirectoryHandle.prototype.removeEntry = removeEntry
+      FileSystemDirectoryHandle.prototype.values = directoryValues
       IDBObjectStore.prototype.add = addRecord
       IDBObjectStore.prototype.delete = deleteRecord
       IDBObjectStore.prototype.getAll = getAllRecords
