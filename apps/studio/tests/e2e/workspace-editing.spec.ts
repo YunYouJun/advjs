@@ -4,7 +4,7 @@ import { writeFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
 
 const errors = new WeakMap<Page, { errors: string[], warnings: string[], failedRequests: { url: string, error?: string }[] }>()
-test.beforeEach(async ({ page }) => {
+function observeErrors(page: Page) {
   const log = { errors: [] as string[], warnings: [] as string[], failedRequests: [] as { url: string, error?: string }[] }
   errors.set(page, log)
   page.on('pageerror', error => log.errors.push(error.message))
@@ -15,6 +15,10 @@ test.beforeEach(async ({ page }) => {
     if (message.type() === 'warning')
       log.warnings.push(message.text())
   })
+  return log
+}
+test.beforeEach(async ({ page }) => {
+  observeErrors(page)
   await page.goto(`/tests/fixtures/creative-team/workspace-editing.html?id=${randomUUID()}`)
   await expect(page).toHaveTitle('Workspace file editing fixture')
   await page.waitForFunction(() => Boolean((window as any).workspaceEditingFixture))
@@ -708,4 +712,86 @@ test('recovery originals remain downloadable when current native files cannot be
   await (await downloaded).saveAs(info.outputPath('unreadable-current-recovery.zip'))
   await expect(recovery(page)).toBeVisible()
   expect((await pending(page)).length).toBe(1)
+})
+
+test('already open native windows observe recovery and preserve private input until explicit save after resolution', async ({ page, context }, info) => {
+  const peer = await context.newPage()
+  const diagnostics = observeErrors(peer)
+  try {
+    await peer.goto(page.url())
+    await peer.waitForFunction(() => Boolean((window as any).workspaceEditingFixture))
+    await peer.locator('.workspace-segment ion-segment-button').filter({ hasText: '文件' }).click()
+    await replace(peer, '# Other window private README\n')
+    await peer.evaluate(() => (window as any).workspaceEditingFixture.openDetachedWriter())
+    // Leave a real native conflict and durable original on page one after page two opened.
+    await page.evaluate(() => (window as any).workspaceEditingFixture.holdRemove('LICENSE', 'Independent license after deletion\n'))
+    await deleteItem(page, 'LICENSE')
+    await confirmFileDelete(page)
+    await expect.poll(() => page.evaluate(() => (window as any).workspaceEditingFixture.state().phase)).toBe('remove-waiting')
+    await page.evaluate(() => (window as any).workspaceEditingFixture.release())
+    await expect(page.locator('.workspace-file-operations')).toHaveAttribute('aria-busy', 'false')
+    // No manual facts query, reload or retry is used to discover this record.
+    await expect(recovery(peer)).toContainText('LICENSE')
+    const detached = await peer.evaluate(() => (window as any).workspaceEditingFixture.detachedWrite('adv/world.md', '# Rejected partial-project edit\n'))
+    expect(detached).toMatchObject({ saved: false, error: 'ADV_STUDIO_WORKSPACE_RECOVERY_REQUIRED' })
+    expect(await read(peer, 'adv/world.md')).toBe('# Original world\n')
+    await save(peer).click()
+    await expect(peer.locator('ion-toast')).toBeVisible()
+    expect(await read(peer)).toBe('# Original README\n')
+    await expect(editor(peer).locator('.view-lines')).toContainText('# Other window private README')
+    expect(await peer.evaluate(() => (window as any).workspaceEditingFixture.facts())).toMatchObject({ ready: false, error: 'ADV_STUDIO_WORKSPACE_RECOVERY_REQUIRED' })
+    await peer.screenshot({ path: info.outputPath('other-window-recovery-normal.png') })
+    await peer.setViewportSize({ width: 390, height: 844 })
+    await peer.screenshot({ path: info.outputPath('other-window-recovery-narrow.png') })
+    expect(await peer.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    await peer.setViewportSize({ width: 1280, height: 720 })
+    await dismissToasts(page)
+    await recovery(page).getByRole('button', { name: '保留当前并清除备份', exact: true }).click()
+    await page.locator('ion-alert').getByRole('button', { name: '保留当前并清除备份', exact: true }).click()
+    await expect(recovery(peer)).toHaveCount(0)
+    await expect(editor(peer).locator('.view-lines')).toContainText('# Other window private README')
+    expect(await read(peer)).toBe('# Original README\n')
+    expect(await peer.evaluate(() => (window as any).workspaceEditingFixture.facts())).toMatchObject({ ready: true })
+    await dismissToasts(peer)
+    await save(peer).click()
+    await expect.poll(() => read(peer)).toBe('# Other window private README\n')
+    await writeFile(info.outputPath('other-window-evidence.json'), JSON.stringify({ detached, saved: await read(peer), license: await read(peer, 'LICENSE'), pending: await pending(peer) }, null, 2))
+  }
+  finally {
+    await writeFile(info.outputPath('other-window-console.json'), JSON.stringify(diagnostics))
+    await peer.close()
+  }
+  expect(diagnostics).toEqual({ errors: [], warnings: [], failedRequests: [] })
+})
+
+test('native window notifications follow physical folders across same IDs and aliases', async ({ page, context }, info) => {
+  const peer = await context.newPage()
+  const diagnostics = observeErrors(peer)
+  try {
+    await peer.goto(page.url())
+    await peer.waitForFunction(() => Boolean((window as any).workspaceEditingFixture))
+    await peer.locator('.workspace-segment ion-segment-button').filter({ hasText: '文件' }).click()
+    await peer.evaluate(() => (window as any).workspaceEditingFixture.switchProject(false, true))
+    await expect(editor(peer).locator('.view-lines')).toContainText('# Other project README')
+    await pendingDelete(page)
+    await expect(recovery(peer)).toHaveCount(0)
+    await replace(peer, '# Saved in a different physical folder\n')
+    await save(peer).click()
+    await expect.poll(() => peer.evaluate(() => (window as any).workspaceEditingFixture.readOther('README.md'))).toBe('# Saved in a different physical folder\n')
+    await peer.evaluate(() => (window as any).workspaceEditingFixture.switchProject(true))
+    await expect(recovery(peer)).toBeVisible()
+    await peer.evaluate(() => (window as any).workspaceEditingFixture.switchIdentity())
+    await expect(recovery(peer)).toBeVisible()
+    expect(await peer.evaluate(() => (window as any).workspaceEditingFixture.facts())).toMatchObject({ ready: false })
+    await recovery(page).getByRole('button', { name: '保留当前并清除备份', exact: true }).click()
+    await page.locator('ion-alert').getByRole('button', { name: '保留当前并清除备份', exact: true }).click()
+    await expect(recovery(peer)).toHaveCount(0)
+    expect(await peer.evaluate(() => (window as any).workspaceEditingFixture.facts())).toMatchObject({ ready: true })
+    await writeFile(info.outputPath('physical-folders.json'), JSON.stringify({ original: await read(page), other: await peer.evaluate(() => (window as any).workspaceEditingFixture.readOther('README.md')) }, null, 2))
+  }
+  finally {
+    await writeFile(info.outputPath('other-window-console.json'), JSON.stringify(diagnostics))
+    await peer.close()
+  }
+  expect(diagnostics).toEqual({ errors: [], warnings: [], failedRequests: [] })
 })

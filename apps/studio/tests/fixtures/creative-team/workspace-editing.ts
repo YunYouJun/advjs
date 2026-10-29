@@ -13,7 +13,8 @@ import { useStudioStore } from '../../../src/stores/useStudioStore'
 import { createStudioCreativeWorkspace } from '../../../src/utils/creativeTeamWorkspace'
 import { dbReady } from '../../../src/utils/db'
 import { BrowserFsAdapter } from '../../../src/utils/fs/BrowserFsAdapter'
-import { whenStudioProjectWritesSettle } from '../../../src/utils/projectWriteQueue'
+import { createFileSystem } from '../../../src/utils/fs/createFs'
+import { runStudioProjectWrite, whenStudioProjectWritesSettle } from '../../../src/utils/projectWriteQueue'
 import { listWorkspaceMutationRecords, removeWorkspaceMutationRecord } from '../../../src/utils/workspaceMutationJournal'
 import WorkspacePage from '../../../src/views/WorkspacePage.vue'
 import '@ionic/vue/css/core.css'
@@ -81,7 +82,22 @@ async function main() {
   let release: (() => void) | undefined
   const closes = new Set<Promise<void>>()
   const state = { phase: 'idle' }
+  let detached: IFileSystem | undefined
   Object.assign(window, { workspaceEditingFixture: {
+    async openDetachedWriter() {
+      detached = await createFileSystem({ projectId: id, dirHandle: root })
+      adapters.add(detached)
+    },
+    async detachedWrite(path: string, text: string) {
+      if (!detached)
+        throw new Error('Detached writer not opened')
+      const fs = detached
+      try {
+        await runStudioProjectWrite(fs, () => fs.writeFile(path, text))
+        return { saved: true }
+      }
+      catch (error) { return { saved: false, error: (error as Error).message } }
+    },
     async switchIdentity() {
       await store.switchProject({ projectId: `${id}-alias`, name: 'Same physical directory', source: 'local', dirHandle: root, lastOpened: Date.now() })
       await content.whenReady()

@@ -3,6 +3,23 @@ import type { IFileSystem } from './fs'
 const pendingWrites = new WeakMap<IFileSystem, Promise<void>>()
 const barriers = new WeakMap<IFileSystem, string>()
 const barrierRevisions = new WeakMap<IFileSystem, number>()
+const readinessChecks = new WeakMap<IFileSystem, () => Promise<void>>()
+
+/** The adapter's check only reads durable readiness; it must not enter this queue. */
+export function setStudioProjectReadinessCheck(fs: IFileSystem, check: () => Promise<void>) {
+  readinessChecks.set(fs, check)
+}
+
+async function checkStudioProjectReady(fs: IFileSystem) {
+  try {
+    await readinessChecks.get(fs)?.()
+  }
+  catch (error) {
+    assertStudioProjectReady(fs)
+    throw error
+  }
+  assertStudioProjectReady(fs)
+}
 
 export function studioProjectBarrierRevision(fs: IFileSystem) {
   return barrierRevisions.get(fs) ?? 0
@@ -24,9 +41,9 @@ export function assertStudioProjectReady(fs: IFileSystem) {
 /** Share one queue across audio, creative adoption, Flow and cloud downloads. */
 export async function runStudioProjectWrite<T>(fs: IFileSystem, operation: () => Promise<T>, options?: { recovery?: boolean }): Promise<T> {
   const previous = pendingWrites.get(fs) ?? Promise.resolve()
-  const next = previous.catch(() => {}).then(() => {
+  const next = previous.catch(() => {}).then(async () => {
     if (!options?.recovery)
-      assertStudioProjectReady(fs)
+      await checkStudioProjectReady(fs)
     return operation()
   })
   pendingWrites.set(fs, next.then(() => {}, () => {}))
@@ -39,6 +56,6 @@ export async function whenStudioProjectWritesSettle(fs: IFileSystem): Promise<vo
   do {
     previous = pendingWrites.get(fs)
     await previous?.catch(() => {})
+    await checkStudioProjectReady(fs)
   } while (previous !== pendingWrites.get(fs))
-  assertStudioProjectReady(fs)
 }

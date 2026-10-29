@@ -1,6 +1,6 @@
 import type { IFileSystem } from './fs'
 import type { WorkspaceFileEntry, WorkspacePrivateDraft } from './workspaceFileSnapshot'
-import Dexie from 'dexie'
+import Dexie, { liveQuery } from 'dexie'
 import { setStudioProjectWriteBarrier, studioProjectBarrierRevision } from './projectWriteQueue'
 import { validateWorkspaceEntries } from './workspaceFileSnapshot'
 
@@ -19,6 +19,13 @@ export interface WorkspaceMutationRecord {
 const database = new Dexie('advjs-studio-workspace-mutations')
 database.version(1).stores({ entries: 'id, projectId' })
 const entries = database.table<WorkspaceMutationRecord, string>('entries')
+
+/** Only a hint: consumers must query and verify physical roots before acting. */
+export function subscribeWorkspaceMutationChanges(changed: () => void, failed: () => void) {
+  // Records are immutable. Watch their keys without copying up to 64 MiB of backups.
+  const subscription = liveQuery(() => entries.toCollection().primaryKeys()).subscribe({ next: changed, error: failed })
+  return () => subscription.unsubscribe()
+}
 
 export async function listWorkspaceMutationRecords(_projectId: string, root: FileSystemDirectoryHandle) {
   const result: WorkspaceMutationRecord[] = []

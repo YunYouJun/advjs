@@ -7,10 +7,10 @@ import JSZip from 'jszip'
 import { onScopeDispose, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { notifyStudioFileSystemRefresh } from '../utils/fs/mutations'
-import { whenStudioProjectWritesSettle } from '../utils/projectWriteQueue'
+import { setStudioProjectWriteBarrier, whenStudioProjectWritesSettle } from '../utils/projectWriteQueue'
 import { commitWorkspaceFileMutation, recoverWorkspaceFileMutation, reviewWorkspaceMutation } from '../utils/workspaceFileMutation'
 import { assertWorkspacePath, snapshotWorkspaceFiles, validateWorkspaceEntries, workspaceBytesHash, workspaceContains, workspaceEntryEqual } from '../utils/workspaceFileSnapshot'
-import { refreshWorkspaceMutationBarrier, validateWorkspaceMutationRecord } from '../utils/workspaceMutationJournal'
+import { refreshWorkspaceMutationBarrier, subscribeWorkspaceMutationChanges, validateWorkspaceMutationRecord } from '../utils/workspaceMutationJournal'
 
 const html = (value: string) => value.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' })[char]!)
 
@@ -21,32 +21,69 @@ export function useWorkspaceFileMutations(getScope: () => WorkspaceTextScope | n
   const error = shallowRef('')
   const busy = shallowRef(false)
   const downloads = new Map<string, ReturnType<typeof setTimeout>>()
+  let refreshRevision = 0
+  let restartSubscription = () => {}
   function check(scope: WorkspaceTextScope) {
     const now = getScope()
     if (!now || now.fs !== scope.fs || now.root !== scope.root || now.projectId !== scope.projectId)
       throw new Error('ADV_STUDIO_CONTENT_SCOPE_CHANGED')
   }
   async function refresh() {
+    const revision = ++refreshRevision
     const scope = getScope()
     if (!scope)
       return
     try {
       const next = await refreshWorkspaceMutationBarrier(scope.fs, scope.projectId, scope.root)
       check(scope)
+      if (revision !== refreshRevision)
+        return
+      const wasBlocked = records.value.length > 0 || Boolean(error.value)
       records.value = next
       error.value = ''
-      if (!next.length)
-        notifyStudioFileSystemRefresh(scope.fs)
+      notifyStudioFileSystemRefresh(scope.fs)
+      if (wasBlocked && !next.length && !busy.value)
+        await reloadContent().catch(() => {})
     }
     catch {
-      if (getScope()?.fs === scope.fs)
+      if (revision === refreshRevision && getScope()?.fs === scope.fs)
         error.value = t('workspace.recoveryReadFailed')
     }
   }
-  watch(() => getScope()?.fs, () => {
+  watch(() => getScope()?.fs, (_fs, _previous, onCleanup) => {
+    refreshRevision++
     records.value = []
     error.value = ''
-    void refresh()
+    const scope = getScope()
+    if (!scope)
+      return
+    let stop: (() => void) | undefined
+    const start = () => {
+      stop?.()
+      stop = subscribeWorkspaceMutationChanges(() => {
+        void refresh()
+      }, () => {
+        refreshRevision++
+        setStudioProjectWriteBarrier(scope.fs, 'ADV_STUDIO_WORKSPACE_RECOVERY_UNKNOWN')
+        error.value = t('workspace.recoveryReadFailed')
+        notifyStudioFileSystemRefresh(scope.fs)
+      })
+    }
+    restartSubscription = start
+    start()
+    const foreground = () => {
+      if (!document.hidden)
+        void refresh()
+    }
+    window.addEventListener('focus', foreground)
+    document.addEventListener('visibilitychange', foreground)
+    onCleanup(() => {
+      refreshRevision++
+      stop?.()
+      restartSubscription = () => {}
+      window.removeEventListener('focus', foreground)
+      document.removeEventListener('visibilitychange', foreground)
+    })
   }, { immediate: true })
   onScopeDispose(() => downloads.forEach((timer, url) => {
     clearTimeout(timer)
@@ -266,6 +303,7 @@ export function useWorkspaceFileMutations(getScope: () => WorkspaceTextScope | n
       return
     busy.value = true
     try {
+      restartSubscription()
       await refresh()
       if (!records.value.length && !error.value)
         await reloadContent()

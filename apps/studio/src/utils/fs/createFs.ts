@@ -9,6 +9,7 @@
  */
 
 import type { CreateFsOptions, IFileSystem } from './types'
+import { setStudioProjectReadinessCheck } from '../projectWriteQueue'
 import { observeStudioFileSystem } from './mutations'
 
 /** Detect if running on a Capacitor native platform (iOS/Android) */
@@ -55,9 +56,14 @@ export async function createFileSystem(options: CreateFsOptions): Promise<IFileS
     const { BrowserFsAdapter } = await import('./BrowserFsAdapter')
     const fs = observeStudioFileSystem(new BrowserFsAdapter(options.dirHandle))
     const { refreshWorkspaceMutationBarrier } = await import('../workspaceMutationJournal')
+    const root = options.dirHandle
+    const check = async () => {
+      await refreshWorkspaceMutationBarrier(fs, options.projectId ?? '_default_', root)
+    }
+    setStudioProjectReadinessCheck(fs, check)
     // Keep the directory inspectable when the journal is unavailable. Reads of
     // creative facts and ordinary queued writes stay behind the recovery barrier.
-    await refreshWorkspaceMutationBarrier(fs, options.projectId ?? '_default_', options.dirHandle).catch(() => {})
+    await check().catch(() => {})
     return fs
   }
 
