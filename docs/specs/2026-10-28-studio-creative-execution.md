@@ -192,3 +192,11 @@ CloudBase 原生 SDK 会在事件外层附加平台元数据。`19aae312` 只从
 语音客户端的代次绑定账户、项目、登录状态和组件生命周期。离开后返回相同 ID 仍是新代次；在令牌读取／刷新、HTTP 返回、正文读取及媒体读写的既有 `assertCurrent` 边界核对。旧 401 和旧 SDK 错误不能清除当前登录，当前 SDK 账户与本地镜像不符时仍退出登录；本机可信语音会话保持既有独立授权入口。
 
 共享 `ManagedAgentTransport` 的默认原生 fetch 绑定 `globalThis`，避免 Chromium 因错误接收者抛出 `Illegal invocation`；显式传入的传输保持原样。Studio 的源码别名在构建中采用此修复。待批准积分试跑的 126 份冻结输入保持原构建，CLI 明确注入原生 RPC 桥接 fetch；本轮未重建这些输入，也未据此重新启用或执行收费。红绿回归、真实 Chromium 的替身服务验证及范围见[验收记录](../reports/2026-10-27-studio-creative-team-acceptance#managed-session-scope)。
+
+### SDK 登录镜像的恢复顺序 {#auth-restoration-order}
+
+`YunYouJun/advjs@ba1a4fbfe65cccd694520b888896c4ebed2b2aa0` 为 `useAuthStore` 的恢复、显式清除和退出增加操作代次。只有最新恢复可写入经过认证的会话、资料、错误和恢复状态；旧 `getSession`、可选资料查询及其失败均不能覆盖新账号。清除立即使先前恢复失效，退出在 SDK 请求发出前清空本地镜像，使各受控客户端及时断开。
+
+退出返回是否仍确认当前镜像已退出。旧请求被新登录替代后返回 false，个人页不显示这次旧操作的成功提示；正常 SDK SIGNED_OUT 通知已同步为空会话时仍可确认退出。旧失败不清空新账号，当前退出失败仍保留原错误并保持本地退出状态。该顺序约束本地 SDK 镜像，不把资料查询当作登录依据，也不替代 CloudBase 持久会话或服务器身份验证。
+
+本机验证范围与证据见[登录恢复验收](../reports/2026-10-27-studio-creative-team-acceptance#auth-restore-scope)。宿主 SSO 身份事件的采用顺序、真实持久会话与原生入口继续独立验收；未连接生产或重新授权收费。
