@@ -230,7 +230,7 @@ describe('saved source reconciliation', () => {
       expect(f.api.refreshFacts).toHaveBeenCalledOnce()
       f.sync.retry()
       await f.settle()
-      expect(f.sync.status.value).toBe('current')
+      await vi.waitFor(() => expect(f.sync.status.value).toBe('current'))
       expect(f.api.refreshFacts).toHaveBeenCalledOnce()
       expect(f.store.run!.artifacts[0]!.status).toBe('stale')
     }
@@ -390,7 +390,7 @@ describe('external saved source hints and resume', () => {
       f.files['adv/world.md'] = 'Foreign source'
       f.external()
       await f.settle()
-      expect(f.api.refreshFacts).toHaveBeenCalledOnce()
+      await vi.waitFor(() => expect(f.api.refreshFacts).toHaveBeenCalledOnce())
       window.dispatchEvent(new Event('focus'))
       release.resolve()
       await f.settle()

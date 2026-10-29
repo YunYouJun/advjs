@@ -30,9 +30,11 @@ async function main() {
   const studio = useStudioStore()
   const outcome = ref('ready')
   const tokenState = ref('ready')
+  const logoutState = ref('ready')
   let actor = 'author'
   let hold = false
   let release: (() => void) | undefined
+  let releaseLogout: (() => void) | undefined
   const session = (id: string) => ({ data: { session: { access_token: `${id}-fixture-token`, refresh_token: 'fixture-only', expires_at: 9999999999, user: { id } } } })
   const sdk = {
     async getSession() {
@@ -45,6 +47,13 @@ async function main() {
         })
       }
       return value
+    },
+    async signOut() {
+      logoutState.value = 'held'
+      await new Promise<void>((resolve) => {
+        releaseLogout = resolve
+      })
+      return {}
     },
   } as unknown as cloudbase.auth.App
   await auth.restoreSession(sdk)
@@ -60,8 +69,8 @@ async function main() {
   async function perform(action: () => Promise<unknown>) {
     outcome.value = 'pending'
     try {
-      await action()
-      outcome.value = 'complete'
+      const result = await action()
+      outcome.value = result === false ? 'superseded' : 'complete'
     }
     catch {
       outcome.value = 'blocked'
@@ -80,6 +89,7 @@ async function main() {
         h('p', { 'data-testid': 'actor' }, auth.userId ?? 'signed out'),
         h('p', { 'data-testid': 'scope' }, `${voice.client.value?.scope.accountId ?? 'none'}@${voice.client.value?.scope.projectId ?? 'none'}`),
         h('p', { 'data-testid': 'token' }, tokenState.value),
+        h('p', { 'data-testid': 'logout' }, logoutState.value),
         h('p', { 'data-testid': 'outcome' }, outcome.value),
         h('nav', { style: 'display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px' }, [
           button('Hold next token', () => { hold = true }),
@@ -89,6 +99,14 @@ async function main() {
             tokenState.value = 'released'
           }),
           button('Submit AI', () => perform(() => store.startTask(request))),
+          button('Refresh identity', () => perform(() => auth.restoreSession(sdk))),
+          button('Clear login', () => auth.clearSession()),
+          button('Sign out', () => perform(() => auth.logout(sdk))),
+          button('Release old logout', () => {
+            releaseLogout?.()
+            releaseLogout = undefined
+            logoutState.value = 'released'
+          }),
           button('Switch account', () => setActor('next-author')),
           button('Return author', () => setActor('author')),
           button('Other project', () => setProject('other')),

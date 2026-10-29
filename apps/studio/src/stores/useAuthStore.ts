@@ -17,6 +17,7 @@ export const useAuthStore = defineStore('auth', () => {
   const userInfo = ref<CloudbaseV3User>()
   const isRestoring = ref(true)
   const authError = ref<string>()
+  let generation = 0
 
   const userId = computed(() => userInfo.value?.id)
   const isLoggedIn = computed(() => Boolean(session.value && userId.value))
@@ -45,9 +46,15 @@ export const useAuthStore = defineStore('auth', () => {
     return `${phone.slice(0, 3)}****${phone.slice(-4)}`
   })
 
-  function clearSession(): void {
+  function resetSession(): void {
     session.value = undefined
     userInfo.value = undefined
+  }
+
+  function clearSession(): void {
+    generation += 1
+    resetSession()
+    isRestoring.value = false
   }
 
   function setAuthError(message?: string): void {
@@ -55,12 +62,15 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function restoreSession(auth: cloudbase.auth.App): Promise<boolean> {
+    const epoch = ++generation
     isRestoring.value = true
     authError.value = undefined
     try {
       const current = await readAuthenticatedCloudbaseSession(auth, { refreshUser: true })
+      if (epoch !== generation)
+        return false
       if (!current) {
-        clearSession()
+        resetSession()
         return false
       }
       session.value = current
@@ -69,26 +79,45 @@ export const useAuthStore = defineStore('auth', () => {
       return true
     }
     catch (error) {
-      clearSession()
-      authError.value = error instanceof Error ? error.message : 'Could not restore the CloudBase session.'
+      if (epoch === generation) {
+        resetSession()
+        authError.value = error instanceof Error ? error.message : 'Could not restore the CloudBase session.'
+      }
       return false
     }
     finally {
-      isRestoring.value = false
+      if (epoch === generation)
+        isRestoring.value = false
     }
   }
 
-  async function logout(auth: cloudbase.auth.App): Promise<void> {
+  async function logout(auth: cloudbase.auth.App): Promise<boolean> {
+    const epoch = ++generation
+    resetSession()
+    isRestoring.value = false
+    authError.value = undefined
+    removeLegacyLoginStateMarker()
     try {
       const response = await auth.signOut()
       const error = getCloudbaseResponseError(response)
+      // SIGNED_OUT may already have restored an empty SDK session. That is
+      // still this logout's outcome; a replacement or pending login is not.
+      if (epoch !== generation)
+        return !error && !isLoggedIn.value && !isRestoring.value && !authError.value
       if (error)
         throw error
+      return true
+    }
+    catch (error) {
+      if (epoch === generation)
+        throw error
+      return false
     }
     finally {
-      clearSession()
-      authError.value = undefined
-      removeLegacyLoginStateMarker()
+      if (epoch === generation) {
+        resetSession()
+        authError.value = undefined
+      }
     }
   }
 

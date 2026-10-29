@@ -83,8 +83,11 @@ function handleRegister() {
 }
 
 async function handleLogout() {
-  if (auth)
-    await authStore.logout(auth)
+  if (auth) {
+    const applied = await authStore.logout(auth)
+    if (!applied)
+      return
+  }
 
   const toast = await toastController.create({
     message: t('me.loggedOut'),
