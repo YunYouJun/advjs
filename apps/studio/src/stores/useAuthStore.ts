@@ -1,5 +1,4 @@
-import type cloudbase from '@cloudbase/js-sdk'
-import type { AuthenticatedCloudbaseSession, CloudbaseV3User } from '../auth/cloudbase-session'
+import type { AuthenticatedCloudbaseSession, CloudbaseSessionAuth, CloudbaseV3User } from '../auth/cloudbase-session'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { getCloudbaseResponseError, readAuthenticatedCloudbaseSession } from '../auth/cloudbase-session'
@@ -61,7 +60,7 @@ export const useAuthStore = defineStore('auth', () => {
     authError.value = message
   }
 
-  async function restoreSession(auth: cloudbase.auth.App): Promise<boolean> {
+  async function restoreSession(auth: CloudbaseSessionAuth): Promise<boolean> {
     const epoch = ++generation
     isRestoring.value = true
     authError.value = undefined
@@ -91,7 +90,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function logout(auth: cloudbase.auth.App): Promise<boolean> {
+  async function logout(auth: { signOut: () => Promise<unknown> }): Promise<boolean> {
     const epoch = ++generation
     resetSession()
     isRestoring.value = false

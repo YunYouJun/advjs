@@ -12,10 +12,8 @@ import {
 import { computed, onMounted, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { resolveStudioSsoConfig } from '../auth/sso-config'
-import { beginStudioSso } from '../auth/studio-sso'
 import SButton from '../components/ui/SButton.vue'
-import { useCloudbase } from '../composables/useCloudbase'
+import { useStudioIdentity } from '../composables/useStudioIdentity'
 import { useAuthStore } from '../stores/useAuthStore'
 
 const authStore = useAuthStore()
@@ -23,17 +21,8 @@ const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const isRedirecting = shallowRef(false)
-
-let auth: ReturnType<typeof useCloudbase>['auth'] | null = null
-try {
-  auth = useCloudbase().auth
-}
-catch {
-  // CloudBase is unavailable in builds without an environment configuration.
-}
-
-const ssoConfig = resolveStudioSsoConfig(window.location.origin)
-const ssoAvailable = Boolean(auth && ssoConfig)
+const identity = useStudioIdentity()
+const ssoAvailable = Boolean(identity?.configured)
 const returnPath = computed(() => {
   return typeof route.query.returnTo === 'string' ? route.query.returnTo : '/tabs/me'
 })
@@ -54,19 +43,16 @@ async function showError(message: string): Promise<void> {
 }
 
 async function signInWithYunlefun(): Promise<void> {
-  if (!ssoConfig || !auth) {
+  if (!identity?.configured) {
     await showError(t('login.ssoUnavailable'))
     return
   }
   try {
     isRedirecting.value = true
     authStore.setAuthError()
-    const result = await beginStudioSso(auth, ssoConfig, returnPath.value)
-    if (result.status === 'authenticated') {
-      await authStore.restoreSession(auth)
+    const result = await identity.login(returnPath.value)
+    if (result !== 'redirecting')
       isRedirecting.value = false
-      await router.replace(result.returnPath)
-    }
   }
   catch (error) {
     isRedirecting.value = false

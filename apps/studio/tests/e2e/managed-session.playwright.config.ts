@@ -6,7 +6,7 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: '.',
-  testMatch: 'managed-session.spec.ts',
+  testMatch: ['managed-session.spec.ts', 'host-identity.spec.ts'],
   outputDir: process.env.ADVJS_CREATIVE_TEAM_EVIDENCE || mkdtempSync(resolve(tmpdir(), 'advjs-managed-session-e2e-')),
   workers: 1,
   reporter: 'list',

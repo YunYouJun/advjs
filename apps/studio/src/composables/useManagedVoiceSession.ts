@@ -6,12 +6,14 @@ import { invalidateLocalVoiceActor, localVoiceConnecting, localVoiceSession } fr
 import { createManagedVoiceClient } from '../utils/managedVoiceClient'
 import { resolveManagedVoiceServiceUrl } from '../utils/managedVoiceHttp'
 import { cloudbaseAuthInjectionKey } from './useCloudbase'
+import { useStudioIdentity } from './useStudioIdentity'
 
 /** Bind the deployed service to the existing verified account and current project. */
 export function useManagedVoiceSession() {
   const sdk = inject(cloudbaseAuthInjectionKey, undefined)
   const auth = useAuthStore()
   const studio = useStudioStore()
+  const identity = useStudioIdentity()
   const endpoint = resolveManagedVoiceServiceUrl(import.meta.env.VITE_ADVJS_VOICE_SERVICE_URL || import.meta.env.VITE_ADVJS_AI_RUNTIME_URL)
   let generation = 0
   const active = shallowRef(true)
@@ -27,6 +29,7 @@ export function useManagedVoiceSession() {
     if (!active.value || !endpoint || !sdk || !auth.isLoggedIn || !auth.userId)
       return undefined
     const epoch = generation
+    const sessionAuth = identity?.sessionAuth() ?? sdk
     const accountId = auth.userId
     const projectId = studio.currentProjectId
     const isCurrent = () => active.value && epoch === generation && auth.isLoggedIn && auth.userId === accountId && studio.currentProjectId === projectId
@@ -50,8 +53,8 @@ export function useManagedVoiceSession() {
       projectId,
       assertCurrent,
       getAccessToken: createRuntimeAccessTokenGetter({
-        getSession: async () => verifyActor(await sdk.getSession()),
-        refreshSession: async refreshToken => verifyActor(await sdk.refreshSession(refreshToken)),
+        getSession: async () => verifyActor(await sessionAuth.getSession()),
+        refreshSession: async refreshToken => verifyActor(await sessionAuth.refreshSession(refreshToken)),
       }, { onSessionExpired: expireCurrent }),
       onSessionExpired: expireCurrent,
     })

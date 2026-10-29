@@ -1,13 +1,14 @@
+import type { StudioIdentityCoordinator } from './auth/identity-coordinator'
 import { clearLegacyStudioAiCredentials } from '@advjs/agent'
 import { IonicVue } from '@ionic/vue'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
-import { getCloudbaseResponseError } from './auth/cloudbase-session'
+import { createStudioIdentityCoordinator } from './auth/identity-coordinator'
 import { resolveStudioSsoConfig } from './auth/sso-config'
 /* CloudBase auth restore */
-import { adoptStudioSsoFromHost, consumeStudioSsoCallback } from './auth/studio-sso'
 import { useCloudbaseApp, useCloudbaseAuth } from './composables/useCloudbase'
+import { studioIdentityInjectionKey } from './composables/useStudioIdentity'
 import i18n from './i18n'
 
 import router from './router'
@@ -106,70 +107,37 @@ async function restoreCloudbaseSession(): Promise<void> {
     const auth = app.runWithContext(() => useCloudbaseAuth())
     const authStore = useAuthStore(pinia)
     const ssoConfig = resolveStudioSsoConfig(window.location.origin)
-    const callback = ssoConfig
-      ? await consumeStudioSsoCallback(auth, ssoConfig)
-      : { status: 'none' as const }
-    await authStore.restoreSession(auth)
-    if (callback.status === 'authenticated') {
-      await router.replace(callback.returnPath)
-    }
-    else if (callback.status === 'rejected') {
-      authStore.setAuthError(callback.reason)
-      await router.replace({ path: '/login', query: { ssoError: callback.reason } })
-    }
-    registerCloudbaseAuthSync(auth, authStore)
-    registerHostIdentitySync(auth, authStore, ssoConfig)
+    const identity = createStudioIdentityCoordinator({ auth, mirror: authStore, config: ssoConfig, navigate: target => router.replace(target) })
+    app.provide(studioIdentityInjectionKey, identity)
+    registerCloudbaseAuthSync(auth, identity)
+    registerHostIdentitySync(identity)
+    await identity.initialize()
   }
   catch {
     // CloudBase not configured — skip auth restore
+    useAuthStore(pinia).clearSession()
   }
 }
 
 function registerCloudbaseAuthSync(
   auth: ReturnType<typeof useCloudbaseAuth>,
-  authStore: ReturnType<typeof useAuthStore>,
+  identity: StudioIdentityCoordinator,
 ): void {
   if (cloudbaseAuthSyncRegistered)
     return
   cloudbaseAuthSyncRegistered = true
   auth.onAuthStateChange(() => {
-    void authStore.restoreSession(auth)
+    void identity.refresh()
   })
 }
 
-function registerHostIdentitySync(
-  auth: ReturnType<typeof useCloudbaseAuth>,
-  authStore: ReturnType<typeof useAuthStore>,
-  ssoConfig: ReturnType<typeof resolveStudioSsoConfig>,
-): void {
+function registerHostIdentitySync(identity: StudioIdentityCoordinator): void {
   if (hostIdentitySyncRegistered)
     return
   hostIdentitySyncRegistered = true
 
   window.addEventListener('ylf:identityChanged', () => {
-    void (async () => {
-      try {
-        const response = await auth.signOut()
-        const error = getCloudbaseResponseError(response)
-        if (error)
-          throw error
-      }
-      catch {
-        // The host identity is still authoritative; clear the local mirror.
-      }
-      authStore.clearSession()
-      authStore.setAuthError()
-      if (!ssoConfig)
-        return
-
-      try {
-        if (await adoptStudioSsoFromHost(auth, ssoConfig))
-          await authStore.restoreSession(auth)
-      }
-      catch (error) {
-        authStore.setAuthError(error instanceof Error ? error.message : 'Could not synchronize the host account.')
-      }
-    })()
+    void identity.synchronizeHost()
   })
 }
 

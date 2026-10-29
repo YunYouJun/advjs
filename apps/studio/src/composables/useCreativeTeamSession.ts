@@ -6,6 +6,7 @@ import { useCreativeTeamStore } from '../stores/useCreativeTeamStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { resolveManagedVoiceServiceUrl } from '../utils/managedVoiceHttp'
 import { cloudbaseAuthInjectionKey } from './useCloudbase'
+import { useStudioIdentity } from './useStudioIdentity'
 
 /** A visible workspace reads persisted state; only explicit author actions submit work. */
 export function useCreativeTeamSession() {
@@ -13,6 +14,7 @@ export function useCreativeTeamSession() {
   const auth = useAuthStore()
   const studio = useStudioStore()
   const store = useCreativeTeamStore()
+  const identity = useStudioIdentity()
   const endpoint = resolveManagedVoiceServiceUrl(import.meta.env.VITE_ADVJS_AI_RUNTIME_URL)
   const configured = Boolean(endpoint && import.meta.env.VITE_ADVJS_AI_RUNTIME_PROTOCOL === 'v2'
     && import.meta.env.VITE_ADVJS_AI_RUNTIME_APPLICATION_ID === 'advjs-studio-web')
@@ -24,6 +26,7 @@ export function useCreativeTeamSession() {
     store.disconnect()
     if (!configured || !endpoint || !sdk || !loggedIn || !accountId || !projectId)
       return
+    const sessionAuth = identity?.sessionAuth() ?? sdk
     const isCurrent = () => epoch === generation && auth.userId === accountId && auth.isLoggedIn && studio.currentProject?.projectId === projectId
     const assertCurrent = (value: unknown) => {
       if (!isCurrent() || parseAuthenticatedCloudbaseSession(value)?.user.id !== accountId)
@@ -37,8 +40,8 @@ export function useCreativeTeamSession() {
         baseUrl: endpoint,
         accountId,
         getAccessToken: createRuntimeAccessTokenGetter({
-          getSession: async () => assertCurrent(await sdk.getSession()),
-          refreshSession: async token => assertCurrent(await sdk.refreshSession(token)),
+          getSession: async () => assertCurrent(await sessionAuth.getSession()),
+          refreshSession: async token => assertCurrent(await sessionAuth.refreshSession(token)),
         }, { onSessionExpired: () => {
           if (isCurrent())
             auth.clearSession()

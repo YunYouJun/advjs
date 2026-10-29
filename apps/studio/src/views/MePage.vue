@@ -28,6 +28,7 @@ import NavGroup from '../components/ui/NavGroup.vue'
 import NavItem from '../components/ui/NavItem.vue'
 import SButton from '../components/ui/SButton.vue'
 import { useCloudbase } from '../composables/useCloudbase'
+import { useStudioIdentity } from '../composables/useStudioIdentity'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useNotificationsStore } from '../stores/useNotificationsStore'
 import { useSettingsStore } from '../stores/useSettingsStore'
@@ -38,13 +39,11 @@ const authStore = useAuthStore()
 const notificationsStore = useNotificationsStore()
 const { unreadCount } = storeToRefs(notificationsStore)
 const router = useRouter()
+const identity = useStudioIdentity()
 
-let auth: ReturnType<typeof useCloudbase>['auth'] | null = null
 let cloudApp: ReturnType<typeof useCloudbase>['app'] | null = null
 try {
-  const cb = useCloudbase()
-  auth = cb.auth
-  cloudApp = cb.app
+  cloudApp = useCloudbase().app
 }
 catch {
   // CloudBase not configured, auth features unavailable
@@ -58,8 +57,7 @@ function startNotificationPolling() {
 }
 
 onMounted(async () => {
-  if (auth)
-    await authStore.restoreSession(auth)
+  await identity?.refresh()
   startNotificationPolling()
 })
 
@@ -83,11 +81,12 @@ function handleRegister() {
 }
 
 async function handleLogout() {
-  if (auth) {
-    const applied = await authStore.logout(auth)
-    if (!applied)
-      return
+  if (!identity) {
+    authStore.clearSession()
+    return
   }
+  if (!await identity.logout())
+    return
 
   const toast = await toastController.create({
     message: t('me.loggedOut'),

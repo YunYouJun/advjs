@@ -1,14 +1,18 @@
 import type { AgentRequest } from '@advjs/agent'
 import type cloudbase from '@cloudbase/js-sdk'
+import type { StudioSsoSdk } from '../../../src/auth/studio-sso'
 import { IonicVue } from '@ionic/vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { createApp, defineComponent, h, ref } from 'vue'
 import { createI18n } from 'vue-i18n'
 import { createMemoryHistory, createRouter } from 'vue-router'
+import { createStudioIdentityCoordinator } from '../../../src/auth/identity-coordinator'
+import { STUDIO_SSO_CONFIGS } from '../../../src/auth/sso-config'
 import ManagedAgentConsole from '../../../src/components/agent/ManagedAgentConsole.vue'
 import { cloudbaseAuthInjectionKey } from '../../../src/composables/useCloudbase'
 import { useManagedAgentSession } from '../../../src/composables/useManagedAgentSession'
 import { useManagedVoiceSession } from '../../../src/composables/useManagedVoiceSession'
+import { studioIdentityInjectionKey } from '../../../src/composables/useStudioIdentity'
 import en from '../../../src/i18n/locales/en.json'
 import { useAuthStore } from '../../../src/stores/useAuthStore'
 import { useManagedAgentStore } from '../../../src/stores/useManagedAgentStore'
@@ -23,6 +27,7 @@ import 'virtual:uno.css'
 
 /** Only the SDK identity is a fixture. Real clients make HTTP requests to the intercepted local service. */
 async function main() {
+  const coordinated = new URLSearchParams(location.search).has('coordinator')
   const pinia = createPinia()
   setActivePinia(pinia)
   const auth = useAuthStore()
@@ -31,11 +36,19 @@ async function main() {
   const outcome = ref('ready')
   const tokenState = ref('ready')
   const logoutState = ref('ready')
+  const hostState = ref('ready')
+  const writeState = ref('ready')
+  const identityCalls = ref<string[]>([])
+  let holdHost = false
+  let holdWrite = false
+  let releaseHost: (() => void) | undefined
+  let releaseWrite: (() => void) | undefined
   let actor = 'author'
   let hold = false
   let release: (() => void) | undefined
   let releaseLogout: (() => void) | undefined
-  const session = (id: string) => ({ data: { session: { access_token: `${id}-fixture-token`, refresh_token: 'fixture-only', expires_at: 9999999999, user: { id } } } })
+  let notifyIdentity: (() => void) | undefined
+  const session = (id: string) => ({ data: { session: id ? { access_token: `${id}-fixture-token`, refresh_token: 'fixture-only', expires_at: 9999999999, user: { id } } : null } })
   const sdk = {
     async getSession() {
       const value = session(actor)
@@ -49,10 +62,29 @@ async function main() {
       return value
     },
     async signOut() {
+      if (coordinated) {
+        identityCalls.value.push('signout')
+        actor = ''
+        return {}
+      }
       logoutState.value = 'held'
       await new Promise<void>((resolve) => {
         releaseLogout = resolve
       })
+      return {}
+    },
+    async signInWithCustomTicket(getTicket: () => Promise<string>) {
+      const ticket = await getTicket()
+      identityCalls.value.push(`signin:${ticket}`)
+      if (holdWrite) {
+        holdWrite = false
+        writeState.value = 'held'
+        await new Promise<void>((resolve) => {
+          releaseWrite = resolve
+        })
+      }
+      actor = ticket
+      notifyIdentity?.()
       return {}
     },
   } as unknown as cloudbase.auth.App
@@ -78,6 +110,49 @@ async function main() {
   }
   const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/', component: { render: () => null } }, { path: '/login', component: { render: () => null } }] })
   await router.push('/')
+  let requestedActor = 'author'
+  const sso: StudioSsoSdk = {
+    async requestHostSsoAuthorization() {
+      const code = requestedActor
+      if (holdHost) {
+        holdHost = false
+        hostState.value = 'held'
+        await new Promise<void>((resolve) => {
+          releaseHost = resolve
+        })
+      }
+      return { ok: true, code, issuer: STUDIO_SSO_CONFIGS.production.ssoOrigin, clientId: STUDIO_SSO_CONFIGS.production.clientId, scope: STUDIO_SSO_CONFIGS.production.scope, redirectUri: STUDIO_SSO_CONFIGS.production.redirectUri, nonce: 'fixture-only', codeVerifier: 'fixture-only' }
+    },
+    async adoptSsoCode(adoption, authorization) {
+      await adoption.signInWithCustomTicket(async () => authorization.code)
+      return true
+    },
+    hasSsoRedirectResult: () => false,
+    consumeSsoRedirect: () => null,
+    startSsoRedirect: async () => {},
+  }
+  const identity = coordinated
+    ? createStudioIdentityCoordinator({
+        auth: sdk,
+        mirror: auth,
+        config: STUDIO_SSO_CONFIGS.production,
+        sdk: sso,
+        navigate: target => router.replace(target),
+      })
+    : undefined
+  if (identity) {
+    notifyIdentity = () => {
+      void identity.refresh()
+    }
+    window.addEventListener('ylf:identityChanged', () => {
+      void identity.synchronizeHost()
+    })
+    await identity.initialize()
+  }
+  function changeHost(id: string) {
+    requestedActor = id
+    window.dispatchEvent(new Event('ylf:identityChanged'))
+  }
   const app = createApp(defineComponent({
     setup() {
       useManagedAgentSession()
@@ -91,6 +166,28 @@ async function main() {
         h('p', { 'data-testid': 'token' }, tokenState.value),
         h('p', { 'data-testid': 'logout' }, logoutState.value),
         h('p', { 'data-testid': 'outcome' }, outcome.value),
+        ...(coordinated
+          ? [
+              h('p', { 'data-testid': 'host' }, hostState.value),
+              h('p', { 'data-testid': 'write' }, writeState.value),
+              h('p', { 'data-testid': 'identity-calls' }, identityCalls.value.join(',')),
+              h('nav', { style: 'display:flex;gap:8px;flex-wrap:wrap' }, [
+                button('Hold host response', () => { holdHost = true }),
+                button('Host author', () => changeHost('author')),
+                button('Host next account', () => changeHost('next-author')),
+                button('Release host response', () => {
+                  releaseHost?.()
+                  hostState.value = 'released'
+                }),
+                button('Hold SDK write', () => { holdWrite = true }),
+                button('Release SDK write', () => {
+                  releaseWrite?.()
+                  writeState.value = 'released'
+                }),
+                button('Coordinator logout', () => perform(() => identity!.logout())),
+              ]),
+            ]
+          : []),
         h('nav', { style: 'display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px' }, [
           button('Hold next token', () => { hold = true }),
           button('Release old token', () => {
@@ -121,6 +218,8 @@ async function main() {
   }))
   app.use(pinia).use(IonicVue).use(router).use(createI18n({ legacy: false, locale: 'en', messages: { en } }))
   app.provide(cloudbaseAuthInjectionKey, sdk)
+  if (identity)
+    app.provide(studioIdentityInjectionKey, identity)
   app.mount('#app')
 }
 void main()
