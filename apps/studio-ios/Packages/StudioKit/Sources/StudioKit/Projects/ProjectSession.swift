@@ -46,7 +46,7 @@ public final class ProjectSession: Identifiable {
     /// Async disk/engine work may finish out of order on this reentrant actor.
     private var loadGeneration = 0
     private enum LoadSource { case local, requested, external }
-    private var localLoad: Int?
+    private var foregroundLoad: Int?
     private var loadWaiters: [CheckedContinuation<Void, Never>] = []
     /// Internal scheduling seam for controlled file-event regressions.
     var hasWaitingReload: Bool { !loadWaiters.isEmpty }
@@ -298,11 +298,11 @@ public final class ProjectSession: Identifiable {
 
     @discardableResult
     private func load(source: LoadSource = .local) async throws -> Bool {
-        // A local operation must publish its snapshot before its API returns.
-        // Do not let a callback supersede that refresh, or count the bytes it
-        // just wrote as an external edit. Read disk again after the wait so
-        // genuine external edits made during the local refresh are retained.
-        while localLoad != nil {
+        // Explicit reads and local writes must publish before their APIs
+        // return. A later notification must not supersede that refresh or
+        // count locally written bytes as an external edit. Read disk again
+        // after the wait so genuinely concurrent external edits are retained.
+        while foregroundLoad != nil {
             await withCheckedContinuation { loadWaiters.append($0) }
         }
         guard state != .closed, state != .gone else { return false }
@@ -310,10 +310,10 @@ public final class ProjectSession: Identifiable {
         guard let root else { throw ProjectLibraryError.unavailable }
         loadGeneration += 1
         let generation = loadGeneration
-        if source == .local { localLoad = generation }
+        if source != .external { foregroundLoad = generation }
         defer {
-            if localLoad == generation {
-                localLoad = nil
+            if foregroundLoad == generation {
+                foregroundLoad = nil
                 resumeLoadWaiters()
             }
         }
@@ -350,7 +350,7 @@ public final class ProjectSession: Identifiable {
 
     private func invalidateLoads() {
         loadGeneration += 1
-        localLoad = nil
+        foregroundLoad = nil
         resumeLoadWaiters()
     }
 

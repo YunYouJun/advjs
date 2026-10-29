@@ -143,7 +143,7 @@ struct ProjectSessionTests {
         let original = try #require(session.snapshot?.files[path])
         session.updateDraft("my draft", for: path)
         let olderReload = PausedSnapshotReader.$pauses.withValue(true) {
-            Task { await session.reload() }
+            session.handle(.changed([folder.appending(path: path)]))
         }
         do {
             await waitUntil { await reader.isPaused }
@@ -153,7 +153,7 @@ struct ProjectSessionTests {
             await waitUntil { session.conflicts.first?.theirs == "external edit" }
             #expect(session.conflicts.first?.theirs == "external edit")
             await reader.resume()
-            await olderReload.value
+            await olderReload?.value
             #expect(session.snapshot?.files[path] == "external edit")
             #expect(session.conflicts.first?.mine == "my draft")
             #expect(session.conflicts.first?.theirs == "external edit")
@@ -161,7 +161,53 @@ struct ProjectSessionTests {
             #expect(original != "external edit")
         } catch {
             await reader.resume()
-            await olderReload.value
+            await olderReload?.value
+            await session.close()
+            throw error
+        }
+        await session.close()
+    }
+
+    @Test("An explicit reload publishes its snapshot before a later notification can return stale state")
+    func explicitReloadCannotBeSuperseded() async throws {
+        let studio = try TemporaryStudio()
+        defer { studio.remove() }
+        let reader = PausedSnapshotReader()
+        let (session, folder) = try await openSession(studio, readSnapshot: reader.read)
+        let path = "adv/world.md"
+        let url = folder.appending(path: path)
+        let date = Date(timeIntervalSince1970: 1_700_000_000)
+        try Data("read explicitly".utf8).write(to: url)
+        try FileManager.default.setAttributes([.modificationDate: date], ofItemAtPath: url.path(percentEncoded: false))
+        #expect(try FileManager.default.attributesOfItem(atPath: url.path(percentEncoded: false))[.modificationDate] as? Date == date)
+        let requested = PausedSnapshotReader.$pauses.withValue(true) {
+            Task { await session.reload() }
+        }
+        var notification: Task<Void, Never>?
+        do {
+            await waitUntil { await reader.isPaused }
+            try #require(await reader.isPaused)
+            notification = PausedSnapshotReader.$slot.withValue(1) {
+                PausedSnapshotReader.$pauses.withValue(true) {
+                    session.handle(.changed([folder.appending(path: path)]))
+                }
+            }
+            await waitUntil { await reader.isPaused(1) || session.hasWaitingReload }
+            let notificationStarted = await reader.isPaused(1) || session.hasWaitingReload
+            try #require(notificationStarted)
+            await reader.resume()
+            await requested.value
+            #expect(session.snapshot?.files[path] == "read explicitly")
+            #expect(session.snapshot?.modificationDates[path] == date)
+            await reader.resume(1)
+            await notification?.value
+            #expect(session.snapshot?.files[path] == "read explicitly")
+            #expect(session.externalReloads == 0)
+        } catch {
+            await reader.resume()
+            await reader.resume(1)
+            await requested.value
+            await notification?.value
             await session.close()
             throw error
         }
@@ -205,11 +251,13 @@ struct ProjectSessionTests {
         // A whole-second baseline survives file-system timestamp rounding.
         let date = Date(timeIntervalSince1970: 1_700_000_000)
         try FileManager.default.setAttributes([.modificationDate: date], ofItemAtPath: url.path(percentEncoded: false))
+        #expect(try FileManager.default.attributesOfItem(atPath: url.path(percentEncoded: false))[.modificationDate] as? Date == date)
         await session.reload()
         #expect(session.snapshot?.modificationDates[path] == date)
         session.updateDraft("my draft", for: path)
         try CoordinatedFiles.write(Data("external edit".utf8), to: url)
         try FileManager.default.setAttributes([.modificationDate: date], ofItemAtPath: url.path(percentEncoded: false))
+        #expect(try FileManager.default.attributesOfItem(atPath: url.path(percentEncoded: false))[.modificationDate] as? Date == date)
         #expect(session.snapshot?.isOutdated(at: folder) == false)
         await session.handle(.changed([url]))?.value
         await waitUntil { session.conflicts.first?.theirs == "external edit" }
@@ -339,21 +387,24 @@ private actor PausedSnapshotReader {
     // Scope the gate to the intended operation, so an unrelated real
     // presenter callback cannot accidentally consume the pause.
     @TaskLocal static var pauses = false
-    private var continuation: CheckedContinuation<Void, Never>?
-    private var released = false
-    var isPaused: Bool { continuation != nil }
+    @TaskLocal static var slot = 0
+    private var continuations: [Int: CheckedContinuation<Void, Never>] = [:]
+    private var released: Set<Int> = []
+    var isPaused: Bool { isPaused(0) }
+
+    func isPaused(_ slot: Int) -> Bool { continuations[slot] != nil }
 
     func read(_ root: URL, presenter: ProjectWatcher?) async throws -> ProjectSnapshot {
         let snapshot = try await ProjectSession.readSnapshot(root, presenter: presenter)
-        if Self.pauses, !released {
-            await withCheckedContinuation { continuation = $0 }
+        let slot = Self.slot
+        if Self.pauses, !released.contains(slot) {
+            await withCheckedContinuation { continuations[slot] = $0 }
         }
         return snapshot
     }
 
-    func resume() {
-        released = true
-        continuation?.resume()
-        continuation = nil
+    func resume(_ slot: Int = 0) {
+        released.insert(slot)
+        continuations.removeValue(forKey: slot)?.resume()
     }
 }
