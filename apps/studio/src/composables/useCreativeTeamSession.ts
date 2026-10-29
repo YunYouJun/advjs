@@ -17,13 +17,16 @@ export function useCreativeTeamSession() {
   const configured = Boolean(endpoint && import.meta.env.VITE_ADVJS_AI_RUNTIME_PROTOCOL === 'v2'
     && import.meta.env.VITE_ADVJS_AI_RUNTIME_APPLICATION_ID === 'advjs-studio-web')
   let timer: ReturnType<typeof setInterval> | undefined
+  let generation = 0
 
   watch([() => auth.userId, () => auth.isLoggedIn, () => studio.currentProject?.projectId], ([accountId, loggedIn, projectId]) => {
+    const epoch = ++generation
     store.disconnect()
     if (!configured || !endpoint || !sdk || !loggedIn || !accountId || !projectId)
       return
+    const isCurrent = () => epoch === generation && auth.userId === accountId && auth.isLoggedIn && studio.currentProject?.projectId === projectId
     const assertCurrent = (value: unknown) => {
-      if (parseAuthenticatedCloudbaseSession(value)?.user.id !== accountId || !auth.isLoggedIn || studio.currentProject?.projectId !== projectId)
+      if (!isCurrent() || parseAuthenticatedCloudbaseSession(value)?.user.id !== accountId)
         throw new Error('Creative session changed')
       return value
     }
@@ -36,7 +39,10 @@ export function useCreativeTeamSession() {
         getAccessToken: createRuntimeAccessTokenGetter({
           getSession: async () => assertCurrent(await sdk.getSession()),
           refreshSession: async token => assertCurrent(await sdk.refreshSession(token)),
-        }, { onSessionExpired: () => auth.clearSession() }),
+        }, { onSessionExpired: () => {
+          if (isCurrent())
+            auth.clearSession()
+        } }),
       }),
     })
     void store.refresh()
@@ -55,6 +61,7 @@ export function useCreativeTeamSession() {
     }, 5000)
   })
   onBeforeUnmount(() => {
+    generation += 1
     clearInterval(timer)
     window.removeEventListener('online', recover)
     document.removeEventListener('visibilitychange', recover)
