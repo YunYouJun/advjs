@@ -1,3 +1,4 @@
+import type { CreativeTeamRun } from '@advjs/agent'
 import type { Page } from '@playwright/test'
 import { createHash } from 'node:crypto'
 import { readFile, writeFile } from 'node:fs/promises'
@@ -1235,12 +1236,145 @@ async function stageUnifiedMedia(page: Page, audioPath: string) {
 
 async function fillDeliveryReview(page: Page) {
   const panel = page.getByTestId('creative-delivery')
+  await expect(panel.getByLabel('采用、保留或排除的理由', { exact: true }).first()).toBeVisible()
   for (const input of await panel.getByLabel('采用、保留或排除的理由', { exact: true }).all())
     await input.fill('核对本次范围：已有素材保留采用；方案仅供参考，未选配音仍待处理。')
   await panel.getByLabel('作者交付说明与剩余事项', { exact: true }).fill('作者结束本次事务验证。配音尚未选用；画面、表演与完整剧情仍须另行验收。')
   await panel.getByRole('checkbox').check()
   return panel
 }
+
+test('keeps real image, selected speech, both endings, director evidence and author closure on the same saved story', async ({ page }, info) => {
+  test.setTimeout(120000)
+  const audioPath = process.env.STUDIO_CREATIVE_VOICE_WAV
+  test.skip(!audioPath, 'Requires the existing real external spoken WAV; no substitute media is generated')
+  interface Bridge {
+    files: () => Promise<Record<string, string>>
+    media: () => Promise<Array<{ id: string, sha256: string, expectedSha256: string, bytes: number, expectedBytes: number }>>
+    run: () => CreativeTeamRun
+    calls: () => Array<{ method: string, path: string }>
+    writes: () => string[]
+    editSource: (path: string, content: string) => Promise<void>
+  }
+  const read = () => page.evaluate(async () => {
+    const fixture = (window as unknown as { creativeMediaFixture: Bridge }).creativeMediaFixture
+    return { files: await fixture.files(), media: await fixture.media(), run: fixture.run(), calls: fixture.calls(), writes: fixture.writes() }
+  })
+  await page.addInitScript(() => {
+    const playback: Array<{ duration: number, state: string, ended: boolean, trusted: boolean, elapsed: number }> = []
+    Object.assign(window, { storyJourneyPlayback: playback })
+    const start = AudioBufferSourceNode.prototype.start
+    AudioBufferSourceNode.prototype.start = function (...args: Parameters<typeof start>) {
+      if (this.buffer && this.buffer.duration > 1) {
+        const at = this.context.currentTime
+        const row = { duration: this.buffer.duration, state: this.context.state, ended: false, trusted: false, elapsed: 0 }
+        playback.push(row)
+        this.addEventListener('ended', event => Object.assign(row, { ended: true, trusted: event.isTrusted, elapsed: this.context.currentTime - at }), { once: true })
+      }
+      return start.apply(this, args)
+    }
+  })
+  const url = '/tests/fixtures/creative-team/media-milestones.html?case=delivery-story'
+  await page.goto(url)
+  await expect(page).toHaveTitle('Creative media milestone UI fixture')
+  await expect(page.getByRole('note')).toContainText('无模型或计费')
+  await expect.poll(() => page.evaluate(() => Boolean((window as unknown as { creativeMediaFixture?: Bridge }).creativeMediaFixture))).toBe(true)
+  await expect(page.locator('vite-error-overlay')).toHaveCount(0)
+  const initial = await read()
+  const milestone = await stageUnifiedMedia(page, audioPath!)
+  expect((await read()).files).toEqual(initial.files)
+  await milestone.getByRole('button', { name: '确认写入项目', exact: true }).click()
+  await expect(milestone.getByText(/最近一次采用已确认/)).toBeVisible()
+  const lineId = 'line_01900400-0000-7000-8000-000000000001'
+  await page.goto(`/tabs/workspace/audio?section=review&speaker=lin&line=${lineId}`)
+  const audio = page.getByTestId('audio-workspace')
+  await audio.locator('.voice-review__take').getByRole('button', { name: '试听', exact: true }).click()
+  await expect.poll(() => audio.locator('audio').evaluate((element: HTMLAudioElement) => element.duration)).toBeGreaterThan(1)
+  await audio.getByRole('button', { name: '播放试听', exact: true }).click()
+  await expect.poll(() => audio.locator('audio').evaluate((element: HTMLAudioElement) => element.currentTime)).toBeGreaterThan(0.4)
+  await page.goto(url)
+  await expect.poll(() => page.evaluate(() => Boolean((window as unknown as { creativeMediaFixture?: Bridge }).creativeMediaFixture))).toBe(true)
+  const candidate = page.getByTestId('creative-voice-candidate')
+  await candidate.getByRole('checkbox', { name: '我已试听，并确认将此候选设为当前选用（如有旧选择，将替换它）', exact: true }).check()
+  await candidate.getByRole('button', { name: '审阅此配音的选用绑定', exact: true }).click()
+  const selection = candidate.filter({ hasText: '本候选只改变当前台词的选用绑定' })
+  await selection.getByRole('button', { name: '登记制作组候选（项目未变）', exact: true }).click()
+  await milestone.getByRole('checkbox').check()
+  await milestone.getByLabel('采用或撤销的原因', { exact: true }).fill('同一项目中已实际试听，明确选用该录音。')
+  await milestone.getByRole('button', { name: '审阅采用', exact: true }).click()
+  await milestone.getByRole('button', { name: '确认写入项目', exact: true }).click()
+  await expect(selection.getByRole('heading', { name: /选用绑定已确认/ })).toBeVisible()
+  const oldPlan = page.locator('.team-artifact').filter({ hasText: '双结局实际路径待执行' })
+  await expect(oldPlan).toContainText('已过期')
+  const checkTask = page.getByRole('listitem').filter({ hasText: '双结局路径与报告' })
+  await checkTask.getByLabel('说明要调整的地方', { exact: true }).fill('媒体和选用绑定已采用，按当前保存版本重新核对路径。')
+  await checkTask.getByRole('button', { name: '请求返工', exact: true }).click()
+  await page.locator('.team-artifact').filter({ hasText: '当前保存版本的双结局路径' }).getByRole('button', { name: '选定候选并继续', exact: true }).click()
+  const playtest = page.getByTestId('creative-playtest')
+  await playtest.getByRole('button', { name: '载入试玩员提出的路径', exact: true }).click()
+  await playtest.getByRole('button', { name: '执行这些路径', exact: true }).click()
+  await expect(page.getByTestId('creative-playtest-report').getByRole('heading', { name: /指定路径通过/ })).toHaveCount(2)
+  await expect(playtest.getByText('已同步作者宿主报告，服务端未重放', { exact: true })).toBeVisible()
+  const saved = await read()
+  expect(saved.run.playtests).toHaveLength(1)
+  expect(saved.run.playtests![0]).toMatchObject({ passed: 2, failed: 0, blocked: 0, scope: 'saved' })
+  expect(saved.media).toHaveLength(2)
+  expect(saved.media.every(item => item.sha256 === item.expectedSha256 && item.bytes === item.expectedBytes)).toBe(true)
+  const ledger = JSON.parse(saved.files['adv/audio/voice-ledger.json'])
+  expect(ledger.lines[lineId].locales['zh-CN'].selectedTake).toBeTruthy()
+  await page.goto('/tabs/play')
+  await expect(page.locator('.game-player')).toContainText('列车还没有到，我们再等一会儿。')
+  const image = page.locator('.dialog-avatar-wrap img')
+  await expect(image).toBeVisible()
+  await expect.poll(() => image.evaluate((element: HTMLImageElement) => ({ loaded: element.complete, width: element.naturalWidth, local: element.src.startsWith('blob:') }))).toEqual({ loaded: true, width: 619, local: true })
+  await page.locator('.game-player .adv-ui').click({ position: { x: 200, y: 300 } })
+  await page.getByTestId('play-toolbar-actions').getByRole('button', { name: '设置', exact: true }).click()
+  await page.locator('.adv-popover-menu:visible').getByText('重新开始', { exact: true }).click()
+  await expect.poll(() => page.evaluate(() => (window as unknown as { storyJourneyPlayback: Array<{ ended: boolean, trusted: boolean, state: string, elapsed: number, duration: number }> }).storyJourneyPlayback.some(item => item.ended && item.trusted && item.state === 'running' && item.elapsed >= item.duration - 0.15)), { timeout: 12000 }).toBe(true)
+  const playback = await page.evaluate(() => (window as unknown as { storyJourneyPlayback: unknown }).storyJourneyPlayback)
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await expect(image).toBeInViewport()
+    await page.screenshot({ path: info.outputPath(`same-story-player-${width}.png`), animations: 'allow' })
+  }
+  await page.goto(url)
+  await expect.poll(() => page.evaluate(() => Boolean((window as unknown as { creativeMediaFixture?: Bridge }).creativeMediaFixture))).toBe(true)
+  expect((await read()).calls.every(call => call.method === 'GET')).toBe(true)
+  expect((await read()).writes).toEqual([])
+  await page.getByRole('button', { name: '生成导演交付建议', exact: true }).click()
+  const summaryCard = page.locator('.team-artifact').filter({ hasText: '同项目媒体与双结局的替身导演建议' })
+  await summaryCard.getByText('查看完整内容', { exact: true }).click()
+  const summary = page.getByTestId('creative-director-summary')
+  await expect(summary).toContainText('通过 2 · 失败 0')
+  await expect(summary).toContainText('与本次快照版本一致')
+  await summaryCard.getByRole('button', { name: '选定候选并继续', exact: true }).click()
+  const panel = await fillDeliveryReview(page)
+  await panel.getByLabel('作者交付说明与剩余事项', { exact: true }).fill('同一保存版本的图片、选用对白与两个结局已验证；其余媒体和真实模型创作品质未验收。')
+  await panel.getByRole('button', { name: '审阅交付记录', exact: true }).click()
+  await expect(panel.getByText(/项目已编译/)).toBeVisible()
+  await panel.getByRole('button', { name: '确认记录并结束本次制作组', exact: true }).click()
+  await expect(panel.getByText(/作者已结束本次制作组/)).toBeVisible()
+  const closed = await read()
+  expect(closed.run.status).toBe('completed')
+  expect(closed.run.delivery!.playtestIds).toEqual([saved.run.playtests![0].id])
+  expect(closed.files).toEqual(saved.files)
+  expect(closed.media).toEqual(saved.media)
+  expect(closed.run.chargedMicroPoints).toBe(0)
+  await page.reload()
+  await expect(panel.getByText(/作者已结束本次制作组/)).toBeVisible()
+  const reopened = await read()
+  expect(reopened.files).toEqual(closed.files)
+  expect(reopened.media).toEqual(closed.media)
+  expect(reopened.run.delivery).toEqual(closed.run.delivery)
+  expect(reopened.calls.every(call => call.method === 'GET')).toBe(true)
+  expect(reopened.writes).toEqual([])
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await panel.scrollIntoViewIfNeeded()
+    await page.screenshot({ path: info.outputPath(`same-story-closed-${width}.png`), animations: 'disabled' })
+  }
+  await writeFile(info.outputPath('same-story-journey.json'), JSON.stringify({ scope: 'One actual saved project, real existing WebP and external WAV, HTTP client/shared authoring contracts, IndexedDB and product transactions, both core paths, product image/audio playback, grounded substitute director summary and independent author closure. Initial story and specialist plans, identity and local service storage are explicit fixtures; no real models, billing or quality certification.', initial, saved, playback, closed, reopened }, null, 2))
+})
 
 test('closes adopted real media through an independent author decision and reopens a lost receipt without rewriting files', async ({ page }, info) => {
   const audioPath = process.env.STUDIO_CREATIVE_VOICE_WAV

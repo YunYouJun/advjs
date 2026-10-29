@@ -51,6 +51,14 @@ async function main() {
     'adv/characters/lin.character.md': '---\nid: lin\nname: 林\nvoiceProfile:\n  intent:\n    speakingStyle: 平静\n  locales:\n    zh-CN:\n      providers:\n        local-system:\n          voiceId: Tingting\n          model: macos-say\n          source: system\n---\n外部系统语音和既有小云图片的真实媒体回流验证，不表示人物美术或表演品质。',
     'adv/chapters/intro.adv.md': '# 等车 {#start}\n\n@lin\n列车还没有到，我们再等一会儿。 {#line_01900400-0000-7000-8000-000000000001}\n\n@lin\n这是下一句，没有绑定配音。',
   }
+  const storyJourney = variant === 'delivery-story'
+  if (storyJourney) {
+    originals['adv/world.md'] = '# 雨夜车站\n普通现实世界；人物在候车室决定留下或离开。\n'
+    originals['adv/characters/qiao.character.md'] = '---\nid: qiao\nname: 乔雨\n---\n带着一封未寄出的信的旅客。\n'
+    originals['adv/chapters/intro.adv.md'] = '# 雨夜车站 {#start}\n\n@lin\n列车还没有到，我们再等一会儿。 {#line_01900400-0000-7000-8000-000000000001}\n\n@qiao\n我想把这封信亲手交给她。\n\n- [留下等车](stay#ending-stay)\n- [离开车站](leave#ending-leave)\n'
+    originals['adv/chapters/stay.adv.md'] = '# 留下 {#ending-stay}\n\n> 末班车的灯光穿过雨幕，她把信交给来接她的人。\n'
+    originals['adv/chapters/leave.adv.md'] = '# 离开 {#ending-leave}\n\n> 她把信收好，和林舟约定明天再来。\n'
+  }
   const multilineNarration = variant === 'markdown-narration-selected'
   const artPlayerChapter = '# 画面回流 {#start}\n\n```yaml\ntype: background\nname: station\n```\n\n```yaml\ntype: tachie\nenter: 林\n```\n\n@lin\n默认立绘和背景已经采用。\n\n```yaml\ntype: tachie\nenter:\n  name: 林\n  status: good\n```\n\n@lin\n现在切换到 good 表情。'
   if (variant.startsWith('art-targets')) {
@@ -100,6 +108,14 @@ async function main() {
     { id: 'art-direction', runId, taskId: 'art', partner: 'art-director', projectId, kind: 'art-direction', source, fingerprint: 'art-v1', summary: '既有图片回流方案 fixture', output: { kind: 'art-direction', summary: '既有图片回流方案 fixture', style: 'Preserve the repository image', requests: [{ assetId: 'character/lin/default', kind: 'portrait', characterId: 'lin', width: 619, height: 619, prompt: 'Existing image for protocol verification', constraints: [] }] }, changes: [], reviewCapabilities: [], status: 'selected' },
     { id: 'voice-direction', runId, taskId: 'voice', partner: 'voice-director', projectId, kind: 'voice-direction', source, fingerprint: 'voice-v1', summary: '真实系统语音回流方案 fixture', output: { kind: 'voice-direction', summary: '真实系统语音回流方案 fixture', cast: [{ speakerId: 'lin', designBrief: 'Tingting system voice', performance: 'Calm' }, { speakerId: 'narrator', designBrief: 'Independent narrator', performance: 'Not produced' }], dictionary: [], lines: [{ path: 'adv/chapters/intro.adv.md', line: 4, speakerId: 'lin', text: '列车还没有到，我们再等一会儿。', instruction: '平静地邀请同伴继续等待' }] }, changes: [], reviewCapabilities: ['voice-take'], status: 'selected' },
   ]
+  if (storyJourney) {
+    run.plan.tasks = [...run.plan.tasks, { id: 'check', partner: 'playtester', capability: 'playtest-project', dependsOn: ['art', 'voice'], sourcePaths: Object.keys(originals), instruction: '明确的本地方案；实际执行与媒体检查由作者宿主完成', expectedOutput: '双结局路径与报告' }, { id: 'delivery', partner: 'director', capability: 'summarize-production', dependsOn: ['check'], sourcePaths: Object.keys(originals), instruction: '作者明确请求后核对实际媒体、路径与成本', expectedOutput: '依据真实保存记录的替身建议' }]
+    run.tasks = [...run.tasks, { taskId: 'check', status: 'completed', attempt: 1, artifactIds: ['story-paths'] }, { taskId: 'delivery', status: 'pending', attempt: 0, artifactIds: [] }]
+    run.artifacts = [...run.artifacts, { id: 'story-paths', runId, taskId: 'check', partner: 'playtester', projectId, kind: 'playtest-plan', source: { ...source, upstream: run.artifacts.map(item => ({ artifactId: item.id, fingerprint: item.fingerprint })) }, fingerprint: 'story-paths-v1', summary: '双结局实际路径待执行', output: { kind: 'playtest-plan', summary: '双结局实际路径待执行', scenarios: [{ id: 'stay', choices: [0], expectedEnding: 'stay#ending-stay' }, { id: 'leave', choices: [1], expectedEnding: 'leave#ending-leave' }], concerns: [] }, changes: [], reviewCapabilities: [], status: 'selected' }]
+    const voice = run.artifacts[1]!.output!
+    if (voice.kind === 'voice-direction')
+      voice.lines = [{ path: 'adv/chapters/intro.adv.md', lineId: 'line_01900400-0000-7000-8000-000000000001', source: { line: 3, endLine: 4, text: '@lin\n列车还没有到，我们再等一会儿。 {#line_01900400-0000-7000-8000-000000000001}' }, speakerId: 'lin', text: '列车还没有到，我们再等一会儿。', instruction: '复用既有外部录音；其他对白明确未制作' }]
+  }
   if (variant.startsWith('art-targets')) {
     const output = run.artifacts[0]!.output!
     if (output.kind === 'art-direction') {

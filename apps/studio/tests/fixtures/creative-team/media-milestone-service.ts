@@ -1,12 +1,12 @@
-import type { CreativeTeamRun } from '@advjs/agent'
+import type { CreativePlaytestReport, CreativeTeamRun } from '@advjs/agent'
 import type { Plugin } from 'vite'
 import { Buffer } from 'node:buffer'
 import { createHash } from 'node:crypto'
-import { computeAgentProjectRevision, creativeMediaCanonical, creativeMilestoneChanges, overlayCreativeMilestone, parseCreativeCandidateEditRequest, parseCreativeDeliveryRequest, parseCreativeMediaCandidateRequest, parseCreativeMilestoneCommand, parseCreativeProject, parseCreativeTeamPublicDecision, parseCreativeTeamRun, prepareCreativeCandidateEdit, prepareCreativeMediaCandidate, prepareCreativeMilestone, reduceCreativeTeamRun } from '@advjs/agent'
+import { computeAgentProjectRevision, creativeMediaCanonical, creativeMilestoneChanges, overlayCreativeMilestone, parseCreativeCandidateEditRequest, parseCreativeDeliveryRequest, parseCreativeMediaCandidateRequest, parseCreativeMilestoneCommand, parseCreativePartnerOutput, parseCreativePlaytestReport, parseCreativeProject, parseCreativeTeamPublicDecision, parseCreativeTeamRun, prepareCreativeCandidateEdit, prepareCreativeDirectorSummaryEvidence, prepareCreativeMediaCandidate, prepareCreativeMilestone, reduceCreativeTeamRun } from '@advjs/agent'
 
 /** Explicit local service substitute. Uses the shared validators/reducer; no models, billing or cloud DB. */
 export function creativeMediaMilestoneFixtureService(): Plugin {
-  const records = new Map<string, { run: CreativeTeamRun, revision: string, files: Readonly<Record<string, string>> }>()
+  const records = new Map<string, { run: CreativeTeamRun, revision: string, files: Readonly<Record<string, string>>, reports: Record<string, CreativePlaytestReport>, reportRequests: Record<string, string> }>()
   const hash = (value: unknown) => createHash('sha256').update(creativeMediaCanonical(value)).digest('hex')
   return {
     name: 'creative-media-milestone-fixture-service',
@@ -36,7 +36,7 @@ export function creativeMediaMilestoneFixtureService(): Plugin {
             const input = body as CreativeTeamRun
             const run = parseCreativeTeamRun(input, { accountId: input.accountId, projectId: input.plan.projectId })
             if (!records.has(run.plan.projectId))
-              records.set(run.plan.projectId, { run, revision: run.plan.projectRevision, files: run.artifacts[0]!.source.files })
+              records.set(run.plan.projectId, { run, revision: run.plan.projectRevision, files: run.artifacts[0]!.source.files, reports: {}, reportRequests: {} })
             return send(200, {})
           }
           const projectId = url.searchParams.get('projectId') ?? ''
@@ -44,7 +44,7 @@ export function creativeMediaMilestoneFixtureService(): Plugin {
           if (url.pathname === '/__creative-media-fixture/exists')
             return send(200, { exists: Boolean(record) })
           if (url.pathname.endsWith('/capabilities'))
-            return send(200, { protocolVersion: 1, enabled: projectId.startsWith('creative-media-voice-plan'), authoring: { candidateEdits: true, voiceDirectionEdits: true, milestoneAdoption: true, milestoneMerges: true, mediaCandidates: true, delivery: projectId.startsWith('creative-media-delivery-') }, serviceVersion: 'explicit local authoring service fixture; no models', capabilities: [], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } })
+            return send(200, { protocolVersion: 1, enabled: projectId === 'creative-media-delivery-story' || projectId.startsWith('creative-media-voice-plan'), authoring: { playtestReports: projectId === 'creative-media-delivery-story', playtestVoiceCoverage: projectId === 'creative-media-delivery-story', candidateEdits: true, voiceDirectionEdits: true, milestoneAdoption: true, milestoneMerges: true, mediaCandidates: true, delivery: projectId.startsWith('creative-media-delivery-') }, serviceVersion: 'explicit local authoring service fixture; no models', capabilities: projectId === 'creative-media-delivery-story' ? ['playtest-project', 'summarize-production'] : [], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } })
           if (!record)
             return send(404, { error: { code: 'CREATIVE_NOT_FOUND', message: 'Explicit fixture project not found' } })
           const run = record.run
@@ -70,7 +70,29 @@ export function creativeMediaMilestoneFixtureService(): Plugin {
             if (previous && (previous.action !== 'finish' || previous.requestFingerprint !== hash(input)))
               throw new Error('CREATIVE_IDEMPOTENCY_CONFLICT')
             if (!previous)
-              record.run = reduceCreativeTeamRun(run, { type: 'finish', request: input, decisionId: key, requestFingerprint: hash(input) }, Date.now())
+              record.run = reduceCreativeTeamRun(run, { type: 'finish', request: input, reports: Object.values(record.reports), decisionId: key, requestFingerprint: hash(input) }, Date.now())
+          }
+          else if (url.pathname.includes('/playtests/') && request.method === 'GET') {
+            const report = record.reports[url.pathname.split('/').at(-1)!]
+            return send(report ? 200 : 404, report ? { protocolVersion: 1, report } : {})
+          }
+          else if (url.pathname.endsWith('/playtests') && request.method === 'POST' && projectId === 'creative-media-delivery-story') {
+            const input = body as { project: unknown, report: unknown }
+            const project = parseCreativeProject(input.project)
+            const report = parseCreativePlaytestReport(input.report)
+            if (project.id !== projectId || project.revision !== record.revision || await computeAgentProjectRevision(project.files) !== project.revision
+              || report.projectId !== projectId || report.scope !== 'saved' || report.baselineRevision !== project.revision || report.snapshotRevision !== project.revision) {
+              throw new Error('CREATIVE_SOURCE_CONFLICT')
+            }
+            const id = `report_${hash([run.id, key]).slice(0, 24)}`
+            if (record.reportRequests[id] && record.reportRequests[id] !== hash(input))
+              throw new Error('CREATIVE_IDEMPOTENCY_CONFLICT')
+            if (!record.reports[id]) {
+              record.reports[id] = report
+              record.reportRequests[id] = hash(input)
+              const count = (status: string) => report.executions.filter(item => item.status === status).length
+              record.run = { ...run, revision: run.revision + 1, updatedAt: Date.now(), playtests: [...(run.playtests ?? []), { id, intentId: key, projectId, baselineRevision: report.baselineRevision, snapshotRevision: report.snapshotRevision, scope: report.scope, artifacts: report.artifacts, runnerVersion: report.runnerVersion, verification: 'author-host', passed: count('passed'), failed: count('failed'), blocked: count('blocked'), cancelled: count('cancelled'), createdAt: Date.now() }] }
+            }
           }
           else if (url.pathname.endsWith('/candidate-edits') && request.method === 'POST') {
             const input = parseCreativeCandidateEditRequest(body)
@@ -84,9 +106,24 @@ export function creativeMediaMilestoneFixtureService(): Plugin {
           }
           else if (url.pathname.endsWith('/decisions') && request.method === 'POST') {
             const action = parseCreativeTeamPublicDecision(body, key)
-            if (action.type !== 'select')
-              throw new Error('Fixture permits only explicit candidate selection, never dispatch')
-            record.run = reduceCreativeTeamRun(run, action, Date.now())
+            if (action.type === 'request-rework' && action.taskId === 'check' && projectId === 'creative-media-delivery-story') {
+              const requested = reduceCreativeTeamRun(run, action, Date.now())
+              const output = parseCreativePartnerOutput('playtest-plan', { kind: 'playtest-plan', summary: '当前保存版本的双结局路径', scenarios: [{ id: 'stay', choices: [0], expectedEnding: 'stay#ending-stay' }, { id: 'leave', choices: [1], expectedEnding: 'leave#ending-leave' }], concerns: [] }, { projectId, projectRevision: record.revision, files: record.files, characterIds: ['lin', 'qiao'], limits: run.plan.limits })
+              const reserved = reduceCreativeTeamRun(requested, { type: 'reserve-next', taskId: 'check', quotedMicroPoints: 0, toolCalls: 0, inputFingerprint: record.revision }, Date.now())
+              record.run = reduceCreativeTeamRun(reserved, { type: 'settle-task', taskId: 'check', dispatchKey: reserved.tasks.find(item => item.taskId === 'check')!.dispatchKey!, status: 'completed', usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0, providerCostMicroCny: 0, chargedMicroPoints: 0 }, artifacts: [{ id: `check_${hash(key).slice(0, 20)}`, runId: run.id, taskId: 'check', partner: 'playtester', projectId, kind: 'playtest-plan', source: { projectId, revision: record.revision, files: record.files, upstream: requested.artifacts.filter(item => ['art', 'voice'].includes(item.taskId) && ['selected', 'adopted'].includes(item.status)).map(item => ({ artifactId: item.id, fingerprint: item.fingerprint })) }, fingerprint: `sha256:${hash(output)}`, summary: output.summary, output, changes: [], reviewCapabilities: [], status: 'candidate' }] }, Date.now())
+            }
+            else if (action.type === 'request-rework' && action.taskId === 'delivery' && projectId === 'creative-media-delivery-story') {
+              const requested = reduceCreativeTeamRun(run, action, Date.now())
+              const evidence = prepareCreativeDirectorSummaryEvidence(requested, 'delivery', { revision: record.revision, files: record.files }, record.reports, record.revision)
+              const output = parseCreativePartnerOutput('delivery-summary', { kind: 'delivery-summary', summary: '同项目媒体与双结局的替身导演建议', overview: '只汇总实际保存的媒体、核心路径和零模型费用；模型创作与艺术品质未验收。', deliverables: evidence.state.artifacts.map(item => ({ artifactId: item.artifactId, fingerprint: item.fingerprint, assessment: '作者核对实际采用和未完成内容。' })), risks: ['其余对白与背景未制作；叙事、图片与表演品质未验收。'], nextSteps: ['作者独立审阅后决定是否结束本次有限验证。'], recommendation: 'review-current-scope' }, { projectId, projectRevision: record.revision, files: record.files, characterIds: ['lin', 'qiao'], limits: run.plan.limits, directorSummary: evidence })
+              const reserved = reduceCreativeTeamRun(requested, { type: 'reserve-next', taskId: 'delivery', quotedMicroPoints: 0, toolCalls: 0, inputFingerprint: `sha256:${hash(evidence)}` }, Date.now())
+              record.run = reduceCreativeTeamRun(reserved, { type: 'settle-task', taskId: 'delivery', dispatchKey: reserved.tasks.find(item => item.taskId === 'delivery')!.dispatchKey!, status: 'completed', usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0, providerCostMicroCny: 0, chargedMicroPoints: 0 }, artifacts: [{ id: `summary_${hash(key).slice(0, 20)}`, runId: run.id, taskId: 'delivery', partner: 'director', projectId, kind: 'delivery-summary', source: { projectId, revision: record.revision, files: record.files, upstream: requested.artifacts.filter(item => ['selected', 'adopted'].includes(item.status)).map(item => ({ artifactId: item.id, fingerprint: item.fingerprint })) }, fingerprint: `sha256:${hash(output)}`, summary: output.summary, output, changes: [], reviewCapabilities: [], status: 'candidate' }] }, Date.now())
+            }
+            else {
+              if (action.type !== 'select')
+                throw new Error('Fixture permits only candidate selection or the explicit story summary substitute')
+              record.run = reduceCreativeTeamRun(run, action, Date.now())
+            }
           }
           else if (url.pathname.endsWith('/media-candidates') && request.method === 'POST') {
             const input = parseCreativeMediaCandidateRequest(body)
