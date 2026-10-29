@@ -1,7 +1,7 @@
 import type { CreativePartnerOutput, CreativeTeamHandoff, CreativeTeamRun } from '@advjs/agent'
 
 /** Deterministic model substitute for starting at a real template; never creative-quality evidence. */
-export function productionStartFixtureOutput(run: CreativeTeamRun, handoff: CreativeTeamHandoff): CreativePartnerOutput {
+export function productionStartFixtureOutput(run: CreativeTeamRun, handoff: CreativeTeamHandoff, options: { media?: boolean } = {}): CreativePartnerOutput {
   const task = run.plan.tasks.find(task => task.id === handoff.taskId)!
   if (task.capability === 'plan-production') {
     const sourcePaths = task.sourcePaths
@@ -13,7 +13,7 @@ export function productionStartFixtureOutput(run: CreativeTeamRun, handoff: Crea
       { id: 'check', partner: 'playtester' as const, capability: 'playtest-project' as const, dependsOn: ['script', 'art', 'voice'] },
       { id: 'delivery', partner: 'director' as const, capability: 'summarize-production' as const, dependsOn: ['check'] },
     ]
-    return { kind: 'production-plan', summary: '模板起步 · 六角色分工 fixture', plan: { protocolVersion: 1, projectId: run.plan.projectId, projectRevision: handoff.facts.revision, goal: run.plan.goal, limits: run.plan.limits, tasks: tasks.map(task => ({ ...task, sourcePaths, instruction: '确定性模型替身：验证本次输入与实际交接，不认证创作品质', expectedOutput: task.id === 'delivery' ? '作者明确请求后的实际证据摘要' : '等待作者审阅的结构化候选' })) } }
+    return { kind: 'production-plan', summary: '模板起步 · 六角色分工 fixture', plan: { protocolVersion: 1, projectId: run.plan.projectId, projectRevision: handoff.facts.revision, goal: run.plan.goal, limits: run.plan.limits, tasks: tasks.map(task => ({ ...task, sourcePaths: options.media && !['art', 'voice', 'delivery'].includes(task.id) ? sourcePaths.filter(path => path !== 'adv/assets.json') : sourcePaths, instruction: '确定性模型替身：验证本次输入与实际交接，不认证创作品质', expectedOutput: task.id === 'delivery' ? '作者明确请求后的实际证据摘要' : '等待作者审阅的结构化候选' })) } }
   }
   if (task.capability === 'design-characters') {
     return { kind: 'characters', summary: '模板起步 · 两位人物 fixture', characters: [
@@ -31,7 +31,7 @@ export function productionStartFixtureOutput(run: CreativeTeamRun, handoff: Crea
     if (cast?.kind !== 'characters')
       throw new Error('Template fixture requires the actual selected cast handoff')
     return { kind: 'chapter', summary: '模板起步 · 含预埋问题的章节 fixture', entryChapterId: '01', endingAddresses: ['stay#ending-stay', 'leave#ending-leave'], chapters: [
-      { id: '01', title: '雨夜车站', content: `# 雨夜车站 {#arrival}\n\n@lin\n${cast.characters[0].motivation}。\n\n@qiao\n等我确认信上的名字。\n\n- [留下线索](stay#ending-stay)\n- [登上末班车](missing#ending-leave)\n` },
+      { id: '01', title: '雨夜车站', content: `# 雨夜车站 {#arrival}\n\n@lin\n${options.media ? '列车还没有到，我们再等一会儿。 {#line_01900400-0000-7000-8000-000000000001}\n\n> ' : ''}${cast.characters[0].motivation}。\n\n@qiao\n等我确认信上的名字。\n\n- [留下线索](stay#ending-stay)\n- [登上末班车](missing#ending-leave)\n` },
       { id: 'stay', title: '留下', content: '# 留下 {#ending-stay}\n\n> 乔雨留下姐姐的名字，和林舟继续寻找信的主人。\n' },
       { id: 'leave', title: '离开', content: '# 离开 {#ending-leave}\n\n> 车门合上。乔雨带走线索，林舟留在站台等回信。\n' },
     ] }
@@ -39,7 +39,7 @@ export function productionStartFixtureOutput(run: CreativeTeamRun, handoff: Crea
   if (task.capability === 'direct-art')
     return { kind: 'art-direction', summary: '模板起步 · 美术交接 fixture', style: '冷灰雨夜，暖光信封；尚未制作真实图片', requests: [{ assetId: 'character/lin/default', kind: 'portrait', characterId: 'lin', width: 619, height: 619, prompt: '失物招领员，旧制服', constraints: ['只交接，未生成图片'] }] }
   if (task.capability === 'direct-voice')
-    return { kind: 'voice-direction', summary: '模板起步 · 人物与旁白方案 fixture', cast: [{ speakerId: 'lin', designBrief: '谨慎低声', performance: '平静' }, { speakerId: 'qiao', designBrief: '克制', performance: '犹豫' }, { speakerId: 'narrator', designBrief: '独立旁白', performance: '客观' }], dictionary: [], lines: [] }
+    return { kind: 'voice-direction', summary: '模板起步 · 人物与旁白方案 fixture', cast: [{ speakerId: 'lin', designBrief: '谨慎低声', performance: '平静' }, { speakerId: 'qiao', designBrief: '克制', performance: '犹豫' }, { speakerId: 'narrator', designBrief: '独立旁白', performance: '客观' }], dictionary: [], lines: options.media ? [{ path: 'adv/chapters/01.adv.md', lineId: 'line_01900400-0000-7000-8000-000000000001', source: { line: 3, endLine: 4, text: '@lin\n列车还没有到，我们再等一会儿。 {#line_01900400-0000-7000-8000-000000000001}' }, speakerId: 'lin', text: '列车还没有到，我们再等一会儿。', instruction: '使用作者明确配置的既有系统录音，其他对白尚未制作' }] : [] }
   if (task.capability === 'playtest-project')
     return { kind: 'playtest-plan', summary: '模板起步 · 两结局计划 fixture', scenarios: [{ id: 'stay', choices: [0], expectedEnding: 'stay#ending-stay' }, { id: 'leave', choices: [1], expectedEnding: 'leave#ending-leave' }], concerns: [] }
   throw new Error('Template fixture does not implement this model capability')

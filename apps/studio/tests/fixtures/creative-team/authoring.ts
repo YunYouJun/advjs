@@ -1,5 +1,7 @@
 import type { CreativeArtifact, CreativePartnerOutput, CreativePlaytestReport, CreativeTeamRun } from '@advjs/agent'
 import { assertCreativePlaytestNarrativeSource, computeAgentProjectRevision, createCreativeBootstrapPlan, createCreativeTeamHandoff, createCreativeTeamRun, creativeMediaCanonical, creativeMilestoneChanges, creativeOutputFileChanges, creativePlaytestCandidateFiles, ManagedCreativeTeamClient, nextCreativeTeamTask, overlayCreativeChanges, parseCreativeCandidateEditRequest, parseCreativeDeliveryRequest, parseCreativeMilestoneCommand, parseCreativePartnerOutput, parseCreativePlaytestReport, parseCreativeProject, parseCreativeTeamPublicDecision, parseCreativeTeamRun, parseCreativeTeamStartRequest, prepareCreativeCandidateEdit, prepareCreativeDirectorSummaryEvidence, prepareCreativeMilestone, prepareCreativePlaytestRepair, reduceCreativeTeamRun, requiredCreativeReviewCapabilities } from '@advjs/agent'
+import { audioProjectMediaPath } from '@advjs/audio'
+import { compileProject } from '@advjs/core'
 import { IonApp, IonContent, IonHeader, IonicVue, IonPage, IonTitle, IonToolbar } from '@ionic/vue'
 import { createRouter as createIonicRouter } from '@ionic/vue-router'
 import { createPinia, setActivePinia } from 'pinia'
@@ -26,14 +28,15 @@ import 'virtual:uno.css'
 
 /** Dedicated UI fixture. No production auth, model, point ledger or network adapter is used. */
 async function main() {
-  const startMode = new URL(location.href).searchParams.get('case') === 'production-start'
+  const mediaMode = new URL(location.href).searchParams.get('case') === 'production-media'
+  const startMode = mediaMode || new URL(location.href).searchParams.get('case') === 'production-start'
   const summaryMode = startMode || new URL(location.href).searchParams.get('case') === 'director-summary'
   const narrativeMode = new URL(location.href).searchParams.get('case') === 'narrative-review'
   const sourceMode = new URL(location.href).searchParams.get('case') === 'source-text'
   const sourceSyncMode = new URL(location.href).searchParams.get('case') === 'source-sync'
   const oldService = new URL(location.href).searchParams.get('legacyService') === 'old'
   const accountId = 'ui-fixture-author'
-  const projectId = startMode ? 'creative-ui-template-start-fixture' : sourceSyncMode ? 'creative-ui-source-sync-fixture' : sourceMode ? 'creative-ui-source-text-fixture' : summaryMode ? 'creative-ui-director-summary-fixture' : narrativeMode ? 'creative-ui-narrative-review-fixture' : 'creative-ui-fixture'
+  const projectId = mediaMode ? 'creative-ui-template-media-fixture' : startMode ? 'creative-ui-template-start-fixture' : sourceSyncMode ? 'creative-ui-source-sync-fixture' : sourceMode ? 'creative-ui-source-text-fixture' : summaryMode ? 'creative-ui-director-summary-fixture' : narrativeMode ? 'creative-ui-narrative-review-fixture' : 'creative-ui-fixture'
   const pinia = createPinia()
   setActivePinia(pinia)
   const fs = new MemoryFsAdapter(projectId)
@@ -63,7 +66,7 @@ async function main() {
   let heldSourceState: Promise<void> | undefined
   let releaseSourceState: (() => void) | undefined
   const editRequests: { key: string, requestFingerprint: string }[] = []
-  const cacheKey = `creative-team-authoring-ui-fixture${startMode ? '-template-start' : sourceSyncMode ? '-source-sync' : sourceMode ? '-source' : summaryMode ? '-director' : narrativeMode ? '-narrative' : ''}`
+  const cacheKey = `creative-team-authoring-ui-fixture${mediaMode ? '-template-media' : startMode ? '-template-start' : sourceSyncMode ? '-source-sync' : sourceMode ? '-source' : summaryMode ? '-director' : narrativeMode ? '-narrative' : ''}`
   const startRequests: unknown[] = []
   const productionHandoffs: unknown[] = []
   const fixtureFailures: string[] = []
@@ -192,8 +195,8 @@ async function main() {
       return
     const handoff = createCreativeTeamHandoff(run, taskId, facts)
     productionHandoffs.push(structuredClone(handoff))
-    const effective = handoff.candidates.reduce((files, item) => overlayCreativeChanges(files, item.changes), { ...handoff.facts.files })
-    const output = productionStartFixtureOutput(run, handoff)
+    const effective = handoff.candidates.filter(item => item.status === 'selected').reduce((files, item) => overlayCreativeChanges(files, item.changes), { ...handoff.facts.files })
+    const output = productionStartFixtureOutput(run, handoff, { media: mediaMode })
     const parsed = parseCreativePartnerOutput(output.kind, output, { projectId, projectRevision: facts.revision, files: effective, characterIds: ['lin', 'qiao'], limits: run.plan.limits })
     act({ type: 'reserve-next', taskId, quotedMicroPoints: 0, toolCalls: 0, inputFingerprint: await computeAgentProjectRevision({ handoff: JSON.stringify(handoff) }) })
     act({ type: 'settle-task', taskId, dispatchKey: run.tasks.find(item => item.taskId === taskId)!.dispatchKey!, status: 'completed', usage, artifacts: [await artifact(taskId, parsed)] })
@@ -236,8 +239,22 @@ async function main() {
     const key = new Headers(init?.headers).get('idempotency-key') ?? ''
     let value: unknown
     try {
+      if (mediaMode && method === 'POST' && (url.pathname.endsWith('/media-candidates') || url.pathname.endsWith('/milestones'))) {
+        const staged = await fetch('/__creative-media-fixture/authoring-state', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ run, project: { id: projectId, ...facts }, reports: playtests }) })
+        if (!staged.ok)
+          throw new Error(`Fixture state handoff failed: ${await staged.text()}`)
+        const response = await fetch(url, init)
+        if (response.ok) {
+          const state = await (await fetch(`/__creative-media-fixture/authoring-state?projectId=${encodeURIComponent(projectId)}`)).json()
+          run = parseCreativeTeamRun(state.run, { accountId, projectId })
+          const project = parseCreativeProject(state.project)
+          facts = { revision: project.revision, files: project.files }
+          persist()
+        }
+        return response
+      }
       if (url.pathname.endsWith('/capabilities')) {
-        value = { protocolVersion: 1, enabled: true, serviceVersion: 'UI fixture; no model calls', authoring: { candidateEdits: true, ...(sourceSyncMode && !oldService ? { sourceSync: true } : {}), ...(sourceMode && !oldService ? { rawTextEdits: true } : {}), milestoneAdoption: true, playtestReports: true, playtestRepair: true, playtestNarrativeReview: narrativeMode, delivery: summaryMode }, capabilities: ['playtest-project', 'design-characters', 'write-chapters', 'generate-outline', 'generate-chapter-draft', ...(startMode ? ['plan-production', 'direct-art', 'direct-voice'] : []), ...(summaryMode ? ['summarize-production'] : [])], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } }
+        value = { protocolVersion: 1, enabled: true, serviceVersion: 'UI fixture; no model calls', authoring: { candidateEdits: true, ...(mediaMode ? { mediaCandidates: true, voiceDirectionEdits: true, milestoneMerges: true } : {}), ...(sourceSyncMode && !oldService ? { sourceSync: true } : {}), ...(sourceMode && !oldService ? { rawTextEdits: true } : {}), milestoneAdoption: true, playtestReports: true, playtestRepair: true, playtestNarrativeReview: narrativeMode, delivery: summaryMode }, capabilities: ['playtest-project', 'design-characters', 'write-chapters', 'generate-outline', 'generate-chapter-draft', ...(startMode ? ['plan-production', 'direct-art', 'direct-voice'] : []), ...(summaryMode ? ['summarize-production'] : [])], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } }
       }
       else if (startMode && method === 'POST' && url.pathname.endsWith('/runs')) {
         const request = parseCreativeTeamStartRequest(body)
@@ -430,6 +447,20 @@ async function main() {
     playtestSources: () => structuredClone(playtestSources),
     repairHandoffs: () => structuredClone(repairHandoffs),
     summaryHandoffs: () => structuredClone(summaryHandoffs),
+    async media() {
+      await content.whenReady()
+      const fs = content.getFs()!
+      const files = Object.fromEntries((await fs.collectAllFiles()).map(file => [file.path, file.content]))
+      const compiled = await compileProject({ files }, { allowEmptyAssetManifest: true })
+      const catalog = compiled.project.assets
+      if (!catalog)
+        return []
+      return Promise.all(catalog.assets.map(async (asset) => {
+        const blob = await fs.readBlob(audioProjectMediaPath(catalog, asset))
+        const sha256 = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', await blob.arrayBuffer())), byte => byte.toString(16).padStart(2, '0')).join('')
+        return { id: asset.id, sha256, expectedSha256: asset.sha256, bytes: blob.size, expectedBytes: asset.bytes }
+      }))
+    },
     startRequests: () => structuredClone(startRequests),
     productionHandoffs: () => structuredClone(productionHandoffs),
     fixtureFailures: () => [...fixtureFailures],

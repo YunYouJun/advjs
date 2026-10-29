@@ -2,7 +2,8 @@ import type { CreativePlaytestReport, CreativeTeamRun } from '@advjs/agent'
 import type { Plugin } from 'vite'
 import { Buffer } from 'node:buffer'
 import { createHash } from 'node:crypto'
-import { computeAgentProjectRevision, creativeMediaCanonical, creativeMilestoneChanges, overlayCreativeMilestone, parseCreativeCandidateEditRequest, parseCreativeDeliveryRequest, parseCreativeMediaCandidateRequest, parseCreativeMilestoneCommand, parseCreativePartnerOutput, parseCreativePlaytestReport, parseCreativeProject, parseCreativeTeamPublicDecision, parseCreativeTeamRun, prepareCreativeCandidateEdit, prepareCreativeDirectorSummaryEvidence, prepareCreativeMediaCandidate, prepareCreativeMilestone, reduceCreativeTeamRun } from '@advjs/agent'
+// Match the Vite client source without rebuilding the separately frozen paid CLI dist.
+import { computeAgentProjectRevision, creativeMediaCanonical, creativeMilestoneChanges, overlayCreativeMilestone, parseCreativeCandidateEditRequest, parseCreativeDeliveryRequest, parseCreativeMediaCandidateRequest, parseCreativeMilestoneCommand, parseCreativePartnerOutput, parseCreativePlaytestReport, parseCreativeProject, parseCreativeTeamPublicDecision, parseCreativeTeamRun, prepareCreativeCandidateEdit, prepareCreativeDirectorSummaryEvidence, prepareCreativeMediaCandidate, prepareCreativeMilestone, reduceCreativeTeamRun } from '../../../../../packages/agent/src/index.ts'
 
 /** Explicit local service substitute. Uses the shared validators/reducer; no models, billing or cloud DB. */
 export function creativeMediaMilestoneFixtureService(): Plugin {
@@ -24,13 +25,36 @@ export function creativeMediaMilestoneFixtureService(): Plugin {
         try {
           let body: unknown
           if (request.method === 'POST') {
-            let text = ''
+            const chunks: Buffer[] = []
+            let bytes = 0
             for await (const chunk of request) {
-              text += chunk.toString()
-              if (Buffer.byteLength(text) > 192 * 1024)
+              const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+              bytes += buffer.length
+              if (bytes > (url.pathname === '/__creative-media-fixture/authoring-state' ? 2 * 1024 * 1024 : 192 * 1024))
                 return send(413, { error: { code: 'CREATIVE_STORAGE_LIMIT', message: 'Explicit fixture body limit' } })
+              chunks.push(buffer)
             }
-            body = JSON.parse(text)
+            body = JSON.parse(Buffer.concat(chunks).toString('utf8'))
+          }
+          if (url.pathname === '/__creative-media-fixture/authoring-state' && request.method === 'POST') {
+            // Test-only handoff from the template fixture's model substitute. Media
+            // commands then use the same real HTTP routes as the other media cases.
+            const input = body as { run: CreativeTeamRun, project: unknown, reports: Record<string, unknown> }
+            const project = parseCreativeProject(input.project)
+            const run = parseCreativeTeamRun(input.run, { accountId: input.run.accountId, projectId: project.id })
+            if (project.id !== 'creative-ui-template-media-fixture' || await computeAgentProjectRevision(project.files) !== project.revision)
+              throw new Error('CREATIVE_SOURCE_CONFLICT')
+            const previous = records.get(project.id)
+            if (previous && (previous.run.id !== run.id || previous.run.revision > run.revision))
+              throw new Error('CREATIVE_SOURCE_CONFLICT')
+            const reports = Object.fromEntries(Object.entries(input.reports).map(([id, value]) => {
+              const report = parseCreativePlaytestReport(value)
+              if (report.projectId !== project.id)
+                throw new Error('CREATIVE_SOURCE_CONFLICT')
+              return [id, report]
+            }))
+            records.set(project.id, { run, revision: project.revision, files: project.files, reports, reportRequests: previous?.reportRequests ?? {} })
+            return send(200, {})
           }
           if (url.pathname === '/__creative-media-fixture/seed' && request.method === 'POST') {
             const input = body as CreativeTeamRun
@@ -41,6 +65,8 @@ export function creativeMediaMilestoneFixtureService(): Plugin {
           }
           const projectId = url.searchParams.get('projectId') ?? ''
           const record = records.get(projectId)
+          if (url.pathname === '/__creative-media-fixture/authoring-state' && request.method === 'GET')
+            return send(record ? 200 : 404, record ? { run: record.run, project: { id: projectId, revision: record.revision, files: record.files } } : {})
           if (url.pathname === '/__creative-media-fixture/exists')
             return send(200, { exists: Boolean(record) })
           if (url.pathname.endsWith('/capabilities'))

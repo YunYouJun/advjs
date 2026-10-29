@@ -83,6 +83,31 @@ describe('immutable author-host media and shared milestone anchors', () => {
     altered.assets.find((item: { id: string }) => item.id === f.input.assetId).characterId = 'another-character'
     expect(compatibleCreativeMediaArtifacts(second.run, { ...second.project.files, 'adv/assets/other.json': JSON.stringify(altered) })).not.toContain('media-one')
   })
+  it('preserves a fully realized image direction across another media owner while expiring ordinary catalog readers', async () => {
+    const f = await fixture('image')
+    if (f.parent.output?.kind !== 'art-direction')
+      throw new Error('Expected art direction')
+    const otherRequest = f.parent.output.requests[1]!
+    f.parent.output = { ...f.parent.output, requests: [f.parent.output.requests[0]!] }
+    const first = await adopt(register(f.run, f.request), f.baseline)
+    const task = { ...first.run.plan.tasks[0]!, id: 'other-owner' }
+    const other: CreativeArtifact = { ...structuredClone(f.parent), id: 'other-direction', taskId: task.id, source: { ...f.parent.source, revision: first.project.revision, files: first.project.files }, output: { ...f.parent.output, requests: [otherRequest] } }
+    const reader: CreativeArtifact = { ...structuredClone(other), id: 'catalog-reader', taskId: 'catalog-reader', kind: 'chapter', output: undefined }
+    const run = { ...first.run, plan: { ...first.run.plan, tasks: [...first.run.plan.tasks, task, { ...task, id: reader.taskId }] }, tasks: [...first.run.tasks, { taskId: task.id, status: 'completed' as const, attempt: 1, artifactIds: [other.id] }, { taskId: reader.taskId, status: 'completed' as const, attempt: 1, artifactIds: [reader.id] }], artifacts: [...first.run.artifacts, other, reader] }
+    const catalog = JSON.parse(first.project.files['adv/assets/other.json']!)
+    const alias = { ...catalog.assets[0], id: otherRequest.assetId, expression: 'happy' }
+    const manifest = JSON.parse(first.project.files['adv/assets.json']!)
+    const writes = { 'adv/assets.json': JSON.stringify({ ...manifest, includes: [...manifest.includes, 'assets/another.json'] }), 'adv/assets/another.json': JSON.stringify({ schemaVersion: 2, assets: [alias] }) }
+    const request = { ...f.request, artifactId: other.id, project: first.project, target: { kind: 'image' as const, assetId: alias.id }, writes }
+    const second = await adopt(register(run, request, 'media-two'), first.project, 'media-two')
+    expect(second.run.artifacts.find(item => item.id === f.parent.id)!.status).toBe('selected')
+    expect(second.run.artifacts.filter(item => item.media).map(item => item.status)).toEqual(['adopted', 'adopted'])
+    expect(second.run.artifacts.find(item => item.id === reader.id)!.status).toBe('stale')
+    const character = 'adv/characters/xiaoyun.character.md'
+    const changed = invalidateCreativeArtifacts(second.run.artifacts, { ...second.project.files, [character]: `${second.project.files[character]}\nChanged character text.` }, second.run)
+    expect(changed.find(item => item.id === f.parent.id)!.status).toBe('stale')
+    expect(changed.find(item => item.id === 'media-one')!.status).toBe('stale')
+  })
   it('accepts scene binding changes while preserving unknown frontmatter and the exact body', async () => {
     const f = await fixture('image')
     const scenePath = 'adv/scenes/station.md'

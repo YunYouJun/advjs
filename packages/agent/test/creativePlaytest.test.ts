@@ -13,6 +13,28 @@ async function project(files: Record<string, string> = structuredClone(frozen.fi
 }
 
 describe('independent deterministic creative playtest', () => {
+  it('runs story paths after the author initializes an empty native media catalog', async () => {
+    const input = await project({ ...frozen.files, 'adv/assets.json': JSON.stringify({ schemaVersion: 2, id: 'new-story', defaultProfile: 'local', profiles: { local: { provider: 'project', root: 'adv/assets' } }, includes: [] }) })
+    const before = structuredClone(input)
+    const report = await runCreativePlaytest({ project: input, scenarios })
+    expect(report.diagnostics.filter(item => item.severity === 'error')).toEqual([])
+    expect(report.executions.map(item => [item.status, item.actualEnding])).toEqual([['passed', 'stay#ending-stay'], ['passed', 'leave#ending-leave']])
+    expect(input).toEqual(before)
+    expect(report.unverified).toContain('audio-playback')
+  })
+
+  it('still blocks malformed catalogs and missing media fragments instead of fabricating paths', async () => {
+    const catalogs = [
+      { value: { schemaVersion: 2, id: 'invalid', profiles: {} }, code: 'ADV_PROJECT_INVALID_ASSET_MANIFEST' },
+      { value: { schemaVersion: 2, id: 'missing-fragment', defaultProfile: 'local', profiles: { local: { provider: 'project', root: 'adv/assets' } }, includes: ['assets/missing.json'] }, code: 'ADV_PROJECT_ASSET_FRAGMENT_NOT_FOUND' },
+    ]
+    for (const { value, code } of catalogs) {
+      const report = await runCreativePlaytest({ project: await project({ ...frozen.files, 'adv/assets.json': JSON.stringify(value) }), scenarios })
+      expect(report.diagnostics).toContainEqual(expect.objectContaining({ code, severity: 'error' }))
+      expect(report.executions.every(item => item.code === 'compile_failed' && item.trace.length === 0 && item.commands === 0)).toBe(true)
+    }
+  })
+
   it('executes both frozen endings through actual core choices, retaining exact source positions without changing files', async () => {
     const input = await project()
     const before = structuredClone(input)

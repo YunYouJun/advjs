@@ -192,7 +192,20 @@ export function prepareCreativeMilestone(run: CreativeTeamRun, request: Creative
   if (!changes.length || changes.length > 100)
     throw new Error('CREATIVE_EMPTY_MILESTONE')
   const files = overlayCreativeMilestone(request.project.files, changes)
-  if (request.operation === 'adopt' && artifacts.some(reference => run.artifacts.find(item => item.id === reference.artifactId)?.kind === 'media-adoption'))
-    anchors = [...new Set([...anchors, ...compatibleCreativeMediaArtifacts(run, files)])]
+  if (request.operation === 'adopt' && artifacts.some(reference => run.artifacts.find(item => item.id === reference.artifactId)?.kind === 'media-adoption')) {
+    const compatible = compatibleCreativeMediaArtifacts(run, files)
+    const catalogPaths = new Set(changes.map(change => change.path).filter(path => path === 'adv/assets.json' || (path.startsWith('adv/assets/') && path.endsWith('.json'))))
+    // Appending another owner's catalog fragment must not expire a fully realized
+    // image direction through its root-manifest read. Other source reads, missing
+    // requests and ordinary catalog readers retain their original invalidation.
+    const imageParents = run.artifacts.filter((parent) => {
+      if (parent.output?.kind !== 'art-direction' || !['selected', 'adopted'].includes(parent.status))
+        return false
+      const media = run.artifacts.filter(item => compatible.includes(item.id) && item.media?.parent.artifactId === parent.id && item.media.parent.fingerprint === parent.fingerprint)
+      return parent.output.requests.every(request => media.some(item => item.media?.target.kind === 'image' && item.media.target.assetId === request.assetId))
+        && Object.entries(creativeArtifactExpectedFiles(parent, run)).every(([path, content]) => (files[path] ?? null) === content || catalogPaths.has(path))
+    }).map(parent => parent.id)
+    anchors = [...new Set([...anchors, ...compatible, ...imageParents])]
+  }
   return { artifacts, anchors, changes, files }
 }

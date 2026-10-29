@@ -62,7 +62,7 @@ export async function runCreativePlaytest(input: {
   if (input.narrative && input.narrative.run.plan.projectId !== project.id)
     throw new Error('CREATIVE_NARRATIVE_SOURCE_CONFLICT')
   const narrativeReview = input.narrative ? createCreativePlaytestNarrativeReview(input.narrative, { revision: snapshotRevision, files }, project.files) : undefined
-  const result = await compileProject({ id: project.id, files }, { staticAnalysis: true })
+  const result = await compileProject({ id: project.id, files }, { staticAnalysis: true, allowEmptyAssetManifest: true })
   const program = result.project.program
   const diagnostics: CreativePlaytestDiagnostic[] = []
   let diagnosticBytes = 0
