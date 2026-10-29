@@ -44,6 +44,7 @@
         "packages/core/*",
         "packages/gui/*",
         "packages/parser/*",
+        "packages/shared/adv-monaco.ts",
         "packages/types/*",
         "packages/unocss/*",
         "plugins/plugin-interactions/*",

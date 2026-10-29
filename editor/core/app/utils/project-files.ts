@@ -1,4 +1,5 @@
 import type { TreeNode } from '@advjs/gui'
+import type { MonacoEditorLanguage } from '../stores/useMonacoStore'
 
 export type ProjectFileKind = 'text' | 'image' | 'audio' | 'video' | 'model' | 'unsupported'
 
@@ -39,6 +40,24 @@ export function projectFileKind(path: string): ProjectFileKind {
   if (/(?:\.(?:adv|css|csv|html|ini|js|json|jsx|md|mjs|scss|ts|tsx|txt|vue|xml|yaml|yml)|(?:^|\/)(?:LICENSE|README))$/iu.test(path))
     return 'text'
   return 'unsupported'
+}
+
+const monacoLanguages: Record<string, MonacoEditorLanguage> = {
+  ts: 'typescript',
+  js: 'javascript',
+  html: 'html',
+  vue: 'html',
+  css: 'css',
+  scss: 'css',
+  json: 'json',
+  md: 'markdown',
+}
+
+/** Monaco language for a text file; `.adv.md` scripts use the ADV grammar. */
+export function projectFileLanguage(path: string): MonacoEditorLanguage {
+  if (/\.adv\.md$/iu.test(path))
+    return 'adv'
+  return monacoLanguages[path.split('.').pop()?.toLowerCase() ?? ''] ?? 'plaintext'
 }
 
 export function projectFileTree(paths: readonly string[], expanded: ReadonlySet<string>, query = ''): TreeNode[] {

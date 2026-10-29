@@ -15,7 +15,6 @@ import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
 import TsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
 
 let _monaco: typeof Monaco | null = null
-let _advRegistered = false
 let _characterFmRegistered = false
 
 /**
@@ -55,17 +54,15 @@ export async function getMonaco(): Promise<typeof Monaco> {
 
 /**
  * Register the ADV.JS language with Monaco if not already done.
- * Call this after getMonaco() and provide a context getter for completions.
+ * Call this before creating `.adv.md` models; the first context getter is
+ * used for completions.
  */
 export async function registerAdvLanguageIfNeeded(
   getContext: () => AdvCompletionContext,
 ): Promise<void> {
-  if (_advRegistered)
-    return
   const monaco = await getMonaco()
   const { registerAdvLanguage } = await import('./advLanguage')
   registerAdvLanguage(monaco, getContext)
-  _advRegistered = true
 }
 
 /**

@@ -37,7 +37,8 @@
   "types": "dist/index.d.mts",
   "files": [
     "*.d.ts",
-    "dist"
+    "dist",
+    "syntaxes"
   ],
   "engines": {
     "node": "^20.19.0 || >=22.12.0"

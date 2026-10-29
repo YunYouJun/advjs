@@ -1,132 +1,15 @@
 /**
- * Custom Monaco language definition for .adv.md files.
+ * Monaco support for `.adv.md` files.
  *
- * Provides:
- * - Monarch tokenizer for ADV.JS-specific syntax highlighting
- * - Completion provider for character names, scene names, and location names
+ * Highlighting comes from the shared TextMate grammar (see
+ * `packages/shared/adv-monaco.ts`), so Studio, the Editor and the docs site
+ * color scripts the same way. Studio adds completions for project names.
  */
 
 import type * as Monaco from 'monaco-editor'
+import { ADV_LANGUAGE_ID, registerAdvMonacoLanguage } from '../../../../packages/shared/adv-monaco'
 
-export const ADV_LANGUAGE_ID = 'adv-markdown'
-
-// Monarch tokenizer regex patterns (module-scope to avoid re-compilation)
-const RE_FRONTMATTER_DELIM = /^---$/
-const RE_SCENE_MARKER = /【[^】]*】/
-const RE_CHARACTER_REF = /^@\S+/
-const RE_NARRATION = /（[^）]*）/
-const RE_DIALOGUE = /「[^」]*」/
-const RE_CHOICE_START = /^-\s+\[/
-const RE_HEADING = /^#{1,6}\s.*$/
-const RE_BOLD = /\*\*[^*]+\*\*/
-const RE_ITALIC = /\*[^*]+\*/
-const RE_BLOCKQUOTE = /^>\s+(?:\S.*)?$/
-const RE_CODE_FENCE = /^```/
-const RE_COMMENT_OPEN = /<!/
-const RE_FRONTMATTER_KEY = /^[\w-]+:/
-const RE_CHOICE_END = /\]/
-const RE_COMMENT_CLOSE = /-->/
-const RE_ANY = /./
-
-/**
- * Monarch tokenizer rules for ADV.JS script syntax.
- * Extends Markdown with ADV-specific tokens.
- */
-export function getAdvTokensProvider(): Monaco.languages.IMonarchLanguage {
-  return {
-    defaultToken: '',
-    tokenPostfix: '.adv',
-
-    // Character references: @Name
-    // Scene markers: 【place，time，inOrOut】
-    // Narration: （text） or (text)
-    // Dialogue: 「text」
-    // Choices: - [text](#anchor)
-
-    tokenizer: {
-      root: [
-        // Frontmatter (YAML block)
-        [RE_FRONTMATTER_DELIM, { token: 'meta.content', next: '@frontmatter' }],
-
-        // Scene markers: 【...】
-        [RE_SCENE_MARKER, 'keyword.scene'],
-
-        // Character reference: @CharacterName (at start of line)
-        [RE_CHARACTER_REF, 'entity.name.character'],
-
-        // Narration: （...） Chinese parens
-        [RE_NARRATION, 'comment.narration'],
-
-        // Dialogue brackets: 「...」
-        [RE_DIALOGUE, 'string.dialogue'],
-
-        // Choices: - [...](#...)
-        [RE_CHOICE_START, { token: 'keyword.choice', next: '@choice' }],
-
-        // Markdown headings
-        [RE_HEADING, 'keyword.heading'],
-
-        // Markdown bold
-        [RE_BOLD, 'strong'],
-
-        // Markdown italic
-        [RE_ITALIC, 'emphasis'],
-
-        // Markdown blockquote (narration in ADV)
-        [RE_BLOCKQUOTE, 'comment.blockquote'],
-
-        // Code blocks
-        [RE_CODE_FENCE, { token: 'string.code', next: '@codeblock' }],
-
-        // Comments
-        [RE_COMMENT_OPEN, { token: 'comment', next: '@comment' }],
-
-        // Default text
-        [RE_ANY, 'text'],
-      ],
-
-      frontmatter: [
-        [RE_FRONTMATTER_DELIM, { token: 'meta.content', next: '@pop' }],
-        [RE_FRONTMATTER_KEY, 'attribute.name'],
-        [RE_ANY, 'attribute.value'],
-      ],
-
-      choice: [
-        [RE_CHOICE_END, { token: 'keyword.choice', next: '@pop' }],
-        [RE_ANY, 'string.choice-text'],
-      ],
-
-      codeblock: [
-        [RE_CODE_FENCE, { token: 'string.code', next: '@pop' }],
-        [RE_ANY, 'string.code'],
-      ],
-
-      comment: [
-        [RE_COMMENT_CLOSE, { token: 'comment', next: '@pop' }],
-        [RE_ANY, 'comment'],
-      ],
-    },
-  }
-}
-
-/**
- * Theme rules for the ADV language tokens.
- */
-export function getAdvThemeRules(): Monaco.editor.ITokenThemeRule[] {
-  return [
-    { token: 'keyword.scene', foreground: 'e06c75', fontStyle: 'bold' },
-    { token: 'entity.name.character', foreground: '61afef', fontStyle: 'bold' },
-    { token: 'comment.narration', foreground: '98c379', fontStyle: 'italic' },
-    { token: 'string.dialogue', foreground: 'e5c07b' },
-    { token: 'keyword.choice', foreground: 'c678dd' },
-    { token: 'string.choice-text', foreground: 'c678dd' },
-    { token: 'keyword.heading', foreground: 'e06c75', fontStyle: 'bold' },
-    { token: 'comment.blockquote', foreground: '5c6370', fontStyle: 'italic' },
-    { token: 'meta.content', foreground: '56b6c2' },
-    { token: 'attribute.name', foreground: 'e06c75' },
-    { token: 'attribute.value', foreground: '98c379' },
-  ]
-}
+export { ADV_LANGUAGE_ID, advMonacoTheme } from '../../../../packages/shared/adv-monaco'
 
 const RE_AT_PREFIX = /@\S*$/
 
@@ -180,6 +63,18 @@ export function createAdvCompletionProvider(
 
       // Scene/Location names inside 【...】
       if (textBefore.includes('【') && !textBefore.includes('】')) {
+        // Monaco's default word separators omit full-width punctuation.
+        // Exclude the scene delimiters so they neither filter out every
+        // suggestion nor disappear when a name is accepted.
+        const sceneRange = {
+          ...range,
+          startColumn: Math.max(
+            range.startColumn,
+            textBefore.lastIndexOf('【') + 2,
+            textBefore.lastIndexOf('，') + 2,
+            textBefore.lastIndexOf(',') + 2,
+          ),
+        }
         // Offer scene names
         for (const name of ctx.sceneNames) {
           suggestions.push({
@@ -187,7 +82,7 @@ export function createAdvCompletionProvider(
             kind: 5, // CompletionItemKind.Field
             detail: 'Scene',
             insertText: name,
-            range,
+            range: sceneRange,
           })
         }
         // Offer location names
@@ -197,7 +92,7 @@ export function createAdvCompletionProvider(
             kind: 5,
             detail: 'Location',
             insertText: name,
-            range,
+            range: sceneRange,
           })
         }
         return { suggestions }
@@ -219,49 +114,24 @@ export function createAdvCompletionProvider(
   }
 }
 
+const registered = new WeakSet<object>()
+
 /**
- * Register the ADV language and theme with a Monaco instance.
+ * Register the ADV language, its `adv-light` / `adv-dark` themes and the
+ * completion provider with a Monaco instance. Later calls for the same
+ * instance return false and keep the first context getter.
  */
 export function registerAdvLanguage(
   monaco: typeof Monaco,
   getContext: () => AdvCompletionContext,
-): void {
-  // Register language if not already registered
-  const existingLangs = monaco.languages.getLanguages()
-  if (!existingLangs.some(l => l.id === ADV_LANGUAGE_ID)) {
-    monaco.languages.register({
-      id: ADV_LANGUAGE_ID,
-      extensions: ['.adv.md'],
-      aliases: ['ADV Script', 'adv'],
-      mimetypes: ['text/x-adv-markdown'],
-    })
-  }
-
-  // Set tokenizer
-  monaco.languages.setMonarchTokensProvider(ADV_LANGUAGE_ID, getAdvTokensProvider())
-
-  // Set completion provider
+): boolean {
+  registerAdvMonacoLanguage(monaco)
+  if (registered.has(monaco.languages))
+    return false
+  registered.add(monaco.languages)
   monaco.languages.registerCompletionItemProvider(
     ADV_LANGUAGE_ID,
     createAdvCompletionProvider(getContext),
   )
-
-  // Define custom theme with ADV token colors
-  monaco.editor.defineTheme('adv-dark', {
-    base: 'vs-dark',
-    inherit: true,
-    rules: getAdvThemeRules(),
-    colors: {},
-  })
-
-  monaco.editor.defineTheme('adv-light', {
-    base: 'vs',
-    inherit: true,
-    rules: getAdvThemeRules().map(r => ({
-      ...r,
-      // Slightly adjust colors for light theme
-      foreground: r.foreground,
-    })),
-    colors: {},
-  })
+  return true
 }
