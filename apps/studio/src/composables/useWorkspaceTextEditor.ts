@@ -1,9 +1,11 @@
 import type { IFileSystem } from '../utils/fs'
 import type { StudioContentSource } from '../utils/projectContentMutation'
 import type { StudioFileTransfer } from '../utils/projectFileTransfer'
+import type { WorkspacePrivateDraft } from '../utils/workspaceFileSnapshot'
 import { computed, shallowReactive, shallowRef } from 'vue'
 import { isAudioFile, isImageFile } from '../utils/fs'
 import { commitStudioContentSource, isStudioContentConflict, readStudioContentSource } from '../utils/projectContentMutation'
+import { workspaceContains } from '../utils/workspaceFileSnapshot'
 
 export interface WorkspaceTextScope {
   projectId: string
@@ -165,16 +167,107 @@ export function useWorkspaceTextEditor(getScope: () => WorkspaceTextScope | null
     }
     return open(ticket.request.path, true)
   }
-  async function prepareRelocation(scope: WorkspaceTextScope, transfers: readonly StudioFileTransfer[]) {
-    const moves = transfers.filter(transfer => transfer.move)
-    const under = (parent: string, path: string) => path === parent || path.startsWith(`${parent}/`)
-    const affected: { draft: Draft, path: string }[] = []
+  async function ownedDrafts(scope: WorkspaceTextScope) {
     const owned: Draft[] = []
     for (const draft of drafts) {
       if (draft.scope.projectId === scope.projectId && await draft.scope.root.isSameEntry(scope.root))
         owned.push(draft)
     }
     assertScope(scope)
+    return owned
+  }
+  async function draftPaths(scope: WorkspaceTextScope) {
+    return new Set((await ownedDrafts(scope)).map(draft => draft.source.path))
+  }
+  async function prepareDeletion(scope: WorkspaceTextScope, paths: readonly string[]) {
+    const affected = (await ownedDrafts(scope)).filter(draft => paths.some(path => workspaceContains(path, draft.source.path)))
+    if (affected.some(draft => draft.saving || moving.has(draft)))
+      throw new Error('ADV_STUDIO_TRANSFER_DRAFT_CONFLICT')
+    const captured = affected.map(draft => ({ draft, content: draft.content }))
+    const oldRequest = request.value
+    const oldActive = active.value
+    captured.forEach(({ draft }) => moving.add(draft))
+    const privateDrafts: WorkspacePrivateDraft[] = captured.filter(({ draft }) => draft.content !== draft.source.content).map(({ draft }) => ({ path: draft.source.path, source: draft.source.content, content: draft.content }))
+    function check() {
+      assertScope(scope)
+      if (captured.some(({ draft, content }) => draft.content !== content || draft.saving))
+        throw new Error('ADV_STUDIO_TRANSFER_DRAFT_CONFLICT')
+      for (const draft of drafts) {
+        if (draft.scope.root === scope.root && paths.some(path => workspaceContains(path, draft.source.path)) && !captured.some(item => item.draft === draft))
+          throw new Error('ADV_STUDIO_TRANSFER_DRAFT_CONFLICT')
+      }
+    }
+    return {
+      drafts: privateDrafts,
+      check,
+      commit() {
+        check()
+        affected.forEach(draft => drafts.delete(draft))
+        if (request.value && paths.some(path => workspaceContains(path, request.value!.path))) {
+          request.value = undefined
+          active.value = undefined
+          isLoading.value = false
+          readError.value = ''
+        }
+      },
+      rollback() {
+        for (const draft of affected) {
+          if ([...drafts].some(other => other !== draft && (other.scope.root === scope.root || other.scope.root === draft.scope.root) && other.source.path === draft.source.path && other.content !== draft.content))
+            throw new Error('ADV_STUDIO_TRANSFER_DRAFT_CONFLICT')
+          drafts.add(draft)
+        }
+        const now = getScope()
+        if (!request.value && now?.fs === scope.fs && now.root === scope.root) {
+          request.value = oldRequest
+          active.value = oldActive
+        }
+      },
+      release() { affected.forEach(draft => moving.delete(draft)) },
+    }
+  }
+  async function prepareDraftRestoration(scope: WorkspaceTextScope, saved: readonly WorkspacePrivateDraft[]) {
+    const owned = await ownedDrafts(scope)
+    const captured = owned.filter(draft => saved.some(item => item.path === draft.source.path)).map(draft => ({ draft, content: draft.content }))
+    function check() {
+      assertScope(scope)
+      if (captured.some(({ draft, content }) => draft.content !== content || draft.saving || moving.has(draft)))
+        throw new Error('ADV_STUDIO_TRANSFER_DRAFT_CONFLICT')
+      for (const item of saved) {
+        if (captured.some(({ draft }) => draft.source.path === item.path && draft.content !== item.content))
+          throw new Error('ADV_STUDIO_TRANSFER_DRAFT_CONFLICT')
+        if ([...drafts].some(draft => draft.scope.root === scope.root && draft.source.path === item.path && (!captured.some(value => value.draft === draft) || draft.content !== item.content)))
+          throw new Error('ADV_STUDIO_TRANSFER_DRAFT_CONFLICT')
+      }
+    }
+    check()
+    return {
+      check,
+      commit() {
+        check()
+        for (const item of saved) {
+          if (owned.some(draft => draft.source.path === item.path))
+            continue
+          const draft = shallowReactive<Draft>({ scope, source: Object.freeze({ fs: scope.fs, path: item.path, content: item.source }), content: item.content, error: '', saving: false })
+          drafts.add(draft)
+          captured.push({ draft, content: draft.content })
+          owned.push(draft)
+          if (!active.value) {
+            request.value = { scope, path: item.path }
+            active.value = draft
+            isLoading.value = false
+            readError.value = ''
+          }
+        }
+      },
+    }
+  }
+  async function prepareRelocation(scope: WorkspaceTextScope, transfers: readonly StudioFileTransfer[]) {
+    const moves = transfers.filter(transfer => transfer.move)
+    const under = (parent: string, path: string) => path === parent || path.startsWith(`${parent}/`)
+    const affected: { draft: Draft, path: string }[] = []
+    const owned = await ownedDrafts(scope)
+    if (transfers.some(transfer => owned.some(draft => draft.source.path === transfer.target)))
+      throw new Error('ADV_STUDIO_TRANSFER_DRAFT_CONFLICT')
     for (const draft of owned) {
       const move = moves.find(move => under(move.source, draft.source.path))
       if (!move)
@@ -225,5 +318,8 @@ export function useWorkspaceTextEditor(getScope: () => WorkspaceTextScope | null
     captureReload,
     reload,
     prepareRelocation,
+    prepareDeletion,
+    prepareDraftRestoration,
+    draftPaths,
   }
 }

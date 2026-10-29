@@ -120,6 +120,11 @@ export function studioFileMutationRevision(fs: IFileSystem): number {
   return state(fs).revision
 }
 
+/** A journal decision changes source readiness even when no project bytes changed. */
+export function notifyStudioFileSystemRefresh(fs: IFileSystem) {
+  state(fs).external?.()
+}
+
 export async function whenStudioFileMutationsSettle(fs: IFileSystem): Promise<void> {
   const current = state(fs)
   while (current.pending)

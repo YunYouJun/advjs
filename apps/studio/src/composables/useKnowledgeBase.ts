@@ -448,7 +448,7 @@ export function useKnowledgeBase() {
   /**
    * Load knowledge files via IFileSystem interface.
    */
-  async function loadFromFs(fs: IFileSystem): Promise<void> {
+  async function loadFromFs(fs: IFileSystem, isCurrent: () => boolean = () => true): Promise<void> {
     isLoading.value = true
     try {
       const knowledgeFiles = await listMdFilesRecursiveFs(fs, 'adv/knowledge')
@@ -467,8 +467,10 @@ export function useKnowledgeBase() {
         }
       }
 
-      entries.value = newEntries
-      lastFileSnapshot = snapshot
+      if (isCurrent()) {
+        entries.value = newEntries
+        lastFileSnapshot = snapshot
+      }
     }
     finally {
       isLoading.value = false

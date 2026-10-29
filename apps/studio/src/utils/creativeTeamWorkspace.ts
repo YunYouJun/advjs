@@ -2,7 +2,10 @@ import type { CreativeProjectWorkspace } from '@advjs/agent'
 import type { IFileSystem } from './fs'
 import { assertCreativeSourcePath, computeAgentProjectRevision, createCreativePlaytestVoiceCoverage, overlayCreativeChanges, selectCreativeProjectFiles } from '@advjs/agent'
 import { compileProject } from '@advjs/core'
+import { BrowserFsAdapter } from './fs/BrowserFsAdapter'
 import { commitStudioProjectFiles } from './nativeProjectMutation'
+import { assertStudioProjectReady } from './projectWriteQueue'
+import { refreshWorkspaceMutationBarrier } from './workspaceMutationJournal'
 
 /** Share Studio's native transaction with voice/Flow writes; media authority is explicit. */
 export function createStudioCreativeWorkspace(fs: IFileSystem, projectId: string, options: {
@@ -10,6 +13,9 @@ export function createStudioCreativeWorkspace(fs: IFileSystem, projectId: string
   verifyMedia?: CreativeProjectWorkspace['verifyMedia']
 } = {}): CreativeProjectWorkspace {
   async function snapshot(source = fs) {
+    if (fs instanceof BrowserFsAdapter)
+      await refreshWorkspaceMutationBarrier(fs, projectId, fs.dirHandle)
+    assertStudioProjectReady(fs)
     options.assertCurrent?.()
     if (source.refresh)
       await source.refresh()
@@ -17,6 +23,9 @@ export function createStudioCreativeWorkspace(fs: IFileSystem, projectId: string
     const files = selectCreativeProjectFiles(Object.fromEntries((await source.collectAllFiles()).map(file => [file.path, file.content])))
     options.assertCurrent?.()
     const revision = await computeAgentProjectRevision(files)
+    if (fs instanceof BrowserFsAdapter)
+      await refreshWorkspaceMutationBarrier(fs, projectId, fs.dirHandle)
+    assertStudioProjectReady(fs)
     options.assertCurrent?.()
     return { projectId, files, revision }
   }

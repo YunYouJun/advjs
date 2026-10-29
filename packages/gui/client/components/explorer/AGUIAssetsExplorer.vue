@@ -94,6 +94,7 @@ const state = {
   onDelete: props.onDelete,
   onCreate: props.onCreate,
   get onTransfer() { return props.onTransfer },
+  get onMutation() { return props.onMutation },
 
   emit,
 
@@ -273,6 +274,10 @@ useEventListener(explorerContent, 'drop', async (e: DragEvent) => {
     ))
   }
   else {
+    if (props.onMutation) {
+      await ops.importFiles(dir, fileItems.flatMap(item => item.file ? [item.file] : []))
+      return
+    }
     for (const fileItem of fileItems) {
       if (fileItem.file)
         await saveFile(fileItem.file, curDirHandle)

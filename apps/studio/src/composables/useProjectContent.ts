@@ -15,9 +15,10 @@ import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { downloadFromCloud, listCloudFiles } from '../utils/cloudSync'
 import { AUDIO_EXTENSIONS, createFsForProject } from '../utils/fs'
-import { observeStudioFileSystem } from '../utils/fs/mutations'
+import { observeStudioFileSystem, studioFileMutationRevision } from '../utils/fs/mutations'
 import { loadStudioAssetCatalog } from '../utils/projectAssets'
 import { discoverRuntimeChapterFiles } from '../utils/projectRuntimeFiles'
+import { assertStudioProjectReady } from '../utils/projectWriteQueue'
 import { useKnowledgeBase } from './useKnowledgeBase'
 
 const FILE_EXT_RE = /\.[^.]+$/
@@ -96,6 +97,7 @@ let currentLoad: Promise<void> = Promise.resolve()
 
 let watchInitialized = false
 let loadGeneration = 0
+let contentReadGeneration = 0
 
 /**
  * Composable for loading project content (chapters, characters, scenes, knowledge).
@@ -106,13 +108,50 @@ let loadGeneration = 0
 export function useProjectContent() {
   const knowledgeBase = useKnowledgeBase()
 
+  function clearLoadedContent() {
+    chapters.value = []
+    characters.value = []
+    scenes.value = []
+    locations.value = []
+    audios.value = []
+    stats.value = { chapters: 0, characters: 0, scenes: 0, locations: 0, knowledge: 0, audios: 0 }
+    knowledgeBase.$reset()
+  }
+
   /**
    * Load project content from an IFileSystem instance
    */
   async function loadFromFs(fs: IFileSystem) {
+    if (lastFs.value !== fs)
+      clearLoadedContent()
     lastFs.value = observeStudioFileSystem(fs)
+    const read = ++contentReadGeneration
+    const generation = loadGeneration
+    const revision = studioFileMutationRevision(fs)
+    const ownsRead = () => read === contentReadGeneration && generation === loadGeneration && lastFs.value === fs
+    const isCurrent = () => {
+      if (!ownsRead() || revision !== studioFileMutationRevision(fs))
+        return false
+      try {
+        assertStudioProjectReady(fs)
+        return true
+      }
+      catch { return false }
+    }
     lastCosConfig = null
     lastCosPrefix = null
+
+    try {
+      assertStudioProjectReady(fs)
+    }
+    catch (error) {
+      // Recovery must remain reachable even if a config or entire content tree
+      // was removed before the previous page stopped. Do not load partial facts.
+      clearLoadedContent()
+      loadErrors.value = [error instanceof Error ? error.message : String(error)]
+      isLoading.value = false
+      return
+    }
 
     isLoading.value = true
     loadErrors.value = []
@@ -126,9 +165,13 @@ export function useProjectContent() {
         let content = ''
         try {
           content = await fs.readFile(file)
+          if (!isCurrent())
+            return
           preview = projectChapterPreview(file, content)
         }
         catch (err) {
+          if (!isCurrent())
+            return
           const msg = `Failed to read chapter ${file}: ${err instanceof Error ? err.message : String(err)}`
           console.warn(msg)
           loadErrors.value.push(msg)
@@ -142,7 +185,6 @@ export function useProjectContent() {
           format: file.endsWith('.chapter.json') ? 'flow' : 'adv-md',
         })
       }
-      chapters.value = chapterInfos
 
       // Load characters
       const charList: AdvCharacter[] = []
@@ -151,10 +193,14 @@ export function useProjectContent() {
         for (const file of charFiles) {
           try {
             const content = await fs.readFile(file)
+            if (!isCurrent())
+              return
             const character = parseCharacterMd(content)
             charList.push(character)
           }
           catch (err) {
+            if (!isCurrent())
+              return
             const msg = `Failed to parse character ${file}: ${err instanceof Error ? err.message : String(err)}`
             console.warn(msg)
             loadErrors.value.push(msg)
@@ -162,7 +208,6 @@ export function useProjectContent() {
         }
       }
       catch { /* no characters dir */ }
-      characters.value = charList
 
       // Load scenes with frontmatter parsing
       const sceneList: SceneInfo[] = []
@@ -173,6 +218,8 @@ export function useProjectContent() {
             sceneList.push(projectSceneEntry(file, await fs.readFile(file)))
           }
           catch (err) {
+            if (!isCurrent())
+              return
             console.warn(`Failed to parse scene ${file}: ${err instanceof Error ? err.message : String(err)}`)
             // Fallback: just use file name
             sceneList.push(projectFallbackEntry(file))
@@ -180,7 +227,6 @@ export function useProjectContent() {
         }
       }
       catch { /* no scenes dir */ }
-      scenes.value = sceneList
 
       // Load locations with frontmatter parsing
       const locationList: LocationInfo[] = []
@@ -191,13 +237,14 @@ export function useProjectContent() {
             locationList.push(projectLocationEntry(file, await fs.readFile(file)))
           }
           catch (err) {
+            if (!isCurrent())
+              return
             console.warn(`Failed to parse location ${file}: ${err instanceof Error ? err.message : String(err)}`)
             locationList.push(projectFallbackEntry(file))
           }
         }
       }
       catch { /* no locations dir */ }
-      locations.value = locationList
 
       // Load audio
       const audioList: AudioInfo[] = []
@@ -209,6 +256,8 @@ export function useProjectContent() {
             audioList.push(projectAudioEntry(file, await fs.readFile(file)))
           }
           catch (err) {
+            if (!isCurrent())
+              return
             console.warn(`Failed to parse audio ${file}: ${err instanceof Error ? err.message : String(err)}`)
             audioList.push(projectFallbackEntry(file))
           }
@@ -230,10 +279,19 @@ export function useProjectContent() {
         })))
         catalog?.dispose()
       }
-      audios.value = audioList
 
       // Load knowledge base + start watching for changes
-      await knowledgeBase.loadFromFs(fs)
+      if (!isCurrent())
+        return
+      await knowledgeBase.loadFromFs(fs, isCurrent)
+      if (!isCurrent())
+        return
+      chapters.value = chapterInfos
+      characters.value = charList
+      scenes.value = sceneList
+      locations.value = locationList
+      audios.value = audioList
+
       knowledgeBase.watchForChangesFs(fs)
 
       // Update stats
@@ -247,7 +305,8 @@ export function useProjectContent() {
       }
     }
     finally {
-      isLoading.value = false
+      if (ownsRead())
+        isLoading.value = false
     }
   }
 
@@ -454,18 +513,12 @@ export function useProjectContent() {
   }
 
   function $reset() {
-    chapters.value = []
-    characters.value = []
-    scenes.value = []
-    locations.value = []
-    audios.value = []
-    stats.value = { chapters: 0, characters: 0, scenes: 0, locations: 0, knowledge: 0, audios: 0 }
+    clearLoadedContent()
     isLoading.value = false
     loadErrors.value = []
     lastFs.value = null
     lastCosConfig = null
     lastCosPrefix = null
-    knowledgeBase.$reset()
   }
 
   if (!watchInitialized) {

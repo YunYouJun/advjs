@@ -6,6 +6,7 @@ import { transferStudioProjectFiles } from '../utils/projectFileTransfer'
 /** Bind generic explorer transfers to one native project and its shared write queue. */
 export function useWorkspaceFileTransfers(options: {
   getScope: () => WorkspaceTextScope | null
+  draftPaths: (scope: WorkspaceTextScope) => Promise<Set<string>>
   prepareRelocation: (scope: WorkspaceTextScope, transfers: readonly StudioFileTransfer[]) => Promise<{ commit: () => void, after?: () => Promise<void>, release: () => void }>
   onFailure: (error: unknown) => Promise<void>
 }) {
@@ -37,7 +38,7 @@ export function useWorkspaceFileTransfers(options: {
             throw new Error('ADV_STUDIO_CONTENT_SCOPE_CHANGED')
           sources.push(path.join('/'))
         }
-        const reserved = new Set<string>()
+        const reserved = await options.draftPaths(scope)
         const intents: StudioFileTransfer[] = []
         for (const [index, source] of sources.entries()) {
           if (!names && sources.some((other, j) => j !== index && (source.startsWith(`${other}/`) || (j < index && other === source))))

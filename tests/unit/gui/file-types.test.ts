@@ -4,7 +4,7 @@ import { getFileTypeFromPath } from '../../../packages/gui/client/utils/fs'
 
 afterEach(() => vi.restoreAllMocks())
 
-describe('explorer extensionless filenames', () => {
+describe('explorer file types', () => {
   it('treats a root LICENSE as a generic file without an unknown extension warning', () => {
     const warn = vi.spyOn(consola, 'warn').mockImplementation(() => {})
     expect(getFileTypeFromPath('LICENSE')).toBe('file')
@@ -16,6 +16,12 @@ describe('explorer extensionless filenames', () => {
     expect(getFileTypeFromPath('project.with-dot/LICENSE')).toBe('file')
     expect(getFileTypeFromPath('project.with-dot\\LICENSE')).toBe('file')
     expect(getFileTypeFromPath('project.with-dot/story.md')).toBe('md')
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('recognizes the default newly created text filename without a warning', () => {
+    const warn = vi.spyOn(consola, 'warn').mockImplementation(() => {})
+    expect(getFileTypeFromPath('New File.txt')).toBe('txt')
     expect(warn).not.toHaveBeenCalled()
   })
 

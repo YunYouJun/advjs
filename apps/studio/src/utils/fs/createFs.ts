@@ -53,7 +53,12 @@ export async function createFileSystem(options: CreateFsOptions): Promise<IFileS
   // Priority 1: Browser File System Access API (has a dirHandle)
   if (options.dirHandle) {
     const { BrowserFsAdapter } = await import('./BrowserFsAdapter')
-    return observeStudioFileSystem(new BrowserFsAdapter(options.dirHandle))
+    const fs = observeStudioFileSystem(new BrowserFsAdapter(options.dirHandle))
+    const { refreshWorkspaceMutationBarrier } = await import('../workspaceMutationJournal')
+    // Keep the directory inspectable when the journal is unavailable. Reads of
+    // creative facts and ordinary queued writes stay behind the recovery barrier.
+    await refreshWorkspaceMutationBarrier(fs, options.projectId ?? '_default_', options.dirHandle).catch(() => {})
+    return fs
   }
 
   // Priority 2: Capacitor native platform

@@ -35,7 +35,12 @@ export interface AGUIFileTransferResult {
   success: boolean
   /** Completed moves relative to the explorer root, used to rebind open directories. */
   moves?: readonly { source: string, target: string }[]
+  createdName?: string
 }
+export type AGUIFileMutationRequest
+  = | { kind: 'create', targetDir: FSDirItem, name: string, entryKind: 'file' | 'directory' }
+    | { kind: 'delete', items: readonly FSItem[] }
+    | { kind: 'import', targetDir: FSDirItem, files: readonly File[] }
 
 /**
  * props
@@ -93,6 +98,8 @@ export interface AGUIAssetsExplorerProps {
   // file operations callbacks
   /** The host owns the entire transfer. False cancels; it never falls back to native writes. */
   onTransfer?: (request: AGUIFileTransferRequest) => Promise<boolean | AGUIFileTransferResult>
+  /** Owns confirmation and all writes; failure must never fall back to native I/O. */
+  onMutation?: (request: AGUIFileMutationRequest) => Promise<AGUIFileTransferResult>
   /**
    * Called after rename. Return false to prevent.
    */

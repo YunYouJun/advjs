@@ -10,9 +10,11 @@ import { cloudbaseAppInjectionKey } from '../../../src/composables/useCloudbase'
 import { useProjectContent } from '../../../src/composables/useProjectContent'
 import i18n from '../../../src/i18n'
 import { useStudioStore } from '../../../src/stores/useStudioStore'
+import { createStudioCreativeWorkspace } from '../../../src/utils/creativeTeamWorkspace'
 import { dbReady } from '../../../src/utils/db'
 import { BrowserFsAdapter } from '../../../src/utils/fs/BrowserFsAdapter'
 import { whenStudioProjectWritesSettle } from '../../../src/utils/projectWriteQueue'
+import { listWorkspaceMutationRecords, removeWorkspaceMutationRecord } from '../../../src/utils/workspaceMutationJournal'
 import WorkspacePage from '../../../src/views/WorkspacePage.vue'
 import '@ionic/vue/css/core.css'
 import '@ionic/vue/css/normalize.css'
@@ -31,16 +33,21 @@ async function main() {
   const folder = `advjs-workspace-edit-${id}`
   const root = await storage.getDirectoryHandle(folder, { create: true })
   const fs = new BrowserFsAdapter(root)
-  await fs.writeFile('adv.config.json', JSON.stringify({ schemaVersion: 1, id, root: 'adv', format: 'adv-md' }))
-  await fs.writeBlob('adv/assets/master.webp', await (await fetch(masterImageUrl)).blob())
-  await fs.writeFile('README.md', '# Original README\n')
-  await fs.writeFile('LICENSE', 'Original license text\n')
-  await fs.writeFile('adv/world.md', '# Original world\n')
-  await fs.writeFile('adv/chapters/first.adv.md', '# First chapter\n')
-  await fs.writeFile('adv/chapters/second.adv.md', '# Second chapter\n')
+  if (!await fs.exists('.fixture-initialized')) {
+    await fs.writeFile('adv.config.json', JSON.stringify({ schemaVersion: 1, id, root: 'adv', format: 'adv-md' }))
+    await fs.writeBlob('adv/assets/master.webp', await (await fetch(masterImageUrl)).blob())
+    await fs.writeFile('README.md', '# Original README\n')
+    await fs.writeFile('LICENSE', 'Original license text\n')
+    await fs.writeFile('adv/world.md', '# Original world\n')
+    await fs.writeFile('adv/chapters/first.adv.md', '# First chapter\n')
+    await fs.writeFile('adv/chapters/second.adv.md', '# Second chapter\n')
+    await fs.writeFile('.fixture-initialized', id)
+  }
   const pinia = createPinia()
   setActivePinia(pinia)
   const store = useStudioStore()
+  if (store.isRestoring)
+    await store.autoRestoreLastProject()
   await store.switchProject({ projectId: id, name: 'Actual workspace fixture', source: 'local', dirHandle: root, lastOpened: Date.now() })
   const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/tabs/workspace', component: WorkspacePage }, { path: '/tabs/workspace/creative-team', component: { render: () => h('p', 'Service intentionally unavailable in filesystem fixture') } }] })
   await router.push('/tabs/workspace')
@@ -56,20 +63,88 @@ async function main() {
   await content.whenReady()
   const adapters = new Set<IFileSystem>([content.getFs()!])
   const ownedFolders = [folder]
+  try {
+    await storage.getDirectoryHandle(`${folder}-other`)
+    ownedFolders.push(`${folder}-other`)
+  }
+  catch (error) {
+    if ((error as DOMException).name !== 'NotFoundError')
+      throw error
+  }
   const reading = new Set<Promise<unknown>>()
   let releaseRead: (() => void) | undefined
   const getFile = FileSystemFileHandle.prototype.getFile
   const createWritable = FileSystemFileHandle.prototype.createWritable
+  const removeEntry = FileSystemDirectoryHandle.prototype.removeEntry
+  const addRecord = IDBObjectStore.prototype.add
+  const getAllRecords = IDBObjectStore.prototype.getAll
   let release: (() => void) | undefined
   const closes = new Set<Promise<void>>()
   const state = { phase: 'idle' }
   Object.assign(window, { workspaceEditingFixture: {
+    async switchIdentity() {
+      await store.switchProject({ projectId: `${id}-alias`, name: 'Same physical directory', source: 'local', dirHandle: root, lastOpened: Date.now() })
+      await content.whenReady()
+      adapters.add(content.getFs()!)
+    },
+    async facts() {
+      try {
+        return { ready: true, revision: (await createStudioCreativeWorkspace(content.getFs()!, store.currentProject!.projectId).snapshot()).revision }
+      }
+      catch (error) { return { ready: false, error: (error as Error).message } }
+    },
+    async pending() {
+      return (await listWorkspaceMutationRecords(id, root)).map(record => ({ id: record.id, kind: record.kind, roots: record.roots, drafts: record.drafts, before: record.before.map(entry => ({ path: entry.path, kind: entry.kind, bytes: entry.data?.byteLength ?? 0, sha256: entry.sha256 })) }))
+    },
+    holdRemove(path: string, authorAfter?: string, fail = true, afterRemoval = false) {
+      let armed = true
+      const gate = new Promise<void>(resolve => release = resolve)
+      FileSystemDirectoryHandle.prototype.removeEntry = async function (name, options) {
+        const parent = await root.resolve(this)
+        if (!armed || !parent || [...parent, name].join('/') !== path)
+          return removeEntry.call(this, name, options)
+        armed = false
+        if (afterRemoval)
+          await removeEntry.call(this, name, options)
+        state.phase = 'remove-waiting'
+        await gate
+        if (!afterRemoval)
+          await removeEntry.call(this, name, options)
+        if (authorAfter !== undefined) {
+          await fs.writeFile(path, authorAfter)
+          throw new Error('Explicit native removal persisted; independent author saved before its failed receipt')
+        }
+        if (fail)
+          throw new Error('Explicit native removal persisted before failed receipt')
+      }
+    },
+    failJournalRead(times = 2) {
+      let remaining = times
+      IDBObjectStore.prototype.getAll = function (query, count) {
+        if (remaining > 0 && this.transaction.db.name === 'advjs-studio-workspace-mutations') {
+          remaining--
+          throw new DOMException('Explicit fixture unknown journal read', 'UnknownError')
+        }
+        return getAllRecords.call(this, query, count)
+      }
+    },
+    failJournal() {
+      let armed = true
+      IDBObjectStore.prototype.add = function (value, key) {
+        if (armed && this.transaction.db.name === 'advjs-studio-workspace-mutations') {
+          armed = false
+          throw new DOMException('Explicit fixture journal quota failure', 'QuotaExceededError')
+        }
+        return addRecord.call(this, value, key)
+      }
+    },
+    async imageBlob() { return fs.readBlob('adv/assets/master.webp') },
     async binary(path = 'adv/assets/master.webp') {
       const bytes = await (await fs.readBlob(path)).arrayBuffer()
       return { bytes: bytes.byteLength, sha256: Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), byte => byte.toString(16).padStart(2, '0')).join('') }
     },
-    async switchProject(back = false) {
-      const nextId = back ? id : `${id}-other`
+    async switchProject(back = false, sameId = false) {
+      const nextId = back || sameId ? id : `${id}-other`
       const nextFolder = back ? folder : `${folder}-other`
       const nextRoot = await storage.getDirectoryHandle(nextFolder, { create: true })
       if (!ownedFolders.includes(nextFolder)) {
@@ -101,6 +176,13 @@ async function main() {
         })()
         reading.add(operation)
         return operation
+      }
+    },
+    failNativeRead(path: string) {
+      FileSystemFileHandle.prototype.getFile = async function () {
+        if ((await root.resolve(this))?.join('/') === path)
+          throw new DOMException('Explicit fixture native read denied', 'NotAllowedError')
+        return getFile.call(this)
       }
     },
     holdNativeRead(path: string) {
@@ -168,8 +250,26 @@ async function main() {
       await Promise.allSettled([...closes, ...reading])
       FileSystemFileHandle.prototype.getFile = getFile
       FileSystemFileHandle.prototype.createWritable = createWritable
-      for (const adapter of adapters)
-        await whenStudioProjectWritesSettle(adapter)
+      FileSystemDirectoryHandle.prototype.removeEntry = removeEntry
+      IDBObjectStore.prototype.add = addRecord
+      IDBObjectStore.prototype.getAll = getAllRecords
+      for (const adapter of adapters) {
+        try {
+          await whenStudioProjectWritesSettle(adapter)
+        }
+        catch (error) {
+          if (!/ADV_STUDIO_WORKSPACE_RECOVERY/.test((error as Error).message))
+            throw error
+        }
+      }
+      for (const owned of ownedFolders) {
+        const ownedRoot = await storage.getDirectoryHandle(owned)
+        const ownedId = owned.slice('advjs-workspace-edit-'.length)
+        for (const record of await listWorkspaceMutationRecords(ownedId, ownedRoot))
+          await removeWorkspaceMutationRecord(record.id)
+        if ((await listWorkspaceMutationRecords(ownedId, ownedRoot)).length)
+          throw new Error('Task-owned journal still exists')
+      }
       app.unmount()
       for (const owned of ownedFolders) {
         await storage.removeEntry(owned, { recursive: true })

@@ -297,3 +297,76 @@ describe('workspace drafts following saved file moves', () => {
     expect(f.editor.isReady.value).toBe(true)
   })
 })
+
+describe('private drafts in native deletion recovery', () => {
+  it('freezes the confirmed private content and rejects later typing before discarding anything', async () => {
+    const f = fixture()
+    await f.editor.open('README.md')
+    f.editor.update('# Private text at confirmation')
+    const scope = { projectId: 'original', root: f.root, fs: f.fs }
+    const ticket = await f.editor.prepareDeletion(scope, ['README.md'])
+    expect(ticket.drafts).toEqual([{ path: 'README.md', source: '# Original README', content: '# Private text at confirmation' }])
+    f.editor.update('# New private text after confirmation')
+    expect(() => ticket.check()).toThrow('ADV_STUDIO_TRANSFER_DRAFT_CONFLICT')
+    expect(() => ticket.commit()).toThrow('ADV_STUDIO_TRANSFER_DRAFT_CONFLICT')
+    ticket.release()
+    expect(f.editor.content.value).toBe('# New private text after confirmation')
+    expect(await f.editor.save()).toMatchObject({ success: true })
+  })
+
+  it('restores an applied private deletion receipt if filesystem finalization fails', async () => {
+    const f = fixture()
+    await f.editor.open('README.md')
+    f.editor.update('# Private text for rollback')
+    const ticket = await f.editor.prepareDeletion({ projectId: 'original', root: f.root, fs: f.fs }, ['README.md'])
+    ticket.commit()
+    expect(f.editor.isReady.value).toBe(false)
+    ticket.rollback()
+    ticket.release()
+    expect(f.editor.isReady.value).toBe(true)
+    expect(f.editor.path.value).toBe('README.md')
+    expect(f.editor.content.value).toBe('# Private text for rollback')
+    expect(f.editor.isDirty.value).toBe(true)
+  })
+
+  it('restores serialized private input with its old comparison baseline', async () => {
+    const f = fixture()
+    const scope = { projectId: 'original', root: f.root, fs: f.fs }
+    const ticket = await f.editor.prepareDraftRestoration(scope, [{ path: 'README.md', source: '# Original README', content: '# Restored durable private input' }])
+    ticket.commit()
+    expect(() => ticket.check()).not.toThrow()
+    expect(f.editor.path.value).toBe('README.md')
+    expect(f.editor.content.value).toBe('# Restored durable private input')
+    f.files['README.md'] = '# New independent source'
+    expect(await f.editor.save()).toMatchObject({ success: false, conflict: true })
+    expect(f.files['README.md']).toBe('# New independent source')
+  })
+
+  it('rejects old recovery drafts when the current page already owns a different private version', async () => {
+    const f = fixture()
+    await f.editor.open('README.md')
+    f.editor.update('# Current page private version')
+    await expect(f.editor.prepareDraftRestoration({ projectId: 'original', root: f.root, fs: f.fs }, [{ path: 'README.md', source: '# Original README', content: '# Old recovery version' }])).rejects.toThrow('ADV_STUDIO_TRANSFER_DRAFT_CONFLICT')
+    expect(f.editor.content.value).toBe('# Current page private version')
+  })
+
+  it('retains the author draft and refuses a delayed deletion after switching projects', async () => {
+    const f = fixture()
+    await f.editor.open('README.md')
+    f.editor.update('# Old project private version')
+    const ticket = await f.editor.prepareDeletion({ projectId: 'original', root: f.root, fs: f.fs }, ['README.md'])
+    f.setScope({ projectId: 'other', root: f.root, fs: f.fs })
+    expect(() => ticket.check()).toThrow('ADV_STUDIO_CONTENT_SCOPE_CHANGED')
+    ticket.release()
+    expect(f.editor.content.value).toBe('# Old project private version')
+  })
+
+  it('reserves cached draft paths so creation and copies cannot silently adopt another private buffer', async () => {
+    const f = fixture()
+    await f.editor.open('README.md')
+    f.editor.update('# Private draft whose disk file was removed')
+    delete f.files['README.md']
+    const paths = await f.editor.draftPaths({ projectId: 'original', root: f.root, fs: f.fs })
+    expect(paths.has('README.md')).toBe(true)
+  })
+})

@@ -23,6 +23,7 @@ test.beforeEach(async ({ page }) => {
   await expect(page.locator('.workspace-text-preview:visible .monaco-editor')).toBeVisible()
 })
 test.afterEach(async ({ page }, info) => {
+  await expect(page.locator('.workspace-file-operations')).toHaveAttribute('aria-busy', 'false')
   if (info.status !== info.expectedStatus) {
     await page.screenshot({ path: info.outputPath('before-cleanup.png') })
     await writeFile(info.outputPath('before-cleanup.md'), await page.locator('body').ariaSnapshot())
@@ -386,4 +387,325 @@ test('copy and paste shares saved bytes while keeping the original and its priva
   await save(page).click()
   await expect.poll(() => read(page)).toBe('# Keep the private source input\n')
   expect(await read(page, 'adv/README.md')).toBe('# Original README\n')
+})
+
+test('dropping a same-named file keeps the saved author version and imports a distinct file', async ({ page }) => {
+  await page.locator('.agui-explorer-content').evaluate((element) => {
+    const dataTransfer = new DataTransfer()
+    dataTransfer.items.add(new File(['# Author supplied drop\n'], 'README.md', { type: 'text/markdown' }))
+    element.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer }))
+  })
+  await expect.poll(() => read(page, 'README 1.md')).toBe('# Author supplied drop\n')
+  expect(await read(page)).toBe('# Original README\n')
+})
+
+async function deleteItem(page: Page, name: string) {
+  await page.getByRole('option', { name, exact: true }).click()
+  await page.keyboard.press('Delete')
+  await expect(page.locator('ion-alert')).toBeVisible()
+}
+async function confirmFileDelete(page: Page) {
+  await page.locator('ion-alert').getByRole('button', { name: '删除', exact: true }).click()
+  await expect(page.locator('ion-alert')).toHaveCount(0)
+}
+async function dropText(page: Page, files: { name: string, text: string }[]) {
+  await page.locator('.agui-explorer-content').evaluate((element, files) => {
+    const dataTransfer = new DataTransfer()
+    files.forEach(file => dataTransfer.items.add(new File([file.text], file.name, { type: 'text/plain' })))
+    element.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer }))
+  }, files)
+}
+const pending = (page: Page) => page.evaluate(() => (window as any).workspaceEditingFixture.pending())
+const recovery = (page: Page) => page.getByRole('region', { name: '文件操作恢复', exact: true })
+async function dismissToasts(page: Page) {
+  await page.locator('ion-toast').evaluateAll(elements => Promise.all(elements.map(element => (element as any).dismiss())))
+}
+
+test('creating a file uses the host writer and keeps automatic rename and text saving', async ({ page }) => {
+  await page.locator('.agui-explorer-list-area').click({ button: 'right', position: { x: 450, y: 350 } })
+  await page.getByRole('menuitem', { name: 'New File', exact: true }).click()
+  const input = page.locator('.agui-rename-input')
+  await expect(input).toBeVisible()
+  expect(await read(page, 'New File.txt')).toBe('')
+  await input.fill('author-note.md')
+  await input.press('Enter')
+  await expect(page.getByRole('option', { name: 'author-note.md', exact: true })).toBeVisible()
+  await page.getByRole('option', { name: 'author-note.md', exact: true }).dblclick()
+  await replace(page, '# Saved new author file\n')
+  await save(page).click()
+  await expect.poll(() => read(page, 'author-note.md')).toMatch(/^# Saved new author file\r?\n$/)
+  expect(await pending(page)).toEqual([])
+})
+
+test('creating an empty folder keeps automatic rename and nested file creation', async ({ page }) => {
+  await page.locator('.agui-explorer-list-area').click({ button: 'right', position: { x: 450, y: 350 } })
+  await page.getByRole('menuitem', { name: 'New Folder', exact: true }).click()
+  const input = page.locator('.agui-rename-input')
+  await expect(input).toBeVisible()
+  await input.fill('author-notes')
+  await input.press('Enter')
+  await expect(page.getByRole('option', { name: 'author-notes', exact: true })).toBeVisible()
+  await page.getByRole('option', { name: 'author-notes', exact: true }).dblclick()
+  await expect(page.getByRole('listbox', { name: 'Files', exact: true })).toContainText('No files')
+  await page.locator('.agui-explorer-list-area').click({ button: 'right', position: { x: 100, y: 100 } })
+  await page.getByRole('menuitem', { name: 'New File', exact: true }).click()
+  await expect(input).toBeVisible()
+  await input.press('Escape')
+  expect(await read(page, 'author-notes/New File.txt')).toBe('')
+})
+
+test('cancelling deletion leaves saved content, private input, and the journal untouched', async ({ page }) => {
+  await replace(page, '# Keep this private input\n')
+  await deleteItem(page, 'README.md')
+  await expect(page.locator('ion-alert')).toContainText('1 份未保存草稿')
+  await page.locator('ion-alert').getByRole('button', { name: '取消', exact: true }).click()
+  expect(await read(page)).toBe('# Original README\n')
+  expect(await pending(page)).toEqual([])
+  await expect(editor(page).locator('.view-lines')).toContainText('# Keep this private input')
+})
+
+test('a saved source changed during delete confirmation is never deleted', async ({ page }) => {
+  await deleteItem(page, 'README.md')
+  await page.evaluate(() => (window as any).workspaceEditingFixture.externalEdit('README.md', '# New source while confirming\n'))
+  await confirmFileDelete(page)
+  await expect(page.locator('ion-toast')).toContainText('未完成')
+  expect(await read(page)).toBe('# New source while confirming\n')
+  expect(await pending(page)).toEqual([])
+})
+
+test('a directory that gains a child during confirmation is not recursively deleted', async ({ page }) => {
+  await deleteItem(page, 'adv')
+  await page.evaluate(() => (window as any).workspaceEditingFixture.externalEdit('adv/new-author.md', '# Added while confirming\n'))
+  await confirmFileDelete(page)
+  await expect(page.locator('ion-toast')).toContainText('未完成')
+  expect(await read(page, 'adv/new-author.md')).toBe('# Added while confirming\n')
+  expect(await read(page, 'adv/world.md')).toBe('# Original world\n')
+  expect(await pending(page)).toEqual([])
+})
+
+test('typing after delete confirmation restores the source and keeps the new private input', async ({ page }) => {
+  await replace(page, '# Confirmed private input\n')
+  await page.evaluate(() => (window as any).workspaceEditingFixture.holdRemove('README.md', undefined, false))
+  await deleteItem(page, 'README.md')
+  await confirmFileDelete(page)
+  await expect.poll(() => page.evaluate(() => (window as any).workspaceEditingFixture.state().phase)).toBe('remove-waiting')
+  await replace(page, '# New input after confirmation\n')
+  await page.evaluate(() => (window as any).workspaceEditingFixture.release())
+  await expect(page.locator('ion-toast')).toContainText('未完成')
+  expect(await read(page)).toBe('# Original README\n')
+  await expect(editor(page).locator('.view-lines')).toContainText('# New input after confirmation')
+  expect(await pending(page)).toEqual([])
+})
+
+test('deletion whose native removal persists then fails restores the original and private draft', async ({ page }) => {
+  await replace(page, '# Private deletion failure input\n')
+  await page.evaluate(() => (window as any).workspaceEditingFixture.holdRemove('README.md'))
+  await deleteItem(page, 'README.md')
+  await confirmFileDelete(page)
+  await expect.poll(() => page.evaluate(() => (window as any).workspaceEditingFixture.state().phase)).toBe('remove-waiting')
+  await page.evaluate(() => (window as any).workspaceEditingFixture.release())
+  await expect(page.locator('ion-toast')).toContainText('无法完成')
+  expect(await read(page)).toBe('# Original README\n')
+  await expect(editor(page).locator('.view-lines')).toContainText('# Private deletion failure input')
+  expect(await pending(page)).toEqual([])
+})
+
+test('a failed deletion retains an independent new author source and blocks creative facts until review', async ({ page }, info) => {
+  await replace(page, '# Private original kept in recovery\n')
+  await page.evaluate(() => (window as any).workspaceEditingFixture.holdRemove('README.md', '# Independent after native deletion\n'))
+  await deleteItem(page, 'README.md')
+  await confirmFileDelete(page)
+  await expect.poll(() => page.evaluate(() => (window as any).workspaceEditingFixture.state().phase)).toBe('remove-waiting')
+  await page.evaluate(() => (window as any).workspaceEditingFixture.release())
+  await expect(recovery(page)).toBeVisible()
+  await expect.poll(async () => (await pending(page)).length).toBe(1)
+  expect(await read(page)).toBe('# Independent after native deletion\n')
+  expect(await page.evaluate(() => (window as any).workspaceEditingFixture.facts())).toMatchObject({ ready: false, error: 'ADV_STUDIO_WORKSPACE_RECOVERY_REQUIRED' })
+  await writeFile(info.outputPath('pending-delete.json'), JSON.stringify(await pending(page), null, 2))
+  await dismissToasts(page)
+  const downloaded = page.waitForEvent('download')
+  await recovery(page).getByRole('button', { name: '下载备份核对', exact: true }).click()
+  await (await downloaded).saveAs(info.outputPath('workspace-recovery.zip'))
+  await recovery(page).getByRole('button', { name: '恢复操作前状态', exact: true }).click()
+  await page.locator('ion-alert').getByRole('button', { name: '恢复操作前状态', exact: true }).click()
+  await expect(page.locator('ion-toast')).toContainText('未完成')
+  expect(await read(page)).toBe('# Independent after native deletion\n')
+  expect((await pending(page)).length).toBe(1)
+  await dismissToasts(page)
+  await recovery(page).getByRole('button', { name: '保留当前并清除备份', exact: true }).click()
+  await expect(page.locator('ion-alert')).toContainText('永久清除')
+  await page.locator('ion-alert').getByRole('button', { name: '保留当前并清除备份', exact: true }).click()
+  await expect(recovery(page)).toHaveCount(0)
+  expect(await read(page)).toBe('# Independent after native deletion\n')
+  expect(await page.evaluate(() => (window as any).workspaceEditingFixture.facts())).toMatchObject({ ready: true })
+})
+
+test('reloading a genuinely interrupted native deletion restores durable files and private input', async ({ page }, info) => {
+  await replace(page, '# Durable private input\n')
+  await page.evaluate(() => (window as any).workspaceEditingFixture.holdRemove('README.md', undefined, false, true))
+  await deleteItem(page, 'README.md')
+  await confirmFileDelete(page)
+  await expect.poll(() => page.evaluate(() => (window as any).workspaceEditingFixture.state().phase)).toBe('remove-waiting')
+  expect(await read(page)).toBe(null)
+  expect((await pending(page)).length).toBe(1)
+  await page.reload()
+  await page.waitForFunction(() => Boolean((window as any).workspaceEditingFixture))
+  await expect(recovery(page)).toBeVisible()
+  expect(await read(page)).toBe(null)
+  expect(await page.evaluate(() => (window as any).workspaceEditingFixture.facts())).toMatchObject({ ready: false })
+  await page.screenshot({ path: info.outputPath('recovery-normal.png') })
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.screenshot({ path: info.outputPath('recovery-narrow.png') })
+  await recovery(page).getByRole('button', { name: '恢复操作前状态', exact: true }).click()
+  await page.locator('ion-alert').getByRole('button', { name: '恢复操作前状态', exact: true }).click()
+  await expect(recovery(page)).toHaveCount(0)
+  expect(await read(page)).toBe('# Original README\n')
+  await page.locator('.workspace-segment ion-segment-button').filter({ hasText: '文件' }).click()
+  await page.locator('.mobile-file-tree').getByRole('button', { name: 'README.md', exact: true }).click()
+  await expect(editor(page).locator('.view-lines')).toContainText('# Durable private input')
+  await save(page).click()
+  await expect.poll(() => read(page)).toBe('# Durable private input\n')
+  expect(await page.evaluate(() => (window as any).workspaceEditingFixture.facts())).toMatchObject({ ready: true })
+})
+
+test('dropping real binary media uses a distinct immutable filename and preserves both byte hashes', async ({ page }, info) => {
+  const original = await page.evaluate(() => (window as any).workspaceEditingFixture.binary())
+  await page.getByRole('option', { name: 'adv', exact: true }).dblclick()
+  await expect(page.getByRole('option', { name: 'assets', exact: true })).toBeVisible()
+  await page.getByRole('option', { name: 'assets', exact: true }).dblclick()
+  await expect(page.getByRole('option', { name: 'master.webp', exact: true })).toBeVisible()
+  await page.locator('.agui-explorer-content').evaluate(async (element) => {
+    const dataTransfer = new DataTransfer()
+    dataTransfer.items.add(new File([await (window as any).workspaceEditingFixture.imageBlob()], 'master.webp', { type: 'image/webp' }))
+    element.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer }))
+  })
+  await expect(page.getByRole('option', { name: 'master 1.webp', exact: true })).toBeVisible()
+  const copy = await page.evaluate(() => (window as any).workspaceEditingFixture.binary('adv/assets/master 1.webp'))
+  expect(copy).toEqual(original)
+  expect(await page.evaluate(() => (window as any).workspaceEditingFixture.binary())).toEqual(original)
+  await writeFile(info.outputPath('binary-drop.json'), JSON.stringify({ original, copy }))
+})
+
+test('a journal quota failure prevents all imported project writes', async ({ page }) => {
+  await page.evaluate(() => (window as any).workspaceEditingFixture.failJournal())
+  await dropText(page, [{ name: 'new-import.md', text: '# Must not be persisted\n' }])
+  await expect(page.locator('ion-toast')).toContainText('无法完成')
+  expect(await read(page, 'new-import.md')).toBe(null)
+  expect(await read(page)).toBe('# Original README\n')
+  expect(await pending(page)).toEqual([])
+})
+
+test('switching projects while a deletion is being confirmed protects both project sources', async ({ page }) => {
+  await deleteItem(page, 'README.md')
+  await page.evaluate(() => (window as any).workspaceEditingFixture.switchProject())
+  await confirmFileDelete(page)
+  await expect(page.locator('ion-toast')).toContainText('未完成')
+  expect(await read(page)).toBe('# Original README\n')
+  expect(await page.evaluate(() => (window as any).workspaceEditingFixture.readOther('README.md'))).toBe('# Other project README\n')
+  expect(await pending(page)).toEqual([])
+})
+
+test('a completed native deletion removes only the confirmed file and private draft', async ({ page }) => {
+  await replace(page, '# Private input explicitly deleted\n')
+  await deleteItem(page, 'README.md')
+  await confirmFileDelete(page)
+  await expect(page.locator('.workspace-file-operations')).toHaveAttribute('aria-busy', 'false')
+  expect(await read(page)).toBe(null)
+  expect(await read(page, 'adv/world.md')).toBe('# Original world\n')
+  expect(await pending(page)).toEqual([])
+  await expect(page.locator('.workspace-text-preview:visible .monaco-editor')).toHaveCount(0)
+  expect(await page.evaluate(() => (window as any).workspaceEditingFixture.facts())).toMatchObject({ ready: true })
+})
+
+async function pendingDelete(page: Page) {
+  await page.evaluate(() => (window as any).workspaceEditingFixture.holdRemove('README.md', '# Independent pending source\n'))
+  await deleteItem(page, 'README.md')
+  await confirmFileDelete(page)
+  await expect.poll(() => page.evaluate(() => (window as any).workspaceEditingFixture.state().phase)).toBe('remove-waiting')
+  await page.evaluate(() => (window as any).workspaceEditingFixture.release())
+  await expect(recovery(page)).toBeVisible()
+  await expect(page.locator('.workspace-file-operations')).toHaveAttribute('aria-busy', 'false')
+  await dismissToasts(page)
+}
+
+test('a later author change invalidates the explicit keep-current recovery confirmation', async ({ page }) => {
+  await pendingDelete(page)
+  await recovery(page).getByRole('button', { name: '保留当前并清除备份', exact: true }).click()
+  await expect(page.locator('ion-alert')).toContainText('# Independent pending source')
+  await page.evaluate(() => (window as any).workspaceEditingFixture.externalEdit('README.md', '# New author after review\n'))
+  await page.locator('ion-alert').getByRole('button', { name: '保留当前并清除备份', exact: true }).click()
+  await expect(page.locator('ion-toast')).toContainText('未完成')
+  expect(await read(page)).toBe('# New author after review\n')
+  expect((await pending(page)).length).toBe(1)
+  expect(await page.evaluate(() => (window as any).workspaceEditingFixture.facts())).toMatchObject({ ready: false })
+})
+
+test('durable recovery remains bound to the physical directory across both project identity changes', async ({ page }) => {
+  await pendingDelete(page)
+  await page.evaluate(() => (window as any).workspaceEditingFixture.switchProject(false, true))
+  await expect(recovery(page)).toHaveCount(0)
+  await expect(editor(page).locator('.view-lines')).toContainText('# Other project README')
+  expect(await page.evaluate(() => (window as any).workspaceEditingFixture.facts())).toMatchObject({ ready: true })
+  await page.evaluate(() => (window as any).workspaceEditingFixture.switchProject(true))
+  await expect(recovery(page)).toBeVisible()
+  await page.evaluate(() => (window as any).workspaceEditingFixture.switchIdentity())
+  await expect(recovery(page)).toBeVisible()
+  expect(await page.evaluate(() => (window as any).workspaceEditingFixture.facts())).toMatchObject({ ready: false })
+  expect(await read(page)).toBe('# Independent pending source\n')
+})
+
+for (const path of ['adv/assets/master.webp', 'adv.config.json']) {
+  test(`an interrupted deletion of ${path} can reopen and restore its durable original`, async ({ page }, info) => {
+    const image = path.endsWith('.webp') ? await page.evaluate(() => (window as any).workspaceEditingFixture.binary()) : undefined
+    const original = image ? undefined : await read(page, path)
+    if (image) {
+      await page.getByRole('option', { name: 'adv', exact: true }).dblclick()
+      await expect(page.getByRole('option', { name: 'assets', exact: true })).toBeVisible()
+      await page.getByRole('option', { name: 'assets', exact: true }).dblclick()
+      await expect(page.getByRole('option', { name: 'master.webp', exact: true })).toBeVisible()
+    }
+    await page.evaluate(path => (window as any).workspaceEditingFixture.holdRemove(path, undefined, false, true), path)
+    await deleteItem(page, path.split('/').at(-1)!)
+    await confirmFileDelete(page)
+    await expect.poll(() => page.evaluate(() => (window as any).workspaceEditingFixture.state().phase)).toBe('remove-waiting')
+    expect(await exists(page, path)).toBe(false)
+    await page.reload()
+    await page.waitForFunction(() => Boolean((window as any).workspaceEditingFixture))
+    await expect(recovery(page)).toBeVisible()
+    expect(await exists(page, path)).toBe(false)
+    await recovery(page).getByRole('button', { name: '恢复操作前状态', exact: true }).click()
+    await page.locator('ion-alert').getByRole('button', { name: '恢复操作前状态', exact: true }).click()
+    await expect(recovery(page)).toHaveCount(0)
+    if (image) {
+      expect(await page.evaluate(() => (window as any).workspaceEditingFixture.binary())).toEqual(image)
+      await writeFile(info.outputPath('restored-image.json'), JSON.stringify(image))
+    }
+    else {
+      expect(await read(page, path)).toBe(original)
+    }
+    expect(await page.evaluate(() => (window as any).workspaceEditingFixture.facts())).toMatchObject({ ready: true })
+  })
+}
+
+test('an unknown journal read prevents writes and can be retried without inventing empty source state', async ({ page }) => {
+  await page.evaluate(() => (window as any).workspaceEditingFixture.failJournalRead())
+  await dropText(page, [{ name: 'unread-journal.md', text: '# Must not write against unknown recovery\n' }])
+  await expect(recovery(page).getByRole('alert')).toContainText('无法读取本机恢复记录')
+  expect(await read(page, 'unread-journal.md')).toBe(null)
+  expect(await read(page)).toBe('# Original README\n')
+  await dismissToasts(page)
+  await recovery(page).getByRole('button', { name: '重新读取恢复记录', exact: true }).click()
+  await expect(recovery(page)).toHaveCount(0)
+  expect(await pending(page)).toEqual([])
+  expect(await page.evaluate(() => (window as any).workspaceEditingFixture.facts())).toMatchObject({ ready: true })
+})
+
+test('recovery originals remain downloadable when current native files cannot be read', async ({ page }, info) => {
+  await pendingDelete(page)
+  await page.evaluate(() => (window as any).workspaceEditingFixture.failNativeRead('README.md'))
+  const downloaded = page.waitForEvent('download')
+  await recovery(page).getByRole('button', { name: '下载备份核对', exact: true }).click()
+  await (await downloaded).saveAs(info.outputPath('unreadable-current-recovery.zip'))
+  await expect(recovery(page)).toBeVisible()
+  expect((await pending(page)).length).toBe(1)
 })

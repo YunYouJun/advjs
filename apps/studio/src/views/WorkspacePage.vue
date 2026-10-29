@@ -31,12 +31,14 @@ import CreateProjectModal from '../components/CreateProjectModal.vue'
 import MobileFileTree from '../components/MobileFileTree.vue'
 import ProjectOverview from '../components/ProjectOverview.vue'
 import ProjectSwitcher from '../components/ProjectSwitcher.vue'
+import WorkspaceFileRecovery from '../components/workspace/WorkspaceFileRecovery.vue'
 import WorkspaceTextPreview from '../components/workspace/WorkspaceTextPreview.vue'
 import WorkspaceReconnect from '../components/WorkspaceReconnect.vue'
 import { useContestDemos } from '../composables/useContestDemos'
 import { useProjectContent } from '../composables/useProjectContent'
 import { importProject } from '../composables/useProjectExport'
 import { useResponsive } from '../composables/useResponsive'
+import { useWorkspaceFileMutations } from '../composables/useWorkspaceFileMutations'
 import { useWorkspaceFileTransfers } from '../composables/useWorkspaceFileTransfers'
 import { useWorkspaceTextEditor } from '../composables/useWorkspaceTextEditor'
 import { useSettingsStore } from '../stores/useSettingsStore'
@@ -64,8 +66,10 @@ function getFileScope() {
     : null
 }
 const fileEditor = useWorkspaceTextEditor(getFileScope)
+const fileMutations = useWorkspaceFileMutations(getFileScope, fileEditor, projectContent.reload)
 const transferFiles = useWorkspaceFileTransfers({
   getScope: getFileScope,
+  draftPaths: fileEditor.draftPaths,
   prepareRelocation: fileEditor.prepareRelocation,
   async onFailure(error) {
     const message = error instanceof Error ? error.message : String(error)
@@ -900,6 +904,12 @@ function getFileIconClass(name: string): string {
         </IonSegment>
       </div>
 
+      <WorkspaceFileRecovery
+        :records="fileMutations.records.value" :busy="fileMutations.busy.value" :error="fileMutations.error.value"
+        @restore="fileMutations.recover($event, 'restore')" @keep="fileMutations.recover($event, 'keep')"
+        @download="fileMutations.download" @retry="fileMutations.retry"
+      />
+
       <!-- Overview view -->
       <ProjectOverview v-if="workspaceSegment === 'overview'" />
 
@@ -926,6 +936,7 @@ function getFileIconClass(name: string): string {
               v-model:cur-dir="curDir"
               :on-file-dbl-click="handleFileDblClick"
               :on-transfer="transferFiles"
+              :on-mutation="fileMutations.perform"
             />
             <!-- No dirHandle: URL/COS project or handle lost -->
             <WorkspaceReconnect v-else @reconnect="handleReconnectDir" />

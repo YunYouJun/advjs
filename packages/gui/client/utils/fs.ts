@@ -101,6 +101,7 @@ export function getFileTypeFromPath(path: string) {
     'gltf',
 
     'md',
+    'txt',
     'gitignore',
   ]
   if (!knownExt.includes(ext))
