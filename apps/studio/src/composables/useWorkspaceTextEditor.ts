@@ -1,5 +1,6 @@
 import type { IFileSystem } from '../utils/fs'
 import type { StudioContentSource } from '../utils/projectContentMutation'
+import type { StudioFileTransfer } from '../utils/projectFileTransfer'
 import { computed, shallowReactive, shallowRef } from 'vue'
 import { isAudioFile, isImageFile } from '../utils/fs'
 import { commitStudioContentSource, isStudioContentConflict, readStudioContentSource } from '../utils/projectContentMutation'
@@ -27,6 +28,7 @@ export function useWorkspaceTextEditor(getScope: () => WorkspaceTextScope | null
   const isLoading = shallowRef(false)
   const readError = shallowRef('')
   const drafts = new Set<Draft>()
+  const moving = new Set<Draft>()
   const request = shallowRef<Request>()
   // Preserve the existing editor's text formats, including extensionless files
   // and SVG source. Known binary media never become editable text buffers.
@@ -123,7 +125,7 @@ export function useWorkspaceTextEditor(getScope: () => WorkspaceTextScope | null
   }
   async function save(): Promise<WorkspaceSaveResult> {
     const draft = active.value
-    if (!draft || draft.saving || isLoading.value)
+    if (!draft || draft.saving || moving.has(draft) || isLoading.value)
       return { success: false, error: 'ADV_STUDIO_CONTENT_SAVE_BUSY' }
     const source = draft.source
     const scope = draft.scope
@@ -153,7 +155,7 @@ export function useWorkspaceTextEditor(getScope: () => WorkspaceTextScope | null
     return request.value ? { request: request.value, draft: active.value, content: active.value?.content } : undefined
   }
   async function reload(ticket: ReloadTicket | undefined): Promise<boolean> {
-    if (!ticket || request.value !== ticket.request || active.value !== ticket.draft || active.value?.content !== ticket.content || active.value?.saving)
+    if (!ticket || request.value !== ticket.request || active.value !== ticket.draft || active.value?.content !== ticket.content || active.value?.saving || (active.value && moving.has(active.value)))
       return false
     try {
       assertScope(ticket.request.scope)
@@ -162,6 +164,51 @@ export function useWorkspaceTextEditor(getScope: () => WorkspaceTextScope | null
       return false
     }
     return open(ticket.request.path, true)
+  }
+  async function prepareRelocation(scope: WorkspaceTextScope, transfers: readonly StudioFileTransfer[]) {
+    const moves = transfers.filter(transfer => transfer.move)
+    const under = (parent: string, path: string) => path === parent || path.startsWith(`${parent}/`)
+    const affected: { draft: Draft, path: string }[] = []
+    const owned: Draft[] = []
+    for (const draft of drafts) {
+      if (draft.scope.projectId === scope.projectId && await draft.scope.root.isSameEntry(scope.root))
+        owned.push(draft)
+    }
+    assertScope(scope)
+    for (const draft of owned) {
+      const move = moves.find(move => under(move.source, draft.source.path))
+      if (!move)
+        continue
+      const path = move.target + draft.source.path.slice(move.source.length)
+      if (draft.saving || moving.has(draft) || owned.some(other => other !== draft && other.source.path === path))
+        throw new Error('ADV_STUDIO_TRANSFER_DRAFT_CONFLICT')
+      affected.push({ draft, path })
+    }
+    affected.forEach(({ draft }) => moving.add(draft))
+    let reopen: Request | undefined
+    return {
+      commit() {
+        assertScope(scope)
+        for (const { draft, path } of affected) {
+          draft.source = Object.freeze({ ...draft.source, path })
+          if (active.value === draft && request.value)
+            request.value = { scope: request.value.scope, path }
+        }
+        const current = request.value
+        const move = current && moves.find(move => under(move.source, current.path))
+        if (current && move && !active.value) {
+          reopen = { scope: current.scope, path: move.target + current.path.slice(move.source.length) }
+          request.value = reopen
+          isLoading.value = false
+          readError.value = ''
+        }
+      },
+      async after() {
+        if (reopen && request.value === reopen)
+          await open(reopen.path)
+      },
+      release() { affected.forEach(({ draft }) => moving.delete(draft)) },
+    }
   }
   return {
     path: computed(() => request.value?.path ?? ''),
@@ -177,5 +224,6 @@ export function useWorkspaceTextEditor(getScope: () => WorkspaceTextScope | null
     save,
     captureReload,
     reload,
+    prepareRelocation,
   }
 }

@@ -470,9 +470,11 @@ export class MemoryFsAdapter implements IFileSystem {
     this.schedulePersist()
   }
 
-  async rmdir(path: string): Promise<void> {
+  async rmdir(path: string, options?: { recursive?: boolean }): Promise<void> {
     const p = this.normalizePath(path)
     const prefix = `${p}/`
+    if (options?.recursive === false && [...this.nodes.keys()].some(key => key.startsWith(prefix)))
+      throw new DOMException('Directory is not empty', 'InvalidModificationError')
     const toDelete: string[] = [p]
     for (const key of this.nodes.keys()) {
       if (key.startsWith(prefix))

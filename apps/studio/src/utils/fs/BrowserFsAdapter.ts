@@ -161,7 +161,7 @@ export class BrowserFsAdapter implements IFileSystem {
     await parent.removeEntry(file)
   }
 
-  async rmdir(path: string): Promise<void> {
+  async rmdir(path: string, options?: { recursive?: boolean }): Promise<void> {
     const parts = path.split('/').filter(Boolean)
     if (parts.length === 0)
       return
@@ -170,7 +170,7 @@ export class BrowserFsAdapter implements IFileSystem {
     const parent = parentParts.length > 0
       ? await this.resolveSubdir(this.root, parentParts)
       : this.root
-    await parent.removeEntry(name, { recursive: true })
+    await parent.removeEntry(name, { recursive: options?.recursive ?? true })
   }
 
   async listFiles(subdir: string, ext: string): Promise<string[]> {

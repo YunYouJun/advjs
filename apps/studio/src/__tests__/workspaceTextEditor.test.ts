@@ -232,3 +232,68 @@ describe('workspace text format compatibility', () => {
     expect(f.files['README.md']).toBe('# Independently changed during read')
   })
 })
+
+describe('workspace drafts following saved file moves', () => {
+  it('moves the draft path and retains typing made while the saved file is moving', async () => {
+    const f = fixture()
+    await f.editor.open('README.md')
+    f.editor.update('# Private input before moving')
+    const ticket = await f.editor.prepareRelocation({ projectId: 'original', root: f.root, fs: f.fs }, [{ source: 'README.md', target: 'renamed.md', move: true }])
+    expect(await f.editor.save()).toMatchObject({ success: false, error: 'ADV_STUDIO_CONTENT_SAVE_BUSY' })
+    f.editor.update('# More typing during moving')
+    f.files['renamed.md'] = f.files['README.md']!
+    delete f.files['README.md']
+    ticket.commit()
+    ticket.release()
+    expect(f.editor.path.value).toBe('renamed.md')
+    expect(f.editor.content.value).toBe('# More typing during moving')
+    expect(await f.editor.save()).toMatchObject({ success: true })
+    expect(f.files['renamed.md']).toBe('# More typing during moving')
+  })
+
+  it('keeps the old byte baseline when another author saved before the move', async () => {
+    const f = fixture()
+    await f.editor.open('README.md')
+    f.editor.update('# Private old input')
+    f.files['renamed.md'] = '# Newer saved author version'
+    delete f.files['README.md']
+    const ticket = await f.editor.prepareRelocation({ projectId: 'original', root: f.root, fs: f.fs }, [{ source: 'README.md', target: 'renamed.md', move: true }])
+    ticket.commit()
+    ticket.release()
+    expect(await f.editor.save()).toMatchObject({ success: false, conflict: true })
+    expect(f.files['renamed.md']).toBe('# Newer saved author version')
+    expect(f.editor.content.value).toBe('# Private old input')
+  })
+
+  it('rejects a move that would make two private drafts share one saved path', async () => {
+    const f = fixture()
+    f.files['renamed.md'] = '# Previously existing destination'
+    await f.editor.open('renamed.md')
+    f.editor.update('# Private destination')
+    await f.editor.open('README.md')
+    f.editor.update('# Private source')
+    delete f.files['renamed.md']
+    await expect(f.editor.prepareRelocation({ projectId: 'original', root: f.root, fs: f.fs }, [{ source: 'README.md', target: 'renamed.md', move: true }])).rejects.toThrow('ADV_STUDIO_TRANSFER_DRAFT_CONFLICT')
+    expect(f.editor.path.value).toBe('README.md')
+    expect(f.editor.content.value).toBe('# Private source')
+  })
+
+  it('rebinds an in-flight file open only after its saved source move has finished', async () => {
+    const f = fixture()
+    let release!: () => void
+    vi.mocked(f.fs.readFile).mockReturnValueOnce(new Promise<string>(resolve => release = () => resolve('# Original world')))
+    const opening = f.editor.open('adv/world.md')
+    await vi.waitFor(() => expect(f.fs.readFile).toHaveBeenCalled())
+    const ticket = await f.editor.prepareRelocation({ projectId: 'original', root: f.root, fs: f.fs }, [{ source: 'adv', target: 'story', move: true }])
+    f.files['story/world.md'] = f.files['adv/world.md']!
+    delete f.files['adv/world.md']
+    ticket.commit()
+    release()
+    expect(await opening).toBe(false)
+    await ticket.after()
+    ticket.release()
+    expect(f.editor.path.value).toBe('story/world.md')
+    expect(f.editor.content.value).toBe('# Original world')
+    expect(f.editor.isReady.value).toBe(true)
+  })
+})

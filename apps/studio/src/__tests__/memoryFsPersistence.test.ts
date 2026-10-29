@@ -455,3 +455,26 @@ describe('durable cross-window memory hints', () => {
     }
   })
 })
+
+describe('empty-directory removal authority', () => {
+  it('refuses nonrecursive removal while an author file or child directory exists', async () => {
+    const fs = new MemoryFsAdapter('nonrecursive-author-files')
+    await fs.writeFile('adv/chapters/first.md', 'Keep author source')
+    await fs.mkdir('adv/chapters/empty')
+    await expect(fs.rmdir('adv/chapters', { recursive: false })).rejects.toMatchObject({ name: 'InvalidModificationError' })
+    expect(await fs.readFile('adv/chapters/first.md')).toBe('Keep author source')
+    expect(await fs.exists('adv/chapters/empty')).toBe(true)
+    await fs.flush()
+  })
+
+  it('removes verified empty directories while retaining the existing recursive default', async () => {
+    const fs = new MemoryFsAdapter('nonrecursive-empty')
+    await fs.mkdir('adv/chapters/empty')
+    await fs.rmdir('adv/chapters/empty', { recursive: false })
+    expect(await fs.exists('adv/chapters/empty')).toBe(false)
+    await fs.writeFile('adv/chapters/first.md', 'Explicit recursive deletion')
+    await fs.rmdir('adv/chapters')
+    expect(await fs.exists('adv/chapters/first.md')).toBe(false)
+    await fs.flush()
+  })
+})

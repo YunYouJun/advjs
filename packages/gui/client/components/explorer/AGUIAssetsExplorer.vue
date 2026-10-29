@@ -93,6 +93,7 @@ const state = {
   onRename: props.onRename,
   onDelete: props.onDelete,
   onCreate: props.onCreate,
+  get onTransfer() { return props.onTransfer },
 
   emit,
 

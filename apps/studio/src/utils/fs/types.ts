@@ -83,8 +83,8 @@ export interface IFileSystem {
   /** Delete a file */
   deleteFile: (path: string) => Promise<void>
 
-  /** Delete a directory (recursive) */
-  rmdir: (path: string) => Promise<void>
+  /** Delete a directory; recursive by default, or require an empty directory. */
+  rmdir: (path: string, options?: { recursive?: boolean }) => Promise<void>
 
   // --- Batch / utility ---
 

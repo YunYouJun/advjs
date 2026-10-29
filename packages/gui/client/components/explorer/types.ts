@@ -24,6 +24,19 @@ export interface FSDirItem extends FSBaseItem {
 
 export type FSItem = FSFileItem | FSDirItem
 
+export interface AGUIFileTransferRequest {
+  items: readonly FSItem[]
+  targetDir: FSDirItem
+  move: boolean
+  /** Exact requested names for rename; other transfers ask the host for unique names. */
+  names?: readonly string[]
+}
+export interface AGUIFileTransferResult {
+  success: boolean
+  /** Completed moves relative to the explorer root, used to rebind open directories. */
+  moves?: readonly { source: string, target: string }[]
+}
+
 /**
  * props
  */
@@ -78,6 +91,8 @@ export interface AGUIAssetsExplorerProps {
   onFSItemChange?: (item: FSItem) => void | Promise<void>
 
   // file operations callbacks
+  /** The host owns the entire transfer. False cancels; it never falls back to native writes. */
+  onTransfer?: (request: AGUIFileTransferRequest) => Promise<boolean | AGUIFileTransferResult>
   /**
    * Called after rename. Return false to prevent.
    */

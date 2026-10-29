@@ -56,15 +56,16 @@ async function main() {
   await content.whenReady()
   const adapters = new Set<IFileSystem>([content.getFs()!])
   const ownedFolders = [folder]
-  const reading = new Set<Promise<string>>()
+  const reading = new Set<Promise<unknown>>()
   let releaseRead: (() => void) | undefined
+  const getFile = FileSystemFileHandle.prototype.getFile
   const createWritable = FileSystemFileHandle.prototype.createWritable
   let release: (() => void) | undefined
   const closes = new Set<Promise<void>>()
   const state = { phase: 'idle' }
   Object.assign(window, { workspaceEditingFixture: {
-    async binary() {
-      const bytes = await (await fs.readBlob('adv/assets/master.webp')).arrayBuffer()
+    async binary(path = 'adv/assets/master.webp') {
+      const bytes = await (await fs.readBlob(path)).arrayBuffer()
       return { bytes: bytes.byteLength, sha256: Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), byte => byte.toString(16).padStart(2, '0')).join('') }
     },
     async switchProject(back = false) {
@@ -102,11 +103,30 @@ async function main() {
         return operation
       }
     },
+    holdNativeRead(path: string) {
+      let armed = true
+      const gate = new Promise<void>(resolve => releaseRead = resolve)
+      FileSystemFileHandle.prototype.getFile = async function () {
+        const file = await getFile.call(this)
+        const resolved = await root.resolve(this)
+        const operation = (async () => {
+          if (armed && resolved?.join('/') === path) {
+            armed = false
+            state.phase = 'native-read-waiting'
+            await gate
+          }
+          return file
+        })()
+        reading.add(operation)
+        return operation
+      }
+    },
     releaseRead: () => releaseRead?.(),
     async readOther(path: string) {
       const other = new BrowserFsAdapter(await storage.getDirectoryHandle(`${folder}-other`))
       return other.readFile(path)
     },
+    async exists(path: string) { return fs.exists(path) },
     async read(path: string) { return await fs.exists(path) ? fs.readFile(path) : null },
     async externalEdit(path: string, value: string) { await fs.writeFile(path, value) },
     holdWrite(path: string, fail: boolean) {
@@ -146,6 +166,7 @@ async function main() {
       release?.()
       releaseRead?.()
       await Promise.allSettled([...closes, ...reading])
+      FileSystemFileHandle.prototype.getFile = getFile
       FileSystemFileHandle.prototype.createWritable = createWritable
       for (const adapter of adapters)
         await whenStudioProjectWritesSettle(adapter)

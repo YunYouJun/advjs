@@ -164,12 +164,12 @@ export class CapacitorFsAdapter implements IFileSystem {
     })
   }
 
-  async rmdir(path: string): Promise<void> {
+  async rmdir(path: string, options?: { recursive?: boolean }): Promise<void> {
     const { Filesystem, Directory } = await getCapFs()
     await Filesystem.rmdir({
       path: this.resolvePath(path),
       directory: Directory.Documents,
-      recursive: true,
+      recursive: options?.recursive ?? true,
     })
   }
 

@@ -37,6 +37,7 @@ import { useContestDemos } from '../composables/useContestDemos'
 import { useProjectContent } from '../composables/useProjectContent'
 import { importProject } from '../composables/useProjectExport'
 import { useResponsive } from '../composables/useResponsive'
+import { useWorkspaceFileTransfers } from '../composables/useWorkspaceFileTransfers'
 import { useWorkspaceTextEditor } from '../composables/useWorkspaceTextEditor'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
@@ -55,12 +56,28 @@ const router = useRouter()
 const studioStore = useStudioStore()
 const settingsStore = useSettingsStore()
 const projectContent = useProjectContent()
-const fileEditor = useWorkspaceTextEditor(() => {
+function getFileScope() {
   const project = studioStore.currentProject
   const fs = projectContent.getFs()
   return project?.dirHandle && fs instanceof BrowserFsAdapter && fs.dirHandle === project.dirHandle
     ? { projectId: project.projectId, root: project.dirHandle, fs }
     : null
+}
+const fileEditor = useWorkspaceTextEditor(getFileScope)
+const transferFiles = useWorkspaceFileTransfers({
+  getScope: getFileScope,
+  prepareRelocation: fileEditor.prepareRelocation,
+  async onFailure(error) {
+    const message = error instanceof Error ? error.message : String(error)
+    const recovery = message.startsWith('ADV_STUDIO_TRANSFER_RECOVERY_REQUIRED: ')
+    const toast = await toastController.create({
+      message: t(recovery ? 'workspace.fileTransferRecovery' : /CONFLICT|SCOPE_CHANGED|OVERLAP/.test(message) ? 'workspace.fileTransferConflict' : 'workspace.fileTransferFailed', { paths: recovery ? message.slice('ADV_STUDIO_TRANSFER_RECOVERY_REQUIRED: '.length) : '' }),
+      duration: recovery ? 10000 : 5000,
+      position: 'top',
+      color: 'warning',
+    })
+    await toast.present()
+  },
 })
 const fileError = computed(() => {
   const error = fileEditor.error.value
@@ -908,6 +925,7 @@ function getFileIconClass(name: string): string {
               v-model:root-dir="rootDir"
               v-model:cur-dir="curDir"
               :on-file-dbl-click="handleFileDblClick"
+              :on-transfer="transferFiles"
             />
             <!-- No dirHandle: URL/COS project or handle lost -->
             <WorkspaceReconnect v-else @reconnect="handleReconnectDir" />
