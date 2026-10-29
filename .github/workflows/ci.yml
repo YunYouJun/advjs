@@ -168,8 +168,10 @@ jobs:
         with:
           name: studio-ios-inputs
           path: apps/studio-ios
-      - name: Start booting the simulators
-        run: node apps/studio-ios/scripts/simulator-destinations.mjs --boot
+      # Standard Apple runners have 3 cores / 7 GB. Keep the unused iPad off
+      # while XCTest initializes iPhone Accessibility; switch devices in order.
+      - name: Boot the iPhone and wait for readiness
+        run: node apps/studio-ios/scripts/simulator-destinations.mjs --only iphone --boot
       - name: StudioKit on iPhone
         working-directory: apps/studio-ios/Packages/StudioKit
         run: xcodebuild test -parallel-testing-enabled NO -scheme StudioKit $(node ../../scripts/simulator-destinations.mjs --only iphone) -resultBundlePath ../../build/StudioKit.xcresult
@@ -184,6 +186,10 @@ jobs:
       - name: UI tests on iPhone
         working-directory: apps/studio-ios
         run: xcodebuild test-without-building -parallel-testing-enabled NO -project StudioApp.xcodeproj -scheme StudioApp $(node scripts/simulator-destinations.mjs --only iphone) -derivedDataPath build/DerivedData -only-testing:StudioAppUITests -resultBundlePath build/UITests-iPhone.xcresult
+      - name: Shut down the iPhone before iPad coverage
+        run: node apps/studio-ios/scripts/simulator-destinations.mjs --only iphone --shutdown
+      - name: Boot the iPad and wait for readiness
+        run: node apps/studio-ios/scripts/simulator-destinations.mjs --only ipad --boot
       - name: UI tests on iPad
         working-directory: apps/studio-ios
         run: xcodebuild test-without-building -parallel-testing-enabled NO -project StudioApp.xcodeproj -scheme StudioApp $(node scripts/simulator-destinations.mjs --only ipad) -derivedDataPath build/DerivedData -only-testing:StudioAppUITests/IPadLayoutUITests -resultBundlePath build/UITests-iPad.xcresult

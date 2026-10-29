@@ -196,10 +196,25 @@ describe('github Actions launch baseline', () => {
     const inspection = runCommands(native).find(command => command.includes('xcodebuild -version'))!
     expect(inspection).toContain('xcrun --sdk iphonesimulator --show-sdk-version')
     expect(inspection).toContain('xcrun simctl list runtimes')
-    expectCommandBefore(native, inspection, 'node apps/studio-ios/scripts/simulator-destinations.mjs --boot')
+    expectCommandBefore(native, inspection, 'node apps/studio-ios/scripts/simulator-destinations.mjs --only iphone --boot')
     // A retry must replace its partial result artifact without colliding with it.
     const results = native.steps.find(step => step.with?.name === 'studio-ios')!
     expect(results.with?.overwrite).toBe(true)
+  })
+
+  it('runs iPhone and iPad coverage with only the active simulator booted', () => {
+    const native = readWorkflow('ci').jobs['studio-ios']
+    const commands = runCommands(native)
+    const phoneBoot = 'node apps/studio-ios/scripts/simulator-destinations.mjs --only iphone --boot'
+    const phoneShutdown = 'node apps/studio-ios/scripts/simulator-destinations.mjs --only iphone --shutdown'
+    const padBoot = 'node apps/studio-ios/scripts/simulator-destinations.mjs --only ipad --boot'
+    const phoneUI = commands.find(command => command.includes('-only-testing:StudioAppUITests '))!
+    const padUI = commands.find(command => command.includes('-only-testing:StudioAppUITests/IPadLayoutUITests '))!
+    expectCommandBefore(native, phoneBoot, phoneUI)
+    expectCommandBefore(native, phoneUI, phoneShutdown)
+    expectCommandBefore(native, phoneShutdown, padBoot)
+    expectCommandBefore(native, padBoot, padUI)
+    expect(commands).not.toContain('node apps/studio-ios/scripts/simulator-destinations.mjs --boot')
   })
 
   it('keeps Pages production builds and packed Agent installation checks', () => {

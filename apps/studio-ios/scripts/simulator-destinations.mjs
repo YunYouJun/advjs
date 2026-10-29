@@ -7,9 +7,11 @@
  * Usage:
  *   xcodebuild test $(node apps/studio-ios/scripts/simulator-destinations.mjs) ...
  *   node apps/studio-ios/scripts/simulator-destinations.mjs --only iphone   # or ipad
- *   node apps/studio-ios/scripts/simulator-destinations.mjs --boot          # start booting both, return at once
+ *   node apps/studio-ios/scripts/simulator-destinations.mjs --only iphone --boot
+ *   node apps/studio-ios/scripts/simulator-destinations.mjs --only iphone --shutdown
+ * Lifecycle commands wait for completion and propagate simulator errors.
  */
-import { execFileSync, spawn } from 'node:child_process'
+import { execFileSync } from 'node:child_process'
 import process from 'node:process'
 
 const args = process.argv.slice(2)
@@ -33,11 +35,20 @@ for (const { runtime } of runtimes) {
     continue
   const chosen = only === 'iphone' ? [iPhone] : only === 'ipad' ? [iPad] : [iPhone, iPad]
   process.stderr.write(`Using ${chosen.map(device => device.name).join(' and ')} (${runtime})\n`)
-  if (args.includes('--boot')) {
-    // Booting takes minutes on CI; let it overlap with dependency installation.
-    // xcodebuild waits for a device that is still booting.
-    for (const device of chosen)
-      spawn('xcrun', ['simctl', 'bootstatus', device.udid, '-b'], { detached: true, stdio: 'ignore' }).unref()
+  if (args.includes('--boot') || args.includes('--shutdown')) {
+    // A background boot hides failures and can leave an unused second device
+    // consuming the hosted runner while XCTest initializes Accessibility.
+    try {
+      for (const device of chosen) {
+        if (args.includes('--boot'))
+          execFileSync('xcrun', ['simctl', 'bootstatus', device.udid, '-b'], { stdio: ['ignore', 2, 2] })
+        else if (device.state !== 'Shutdown')
+          execFileSync('xcrun', ['simctl', 'shutdown', device.udid], { stdio: ['ignore', 2, 2] })
+      }
+    }
+    catch (error) {
+      process.exit(error.status || 1)
+    }
   }
   else {
     process.stdout.write(chosen.map(device => `-destination id=${device.udid}`).join(' '))
