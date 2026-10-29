@@ -18,6 +18,15 @@ export class BrowserFsAdapter implements IFileSystem {
     return this.root
   }
 
+  /** A stable origin-wide name also coordinates aliases of the same physical directory. */
+  async withWriteLock<T>(operation: () => Promise<T>): Promise<T> {
+    if (typeof navigator === 'undefined' || typeof navigator.locks?.request !== 'function')
+      throw new Error('ADV_STUDIO_WORKSPACE_COORDINATION_UNAVAILABLE')
+    // Hold through validation, native I/O, journal confirmation and compensation.
+    // Never expire or steal a live operation's lock while its writes may continue.
+    return navigator.locks.request('advjs-studio-native-project-writes', { mode: 'exclusive' }, operation)
+  }
+
   // --- internal helpers ---
 
   private async resolveSubdir(

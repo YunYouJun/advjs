@@ -41,11 +41,13 @@ export function assertStudioProjectReady(fs: IFileSystem) {
 /** Share one queue across audio, creative adoption, Flow and cloud downloads. */
 export async function runStudioProjectWrite<T>(fs: IFileSystem, operation: () => Promise<T>, options?: { recovery?: boolean }): Promise<T> {
   const previous = pendingWrites.get(fs) ?? Promise.resolve()
-  const next = previous.catch(() => {}).then(async () => {
+  async function commit() {
+    // A peer may leave recovery state while this instance waits for its turn.
     if (!options?.recovery)
       await checkStudioProjectReady(fs)
     return operation()
-  })
+  }
+  const next = previous.catch(() => {}).then(() => fs.withWriteLock ? fs.withWriteLock(commit) : commit())
   pendingWrites.set(fs, next.then(() => {}, () => {}))
   return await next
 }
@@ -56,6 +58,10 @@ export async function whenStudioProjectWritesSettle(fs: IFileSystem): Promise<vo
   do {
     previous = pendingWrites.get(fs)
     await previous?.catch(() => {})
-    await checkStudioProjectReady(fs)
+    // Also wait for another native instance's in-flight writes or rollback.
+    if (fs.withWriteLock)
+      await fs.withWriteLock(() => checkStudioProjectReady(fs))
+    else
+      await checkStudioProjectReady(fs)
   } while (previous !== pendingWrites.get(fs))
 }

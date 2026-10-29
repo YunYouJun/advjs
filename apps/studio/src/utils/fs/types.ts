@@ -36,6 +36,8 @@ export interface FsFileEntry {
  * Implementations handle the mapping to their native path system.
  */
 export interface IFileSystem {
+  /** Coordinate the entire queued operation, readiness check and compensation across instances. */
+  withWriteLock?: <T>(operation: () => Promise<T>) => Promise<T>
   /** Optional durable barrier for adapters whose ordinary writes are buffered. */
   flush?: () => Promise<void>
   /** Refresh persisted paths without discarding local edits; rejects conflicting drafts. */
