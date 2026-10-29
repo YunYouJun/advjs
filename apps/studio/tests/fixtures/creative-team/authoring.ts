@@ -1,5 +1,5 @@
 import type { CreativeArtifact, CreativePartnerOutput, CreativePlaytestReport, CreativeTeamRun } from '@advjs/agent'
-import { assertCreativePlaytestNarrativeSource, computeAgentProjectRevision, createCreativeTeamRun, creativeMediaCanonical, creativeMilestoneChanges, creativeOutputFileChanges, creativePlaytestCandidateFiles, ManagedCreativeTeamClient, nextCreativeTeamTask, overlayCreativeChanges, parseCreativeCandidateEditRequest, parseCreativeDeliveryRequest, parseCreativeMilestoneCommand, parseCreativePartnerOutput, parseCreativePlaytestReport, parseCreativeProject, parseCreativeTeamPublicDecision, parseCreativeTeamRun, prepareCreativeCandidateEdit, prepareCreativeDirectorSummaryEvidence, prepareCreativeMilestone, prepareCreativePlaytestRepair, reduceCreativeTeamRun, requiredCreativeReviewCapabilities } from '@advjs/agent'
+import { assertCreativePlaytestNarrativeSource, computeAgentProjectRevision, createCreativeBootstrapPlan, createCreativeTeamHandoff, createCreativeTeamRun, creativeMediaCanonical, creativeMilestoneChanges, creativeOutputFileChanges, creativePlaytestCandidateFiles, ManagedCreativeTeamClient, nextCreativeTeamTask, overlayCreativeChanges, parseCreativeCandidateEditRequest, parseCreativeDeliveryRequest, parseCreativeMilestoneCommand, parseCreativePartnerOutput, parseCreativePlaytestReport, parseCreativeProject, parseCreativeTeamPublicDecision, parseCreativeTeamRun, parseCreativeTeamStartRequest, prepareCreativeCandidateEdit, prepareCreativeDirectorSummaryEvidence, prepareCreativeMilestone, prepareCreativePlaytestRepair, reduceCreativeTeamRun, requiredCreativeReviewCapabilities } from '@advjs/agent'
 import { IonApp, IonContent, IonHeader, IonicVue, IonPage, IonTitle, IonToolbar } from '@ionic/vue'
 import { createRouter as createIonicRouter } from '@ionic/vue-router'
 import { createPinia, setActivePinia } from 'pinia'
@@ -14,6 +14,8 @@ import { useAuthStore } from '../../../src/stores/useAuthStore'
 import { useCreativeTeamStore } from '../../../src/stores/useCreativeTeamStore'
 import { useStudioStore } from '../../../src/stores/useStudioStore'
 import { MemoryFsAdapter } from '../../../src/utils/fs/MemoryFsAdapter'
+import { createProjectFromTemplate } from '../../../src/utils/projectTemplate'
+import { productionStartFixtureOutput } from './production-start-output'
 import '@ionic/vue/css/core.css'
 import '@ionic/vue/css/normalize.css'
 import '@ionic/vue/css/structure.css'
@@ -24,18 +26,25 @@ import 'virtual:uno.css'
 
 /** Dedicated UI fixture. No production auth, model, point ledger or network adapter is used. */
 async function main() {
-  const summaryMode = new URL(location.href).searchParams.get('case') === 'director-summary'
+  const startMode = new URL(location.href).searchParams.get('case') === 'production-start'
+  const summaryMode = startMode || new URL(location.href).searchParams.get('case') === 'director-summary'
   const narrativeMode = new URL(location.href).searchParams.get('case') === 'narrative-review'
   const sourceMode = new URL(location.href).searchParams.get('case') === 'source-text'
   const sourceSyncMode = new URL(location.href).searchParams.get('case') === 'source-sync'
   const oldService = new URL(location.href).searchParams.get('legacyService') === 'old'
   const accountId = 'ui-fixture-author'
-  const projectId = sourceSyncMode ? 'creative-ui-source-sync-fixture' : sourceMode ? 'creative-ui-source-text-fixture' : summaryMode ? 'creative-ui-director-summary-fixture' : narrativeMode ? 'creative-ui-narrative-review-fixture' : 'creative-ui-fixture'
+  const projectId = startMode ? 'creative-ui-template-start-fixture' : sourceSyncMode ? 'creative-ui-source-sync-fixture' : sourceMode ? 'creative-ui-source-text-fixture' : summaryMode ? 'creative-ui-director-summary-fixture' : narrativeMode ? 'creative-ui-narrative-review-fixture' : 'creative-ui-fixture'
   const pinia = createPinia()
   setActivePinia(pinia)
   const fs = new MemoryFsAdapter(projectId)
   await fs.init()
-  if (!await fs.exists('adv.config.json')) {
+  if (startMode) {
+    if (!await fs.exists('README.md')) {
+      await createProjectFromTemplate(fs, '雨夜车站 · 模板起步预检')
+      await fs.persist()
+    }
+  }
+  else if (!await fs.exists('adv.config.json')) {
     const initial = { ...frozenProject.files }
     if (narrativeMode) {
       initial['adv/world.md'] = '# 雨夜车站\n科技水平与当代相同，不存在超能力。\n'
@@ -54,7 +63,11 @@ async function main() {
   let heldSourceState: Promise<void> | undefined
   let releaseSourceState: (() => void) | undefined
   const editRequests: { key: string, requestFingerprint: string }[] = []
-  const cacheKey = `creative-team-authoring-ui-fixture${sourceSyncMode ? '-source-sync' : sourceMode ? '-source' : summaryMode ? '-director' : narrativeMode ? '-narrative' : ''}`
+  const cacheKey = `creative-team-authoring-ui-fixture${startMode ? '-template-start' : sourceSyncMode ? '-source-sync' : sourceMode ? '-source' : summaryMode ? '-director' : narrativeMode ? '-narrative' : ''}`
+  const startRequests: unknown[] = []
+  const productionHandoffs: unknown[] = []
+  const fixtureFailures: string[] = []
+  let submitted = Boolean(localStorage.getItem(cacheKey))
   const summaryHandoffs: unknown[] = []
   const repairHandoffs: unknown[] = []
   const playtestSources: Record<string, unknown> = JSON.parse(localStorage.getItem(`${cacheKey}-playtest-sources`) || '{}')
@@ -62,7 +75,8 @@ async function main() {
   let run: CreativeTeamRun
   async function artifact(taskId: string, output: CreativePartnerOutput): Promise<CreativeArtifact> {
     const task = run.plan.tasks.find(item => item.id === taskId)!
-    const upstream = taskId === 'check' ? run.artifacts.filter(item => ['cast', 'script'].includes(item.taskId) && item.status === 'selected') : taskId === 'script' ? run.artifacts.filter(item => item.taskId === 'cast' && item.status === 'selected') : taskId === 'delivery' ? run.artifacts.filter(item => item.kind !== 'delivery-summary' && ['selected', 'adopted'].includes(item.status)) : []
+    const handoff = startMode ? createCreativeTeamHandoff(run, taskId, facts) : undefined
+    const upstream = handoff?.candidates ?? (taskId === 'check' ? run.artifacts.filter(item => ['cast', 'script'].includes(item.taskId) && item.status === 'selected') : taskId === 'script' ? run.artifacts.filter(item => item.taskId === 'cast' && item.status === 'selected') : taskId === 'delivery' ? run.artifacts.filter(item => item.kind !== 'delivery-summary' && ['selected', 'adopted'].includes(item.status)) : [])
     const effective = upstream.filter(item => item.status === 'selected').reduce((current, item) => overlayCreativeChanges(current, item.changes), facts.files)
     const changes = creativeOutputFileChanges(output, effective)
     const result: CreativeArtifact = {
@@ -75,7 +89,7 @@ async function main() {
       summary: output.summary,
       output,
       changes,
-      source: { projectId, revision: facts.revision, files: facts.files, upstream: upstream.map(item => ({ artifactId: item.id, fingerprint: item.fingerprint })) },
+      source: { projectId, revision: facts.revision, files: output.kind === 'delivery-summary' ? facts.files : handoff?.facts.files ?? facts.files, upstream: upstream.map(item => ({ artifactId: item.id, fingerprint: item.fingerprint })) },
       fingerprint: await computeAgentProjectRevision({ data: JSON.stringify({ output, changes }) }),
       status: 'candidate',
       reviewCapabilities: [],
@@ -110,11 +124,16 @@ async function main() {
     run = reduceCreativeTeamRun(run, action, Date.now())
   }
   function persist() {
-    localStorage.setItem(cacheKey, JSON.stringify(run))
+    if (!startMode || submitted)
+      localStorage.setItem(cacheKey, JSON.stringify(run))
   }
   const saved = localStorage.getItem(cacheKey)
   if (saved) {
     run = parseCreativeTeamRun(JSON.parse(saved), { accountId, projectId })
+  }
+  else if (startMode) {
+    const request = parseCreativeTeamStartRequest({ protocolVersion: 1, project: { id: projectId, ...facts }, goal: '尚未提交的本地夹具容器', partner: 'director', locale: 'zh-CN', limits: { maxTasks: 12, maxToolCalls: 64, maxReworkRounds: 2, maxMicroPoints: 1000 } })
+    run = createCreativeTeamRun({ id: 'unsubmitted_fixture', accountId, now: Date.now(), plan: createCreativeBootstrapPlan(request) })
   }
   else {
     run = createCreativeTeamRun({ id: 'ui_fixture_run', accountId, now: Date.now(), plan: {
@@ -167,6 +186,19 @@ async function main() {
     act({ type: 'settle-task', taskId: 'script', dispatchKey: run.tasks[1].dispatchKey!, status: 'completed', usage, artifacts: [await artifact('script', output)] })
   }
 
+  async function advanceProductionFixture() {
+    const taskId = nextCreativeTeamTask(run)
+    if (!taskId || taskId === 'delivery')
+      return
+    const handoff = createCreativeTeamHandoff(run, taskId, facts)
+    productionHandoffs.push(structuredClone(handoff))
+    const effective = handoff.candidates.reduce((files, item) => overlayCreativeChanges(files, item.changes), { ...handoff.facts.files })
+    const output = productionStartFixtureOutput(run, handoff)
+    const parsed = parseCreativePartnerOutput(output.kind, output, { projectId, projectRevision: facts.revision, files: effective, characterIds: ['lin', 'qiao'], limits: run.plan.limits })
+    act({ type: 'reserve-next', taskId, quotedMicroPoints: 0, toolCalls: 0, inputFingerprint: await computeAgentProjectRevision({ handoff: JSON.stringify(handoff) }) })
+    act({ type: 'settle-task', taskId, dispatchKey: run.tasks.find(item => item.taskId === taskId)!.dispatchKey!, status: 'completed', usage, artifacts: [await artifact(taskId, parsed)] })
+  }
+
   async function fixtureNarrativeReview() {
     if (!narrativeMode || nextCreativeTeamTask(run) !== 'check')
       return
@@ -205,10 +237,19 @@ async function main() {
     let value: unknown
     try {
       if (url.pathname.endsWith('/capabilities')) {
-        value = { protocolVersion: 1, enabled: true, serviceVersion: 'UI fixture; no model calls', authoring: { candidateEdits: true, ...(sourceSyncMode && !oldService ? { sourceSync: true } : {}), ...(sourceMode && !oldService ? { rawTextEdits: true } : {}), milestoneAdoption: true, playtestReports: true, playtestRepair: true, playtestNarrativeReview: narrativeMode, delivery: summaryMode }, capabilities: ['playtest-project', 'design-characters', 'write-chapters', 'generate-outline', 'generate-chapter-draft', ...(summaryMode ? ['summarize-production'] : [])], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } }
+        value = { protocolVersion: 1, enabled: true, serviceVersion: 'UI fixture; no model calls', authoring: { candidateEdits: true, ...(sourceSyncMode && !oldService ? { sourceSync: true } : {}), ...(sourceMode && !oldService ? { rawTextEdits: true } : {}), milestoneAdoption: true, playtestReports: true, playtestRepair: true, playtestNarrativeReview: narrativeMode, delivery: summaryMode }, capabilities: ['playtest-project', 'design-characters', 'write-chapters', 'generate-outline', 'generate-chapter-draft', ...(startMode ? ['plan-production', 'direct-art', 'direct-voice'] : []), ...(summaryMode ? ['summarize-production'] : [])], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } }
+      }
+      else if (startMode && method === 'POST' && url.pathname.endsWith('/runs')) {
+        const request = parseCreativeTeamStartRequest(body)
+        if (submitted || request.project.id !== projectId || request.project.revision !== facts.revision)
+          throw new Error('Template fixture start source mismatch')
+        startRequests.push(structuredClone(request))
+        run = createCreativeTeamRun({ id: 'template_start_fixture_run', accountId, now: Date.now(), plan: createCreativeBootstrapPlan(request) })
+        submitted = true
+        value = { protocolVersion: 1, run }
       }
       else if (method === 'GET' && url.pathname.endsWith('/runs')) {
-        value = { protocolVersion: 1, items: [{ id: run.id, projectId, goal: run.plan.goal, status: run.status, revision: run.revision, chargedMicroPoints: 0, reservedMicroPoints: 0, updatedAt: run.updatedAt }] }
+        value = { protocolVersion: 1, items: startMode && !submitted ? [] : [{ id: run.id, projectId, goal: run.plan.goal, status: run.status, revision: run.revision, chargedMicroPoints: 0, reservedMicroPoints: 0, updatedAt: run.updatedAt }] }
       }
       else if (method === 'GET' && /\/playtests\/[\w-]+$/.test(url.pathname)) {
         const report = playtests[url.pathname.split('/').at(-1)!]
@@ -323,8 +364,13 @@ async function main() {
           repairHandoffs.push(prepareCreativePlaytestRepair({ run, taskId: action.taskId, reference: action.playtestRepair, report, project: { id: projectId, ...facts } }))
         }
         act(action)
-        await fixtureChapter()
-        await fixtureNarrativeReview()
+        if (startMode) {
+          await advanceProductionFixture()
+        }
+        else {
+          await fixtureChapter()
+          await fixtureNarrativeReview()
+        }
         if (summaryMode && action.type === 'request-rework' && action.taskId === 'delivery')
           await fixtureDirectorSummary()
         value = { protocolVersion: 1, run }
@@ -335,7 +381,9 @@ async function main() {
       persist()
       return new Response(JSON.stringify(value), { headers: { 'content-type': 'application/json' } })
     }
-    catch {
+    catch (error) {
+      if (startMode)
+        fixtureFailures.push(error instanceof Error ? error.message : 'Unknown template fixture failure')
       return new Response(JSON.stringify({ error: { code: 'CREATIVE_EDIT_SOURCE_CONFLICT', message: 'UI fixture source conflict' } }), { status: 409 })
     }
   } })
@@ -382,6 +430,9 @@ async function main() {
     playtestSources: () => structuredClone(playtestSources),
     repairHandoffs: () => structuredClone(repairHandoffs),
     summaryHandoffs: () => structuredClone(summaryHandoffs),
+    startRequests: () => structuredClone(startRequests),
+    productionHandoffs: () => structuredClone(productionHandoffs),
+    fixtureFailures: () => [...fixtureFailures],
     route: () => router.currentRoute.value.fullPath,
     async editSource(path: string, value: string) {
       await content.whenReady()

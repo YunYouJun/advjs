@@ -14,6 +14,32 @@ describe('controlled six-partner outputs', () => {
     expect(() => parseCreativePartnerOutput('production-plan', { kind: 'production-plan', summary: '越界', plan: { ...creativePlan(), limits: { ...context.limits, maxMicroPoints: 100001 } } }, context)).toThrow(/approved limits/)
   })
 
+  it('revises a numbered template chapter and compiles numbered entry and ending references', async () => {
+    const source = { 'adv.config.json': '{"schemaVersion":1,"root":"adv","format":"adv-md"}', 'adv/chapters/01.adv.md': '# 模板开场 {#start}\n\n> 尚待作者改写。\n', 'adv/settings/game.json': '{"entryChapterId":"01","custom":{"author":"kept"}}' }
+    const output = parseCreativePartnerOutput('chapter', {
+      kind: 'chapter',
+      summary: '改写模板首章',
+      entryChapterId: '01',
+      endingAddresses: ['02#ending'],
+      chapters: [{ id: '01', title: '开场', content: '# 雨夜车站 {#start}\n\n- [继续等待](02#ending)\n' }, { id: '02', title: '留下', content: '# 留下 {#ending}\n\n> 列车驶入车站。\n' }],
+    }, { ...context, files: source })
+    const changes = creativeOutputFileChanges(output, source)
+    expect(changes.find(change => change.path === 'adv/chapters/01.adv.md')?.before).toBe(source['adv/chapters/01.adv.md'])
+    const files = overlayCreativeChanges(source, changes)
+    const compiled = await compileProject({ files })
+    expect(compiled.diagnostics).toEqual([])
+    expect(compiled.project.entryChapterId).toBe('01')
+    expect(compiled.project.chapters.map(chapter => chapter.id)).toEqual(['01', '02'])
+    expect(JSON.parse(files['adv/settings/game.json']).custom).toEqual({ author: 'kept' })
+  })
+
+  it('keeps numbered chapter paths bounded without broadening other game identity types', () => {
+    for (const chapterId of ['../01', '01/part', '_01', '.01', '01.ts', '01#node', '01?x']) {
+      expect(() => parseCreativePartnerOutput('chapter', { kind: 'chapter', summary: '非法路径', entryChapterId: chapterId, endingAddresses: ['02#ending'], chapters: [{ id: chapterId, title: '测试', content: '# 测试 {#start}' }] }, context)).toThrow()
+    }
+    expect(() => parseCreativePartnerOutput('characters', { kind: 'characters', summary: '保持人物标识约束', characters: [{ ...character, id: '01' }] }, context)).toThrow(/content id/)
+  })
+
   it('serializes a structured character as a portable reviewed source, preserving a stable relationship id', async () => {
     const output = parseCreativePartnerOutput('characters', { kind: 'characters', summary: '人物设定', characters: [character] }, context)
     const changes = creativeOutputFileChanges(output, context.files)

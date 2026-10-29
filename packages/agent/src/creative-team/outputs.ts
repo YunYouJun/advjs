@@ -91,6 +91,13 @@ function id(value: unknown): string {
     throw new TypeError('Invalid game content id')
   return valueId
 }
+function chapterId(value: unknown): string {
+  const valueId = text(value, 64)
+  // Existing Studio templates use numbered chapter files such as 01.adv.md.
+  if (!/^[a-z0-9][\w-]*$/i.test(valueId))
+    throw new TypeError('Invalid chapter id')
+  return valueId
+}
 function array(value: unknown, maximum: number, minimum = 0): unknown[] {
   if (!Array.isArray(value) || value.length > maximum || value.length < minimum)
     throw new TypeError('Invalid creative output collection')
@@ -181,10 +188,10 @@ function parseOutput(kind: CreativePartnerOutput['kind'], value: unknown, contex
   if (kind === 'chapter') {
     const chapters = array(root.chapters, 12, 1).map((item) => {
       const chapter = record(item)
-      return { id: id(chapter.id), title: text(chapter.title, 160), content: text(chapter.content, 32000) }
+      return { id: chapterId(chapter.id), title: text(chapter.title, 160), content: text(chapter.content, 32000) }
     })
     unique(chapters.map(chapter => chapter.id))
-    const entryChapterId = id(root.entryChapterId)
+    const entryChapterId = chapterId(root.entryChapterId)
     if (checkReferences && !chapters.some(chapter => chapter.id === entryChapterId) && !(`adv/chapters/${entryChapterId}.adv.md` in context.files))
       throw new TypeError('Unknown entry chapter')
     const endingAddresses = array(root.endingAddresses, 16, 1).map(address)

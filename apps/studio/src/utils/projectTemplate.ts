@@ -896,7 +896,7 @@ plotSummary: 海边的偶遇
  * Parent directories are created on demand (IFileSystem.mkdir is idempotent).
  */
 export async function writeTemplateFiles(
-  fs: IFileSystem,
+  fs: Pick<IFileSystem, 'mkdir' | 'writeFile'>,
   files: TemplateFile[],
 ): Promise<void> {
   for (const file of files) {
@@ -917,11 +917,14 @@ export async function writeTemplateFiles(
  * @param templateId - Template ID (defaults to 'visual-novel-starter')
  */
 export async function createProjectFromTemplate(
-  fs: IFileSystem,
+  fs: Pick<IFileSystem, 'exists' | 'mkdir' | 'writeFile'>,
   projectName: string,
   templateId: string = 'visual-novel-starter',
 ): Promise<void> {
   const template = getTemplateById(templateId) || starterTemplate
   const files = template.files(projectName)
+  if (!files.some(file => file.path === 'adv.config.json') && !await fs.exists('adv.config.json')) {
+    files.unshift({ path: 'adv.config.json', content: `${JSON.stringify({ schemaVersion: 1, id: projectName, root: 'adv', format: 'adv-md' }, null, 2)}\n` })
+  }
   await writeTemplateFiles(fs, files)
 }

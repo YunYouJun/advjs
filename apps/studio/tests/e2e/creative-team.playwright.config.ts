@@ -6,7 +6,7 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: '.',
-  testMatch: 'creative-team.spec.ts',
+  testMatch: ['creative-team.spec.ts', 'production-start.spec.ts'],
   outputDir: process.env.ADVJS_CREATIVE_TEAM_EVIDENCE || mkdtempSync(resolve(tmpdir(), 'advjs-creative-team-e2e-')),
   workers: 1,
   reporter: 'list',

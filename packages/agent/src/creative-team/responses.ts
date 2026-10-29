@@ -10,7 +10,7 @@ import { creativeMilestoneChanges } from './milestones'
 import { parseCreativePartnerOutputSnapshot } from './outputs'
 import { parseCreativePlaytestSummary } from './playtest-contracts'
 import { parseCreativePlaytestRepairReference } from './playtest-repair'
-import { assertCreativeArtifactBoundary, assertCreativeSourcePath, parseCreativeTeamPlan, requiredCreativeReviewCapabilities } from './validation'
+import { assertCreativeArtifactBoundary, assertCreativeReadPath, assertCreativeSourcePath, parseCreativeTeamPlan, requiredCreativeReviewCapabilities } from './validation'
 
 const RUN_STATUSES = ['awaiting_plan_review', 'ready', 'running', 'awaiting_review', 'blocked', 'cancel_requested', 'cancelled', 'completed', 'reconcile_required'] as const
 const TASK_STATUSES = ['pending', 'running', 'awaiting_review', 'completed', 'stale', 'blocked', 'failed', 'cancelled', 'reconcile_required'] as const
@@ -101,7 +101,7 @@ function artifact(value: unknown, run: Pick<CreativeTeamRun, 'id' | 'plan'>): Cr
   const source = object(value)
   const provenance = object(source.source)
   const files = Object.fromEntries(Object.entries(object(provenance.files)).map(([path, content]) => {
-    assertCreativeSourcePath(path)
+    assertCreativeReadPath(path)
     return [path, text(content, 512000, true)]
   }))
   if (Object.keys(files).length > 256)

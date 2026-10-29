@@ -48,6 +48,12 @@ export function assertCreativeSourcePath(path: string): void {
   }
 }
 
+/** Project documentation may be retained as read provenance; it never grants a write target. */
+export function assertCreativeReadPath(path: string): void {
+  if (!/^(?:README|ASSETS|LICENSE)\.md$/.test(path))
+    assertCreativeSourcePath(path)
+}
+
 /** Parse untrusted director output and reject cycles, unknown authority and scope escapes. */
 export function parseCreativeTeamPlan(value: unknown, boundary: { projectId: string, projectRevision: string }): CreativeTeamPlan {
   const root = object(value)

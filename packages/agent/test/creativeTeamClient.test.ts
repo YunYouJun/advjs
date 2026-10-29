@@ -9,6 +9,29 @@ function run(): CreativeTeamRun {
 }
 
 describe('managed creative team client', () => {
+  it('reads retained project documentation in provenance without granting document write access', async () => {
+    const current = run()
+    current.status = 'awaiting_review'
+    current.tasks = [{ taskId: 'initial', status: 'awaiting_review', attempt: 1, artifactIds: ['brief'] }]
+    const documents = { 'README.md': '# 作者目标', 'ASSETS.md': '# 素材署名', 'LICENSE.md': '# 使用许可' }
+    current.artifacts = [{ id: 'brief', runId: current.id, taskId: 'initial', partner: 'director', projectId: project.id, kind: 'production-brief', summary: '包含项目文档的导演读集', fingerprint: 'brief-v1', source: { projectId: project.id, revision: 'r1', files: { ...project.files, ...documents }, upstream: [] }, changes: [], reviewCapabilities: [], status: 'candidate' }]
+    const fetch = vi.fn<typeof globalThis.fetch>(async () => new Response(JSON.stringify({ protocolVersion: 1, run: current })))
+    const client = new ManagedCreativeTeamClient({ baseUrl: 'https://runtime.example', accountId: 'account1', getAccessToken: () => 'fixture-token', fetch })
+    expect((await client.get(project.id, current.id)).artifacts[0].source.files).toMatchObject(documents)
+    expect(fetch.mock.calls[0][1]?.method ?? 'GET').toBe('GET')
+    for (const path of Object.keys(documents)) {
+      const write = structuredClone(current)
+      write.artifacts[0].changes = [{ path, before: documents[path as keyof typeof documents], after: '# 不允许模型写入文档' }]
+      write.artifacts[0].reviewCapabilities = ['modify-source']
+      expect(() => parseCreativeTeamRun(write, { accountId: 'account1', projectId: project.id })).toThrow(/source path/)
+    }
+    for (const path of ['.env', 'adv.config.ts', '../README.md', './README.md']) {
+      const escaped = structuredClone(current)
+      escaped.artifacts[0].source.files = { [path]: 'not an allowed fact' }
+      expect(() => parseCreativeTeamRun(escaped, { accountId: 'account1', projectId: project.id })).toThrow(/source path/)
+    }
+  })
+
   it('reads an atomic source state without writes and rejects invalid or cross-account state', async () => {
     const projectRevision = `sha256:${'a'.repeat(64)}`
     const fetch = vi.fn<typeof globalThis.fetch>(async () => new Response(JSON.stringify({ protocolVersion: 1, run: run(), projectRevision })))
