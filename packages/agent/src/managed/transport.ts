@@ -147,7 +147,7 @@ export class ManagedAgentTransport {
     if (!/^https?:\/\//.test(baseUrl))
       throw new TypeError('Managed agent baseUrl must be an absolute HTTP URL')
     this.#baseUrl = baseUrl
-    this.#fetch = options.fetch ?? fetch
+    this.#fetch = options.fetch ?? globalThis.fetch.bind(globalThis)
     this.#getAccessToken = options.getAccessToken
   }
 

@@ -139,6 +139,7 @@ describe('saved source reconciliation', () => {
       loaded.resolve()
       await flushPromises()
       await f.settle()
+      await vi.waitFor(() => expect(f.sync.status.value).toBe('current'))
       expect(f.api.refreshFacts).toHaveBeenCalledOnce()
       expect(f.api.refreshFacts.mock.calls[0]![0].files['adv/world.md']).toBe('# 最新实例的世界\n')
       expect(f.sync.status.value).toBe('current')
@@ -167,6 +168,7 @@ describe('saved source reconciliation', () => {
       await transaction
       await flushPromises()
       await f.settle()
+      await vi.waitFor(() => expect(f.sync.status.value).toBe('current'))
       expect(f.api.refreshFacts).toHaveBeenCalledOnce()
       expect(f.api.refreshFacts.mock.calls[0]![0].files).toMatchObject({ 'adv/world.md': '# 新世界\n', 'adv/chapters/station.adv.md': '# 新章节\n' })
     }

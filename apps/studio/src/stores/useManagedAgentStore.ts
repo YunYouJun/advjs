@@ -35,6 +35,7 @@ export const useManagedAgentStore = defineStore('managed-agent', () => {
   let unsubscribeTask: (() => void) | undefined
   let lastTerminalStatus: AgentTaskStatus | undefined
   let refreshPromise: Promise<void> | undefined
+  let generation = 0
 
   const activeTaskId = computed(() => points.value?.activeTask ?? task.value?.taskId)
   const status = computed<AgentTaskStatus | undefined>(() => task.value?.snapshot?.status)
@@ -51,6 +52,7 @@ export const useManagedAgentStore = defineStore('managed-agent', () => {
   }
 
   function disconnect(): void {
+    generation += 1
     unsubscribeTask?.()
     unsubscribeTask = undefined
     runtimeStore = undefined
@@ -78,7 +80,10 @@ export const useManagedAgentStore = defineStore('managed-agent', () => {
       recovering: false,
     }
     lastTerminalStatus = undefined
+    const epoch = generation
     unsubscribeTask = runtimeStore.subscribe(taskId, (next) => {
+      if (epoch !== generation)
+        return
       task.value = cloneTaskState(next)
       error.value = next.error
       const nextStatus = next.snapshot?.status
@@ -94,32 +99,42 @@ export const useManagedAgentStore = defineStore('managed-agent', () => {
       return
     if (refreshPromise)
       return refreshPromise
+    const epoch = generation
+    const currentPoints = pointsReader
+    const currentRuntime = runtimeStore
 
     refreshPromise = (async () => {
       isRefreshing.value = true
       try {
-        const account = await pointsReader!.getPoints()
+        const account = await currentPoints.getPoints()
+        if (epoch !== generation)
+          return
         points.value = account
         error.value = undefined
         if (!account.activeTask)
           return
 
         bindTask(account.activeTask)
-        const snapshot = await runtimeStore!.recover(account.activeTask)
+        const snapshot = await currentRuntime.recover(account.activeTask)
+        if (epoch !== generation)
+          return
         if (
           options.resume !== false
           && ACTIVE_STATUSES.has(snapshot.status)
-          && !runtimeStore!.read(account.activeTask)?.connecting
+          && !currentRuntime.read(account.activeTask)?.connecting
         ) {
-          await runtimeStore!.resume(account.activeTask, task.value?.cursor)
+          await currentRuntime.resume(account.activeTask, task.value?.cursor)
         }
       }
       catch (cause) {
-        error.value = normalizeAgentRuntimeError(cause).detail
+        if (epoch === generation)
+          error.value = normalizeAgentRuntimeError(cause).detail
       }
       finally {
-        isRefreshing.value = false
-        refreshPromise = undefined
+        if (epoch === generation) {
+          isRefreshing.value = false
+          refreshPromise = undefined
+        }
       }
     })()
     return refreshPromise
@@ -130,14 +145,19 @@ export const useManagedAgentStore = defineStore('managed-agent', () => {
       throw new Error('Managed AI is not configured.')
     if (hasActiveTask.value)
       throw new Error('A managed AI task is already active.')
+    const epoch = generation
+    const currentRuntime = runtimeStore
     try {
-      const taskId = await runtimeStore.start(request)
+      const taskId = await currentRuntime.start(request)
+      if (epoch !== generation)
+        throw new Error('Managed AI session changed.')
       bindTask(taskId)
       void refreshPoints({ resume: false })
       return taskId
     }
     catch (cause) {
-      error.value = normalizeAgentRuntimeError(cause).detail
+      if (epoch === generation)
+        error.value = normalizeAgentRuntimeError(cause).detail
       throw cause
     }
   }
@@ -146,15 +166,18 @@ export const useManagedAgentStore = defineStore('managed-agent', () => {
     const taskId = activeTaskId.value
     if (!runtimeStore || !taskId)
       return
+    const epoch = generation
+    const currentRuntime = runtimeStore
     error.value = undefined
     bindTask(taskId)
     try {
-      const snapshot = await runtimeStore.recover(taskId)
-      if (ACTIVE_STATUSES.has(snapshot.status))
-        await runtimeStore.resume(taskId, task.value?.cursor)
+      const snapshot = await currentRuntime.recover(taskId)
+      if (epoch === generation && ACTIVE_STATUSES.has(snapshot.status))
+        await currentRuntime.resume(taskId, task.value?.cursor)
     }
     catch (cause) {
-      error.value = normalizeAgentRuntimeError(cause).detail
+      if (epoch === generation)
+        error.value = normalizeAgentRuntimeError(cause).detail
     }
   }
 
@@ -162,16 +185,21 @@ export const useManagedAgentStore = defineStore('managed-agent', () => {
     const taskId = activeTaskId.value
     if (!runtimeStore || !taskId || isCancelling.value)
       return
+    const epoch = generation
+    const currentRuntime = runtimeStore
     isCancelling.value = true
     try {
-      await runtimeStore.cancel(taskId)
-      await refreshPoints({ resume: false })
+      await currentRuntime.cancel(taskId)
+      if (epoch === generation)
+        await refreshPoints({ resume: false })
     }
     catch (cause) {
-      error.value = normalizeAgentRuntimeError(cause).detail
+      if (epoch === generation)
+        error.value = normalizeAgentRuntimeError(cause).detail
     }
     finally {
-      isCancelling.value = false
+      if (epoch === generation)
+        isCancelling.value = false
     }
   }
 
