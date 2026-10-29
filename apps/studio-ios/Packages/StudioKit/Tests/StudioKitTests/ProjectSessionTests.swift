@@ -1,23 +1,23 @@
 import Foundation
-import StudioKit
+@testable import StudioKit
 import Testing
 
 @MainActor
 @Suite("Project session", .serialized)
 struct ProjectSessionTests {
-    private func openSession(_ studio: TemporaryStudio, template: String = "visual-novel-starter") async throws -> (ProjectSession, URL) {
+    private func openSession(_ studio: TemporaryStudio, template: String = "visual-novel-starter", readSnapshot: ProjectSession.SnapshotReader? = nil) async throws -> (ProjectSession, URL) {
         let store = ProjectStore(directories: studio.directories, engine: EngineBridge())
         let record = try await store.create(name: "Session", templateID: template)
         _ = try await store.refresh()
-        let session = ProjectSession(id: record.id, name: record.name, store: store, directories: studio.directories)
+        let session = ProjectSession(id: record.id, name: record.name, store: store, directories: studio.directories, readSnapshot: readSnapshot ?? ProjectSession.readSnapshot)
         await session.open()
         return (session, studio.directories.projects.appending(path: "Session", directoryHint: .isDirectory))
     }
 
-    private func waitUntil(_ condition: @MainActor () -> Bool, timeout: Duration = .seconds(10)) async {
+    private func waitUntil(_ condition: @MainActor () async -> Bool, timeout: Duration = .seconds(10)) async {
         let clock = ContinuousClock()
         let deadline = clock.now + timeout
-        while !condition(), clock.now < deadline {
+        while !(await condition()), clock.now < deadline {
             try? await Task.sleep(for: .milliseconds(50))
         }
     }
@@ -120,6 +120,158 @@ struct ProjectSessionTests {
         await session.close()
     }
 
+    @Test("A delayed notification after saving does not reload the same files as external")
+    func delayedOwnWriteNotification() async throws {
+        let studio = try TemporaryStudio()
+        defer { studio.remove() }
+        let (session, folder) = try await openSession(studio)
+        try await session.save("saved here", to: "adv/world.md")
+        // Deliver a presenter notification after the save's snapshot has committed.
+        await session.handle(.changed([folder.appending(path: "adv/world.md")]))?.value
+        #expect(session.externalReloads == 0)
+        #expect(session.snapshot?.files["adv/world.md"] == "saved here")
+        await session.close()
+    }
+
+    @Test("A delayed older read cannot erase an external edit or its draft conflict")
+    func olderReadCannotEraseConflict() async throws {
+        let studio = try TemporaryStudio()
+        defer { studio.remove() }
+        let reader = PausedSnapshotReader()
+        let (session, folder) = try await openSession(studio, readSnapshot: reader.read)
+        let path = "adv/world.md"
+        let original = try #require(session.snapshot?.files[path])
+        session.updateDraft("my draft", for: path)
+        let olderReload = PausedSnapshotReader.$pauses.withValue(true) {
+            Task { await session.reload() }
+        }
+        do {
+            await waitUntil { await reader.isPaused }
+            try #require(await reader.isPaused)
+            try CoordinatedFiles.write(Data("external edit".utf8), to: folder.appending(path: path))
+            await session.handle(.changed([folder.appending(path: path)]))?.value
+            await waitUntil { session.conflicts.first?.theirs == "external edit" }
+            #expect(session.conflicts.first?.theirs == "external edit")
+            await reader.resume()
+            await olderReload.value
+            #expect(session.snapshot?.files[path] == "external edit")
+            #expect(session.conflicts.first?.mine == "my draft")
+            #expect(session.conflicts.first?.theirs == "external edit")
+            #expect(session.text(at: path) == "my draft")
+            #expect(original != "external edit")
+        } catch {
+            await reader.resume()
+            await olderReload.value
+            await session.close()
+            throw error
+        }
+        await session.close()
+    }
+
+    @Test("An in-flight notification cannot overwrite a newer save or count it as external")
+    func notificationOverlappingSave() async throws {
+        let studio = try TemporaryStudio()
+        defer { studio.remove() }
+        let reader = PausedSnapshotReader()
+        let (session, folder) = try await openSession(studio, readSnapshot: reader.read)
+        let notification = PausedSnapshotReader.$pauses.withValue(true) {
+            session.handle(.changed([folder.appending(path: "adv/world.md")]))
+        }
+        await waitUntil { await reader.isPaused }
+        let paused = await reader.isPaused
+        do {
+            try await session.save("latest save", to: "adv/world.md")
+        } catch {
+            await reader.resume()
+            await notification?.value
+            await session.close()
+            throw error
+        }
+        await reader.resume()
+        await notification?.value
+        #expect(paused)
+        #expect(session.snapshot?.files["adv/world.md"] == "latest save")
+        #expect(session.externalReloads == 0)
+        await session.close()
+    }
+
+    @Test("Changed bytes with an unchanged timestamp produce one conflict despite duplicate notifications")
+    func duplicateNotificationsWithPreservedTimestamp() async throws {
+        let studio = try TemporaryStudio()
+        defer { studio.remove() }
+        let (session, folder) = try await openSession(studio)
+        let path = "adv/world.md"
+        let url = folder.appending(path: path)
+        // A whole-second baseline survives file-system timestamp rounding.
+        let date = Date(timeIntervalSince1970: 1_700_000_000)
+        try FileManager.default.setAttributes([.modificationDate: date], ofItemAtPath: url.path(percentEncoded: false))
+        await session.reload()
+        #expect(session.snapshot?.modificationDates[path] == date)
+        session.updateDraft("my draft", for: path)
+        try CoordinatedFiles.write(Data("external edit".utf8), to: url)
+        try FileManager.default.setAttributes([.modificationDate: date], ofItemAtPath: url.path(percentEncoded: false))
+        #expect(session.snapshot?.isOutdated(at: folder) == false)
+        await session.handle(.changed([url]))?.value
+        await waitUntil { session.conflicts.first?.theirs == "external edit" }
+        #expect(session.conflicts.first?.mine == "my draft")
+        #expect(session.conflicts.first?.theirs == "external edit")
+        #expect(session.externalReloads == 1)
+        // A burst, followed by a late duplicate after the first load finished.
+        for _ in 0..<20 { session.handle(.changed([url])) }
+        await session.handle(.changed([url]))?.value
+        #expect(session.externalReloads == 1)
+        #expect(session.conflicts.first?.theirs == "external edit")
+        await session.close()
+    }
+
+    @Test("Notifications during local changes wait for their snapshot and still preserve external conflicts", arguments: [false, true], [false, true])
+    func notificationsDuringLocalReload(deletesFile: Bool, externalEdit: Bool) async throws {
+        let studio = try TemporaryStudio()
+        defer { studio.remove() }
+        let reader = PausedSnapshotReader()
+        let (session, folder) = try await openSession(studio, readSnapshot: reader.read)
+        try await session.createFile("adv/notes.md", contents: "before")
+        session.updateDraft("my world draft", for: "adv/world.md")
+        let localChange = PausedSnapshotReader.$pauses.withValue(true) {
+            Task {
+                if deletesFile { try await session.deleteFile("adv/notes.md") }
+                else { try await session.save("saved here", to: "adv/notes.md") }
+            }
+        }
+        await waitUntil { await reader.isPaused }
+        var notification: Task<Void, Never>?
+        do {
+            try #require(await reader.isPaused)
+            if externalEdit {
+                try CoordinatedFiles.write(Data("external world".utf8), to: folder.appending(path: "adv/world.md"))
+            }
+            notification = session.handle(.changed([folder.appending(path: externalEdit ? "adv/world.md" : "adv/notes.md")]))
+            // Stage the adverse ordering explicitly: the notification has
+            // reached reload processing while the local snapshot is held.
+            await waitUntil { session.hasWaitingReload || session.externalReloads > 0 }
+            #expect(session.hasWaitingReload || session.externalReloads > 0)
+            await reader.resume()
+            try await localChange.value
+            #expect(session.snapshot?.files["adv/notes.md"] == (deletesFile ? nil : "saved here"))
+            await notification?.value
+            if externalEdit {
+                await waitUntil { session.conflicts.first?.theirs == "external world" }
+                #expect(session.conflicts.first?.mine == "my world draft")
+                #expect(session.conflicts.first?.theirs == "external world")
+            } else {
+                #expect(session.conflicts.isEmpty)
+            }
+            #expect(session.externalReloads == (externalEdit ? 1 : 0))
+        } catch {
+            await reader.resume()
+            try? await localChange.value
+            await notification?.value
+            await session.close()
+            throw error
+        }
+        await session.close()
+    }
+
     @Test("Keeps drafts and offers both versions when the file changes underneath")
     func draftConflict() async throws {
         let studio = try TemporaryStudio()
@@ -148,6 +300,26 @@ struct ProjectSessionTests {
         await session.close()
     }
 
+    @Test("A read finishing after close cannot reopen or fail the session")
+    func readAfterClose() async throws {
+        let studio = try TemporaryStudio()
+        defer { studio.remove() }
+        let reader = PausedSnapshotReader()
+        let (session, _) = try await openSession(studio, readSnapshot: reader.read)
+        let reload = PausedSnapshotReader.$pauses.withValue(true) {
+            Task { await session.reload() }
+        }
+        await waitUntil { await reader.isPaused }
+        let paused = await reader.isPaused
+        await session.close()
+        await reader.resume()
+        await reload.value
+        #expect(paused)
+        #expect(session.state == .closed)
+        #expect(session.snapshot == nil)
+        #expect(session.index == nil)
+    }
+
     @Test("Writes the game description through the shared patch rules")
     func gameDescription() async throws {
         let studio = try TemporaryStudio()
@@ -158,5 +330,30 @@ struct ProjectSessionTests {
         let object = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
         #expect(object["description"] as? String == "一个关于星星的故事")
         await session.close()
+    }
+}
+
+/// Captures a real coordinated disk snapshot, then controls when it reaches
+/// the session. No file contents, engine calls, or presenter logic are mocked.
+private actor PausedSnapshotReader {
+    // Scope the gate to the intended operation, so an unrelated real
+    // presenter callback cannot accidentally consume the pause.
+    @TaskLocal static var pauses = false
+    private var continuation: CheckedContinuation<Void, Never>?
+    private var released = false
+    var isPaused: Bool { continuation != nil }
+
+    func read(_ root: URL, presenter: ProjectWatcher?) async throws -> ProjectSnapshot {
+        let snapshot = try await ProjectSession.readSnapshot(root, presenter: presenter)
+        if Self.pauses, !released {
+            await withCheckedContinuation { continuation = $0 }
+        }
+        return snapshot
+    }
+
+    func resume() {
+        released = true
+        continuation?.resume()
+        continuation = nil
     }
 }

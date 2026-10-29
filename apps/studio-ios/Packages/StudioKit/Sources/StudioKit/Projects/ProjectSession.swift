@@ -38,14 +38,28 @@ public final class ProjectSession: Identifiable {
     private let store: ProjectStore
     private let engine: EngineBridge
     private let draftStore: DraftStore
+    typealias SnapshotReader = @Sendable (URL, ProjectWatcher?) async throws -> ProjectSnapshot
+    private let readSnapshot: SnapshotReader
     private var access: ProjectFolderAccess?
     private var watcher: ProjectWatcher?
     private var pendingReload: Task<Void, Never>?
+    /// Async disk/engine work may finish out of order on this reentrant actor.
+    private var loadGeneration = 0
+    private enum LoadSource { case local, requested, external }
+    private var localLoad: Int?
+    private var loadWaiters: [CheckedContinuation<Void, Never>] = []
+    /// Internal scheduling seam for controlled file-event regressions.
+    var hasWaitingReload: Bool { !loadWaiters.isEmpty }
 
-    public init(id: UUID, name: String, store: ProjectStore, directories: StudioDirectories) {
+    public convenience init(id: UUID, name: String, store: ProjectStore, directories: StudioDirectories) {
+        self.init(id: id, name: name, store: store, directories: directories, readSnapshot: Self.readSnapshot)
+    }
+
+    init(id: UUID, name: String, store: ProjectStore, directories: StudioDirectories, readSnapshot: @escaping SnapshotReader) {
         self.id = id
         self.name = name
         self.store = store
+        self.readSnapshot = readSnapshot
         engine = EngineBridge(label: "org.advjs.studio.engine.project")
         draftStore = DraftStore(directory: directories.drafts.appending(path: id.uuidString, directoryHint: .isDirectory))
     }
@@ -67,8 +81,8 @@ public final class ProjectSession: Identifiable {
             watcher.start()
             self.watcher = watcher
             try await engine.start()
-            try await load()
-            state = .ready
+            guard state == .loading else { return }
+            if try await load(source: .requested) { state = .ready }
         }
         catch ProjectLibraryError.notFound {
             state = .gone
@@ -79,22 +93,27 @@ public final class ProjectSession: Identifiable {
     }
 
     public func close() async {
+        state = .closed
+        invalidateLoads()
         pendingReload?.cancel()
+        pendingReload = nil
         watcher?.stop()
         watcher = nil
         access?.stopAccessing()
         access = nil
-        await engine.shutdown()
         snapshot = nil
         index = nil
         validation = nil
-        state = .closed
+        await engine.shutdown()
     }
 
     public func reload() async {
+        await reload(source: .requested)
+    }
+
+    private func reload(source: LoadSource) async {
         do {
-            try await load()
-            if state != .ready { state = .ready }
+            if try await load(source: source) { state = .ready }
         }
         catch {
             state = .failed(error.localizedDescription)
@@ -109,8 +128,7 @@ public final class ProjectSession: Identifiable {
             snapshot.isOutdated(at: root)
         }.value
         if outdated {
-            externalReloads += 1
-            await reload()
+            await reload(source: .external)
         }
     }
 
@@ -278,20 +296,62 @@ public final class ProjectSession: Identifiable {
         return full.hasPrefix(prefix) ? String(full.dropFirst(prefix.count)) : nil
     }
 
-    private func load() async throws {
+    @discardableResult
+    private func load(source: LoadSource = .local) async throws -> Bool {
+        // A local operation must publish its snapshot before its API returns.
+        // Do not let a callback supersede that refresh, or count the bytes it
+        // just wrote as an external edit. Read disk again after the wait so
+        // genuine external edits made during the local refresh are retained.
+        while localLoad != nil {
+            await withCheckedContinuation { loadWaiters.append($0) }
+        }
+        guard state != .closed, state != .gone else { return false }
+        if source == .external, state != .ready { return false }
         guard let root else { throw ProjectLibraryError.unavailable }
-        let presenter = watcher
-        let snapshot = try await Task.detached(priority: .userInitiated) {
-            try ProjectSnapshot.read(at: root, filePresenter: presenter)
-        }.value
-        let index = try await engine.call("project.index", input: snapshot.engineInput, as: EngineProjectIndex.self)
-        // Validation needs readable settings; a broken game.json shows up as a failed check, not a failed project.
-        let validation = try? await engine.call("project.validate", input: snapshot.engineInput, as: EngineValidation.self)
-        self.snapshot = snapshot
-        self.index = index
-        self.validation = validation
-        lastReloadedAt = .now
-        refreshDrafts()
+        loadGeneration += 1
+        let generation = loadGeneration
+        if source == .local { localLoad = generation }
+        defer {
+            if localLoad == generation {
+                localLoad = nil
+                resumeLoadWaiters()
+            }
+        }
+        do {
+            let snapshot = try await readSnapshot(root, watcher)
+            guard generation == loadGeneration else { return false }
+            // Presenter callbacks can be duplicated or arrive after our own
+            // save has already refreshed the snapshot. A notification alone
+            // does not prove that the project's files changed.
+            if source == .external, snapshot == self.snapshot { return false }
+            let index = try await engine.call("project.index", input: snapshot.engineInput, as: EngineProjectIndex.self)
+            // A broken game.json is a failed check, not a failed project.
+            let validation = try? await engine.call("project.validate", input: snapshot.engineInput, as: EngineValidation.self)
+            guard generation == loadGeneration else { return false }
+            self.snapshot = snapshot
+            self.index = index
+            self.validation = validation
+            if source == .external { externalReloads += 1 }
+            lastReloadedAt = .now
+            refreshDrafts()
+            return true
+        } catch {
+            // An earlier read can fail after a newer read or close completed.
+            guard generation == loadGeneration else { return false }
+            throw error
+        }
+    }
+
+    private func resumeLoadWaiters() {
+        let waiters = loadWaiters
+        loadWaiters.removeAll()
+        for waiter in waiters { waiter.resume() }
+    }
+
+    private func invalidateLoads() {
+        loadGeneration += 1
+        localLoad = nil
+        resumeLoadWaiters()
     }
 
     private func refreshDrafts() {
@@ -299,21 +359,35 @@ public final class ProjectSession: Identifiable {
         conflicts = draftStore.conflicts(with: snapshot?.files ?? [:])
     }
 
-    private func handle(_ event: ProjectWatcher.Event) {
+    nonisolated static func readSnapshot(_ root: URL, presenter: ProjectWatcher?) async throws -> ProjectSnapshot {
+        try await Task.detached(priority: .userInitiated) {
+            try ProjectSnapshot.read(at: root, filePresenter: presenter)
+        }.value
+    }
+
+    @discardableResult
+    func handle(_ event: ProjectWatcher.Event) -> Task<Void, Never>? {
         switch event {
         case .changed:
             pendingReload?.cancel()
             pendingReload = Task { [weak self] in
                 try? await Task.sleep(for: Self.debounce)
                 guard !Task.isCancelled, let self, self.state == .ready else { return }
-                self.externalReloads += 1
-                await self.reload()
+                // Only debounce tasks are cancelled by a later notification;
+                // in-flight loads use generation checks before publishing.
+                self.pendingReload = nil
+                await self.reload(source: .external)
             }
         case .moved(let url):
             root = url
             name = url.lastPathComponent
+            invalidateLoads()
         case .deleted:
             state = .gone
+            invalidateLoads()
+            pendingReload?.cancel()
+            pendingReload = nil
         }
+        return pendingReload
     }
 }
