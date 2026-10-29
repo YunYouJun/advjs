@@ -127,6 +127,8 @@ flowchart TD
 - 交付：项目卡、六伙伴列表、任务详情、计划审阅、实际进度、待确认产物与预算；从项目概览和内容编辑器均可进入。导演交付建议的有限触发、冻结输入与只读审阅见[技术规格](../specs/2026-10-28-studio-creative-director-summary)。
 - 验收：伙伴副标题展示真实产物或待处理项；未配置服务不会假装工作；窄屏、长中文、键盘和读屏可用；编辑、预览与任务进度可互相跳转；原有文件与内容编辑入口可继续使用。
 
+正式 App／路由／会话客户端现已与完整本机服务源码贯通文字和媒体两条六角色流程，包含 Worker、作者返工、采用、试玩及收尾重开；身份、数据库、积分和供应商仍为替身，见[完整服务接线验收](../reports/2026-10-27-studio-creative-team-acceptance#runtime-ui-journey)。这项正向 UI 证据不代替生产服务或模型创作品质验收；新派发的来源投影与旧请求恢复边界见[执行规格](../specs/2026-10-28-studio-creative-execution#runtime-ui-boundary)。
+
 ### M2：六角色创作闭环
 
 #### T05：编剧与角色设计师交接
@@ -163,7 +165,7 @@ flowchart TD
 #### T10：六角色端到端验收与跨端交接
 
 - 优先级：P0。依赖：T02、T04–T09。
-- 交付：完整短篇示例、异常恢复与预算报告、正常／窄屏截图、单 Agent 对比结果、Web 发布开关和原生 iOS 接入清单。 已增加同一保存项目的真实图片／外部对白采用、两结局核心执行、导演实际记录审阅及作者收尾／重开连续验收；这是明确替身服务下的免费集成证据，详见[同项目连续验收](../reports/2026-10-27-studio-creative-team-acceptance#same-story-journey)，不替代真实六角色交付或模型对照。另已补齐[从产品模板起步的本地集成](../reports/2026-10-27-studio-creative-team-acceptance#template-start-journey)，以及[同一模板故事的图片、对白与改稿过期验证](../reports/2026-10-27-studio-creative-team-acceptance#template-media-journey)。真实模型／服务与作品品质仍未验收，五条对白仅一条复用已有录音，不能据此完成 T10。
+- 交付：完整短篇示例、异常恢复与预算报告、正常／窄屏截图、单 Agent 对比结果、Web 发布开关和原生 iOS 接入清单。 已增加同一保存项目的真实图片／外部对白采用、两结局核心执行、导演实际记录审阅及作者收尾／重开连续验收；这是明确替身服务下的免费集成证据，详见[同项目连续验收](../reports/2026-10-27-studio-creative-team-acceptance#same-story-journey)，不替代真实六角色交付或模型对照。另已补齐[从产品模板起步的本地集成](../reports/2026-10-27-studio-creative-team-acceptance#template-start-journey)，以及[同一模板故事的图片、对白与改稿过期验证](../reports/2026-10-27-studio-creative-team-acceptance#template-media-journey)，后续又接通[正式 App 与完整本机 Runtime 的连续验证](../reports/2026-10-27-studio-creative-team-acceptance#runtime-ui-journey)。真实模型／生产服务与作品品质仍未验收，五条对白仅一条复用已有录音，不能据此完成 T10。
 - 验收：通过下节的六角色闭环；真实服务与本地 fixture 分开记录；未验收的云端／图片／语音能力不开放；文档只将实际验收项改为可用。
 - 原生 iOS：复用相同契约与项目文件，界面遵循[原生计划](./2026-10-21-studio-native-ios)；Web 完成不勾选原生验收，相关原生集成独立跟踪实际测试证据；具体服务身份、网络协议、来源修订、项目事务、媒体、界面与发布门禁见[原生接入清单](../specs/2026-10-29-studio-creative-native-integration)。
 
