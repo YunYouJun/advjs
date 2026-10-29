@@ -3,7 +3,7 @@ import { resolve } from 'node:path'
 import { expect } from '@playwright/test'
 
 /** Existing product controls configure author-owned media metadata before the model substitute runs. */
-export async function configureTemplateRecording(page: Page, returnUrl: string) {
+export async function configureTemplateRecording(page: Page, returnUrl: string, bridge = 'creativeAuthorFixture') {
   await page.goto('/tabs/workspace/characters')
   await page.getByRole('button', { name: '创建角色', exact: true }).click()
   const form = page.locator('.cef')
@@ -24,10 +24,10 @@ export async function configureTemplateRecording(page: Page, returnUrl: string) 
   await page.getByRole('button', { name: '创建原生目录', exact: true }).click()
   await expect(page.getByRole('button', { name: '创建原生目录', exact: true })).toHaveCount(0)
   await page.goto(returnUrl)
-  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeAuthorFixture))).toBe(true)
+  await expect.poll(() => page.evaluate(bridge => Boolean((window as any)[bridge]), bridge)).toBe(true)
 }
 
-export async function importTemplateMedia(page: Page, returnUrl: string, audioPath: string) {
+export async function importTemplateMedia(page: Page, returnUrl: string, audioPath: string, bridge = 'creativeAuthorFixture') {
   const art = page.getByTestId('creative-art-import')
   await art.getByRole('combobox', { name: '美术素材需求', exact: true }).selectOption({ label: 'character/lin/default · 619 × 619' })
   await art.getByLabel('选择图片文件', { exact: true }).setInputFiles(resolve(import.meta.dirname, '../../../../demo/starter/public/img/characters/xiaoyun.webp'))
@@ -68,7 +68,7 @@ export async function importTemplateMedia(page: Page, returnUrl: string, audioPa
   await audio.getByRole('button', { name: '播放试听', exact: true }).click()
   await expect.poll(() => audio.locator('audio').evaluate((element: HTMLAudioElement) => element.currentTime)).toBeGreaterThan(0.4)
   await page.goto(returnUrl)
-  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeAuthorFixture))).toBe(true)
+  await expect.poll(() => page.evaluate(bridge => Boolean((window as any)[bridge]), bridge)).toBe(true)
   const candidate = page.getByTestId('creative-voice-candidate')
   await candidate.getByRole('checkbox', { name: '我已试听，并确认将此候选设为当前选用（如有旧选择，将替换它）', exact: true }).check()
   await candidate.getByRole('button', { name: '审阅此配音的选用绑定', exact: true }).click()
@@ -82,7 +82,7 @@ export async function importTemplateMedia(page: Page, returnUrl: string, audioPa
   return lineId
 }
 
-export async function playTemplateMedia(page: Page, returnUrl: string, info: TestInfo) {
+export async function playTemplateMedia(page: Page, returnUrl: string, info: TestInfo, bridge = 'creativeAuthorFixture') {
   await page.goto('/tabs/play')
   await expect(page.locator('.game-player')).toContainText('列车还没有到，我们再等一会儿。')
   const image = page.locator('.dialog-avatar-wrap img')
@@ -99,6 +99,6 @@ export async function playTemplateMedia(page: Page, returnUrl: string, info: Tes
     await page.screenshot({ path: info.outputPath(`template-player-${width}.png`), animations: 'allow' })
   }
   await page.goto(returnUrl)
-  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeAuthorFixture))).toBe(true)
+  await expect.poll(() => page.evaluate(bridge => Boolean((window as any)[bridge]), bridge)).toBe(true)
   return playback
 }
