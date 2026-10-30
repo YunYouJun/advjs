@@ -111,7 +111,7 @@ flowchart TD
 - 交付：局部修改、单章创作、完整短篇三类固定输入；比较方法、预算、评分量表和上线门槛，详见「效果评测」。当前 A／B／C 的隔离工具、连续上下文、托管制作组与本机持久化隔离账本见[执行契约](../specs/2026-10-28-studio-creative-execution)。真实服务端绑定、重新核对的分时价格和源码输入上界已完成免费预检；[云乐坊真实 AI 积分试跑方案](./2026-10-28-studio-creative-pilot)现按作者要求替换旧隔离账本方案，已批准一次冒烟与四次 B/C 的 2,450 积分／1.59 元双上限及专用私有部署。原冒烟因 JSON 截断失败并释放预占；作者另批复核后，新冒烟成功结算 4.862 积分。B 首次提交在准入前内部错误，未调用钱包或供应商，已按约停止；累计供应商成本 0.006098 元。具体账务见[复核验收](../reports/2026-10-27-studio-creative-team-acceptance#real-points-recheck-executed)，真实 B/C 与作者盲评继续未完成；[继承成功冒烟的四阶段恢复方案](./2026-10-28-studio-creative-pilot#bc-resume-proposal)已完成免费准备，仍待批准和私有两函数更新。
 - 验收：可复跑，保存模型／提示词／工具版本、项目输入与种子；生成质量和系统故障分别统计；基线建立不调用收费模型，真实执行遵守已批准试跑方案及异常停止条件。
 
-四阶段控制器与私有积分引擎另有[完整本地回放](../reports/2026-10-27-studio-creative-team-acceptance#points-comparison-local)，覆盖实际单 Agent／制作组、源编译、两个结局、账户域结算及已知预算停止；身份、数据库、供应商和时钟仍为替身，不计作真实比较或品质结论。新预算拒绝处理尚未进入旧冻结收费制品，相关边界见[执行规格](../specs/2026-10-28-studio-creative-execution#evaluation-budget-boundary)。
+四阶段控制器与私有积分引擎另有[完整本地回放](../reports/2026-10-27-studio-creative-team-acceptance#points-comparison-local)，覆盖实际单 Agent／制作组、源编译、两个结局、账户域结算及已知预算停止；身份、数据库、供应商和时钟仍为替身，不计作真实比较或品质结论。新预算拒绝及此前后续修复现已打入[独立恢复候选](../reports/2026-10-27-studio-creative-team-acceptance#real-points-capsule-ready)，其源码、20 份交付摘要及明确恢复范围仍待批准，未部署；相关边界见[执行规格](../specs/2026-10-28-studio-creative-execution#evaluation-budget-boundary)。
 
 ### M1：制作组基础与导演
 
