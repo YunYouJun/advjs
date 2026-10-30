@@ -309,4 +309,10 @@ node packages/agent/scripts/creative-blind-review.mjs collect \
 
 `d36e726` 的既有 `closeStage` 只在未封锁、阶段有调用且所有调用均有已确认回执时设置 `closed=true`，不改开始时间或消费；后台阶段账务结束与本地评测 `outcome`、作者验收相互独立。原 B 的两个底层任务已完成／结算，但完整连续评测因第三轮预算拒绝而为 `generation-quality`。其质量结果不能随财务关闭改为成功。
 
-当前阶段仍未关闭、许可禁用。只有[三项继续方案](../plans/2026-10-28-studio-creative-pilot#remaining-three-proposal)另获批准，才能由同一普通会员核对原状态、任务／钱包／供应商回执和余额后调用旧 B 的关闭路由。新客户端预先固定关闭前后两个状态指纹，允许的唯一差异为旧 B 的 `closed`；未知响应、状态／回执变更或余额差异均停止，不能重试模型。随后启用原许可并执行原三项；原生函数、原配置、父历史、许可身份、绑定、原模型／提示词／工具及预算均不改变。未来失败仍按原停止规则，不能将这次已核对样本的例外推广到其他结果。
+[三项继续方案](../plans/2026-10-28-studio-creative-pilot#remaining-three-proposal)已获作者明确批准，并由同一普通会员核对原状态、任务／钱包／供应商回执和余额后结束旧 B 账务。客户端固定关闭前后两个状态指纹，实测唯一差异为旧 B 的 `closed`，原质量失败及余额不变。随后仅启用原许可；局部 C 在计划批准阶段出现事务错误，按约停止，其原时钟保留，短篇未启动。没有新部署、许可、绑定或模型／提示词／工具替换，见[执行记录](../reports/2026-10-27-studio-creative-team-acceptance#three-remainder-executed)。未来失败仍按原停止规则，不能将旧 B 的例外推广到其他结果。
+
+### 制作组原子快照的事务内读取 {#transaction-snapshot-reads}
+
+CloudBase 生产日志在读取第一份冻结交接时记录 `DATABASE_TRANSACTION_FAIL / ResourceUnavailable.TransactionBusy`；原实现用 `Promise.all` 同时读取事实、产物、交接及试玩分片。配套 API `10ffba61c8741c2362ca38863b62ca0a9b1b0224` 改为在同一事务中逐个读取，保留完整快照、冻结候选状态、缺片拒绝及不可变产物校验，不将读取拆成事务外查询，也不添加模型或钱包重试。
+
+真实停止快照的隔离重放及事务并发限制回归验证旧制品失败、修复源码通过；这只是本地修复，线上仍为获批 `d36e726`。事务 RPC 及排队耗时继续计入原阶段绝对期限，不重置 C 的开始时间，不把逻辑制作组预留当作实际钱包预占。
