@@ -113,6 +113,8 @@ flowchart TD
 
 四阶段控制器与私有积分引擎另有[完整本地回放](../reports/2026-10-27-studio-creative-team-acceptance#points-comparison-local)，覆盖实际单 Agent／制作组、源编译、两个结局、账户域结算及已知预算停止；身份、数据库、供应商和时钟仍为替身，不计作真实比较或品质结论。新预算拒绝及此前后续修复现已打入[独立恢复候选](../reports/2026-10-27-studio-creative-team-acceptance#real-points-capsule-ready)，其源码、20 份交付摘要及明确恢复范围已获批准并执行，实际预算停止见上文；相关边界见[执行规格](../specs/2026-10-28-studio-creative-execution#evaluation-budget-boundary)。
 
+作者盲评的源文件导出、空白表单、随机配对、私有解盲和分类输入级区间已有[离线收集入口](../specs/2026-10-28-studio-creative-execution#blind-review-workflow)，实际检查见[工具验收](../reports/2026-10-27-studio-creative-team-acceptance#blind-review-workflow)。替身表单只验证流程；真实 B 尚无 C 对照，工具保留其费用但不生成评分。完整真实比较与至少两位独立作者判断继续未完成，收费停止状态不变。
+
 ### M1：制作组基础与导演
 
 #### T03：Runtime 登记与可恢复的任务编排

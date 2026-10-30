@@ -2,7 +2,7 @@
 
 - 日期：2026-10-28；最近核验：2026-10-30。
 - 状态：私有真实积分链路已发布到获批 `d36e726` 恢复版本；局部 B 两次真实结算后，第三轮在派发前触发预算保护，按约停止，其余三项未启动。包含历史累计实扣 16.147 积分、供应商成本 0.013621 元，许可与两个客户端入口均关闭。公开制作组、Studio 生产正向任务 UI、真实 B/C 品质和完整作品仍未验收。
-- 范围：主计划 [T03／T10](../plans/2026-10-27-studio-creative-team) 的模型请求、SDK 接线及执行前提。作者采用和项目写入仍遵循[采用协议](./2026-10-27-studio-creative-adoption)。
+- 范围：主计划 [T02／T03／T10](../plans/2026-10-27-studio-creative-team) 的模型请求、SDK 接线及执行前提。作者采用和项目写入仍遵循[采用协议](./2026-10-27-studio-creative-adoption)。
 
 2026-10-29 已批准的真实积分试跑遵循[专门方案](../plans/2026-10-28-studio-creative-pilot)及本文末的服务端准入。下文直接 SDK／隔离本机账本仍是先前的评测实现，不作为本轮真实钱包执行入口。
 
@@ -248,3 +248,58 @@ Runtime 仅为新预占派发冻结私有 `childContextVersion=2`：任务来源
 制作组服务在子任务报价阶段收到受信 `AiRuntimeError(EVALUATION_BUDGET_EXHAUSTED)` 时，在实际预占／派发之前将对应任务记为阻塞；只有同一版本和当前下一任务仍匹配时才能写入。既有成果、真实子任务 ID、已确认费用和报告保留，取消仍可用。私有积分写入器将零剩余额度规范为同一产品错误；未知报价异常继续抛出，不能凭错误文字编造“未派发”。
 
 已经发出的 RPC 返回预算错误或结果不明时，远端仍封锁后续调用并保留原始请求／响应，不推断其没有准入或消费。新纯准备方法只判定尚未发送的本次请求；不能用于释放旧预占、改写历史、提高额度或恢复已停止阶段。四阶段本地贯通与两种有限预算停止的证据见[本地评测积分回放](../reports/2026-10-27-studio-creative-team-acceptance#points-comparison-local)。这份修复已随获批的 `d36e726` 私有两函数上线；真实 B 在两次计费调用后，第 3 轮输入保守界 9,465 超过剩余 7,208 token，返回上述未派发结果，保留实际 4,792 token／0.007523 元及两个结局的宿主检查。样本为生成质量失败，未升级完成，也未推进 C 或短篇。旧 `8837fadc` 草案及原 126 份输入保留历史；具体范围见[恢复方案](../plans/2026-10-28-studio-creative-pilot#bc-resume-proposal)，本次原始账务见[执行记录](../reports/2026-10-27-studio-creative-team-acceptance#real-points-bc-resume-executed)。
+
+
+## 配对作者盲评与离线收集 {#blind-review-workflow}
+
+`packages/agent/scripts/creative-blind-review.mjs` 从源码运行 `prepare` 和 `collect`。入口复用现有开发依赖，不重建 Agent dist，不加载供应商、消费用户或钱包；真实模型与积分执行仍使用前述批准方案。它准备可交给作者的材料并收集独立判断，不能替代至少两位真实作者、真实 B/C 样本及上线评审。
+
+准备索引声明 `scope=fixture` 或 `real-evaluation`，每条引用原始 `input.json`、`final.json`；预算可来自输入的原批次元数据，也可显式引用原 `stage-started.json`，不重新填写一组更宽的数值。例如：
+
+```json
+{
+  "schemaVersion": 1,
+  "scope": "real-evaluation",
+  "samples": [
+    {
+      "inputPath": "/absolute/B/input.json",
+      "finalPath": "/absolute/B/final.json",
+      "budgetPath": "/absolute/B/stage-started.json"
+    },
+    {
+      "inputPath": "/absolute/C/input.json",
+      "finalPath": "/absolute/C/final.json",
+      "budgetPath": "/absolute/C/stage-started.json"
+    }
+  ]
+}
+```
+
+保存索引后，从仓库根目录运行；输出必须是新目录，已有文件不覆盖：
+
+```bash
+node packages/agent/scripts/creative-blind-review.mjs prepare \
+  --index=/absolute/review-index.json \
+  --output=/absolute/new-review-packet
+```
+
+入口核对 v2 冻结文件摘要及用例、原项目／媒体／结局；兼容 B 的简洁最终记录和 C 重复身份的完整记录。每个输入与种子的 B/C 必须具有相同任务、初始项目、媒体、执行版本和总预算。缺失对照、系统／供应商／账务失败或超限不会补造成功候选；已知 `provider-check.json` 只能将原结果判为无效，不能升级结果或替换原消费。所有已读取源文件的字节摘要、版本、预算、结果与成本留在组织者记录，未配对或被排除的已有消费也保留。
+
+只向作者分享 `reviewer/`：原任务、随机显示为 sample-1／sample-2 的项目文本与创作补充、阅读说明、空白评分表和可导入的源文件。`organizer/` 单独保存模式映射、种子、来源路径、运行版本、费用与排除原因。公共材料不导出执行元数据；导演总结只取创作建议，不带内嵌角色／任务／费用证据或产物指纹。源文件与创作正文不自动改写，因此仍须由组织者检查正文、呈现差异和模式自称，确认盲法成立后再交给作者。关键词提示不是完整盲法认证；发现显式模式词时收集结果继续标为未就绪。
+
+作者各自复制空表，填写自己的代号、独立／真人／未获知模式声明、每对整体偏好，以及两份样本各自的叙事、人物、风格、可玩性 1–5 分。表中初始代号为空、声明为 false、偏好和评分为 null；工具不代填。只提交本人已评过的完整对；未评过的对可从该作者表的 `reviews` 数组移除，组织者仍能看到哪些对不足两人。表单代号不能自动证明是不同自然人，组织者须另行核对身份与独立性。
+
+收回后，将各作者表的绝对路径保存为 JSON 数组，例如 `/absolute/review-file-index.json`。保持原材料和私有键不变，再收集：
+
+```bash
+node packages/agent/scripts/creative-blind-review.mjs collect \
+  --materials=/absolute/new-review-packet/reviewer/materials.json \
+  --key=/absolute/new-review-packet/organizer/key.json \
+  --reviews=/absolute/review-file-index.json \
+  --blinding-reviewed-by=organizer-alias \
+  --output=/absolute/new-review-summary
+```
+
+公共材料、私有映射通过带随机盐的摘要绑定；修改材料、映射或表中的批次指纹会拒绝。同一对／同一规范化作者代号的重复投票、缺少真人声明、未填偏好、非 1–5 整数或缺少任何一份的四维评分均拒绝，不截断作者备注或覆盖既有输出。组织者署名表示其对盲法的声明，不是工具验证了作者身份。
+
+私有汇总保留两份原评分、偏好、备注、全部样本的实际 token／费用／延迟与排除记录，并按局部、单章、短篇分别计算既有输入级统计：每个输入至少三个种子，每个种子至少两位作者；输入内 C 票严格过半计为该输入偏好 C，平票不算 C 胜，再按输入数给出 95% Wilson 区间。重复运行与作者数量不扩大独立输入数。`fixture` 始终标记为替身判断；没有表单时明确为零作者判断。数值充分与盲法状态分别报告，可用性、关键缺陷、实际成本／延迟和真实作者核验继续独立验收，`routingDecision` 始终为 `unchanged`。
