@@ -1211,7 +1211,7 @@ test('upgrades the original image journal without losing its pending candidate b
   await writeFile(info.outputPath('media-journal-v1-upgrade.json'), JSON.stringify({ scope: 'Actual native IndexedDB v1 schema and genuine retained image bytes; real Dexie v2 upgrade, canonical review and native image adoption.', schema, media }, null, 2))
 })
 
-async function stageUnifiedMedia(page: Page, audioPath: string) {
+async function stageUnifiedMedia(page: Page, audioPath: string, review = true) {
   const art = page.getByTestId('creative-art-import')
   await art.getByRole('combobox', { name: '美术素材需求', exact: true }).selectOption({ label: 'character/lin/default · 619 × 619' })
   await art.getByLabel('选择图片文件', { exact: true }).setInputFiles(resolve(import.meta.dirname, '../../../../demo/starter/public/img/characters/xiaoyun.webp'))
@@ -1226,6 +1226,8 @@ async function stageUnifiedMedia(page: Page, audioPath: string) {
   await expect(voice.getByRole('heading', { name: /制作组候选已登记，项目未变/ })).toBeVisible()
   const milestone = page.getByTestId('creative-milestone')
   await expect(milestone.getByRole('checkbox')).toHaveCount(2)
+  if (!review)
+    return milestone
   for (const checkbox of await milestone.getByRole('checkbox').all())
     await checkbox.check()
   await milestone.getByLabel('采用或撤销的原因', { exact: true }).fill('将已核验的真实图片与未选 VoiceTake 一同写入；不选用配音，不调用模型。')
@@ -1443,6 +1445,84 @@ test('blocks author closure for another run’s pending local write and a source
   expect(result.run.status).toBe('awaiting_review')
   expect(result.calls.filter((call: any) => call.path.includes('/delivery'))).toEqual([])
   await writeFile(info.outputPath('delivery-negative.json'), JSON.stringify({ scope: 'actual private IndexedDB across two run IDs; actual source edit after successful review', result }, null, 2))
+})
+
+test('preserves independent media across unrelated edits and expires only the changed speech source', async ({ page }, info) => {
+  test.setTimeout(90000)
+  const audioPath = process.env.STUDIO_CREATIVE_VOICE_WAV
+  test.skip(!audioPath, 'Requires the existing real externally produced spoken WAV')
+  interface Bridge {
+    run: () => CreativeTeamRun
+    files: () => Promise<Record<string, string>>
+    media: () => Promise<Array<{ id: string, sha256: string, bytes: number, expectedSha256: string, expectedBytes: number }>>
+    calls: () => Array<{ method: string, path: string }>
+    editSource: (path: string, content: string) => Promise<void>
+  }
+  const read = () => page.evaluate(async () => {
+    const fixture = (window as unknown as { creativeMediaFixture: Bridge }).creativeMediaFixture
+    return { run: fixture.run(), files: await fixture.files(), media: await fixture.media(), calls: fixture.calls() }
+  })
+  await page.goto('/tests/fixtures/creative-team/media-milestones.html?case=media-source-dependencies')
+  await expect(page).toHaveTitle('Creative media milestone UI fixture')
+  await expect(page.getByRole('heading', { name: '真实媒体统一采用验证', exact: true })).toBeVisible()
+  await expect(page.locator('vite-error-overlay')).toHaveCount(0)
+  const milestone = await stageUnifiedMedia(page, audioPath!, false)
+  const registered = await read()
+  const candidates = registered.run.artifacts.filter(item => item.media)
+  expect(candidates).toHaveLength(2)
+  const unrelated = 'adv/chapters/unrelated.adv.md'
+  const edited = `${registered.files[unrelated]}\nSaved independent author edit.\n`
+  await page.evaluate(({ path, content }) => (window as unknown as { creativeMediaFixture: Bridge }).creativeMediaFixture.editSource(path, content), { path: unrelated, content: edited })
+  await page.getByRole('button', { name: '重新读取状态', exact: true }).click()
+  await expect.poll(async () => (await read()).calls.some(item => item.method === 'POST' && item.path.endsWith('/facts'))).toBe(true)
+  const refreshed = await read()
+  expect(refreshed.run.artifacts.filter(item => item.media).map(item => item.status)).toEqual(['selected', 'selected'])
+  expect(refreshed.run.artifacts.filter(item => item.media).map(item => item.fingerprint)).toEqual(candidates.map(item => item.fingerprint))
+  expect(refreshed.files[unrelated]).toBe(edited)
+  for (const checkbox of await milestone.getByRole('checkbox').all())
+    await checkbox.check()
+  await milestone.getByLabel('采用或撤销的原因', { exact: true }).fill('保留独立章节改稿，采用两份已核验媒体；不调用模型或重导入。')
+  await milestone.getByRole('button', { name: '审阅采用', exact: true }).click()
+  await milestone.getByRole('button', { name: '确认写入项目', exact: true }).click()
+  await expect(milestone.getByText(/最近一次采用已确认/)).toBeVisible()
+  const adopted = await read()
+  expect(adopted.files[unrelated]).toBe(edited)
+  expect(adopted.media).toHaveLength(2)
+  for (const asset of adopted.media) {
+    expect(asset.sha256).toBe(asset.expectedSha256)
+    expect(asset.bytes).toBe(asset.expectedBytes)
+  }
+  await page.reload()
+  await expect(milestone.getByText(/最近一次采用已确认/)).toBeVisible()
+  const reopened = await read()
+  expect(reopened.files).toEqual(adopted.files)
+  expect(reopened.media).toEqual(adopted.media)
+  expect(reopened.calls.filter(item => item.method === 'POST')).toEqual([])
+  const voice = candidates.find(item => item.media!.target.kind === 'voice')!
+  const image = candidates.find(item => item.media!.target.kind === 'image')!
+  const voiceCard = page.locator(`[data-creative-artifact="${voice.id}"]`)
+  const imageCard = page.locator(`[data-creative-artifact="${image.id}"]`)
+  await expect(imageCard.getByText('已采用', { exact: true })).toBeVisible()
+  await expect(voiceCard.getByText('已采用', { exact: true })).toBeVisible()
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await voiceCard.scrollIntoViewIfNeeded()
+    await page.screenshot({ path: info.outputPath(`independent-media-adopted-${width}.png`), animations: 'disabled' })
+  }
+  const chapter = 'adv/chapters/intro.adv.md'
+  await page.evaluate(({ path, content }) => (window as unknown as { creativeMediaFixture: Bridge }).creativeMediaFixture.editSource(path, content), { path: chapter, content: reopened.files[chapter]!.replace('列车还没有到，我们再等一会儿。', '列车已经到了，现在出发。') })
+  await page.getByRole('button', { name: '重新读取状态', exact: true }).click()
+  await expect(voiceCard.getByText('已过期', { exact: true })).toBeVisible()
+  await expect(imageCard.getByText('已采用', { exact: true })).toBeVisible()
+  const changed = await read()
+  expect(changed.media).toEqual(adopted.media)
+  expect(changed.run.chargedMicroPoints).toBe(0)
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await voiceCard.scrollIntoViewIfNeeded()
+    await page.screenshot({ path: info.outputPath(`related-voice-stale-image-retained-${width}.png`), animations: 'disabled' })
+  }
+  await writeFile(info.outputPath('media-source-dependencies.json'), JSON.stringify({ scope: 'Real WebP/WAV, HTTP source refresh, shared candidate registration/adoption and actual IndexedDB reopen; identities, proposals and service storage remain explicit fixtures, no model or production billing', registered, refreshed, adopted, reopened, changed }, null, 2))
 })
 
 test('adopts real image and speech in one shared milestone, recovers a lost confirmation and conditionally undoes both', async ({ page }, info) => {

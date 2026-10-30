@@ -5,7 +5,7 @@ import type { CreativeMediaCandidateRequest, CreativeMediaEvidence } from '../sr
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { planAdvAssetManifestUpsert } from '@advjs/core'
-import { dump } from 'js-yaml'
+import { dump, load } from 'js-yaml'
 import { describe, expect, it } from 'vitest'
 import { CreativeMilestoneCoordinator, reviewCreativeMilestone } from '../src/creative-team/adoption'
 import { invalidateCreativeArtifacts } from '../src/creative-team/candidates'
@@ -50,6 +50,38 @@ async function adopt(run: CreativeTeamRun, baseline: CreativeMediaCandidateReque
 }
 
 describe('immutable author-host media and shared milestone anchors', () => {
+  it.each(['image', 'voice'] as const)('keeps an independent %s candidate usable across unrelated saved chapter edits', async (kind) => {
+    const f = await fixture(kind)
+    const unrelatedPath = kind === 'image' ? 'adv/chapters/intro.adv.md' : 'adv/chapters/unrelated.adv.md'
+    f.baseline.files[unrelatedPath] ??= '# Another chapter\n\nUnrelated saved text.\n'
+    f.baseline.revision = await computeAgentProjectRevision(f.baseline.files)
+    f.run.plan.projectRevision = f.baseline.revision
+    f.parent.source = { ...f.parent.source, revision: f.baseline.revision, files: Object.fromEntries(Object.entries(f.baseline.files).filter(([path]) => path !== unrelatedPath && (kind === 'voice' || path === 'adv.config.json' || path.includes('/characters/')))) }
+    f.run.plan.tasks[0]!.sourcePaths = Object.keys(f.parent.source.files)
+    const registered = register(f.run, f.request)
+    const registeredMedia = registered.artifacts.at(-1)!
+    const current = await project({ ...f.baseline.files, [unrelatedPath]: `${f.baseline.files[unrelatedPath]}\nAuthor changed an unrelated chapter.\n` }, f.baseline.id)
+    const refreshed = reduceCreativeTeamRun(registered, { type: 'refresh-facts', files: current.files }, 4)
+    expect(refreshed.artifacts.find(item => item.id === f.parent.id)!.status).toBe('selected')
+    expect(refreshed.artifacts.at(-1)!.status).toBe('selected')
+    expect(refreshed.artifacts.at(-1)!.fingerprint).toBe(registeredMedia.fingerprint)
+    expect(refreshed.artifacts.at(-1)!.source.revision).toBe(f.baseline.revision)
+    const adopted = await adopt(refreshed, current)
+    expect(adopted.project.files[unrelatedPath]).toBe(current.files[unrelatedPath])
+    const independentFiles = { ...adopted.project.files, [unrelatedPath]: `${current.files[unrelatedPath]}\nAnother unrelated edit.\n` }
+    const independent = reduceCreativeTeamRun(adopted.run, { type: 'refresh-facts', files: independentFiles }, 5)
+    expect(independent.artifacts.at(-1)!.status).toBe('adopted')
+    const relevantPath = kind === 'image' ? 'adv/characters/xiaoyun.character.md' : 'adv/chapters/intro.adv.md'
+    const relevantFiles = { ...independentFiles, [relevantPath]: `${independentFiles[relevantPath]}\nChanged relevant source.\n` }
+    const stale = reduceCreativeTeamRun(independent, { type: 'refresh-facts', files: relevantFiles }, 6)
+    expect(stale.artifacts.find(item => item.id === f.parent.id)!.status).toBe('stale')
+    expect(stale.artifacts.at(-1)!.status).toBe('stale')
+    for (const change of registeredMedia.changes)
+      expect(relevantFiles[change.path]).toBe(adopted.project.files[change.path])
+    expect(f.request.project.files).toEqual(f.baseline.files)
+    expect(stale.chargedMicroPoints).toBe(0)
+  })
+
   it('freezes actual browser image metadata without changing source or fees and parses the new provenance', async () => {
     const f = await fixture('image')
     const next = register(f.run, f.request)
@@ -64,6 +96,46 @@ describe('immutable author-host media and shared milestone anchors', () => {
     for (const [name, content] of Object.entries(creativeArtifactExpectedFiles(confirmed.run.artifacts[0]!, confirmed.run)))
       expect(confirmed.project.files[name] ?? null).toEqual(content)
     expect(confirmed.run.status).not.toBe('completed')
+  })
+  it('keeps every read catalog fragment in the media dependency set even when it is not written', async () => {
+    const f = await fixture('image')
+    f.baseline.files['adv/assets.json'] = JSON.stringify({ schemaVersion: 2, id: f.baseline.id, defaultProfile: 'local', profiles: { local: { provider: 'project', root: 'adv/assets' } }, includes: ['assets/existing.json'] })
+    f.baseline.files['adv/assets/existing.json'] = '{"schemaVersion":2,"assets":[]}'
+    f.baseline.revision = await computeAgentProjectRevision(f.baseline.files)
+    f.parent.source = { ...f.parent.source, revision: f.baseline.revision, files: { 'adv.config.json': f.baseline.files['adv.config.json']!, 'adv/assets.json': f.baseline.files['adv/assets.json'], 'adv/characters/xiaoyun.character.md': f.baseline.files['adv/characters/xiaoyun.character.md']! } }
+    const asset = JSON.parse(golden.image.after['adv/assets/other.json']).assets[0]
+    f.request.writes = planAdvAssetManifestUpsert({ files: f.baseline.files, rootPath: 'adv/assets.json', catalogId: f.baseline.id, asset }).writes
+    const run = register(f.run, f.request)
+    const candidate = run.artifacts.at(-1)!
+    expect(candidate.changes.some(item => item.path === 'adv/assets/existing.json')).toBe(false)
+    expect(candidate.source.files['adv/assets/existing.json']).toBe(f.baseline.files['adv/assets/existing.json'])
+    const files = { ...f.baseline.files, 'adv/assets/existing.json': '{"schemaVersion":2,"assets":[],"note":"Changed catalog metadata"}' }
+    const refreshed = reduceCreativeTeamRun(run, { type: 'refresh-facts', files }, 4)
+    expect(refreshed.artifacts[0]!.status).toBe('selected')
+    expect(refreshed.artifacts.at(-1)!.status).toBe('stale')
+  })
+  it('expires a voice candidate when its independently read consent record changes', async () => {
+    const f = await fixture('voice')
+    const path = 'adv/characters/lin.character.md'
+    const profile = (load(f.baseline.files[path]!.split('---')[1]!) as { voiceProfile: { locales: Record<string, { providers: Record<string, Record<string, unknown>> }> } }).voiceProfile
+    const rights = { license: 'author-fixture', subject: 'fixture-speaker', consentRecord: 'adv/consents/speaker.md' }
+    profile.locales['zh-CN']!.providers['local-system']!.rights = rights
+    f.baseline.files[path] = `---\n${dump({ id: 'lin', name: '林', voiceProfile: profile }).trimEnd()}\n---\nVoice profile fixture.\n`
+    f.parent.source = { ...f.parent.source, files: { ...f.baseline.files } }
+    f.baseline.files[rights.consentRecord] = '# Recorded permission fixture\n'
+    f.baseline.revision = await computeAgentProjectRevision(f.baseline.files)
+    const ledger = JSON.parse(f.request.writes['adv/audio/voice-ledger.json']!)
+    const take = ledger.lines[f.input.lineId].locales['zh-CN'].takes[0]
+    take.rights = rights
+    take.voiceProfileRevision = fingerprint(profile)
+    take.inputFingerprint = fingerprint({ spokenText: take.spokenText, locale: 'zh-CN', speakerId: 'lin', providerId: take.providerId, voiceId: take.voiceId, model: take.model, voiceProfileRevision: take.voiceProfileRevision, parameters: take.parameters })
+    f.request.writes = { ...f.request.writes, 'adv/audio/voice-ledger.json': JSON.stringify(ledger) }
+    const run = register(f.run, f.request)
+    expect(run.artifacts.at(-1)!.source.files[rights.consentRecord]).toBe(f.baseline.files[rights.consentRecord])
+    const files = { ...f.baseline.files, [rights.consentRecord]: '# Permission withdrawn fixture\n' }
+    const refreshed = reduceCreativeTeamRun(run, { type: 'refresh-facts', files }, 4)
+    expect(refreshed.artifacts[0]!.status).toBe('selected')
+    expect(refreshed.artifacts.at(-1)!.status).toBe('stale')
   })
   it('keeps an independent adopted image current when another binding changes', async () => {
     const f = await fixture('image')

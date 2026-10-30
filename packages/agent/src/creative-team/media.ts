@@ -203,6 +203,7 @@ export function prepareCreativeMediaCandidate(run: CreativeTeamRun, input: Creat
   const assetPath = path(asset.path)
   const evidence = parseCreativeMediaEvidence({ verification: 'author-host', parent: { artifactId: original.id, fingerprint: original.fingerprint }, target: input.target, sha256: asset.sha256, bytes: asset.bytes, mimeType: asset.mimeType, mediaPath: [localRoot, assetPath].filter(Boolean).join('/') })
   const allowed = new Set(Object.keys(after.documents))
+  const sourcePaths = new Set([...Object.keys(creativeArtifactExpectedFiles(original, run)), ...Object.keys(before.documents), ...Object.keys(after.documents), 'adv.config.json'])
   const upstream = [...original.source.upstream, { artifactId: original.id, fingerprint: original.fingerprint }]
   if (input.target.kind === 'image') {
     const request = original.output?.kind === 'art-direction' ? original.output.requests.find(item => item.assetId === input.target.assetId) : undefined
@@ -239,6 +240,7 @@ export function prepareCreativeMediaCandidate(run: CreativeTeamRun, input: Creat
       || typeof asset.duration !== 'number' || !(asset.duration > 0 && asset.duration <= 120) || !/^[a-f0-9]{64}$/.test(String(take.inputFingerprint)) || !/^[a-f0-9]{64}$/.test(String(take.voiceProfileRevision))) {
       throw new TypeError('CREATIVE_MEDIA_INVALID_VOICE')
     }
+    sourcePaths.add(line.path)
     keys(take, ['id', 'assetId', 'sha256', 'providerId', 'voiceId', 'model', 'modelRevision', 'voiceProfileRevision', 'inputFingerprint', 'pronunciationRevision', 'spokenText', 'createdAt', 'source', 'rights', 'parameters', 'projectVoiceId', 'projectVoiceVersion', 'alignment'])
     const profile = next.line.speakerId === 'narrator'
       ? object(json(input.project.files['adv/audio/voice-profiles.json'] ?? '{}').narrator)
@@ -258,6 +260,7 @@ export function prepareCreativeMediaCandidate(run: CreativeTeamRun, input: Creat
       text(rights.subject)
       if (!Object.hasOwn(input.project.files, path(rights.consentRecord)))
         throw new TypeError('CREATIVE_MEDIA_CONSENT_REQUIRED')
+      sourcePaths.add(path(rights.consentRecord))
     }
     const priorTake = previous.takes.find(item => item.id === selection.takeId)
     if (selection.phase === 'registered') {
@@ -294,12 +297,16 @@ export function prepareCreativeMediaCandidate(run: CreativeTeamRun, input: Creat
   const changes: CreativeFileChange[] = Object.entries(input.writes).flatMap(([name, content]) => {
     if (!allowed.has(name) || (!/^adv\/assets(?:\.json|\/[\w./-]+\.json)$/.test(name) && name !== 'adv/audio/voice-ledger.json' && !/^adv\/scenes\/[\w-]+\.md$/.test(name)))
       throw new TypeError('CREATIVE_MEDIA_INVALID_WRITES')
+    sourcePaths.add(name)
     return (input.project.files[name] ?? null) === content ? [] : [{ path: name, before: input.project.files[name] ?? null, after: content }]
   })
   if (!changes.length)
     throw new Error('CREATIVE_EMPTY_MILESTONE')
   parseCreativeProject({ id: input.project.id, revision: input.project.revision, files })
-  const candidate: Omit<CreativeArtifact, 'id' | 'fingerprint'> = { runId: run.id, taskId: original.taskId, partner: original.partner, projectId: run.plan.projectId, kind: 'media-adoption', source: { projectId: run.plan.projectId, revision: input.project.revision, files: input.project.files, upstream }, summary: input.reason, changes, media: evidence, reviewCapabilities: [], status: 'selected' }
+  // Keep the registration snapshot identity, while freezing only actual reads
+  // and write baselines. Unrelated saved prose is not a media dependency.
+  const sourceFiles = Object.fromEntries([...sourcePaths].filter(name => name in input.project.files).map(name => [name, input.project.files[name]!]))
+  const candidate: Omit<CreativeArtifact, 'id' | 'fingerprint'> = { runId: run.id, taskId: original.taskId, partner: original.partner, projectId: run.plan.projectId, kind: 'media-adoption', source: { projectId: run.plan.projectId, revision: input.project.revision, files: sourceFiles, upstream }, summary: input.reason, changes, media: evidence, reviewCapabilities: [], status: 'selected' }
   candidate.reviewCapabilities = requiredCreativeReviewCapabilities(candidate)
   return candidate
 }

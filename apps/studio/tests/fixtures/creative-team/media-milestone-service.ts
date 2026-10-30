@@ -57,10 +57,13 @@ export function creativeMediaMilestoneFixtureService(): Plugin {
             return send(200, {})
           }
           if (url.pathname === '/__creative-media-fixture/seed' && request.method === 'POST') {
-            const input = body as CreativeTeamRun
-            const run = parseCreativeTeamRun(input, { accountId: input.accountId, projectId: input.plan.projectId })
+            const input = body as { run: CreativeTeamRun, project: unknown }
+            const project = parseCreativeProject(input.project)
+            const run = parseCreativeTeamRun(input.run, { accountId: input.run.accountId, projectId: project.id })
+            if (project.revision !== run.plan.projectRevision || await computeAgentProjectRevision(project.files) !== project.revision)
+              throw new Error('CREATIVE_SOURCE_CONFLICT')
             if (!records.has(run.plan.projectId))
-              records.set(run.plan.projectId, { run, revision: run.plan.projectRevision, files: run.artifacts[0]!.source.files, reports: {}, reportRequests: {} })
+              records.set(project.id, { run, revision: project.revision, files: project.files, reports: {}, reportRequests: {} })
             return send(200, {})
           }
           const projectId = url.searchParams.get('projectId') ?? ''
@@ -70,7 +73,7 @@ export function creativeMediaMilestoneFixtureService(): Plugin {
           if (url.pathname === '/__creative-media-fixture/exists')
             return send(200, { exists: Boolean(record) })
           if (url.pathname.endsWith('/capabilities'))
-            return send(200, { protocolVersion: 1, enabled: projectId === 'creative-media-delivery-story' || projectId.startsWith('creative-media-voice-plan'), authoring: { playtestReports: projectId === 'creative-media-delivery-story', playtestVoiceCoverage: projectId === 'creative-media-delivery-story', candidateEdits: true, voiceDirectionEdits: true, milestoneAdoption: true, milestoneMerges: true, mediaCandidates: true, delivery: projectId.startsWith('creative-media-delivery-') }, serviceVersion: 'explicit local authoring service fixture; no models', capabilities: projectId === 'creative-media-delivery-story' ? ['playtest-project', 'summarize-production'] : [], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } })
+            return send(200, { protocolVersion: 1, enabled: projectId === 'creative-media-delivery-story' || projectId.startsWith('creative-media-voice-plan'), authoring: { sourceSync: projectId === 'creative-media-media-source-dependencies', playtestReports: projectId === 'creative-media-delivery-story', playtestVoiceCoverage: projectId === 'creative-media-delivery-story', candidateEdits: true, voiceDirectionEdits: true, milestoneAdoption: true, milestoneMerges: true, mediaCandidates: true, delivery: projectId.startsWith('creative-media-delivery-') }, serviceVersion: 'explicit local authoring service fixture; no models', capabilities: projectId === 'creative-media-delivery-story' ? ['playtest-project', 'summarize-production'] : [], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } })
           if (!record)
             return send(404, { error: { code: 'CREATIVE_NOT_FOUND', message: 'Explicit fixture project not found' } })
           const run = record.run
@@ -78,6 +81,8 @@ export function creativeMediaMilestoneFixtureService(): Plugin {
             return send(200, { protocolVersion: 1, items: [{ id: run.id, projectId, goal: run.plan.goal, status: run.status, revision: run.revision, chargedMicroPoints: run.chargedMicroPoints, reservedMicroPoints: run.reservedMicroPoints, updatedAt: run.updatedAt }] })
           if (!url.pathname.startsWith(`${prefix}/runs/${run.id}`))
             return send(404, {})
+          if (url.pathname.endsWith('/source-state') && request.method === 'GET')
+            return send(200, { protocolVersion: 1, run, projectRevision: record.revision })
           const key = String(request.headers['idempotency-key'] ?? '')
           if (url.pathname.endsWith('/facts') && request.method === 'POST') {
             const project = parseCreativeProject(body)

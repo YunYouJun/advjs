@@ -52,6 +52,8 @@ async function main() {
     'adv/chapters/intro.adv.md': '# 等车 {#start}\n\n@lin\n列车还没有到，我们再等一会儿。 {#line_01900400-0000-7000-8000-000000000001}\n\n@lin\n这是下一句，没有绑定配音。',
   }
   const storyJourney = variant === 'delivery-story'
+  if (variant === 'media-source-dependencies')
+    originals['adv/chapters/unrelated.adv.md'] = '# Independent chapter\n\nOriginal unrelated text.\n'
   if (storyJourney) {
     originals['adv/world.md'] = '# 雨夜车站\n普通现实世界；人物在候车室决定留下或离开。\n'
     originals['adv/characters/qiao.character.md'] = '---\nid: qiao\nname: 乔雨\n---\n带着一封未寄出的信的旅客。\n'
@@ -146,10 +148,16 @@ async function main() {
       return { id: task.id, runId, taskId: task.id, partner: 'writer' as const, projectId, kind: 'chapter' as const, source, fingerprint: `${task.id}-v1`, summary: output.summary, output, changes: creativeOutputFileChanges(output, originals), reviewCapabilities: ['modify-source' as const, 'candidate-preview' as const], status: 'selected' as const }
     })
   }
+  if (variant === 'media-source-dependencies') {
+    for (const artifact of run.artifacts) {
+      artifact.source = { ...artifact.source, files: Object.fromEntries(Object.entries(originals).filter(([path]) => path !== 'adv/chapters/unrelated.adv.md' && (artifact.kind === 'voice-direction' || !path.startsWith('adv/chapters/')))) }
+      run.plan.tasks.find(task => task.id === artifact.taskId)!.sourcePaths = Object.keys(artifact.source.files)
+    }
+  }
   mark('service-seed')
   const exists = await fetch(`/__creative-media-fixture/exists?projectId=${encodeURIComponent(projectId)}`)
   if (!(await exists.json()).exists) {
-    const seeded = await fetch('/__creative-media-fixture/seed', { method: 'POST', body: JSON.stringify(run) })
+    const seeded = await fetch('/__creative-media-fixture/seed', { method: 'POST', body: JSON.stringify({ run, project: { id: projectId, revision: baselineRevision, files: originals } }) })
     if (!seeded.ok)
       throw new Error(`Fixture seed failed: ${await seeded.text()}`)
   }
