@@ -1,7 +1,7 @@
 # Studio 创作伙伴云乐坊真实 AI 积分试跑
 
 - 日期：2026-10-28；最近核验：2026-10-30。
-- 状态：原预算、两次恢复及[三项继续方案](#remaining-three-proposal)均获作者批准。旧 B 保留质量失败、账务阶段已结束；局部 C 在首个模型任务提交前因数据库事务并发报错，按约再次停止，短篇 B/C 未启动。许可及两个客户端入口均关闭，本次新增扣费为零；含历史累计 **16.147 积分／0.013621 元**。事务读取修复与[未准入 C 的取消／空阶段收尾](../reports/2026-10-27-studio-creative-team-acceptance#undispatched-c-closure)已在本地通过，尚未部署；原短篇 B 首请求保守预占为 211.434 积分，整阶段可负担性仍未知。B/C 与作者品质评测未完成。详见[本次执行与故障定位](../reports/2026-10-27-studio-creative-team-acceptance#three-remainder-executed)。
+- 状态：原预算、两次恢复及[三项继续方案](#remaining-three-proposal)均获作者批准。旧 B 保留质量失败、账务阶段已结束；局部 C 在首个模型任务提交前因数据库事务并发报错，按约再次停止，短篇 B/C 未启动。许可及两个客户端入口均关闭，本次新增扣费为零；含历史累计 **16.147 积分／0.013621 元**。事务读取修复与[未准入 C 的取消／空阶段收尾](../reports/2026-10-27-studio-creative-team-acceptance#undispatched-c-closure)已在本地通过，尚未部署；原短篇 B 首请求保守预占为 211.434 积分，整阶段可负担性仍未知。另已离线构建[保留原配置与账务基线的修复制品](../reports/2026-10-27-studio-creative-team-acceptance#repair-artifact-provenance)，实际代码版本独立核对，尚未取得新制品发布／恢复范围授权。B/C 与作者品质评测未完成。详见[本次执行与故障定位](../reports/2026-10-27-studio-creative-team-acceptance#three-remainder-executed)。
 - 范围：[主计划 T02](./2026-10-27-studio-creative-team) 的小样本成本与执行条件试跑，不替代完整评测、作者盲评或 T10 整部作品验收。
 - 相关：[执行契约](../specs/2026-10-28-studio-creative-execution)、[验收记录](../reports/2026-10-27-studio-creative-team-acceptance)。
 
