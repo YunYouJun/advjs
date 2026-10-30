@@ -1,7 +1,7 @@
 # Studio 创作能力的具体模型执行契约
 
 - 日期：2026-10-28；最近核验：2026-10-30。
-- 状态：私有真实积分链路及获批复核版本已发布；原失败任务已对账，复核冒烟成功结算 4.862 积分。B 首次提交在准入前异常，后续已停止、许可与客户端入口已关闭。准入时长的本地修复通过回归，未部署。公开制作组、Studio 任务 UI、真实 B/C 和模型品质仍未验收。
+- 状态：私有真实积分链路已发布到获批 `d36e726` 恢复版本；局部 B 两次真实结算后，第三轮在派发前触发预算保护，按约停止，其余三项未启动。包含历史累计实扣 16.147 积分、供应商成本 0.013621 元，许可与两个客户端入口均关闭。公开制作组、Studio 生产正向任务 UI、真实 B/C 品质和完整作品仍未验收。
 - 范围：主计划 [T03／T10](../plans/2026-10-27-studio-creative-team) 的模型请求、SDK 接线及执行前提。作者采用和项目写入仍遵循[采用协议](./2026-10-27-studio-creative-adoption)。
 
 2026-10-29 已批准的真实积分试跑遵循[专门方案](../plans/2026-10-28-studio-creative-pilot)及本文末的服务端准入。下文直接 SDK／隔离本机账本仍是先前的评测实现，不作为本轮真实钱包执行入口。
@@ -169,7 +169,7 @@ CloudBase 原生 SDK 会在事件外层附加平台元数据。`19aae312` 只从
 
 ## 继承成功冒烟的四阶段恢复 {#bc-resume-admission}
 
-本地 `YunLeFun/api@8837fad` 增加 `executionProfile=bc-resume-v1`；配置指纹包含 profile，API、Worker、远程客户端和 CLI 共用四阶段表并拒绝 `smoke`。本方案的额度、批准边界与日期只维护在[积分恢复方案](../plans/2026-10-28-studio-creative-pilot#bc-resume-proposal)，当前仍待批准、未部署。
+本地 `YunLeFun/api@8837fad` 增加 `executionProfile=bc-resume-v1`；配置指纹包含 profile，API、Worker、远程客户端和 CLI 共用四阶段表并拒绝 `smoke`。本方案的额度、批准边界与日期只维护在[积分恢复方案](../plans/2026-10-28-studio-creative-pilot#bc-resume-proposal)，已获批准并随 `d36e726` 两个私有函数发布；执行后的停止和账务见[恢复执行记录](../reports/2026-10-27-studio-creative-team-acceptance#real-points-bc-resume-executed)。
 
 `createCreativePointsComparisonResumeGrant` 只接受已禁用的原复核父批次：唯一冒烟已关闭、已正数结算、用量及钱包流水已核对；B 已启动但没有准入调用，后三阶段未启动。父批次必须仍与原失败根批次及原独占绑定一致；不接受已发生 B 调用、未结算冒烟、被修改的根账本或再次恢复的子批次。新许可冻结两层历史消费、父状态与成功冒烟的供应商 manifest／observation 指纹，消费前重新验证，不覆盖旧阶段时钟。
 
@@ -247,4 +247,4 @@ Runtime 仅为新预占派发冻结私有 `childContextVersion=2`：任务来源
 
 制作组服务在子任务报价阶段收到受信 `AiRuntimeError(EVALUATION_BUDGET_EXHAUSTED)` 时，在实际预占／派发之前将对应任务记为阻塞；只有同一版本和当前下一任务仍匹配时才能写入。既有成果、真实子任务 ID、已确认费用和报告保留，取消仍可用。私有积分写入器将零剩余额度规范为同一产品错误；未知报价异常继续抛出，不能凭错误文字编造“未派发”。
 
-已经发出的 RPC 返回预算错误或结果不明时，远端仍封锁后续调用并保留原始请求／响应，不推断其没有准入或消费。新纯准备方法只判定尚未发送的本次请求；不能用于释放旧预占、改写历史、提高额度或恢复已停止阶段。四阶段本地贯通与两种有限预算停止的证据见[本地评测积分回放](../reports/2026-10-27-studio-creative-team-acceptance#points-comparison-local)。这份修复已进入尚未批准／部署的 `d36e726` 独立候选；旧 `8837fadc` 草案保留历史，当前具体确认范围见[恢复方案](../plans/2026-10-28-studio-creative-pilot#bc-resume-proposal)。
+已经发出的 RPC 返回预算错误或结果不明时，远端仍封锁后续调用并保留原始请求／响应，不推断其没有准入或消费。新纯准备方法只判定尚未发送的本次请求；不能用于释放旧预占、改写历史、提高额度或恢复已停止阶段。四阶段本地贯通与两种有限预算停止的证据见[本地评测积分回放](../reports/2026-10-27-studio-creative-team-acceptance#points-comparison-local)。这份修复已随获批的 `d36e726` 私有两函数上线；真实 B 在两次计费调用后，第 3 轮输入保守界 9,465 超过剩余 7,208 token，返回上述未派发结果，保留实际 4,792 token／0.007523 元及两个结局的宿主检查。样本为生成质量失败，未升级完成，也未推进 C 或短篇。旧 `8837fadc` 草案及原 126 份输入保留历史；具体范围见[恢复方案](../plans/2026-10-28-studio-creative-pilot#bc-resume-proposal)，本次原始账务见[执行记录](../reports/2026-10-27-studio-creative-team-acceptance#real-points-bc-resume-executed)。
