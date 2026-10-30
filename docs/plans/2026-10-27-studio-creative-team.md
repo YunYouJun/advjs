@@ -115,7 +115,7 @@ flowchart TD
 
 其后作者批准仅继续三项的具体方案；旧 B 只结束账务，C 在模型任务提交前因 CloudBase 事务并发报错，短篇 B/C 按约未启动。新增消费为零、历史累计不变，入口已关闭。事务串行读取修复已在本地验证，未部署或重跑；最新状态及证据见[三项执行记录](../reports/2026-10-27-studio-creative-team-acceptance#three-remainder-executed)，不计作真实 C 或完整 B/C 通过。
 
-作者盲评的源文件导出、空白表单、随机配对、私有解盲和分类输入级区间已有[离线收集入口](../specs/2026-10-28-studio-creative-execution#blind-review-workflow)，实际检查见[工具验收](../reports/2026-10-27-studio-creative-team-acceptance#blind-review-workflow)。替身表单只验证流程；真实 B 尚无 C 对照，工具保留其费用但不生成评分。完整真实比较与至少两位独立作者判断继续未完成，收费停止状态不变。保留旧 B 质量失败、只继续局部 C 和两项短篇的[具体方案](./2026-10-28-studio-creative-pilot#remaining-three-proposal)已完成隔离验证与免费线上核对，须单独批准后才结束旧 B 阶段账务及恢复现有许可；不重试旧 B、不重置时钟或消费。
+作者盲评的源文件导出、空白表单、随机配对、私有解盲和分类输入级区间已有[离线收集入口](../specs/2026-10-28-studio-creative-execution#blind-review-workflow)，实际检查见[工具验收](../reports/2026-10-27-studio-creative-team-acceptance#blind-review-workflow)。替身表单只验证流程；真实 B 尚无 C 对照，工具保留其费用但不生成评分。完整真实比较与至少两位独立作者判断继续未完成。三项继续的[具体方案](./2026-10-28-studio-creative-pilot#remaining-three-proposal)已获批准并执行：旧 B 保留质量失败且已结束账务，局部 C 在模型准入前发生事务故障，后续短篇按约未启动。现入口和许可关闭；C 的取消／空阶段收尾及原短篇首请求报价已有[本地验证](../reports/2026-10-27-studio-creative-team-acceptance#undispatched-c-closure)，尚未部署或再次恢复收费，不重置原时钟、调用或消费。
 
 ### M1：制作组基础与导演
 
