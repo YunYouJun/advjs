@@ -1,6 +1,6 @@
 # Studio 六角色创作伙伴实施计划
 
-- 日期：2026-10-27；最近核验：2026-10-30。
+- 日期：2026-10-27；最近核验：2026-10-31。
 - 状态：实施中；契约、免费评测基线和本地 Runtime 链路已落地，Studio 入口及任务审阅已接入，已接入人物和章节候选修订、文字与作者宿主媒体的统一采用／恢复／撤销；已接通本机指定核心路径执行、报告保存与作者选择负责人的返工交接。真实图片与外部系统对白已在 Web 导入、试听、独立选用及正式播放器中显示／播放。导演已接通作者明确触发的交付建议及实际来源／费用／试玩记录审阅；六角色闭环、生产服务和模型对照评测尚未通过，实际进度与证据见[验收记录](../reports/2026-10-27-studio-creative-team-acceptance)。
 - 范围：Studio 的导演、编剧、角色设计师、美术指导、配音导演、试玩员；共享契约兼顾 Web 与原生 iOS。
 - 总 Issue：[Studio 六角色创作伙伴 #38](https://github.com/YunYouJun/advjs/issues/38)。详细任务与验收以本计划为准，Issue 跟踪阶段与阻塞；计划已随本地基础实现提交，推送后补充可访问的固定版本链接。
@@ -115,7 +115,7 @@ flowchart TD
 
 其后作者批准仅继续三项的具体方案；旧 B 只结束账务，C 在模型任务提交前因 CloudBase 事务并发报错，短篇 B/C 按约未启动。新增消费为零、历史累计不变，入口已关闭。事务串行读取修复已在本地验证，未部署或重跑；最新状态及证据见[三项执行记录](../reports/2026-10-27-studio-creative-team-acceptance#three-remainder-executed)，不计作真实 C 或完整 B/C 通过。
 
-作者盲评的源文件导出、空白表单、随机配对、私有解盲和分类输入级区间已有[离线收集入口](../specs/2026-10-28-studio-creative-execution#blind-review-workflow)，实际检查见[工具验收](../reports/2026-10-27-studio-creative-team-acceptance#blind-review-workflow)。替身表单只验证流程；真实 B 尚无 C 对照，工具保留其费用但不生成评分。完整真实比较与至少两位独立作者判断继续未完成。三项继续的[具体方案](./2026-10-28-studio-creative-pilot#remaining-three-proposal)已获批准并执行：旧 B 保留质量失败且已结束账务，局部 C 在模型准入前发生事务故障，后续短篇按约未启动。现入口和许可关闭；C 的取消／空阶段收尾及原短篇首请求报价已有[本地验证](../reports/2026-10-27-studio-creative-team-acceptance#undispatched-c-closure)，尚未部署或再次恢复收费，不重置原时钟、调用或消费。带独立代码版本证明的[修复候选](../reports/2026-10-27-studio-creative-team-acceptance#repair-artifact-provenance)现已离线构建，保留原配置、许可与输入；仍须完成线上复核及具体恢复授权。 [具体恢复控制](./2026-10-28-studio-creative-pilot#repair-recovery-proposal)已完成离线验证，运维登录已恢复，15:27 的线上制品／历史／费率／原 C 与 253.764 积分余额核验通过，原会员普通 SDK 登录及退出也通过；新范围尚未批准，未部署或新增收费。
+作者盲评的源文件导出、空白表单、随机配对、私有解盲和分类输入级区间已有[离线收集入口](../specs/2026-10-28-studio-creative-execution#blind-review-workflow)，实际检查见[工具验收](../reports/2026-10-27-studio-creative-team-acceptance#blind-review-workflow)。替身表单只验证流程；真实 B 尚无 C 对照，工具保留其费用但不生成评分。完整真实比较与至少两位独立作者判断继续未完成。三项继续的[具体方案](./2026-10-28-studio-creative-pilot#remaining-three-proposal)已获批准并执行：旧 B 保留质量失败且已结束账务，局部 C 在模型准入前发生事务故障，后续短篇按约未启动。现入口和许可关闭；C 的取消／空阶段收尾及原短篇首请求报价已有[本地验证](../reports/2026-10-27-studio-creative-team-acceptance#undispatched-c-closure)，尚未部署或再次恢复收费，不重置原时钟、调用或消费。带独立代码版本证明的[修复候选](../reports/2026-10-27-studio-creative-team-acceptance#repair-artifact-provenance)现已离线构建，保留原配置、许可与输入；仍须完成线上复核及具体恢复授权。 [具体恢复控制](./2026-10-28-studio-creative-pilot#repair-recovery-proposal)完成了 10 月 30 日的离线和线上核验，但未获新批准，现已跨过原 23:55 许可及费率日历期限；[10 月 31 日过期检查](../reports/2026-10-27-studio-creative-team-acceptance#repair-recovery-expired)确认不能沿用原待批方案收费。本日未重新读取线上状态、未部署或新增收费；后续日期／有效许可及历史衔接须另列具体方案，原失败、账单和首版缺口保留。
 
 ### M1：制作组基础与导演
 
