@@ -3,7 +3,7 @@ import type { CreativeTeamLimits, CreativeTeamRun } from '../creative-team/contr
 import type { CreativeEvaluationBudget, CreativeEvaluationInput, CreativeEvaluationModel, CreativeEvaluationModelDescription, CreativeEvaluationSink } from './execution'
 import { canRequestCreativeDirectorSummary } from '../creative-team/orchestration'
 import { creativePlaytestFindings } from '../creative-team/playtest-repair'
-import { createCreativeEvaluationWorkspace, createCreativeSingleAgentEvaluator, CREATIVE_EVALUATION_TOOLS_VERSION } from './execution'
+import { createCreativeEvaluationWorkspace, createCreativeSingleAgentEvaluator, CREATIVE_EVALUATION_TOOLS_VERSION, specifiedScenarios } from './execution'
 
 interface Versions { model: string, prompts: string, tools: string, runtime: string, project: string }
 export interface CreativeEvaluationCrewBinding {
@@ -12,7 +12,7 @@ export interface CreativeEvaluationCrewBinding {
     limits: CreativeTeamLimits
     client: Pick<CreativeTeamClient, 'availability' | 'start' | 'get' | 'decide' | 'recordPlaytest'>
     advance: (projectId: string, runId: string) => Promise<CreativeTeamRun>
-    accounting: () => Promise<{ inputTokens: number, outputTokens: number, totalTokens: number, costMicroCny: number, modelCalls: number, receipts: readonly unknown[], failures: readonly { taskId: string, category: string, code: string }[] }>
+    accounting: () => Promise<{ inputTokens: number, outputTokens: number, totalTokens: number, costMicroCny: number, modelCalls: number, dispatchStopped?: boolean, receipts: readonly unknown[], failures: readonly { taskId: string, category: string, code: string }[] }>
   }>
 }
 
@@ -60,7 +60,7 @@ export function createCreativeComparisonEvaluator(options: { model: CreativeEval
       await save('input.json', { executionKey, input, versions: context.versions, crew: current.crew, benchmarkPolicy: 'first-single-candidate, actual-runtime, independent-review, bounded-system-rework-v1', authorConfirmations: 0 })
       const session = await options.crew.open({ key: executionKey, budget: context.budget, signal: context.signal, write: save })
       const project = await createCreativeEvaluationWorkspace(input.project).snapshot()
-      const goal = `${input.input.prompt}\n原始验收要求：${JSON.stringify(input.input.checks)}\n评测总上限：${JSON.stringify(context.budget)}\n评测执行规则：原始要求不变。导演按需选择已开放伙伴，包含独立 playtest-project，依赖所有制作任务；原始任务的语义质量须另由作者盲评。用相同固定素材，未生成媒体不能谎称已有。种子 ${input.seed} 仅是独立尝试标签。计划保留本目标、版本和预算；非人工的评测控制器会机械选定单个有效候选并执行真实核心检查，不代表作者采纳。`
+      const goal = `${input.input.prompt}\n原始验收要求：${JSON.stringify(input.input.checks)}\n指定验收路径（choices 为完整序列）：${JSON.stringify(specifiedScenarios(input.project))}\n评测总上限：${JSON.stringify(context.budget)}\n评测执行规则：原始要求不变。导演按需选择已开放伙伴，包含独立 playtest-project，依赖所有制作任务；原始任务的语义质量须另由作者盲评。用相同固定素材，未生成媒体不能谎称已有。种子 ${input.seed} 仅是独立尝试标签。计划保留本目标、版本和预算；非人工的评测控制器会机械选定单个有效候选并执行真实核心检查，不代表作者采纳。`
       let run = await session.client.start({ protocolVersion: 1, project, goal, partner: 'director', limits: session.limits, locale: 'zh-CN' }, `evaluation:${executionKey}`)
       const decide = async (decision: Parameters<typeof session.client.decide>[2]) => {
         const key = `evaluation:${input.key}:${sequence + 1}`
@@ -71,6 +71,7 @@ export function createCreativeComparisonEvaluator(options: { model: CreativeEval
       let outcome: 'completed' | 'generation-quality' | 'system' | 'provider' | 'billing' | 'cancelled' = 'generation-quality'
       let stop = 'controller-limit'
       let reworkRounds = 0
+      let dispatchStopped = false
       const tested = new Set<string>()
       const provenance = () => ({ run, artifacts: run.artifacts.filter(item => ['selected', 'adopted'].includes(item.status)).map(item => ({ artifactId: item.id, fingerprint: item.fingerprint })) })
       const workspace = () => {
@@ -91,6 +92,15 @@ export function createCreativeComparisonEvaluator(options: { model: CreativeEval
         if (run.status === 'reconcile_required')
           throw new Error('Crew outcome requires reconciliation')
         const accounting = await session.accounting()
+        if (accounting.dispatchStopped) {
+          dispatchStopped = true
+          const failure = accounting.failures.at(-1)
+          stop = failure?.code ?? 'dispatch-stopped'
+          outcome = failure?.category === 'product' && /^(?:OUTPUT_(?:PARSE_FAILED|INCOMPLETE)|PROJECT_VALIDATION_FAILED)$/.test(stop)
+            ? 'generation-quality'
+            : failure?.category === 'provider' ? 'provider' : failure?.category === 'ledger' ? 'billing' : 'system'
+          break
+        }
         if (context.signal.aborted || Date.now() - startedAt >= context.budget.deadlineMs) {
           outcome = 'cancelled'
           stop = 'cancelled'
@@ -203,25 +213,26 @@ export function createCreativeComparisonEvaluator(options: { model: CreativeEval
         run = await session.advance(project.id, run.id)
       }
       const host = workspace()
-      const audit = await host.audit(context.signal)
-      hostTools += 2
-      if (context.signal.aborted) {
+      const audit = dispatchStopped ? undefined : await host.audit(context.signal)
+      if (audit)
+        hostTools += 2
+      if (!dispatchStopped && context.signal.aborted) {
         outcome = 'cancelled'
         stop = 'cancelled'
       }
-      if (outcome === 'completed' && (!audit.compiled || audit.specifiedEndingsReached !== input.project.specifiedEndings.length)) {
+      if (outcome === 'completed' && audit && (!audit.compiled || audit.specifiedEndingsReached !== input.project.specifiedEndings.length)) {
         outcome = 'generation-quality'
         stop = 'independent-audit-failed'
       }
       await decide({ type: 'cancel', reason: 'Benchmark sample recorded; stop the isolated session without author completion, adoption or further generation' })
-      if (run.status === 'cancel_requested' || run.status === 'reconcile_required')
+      if (!dispatchStopped && (run.status === 'cancel_requested' || run.status === 'reconcile_required'))
         run = await session.advance(project.id, run.id)
       if (run.status !== 'cancelled' || run.reservedMicroPoints !== 0)
         throw new Error('Benchmark closure requires settlement reconciliation')
       const accounting = await session.accounting()
       const consumption = { inputTokens: accounting.inputTokens, outputTokens: accounting.outputTokens, totalTokens: accounting.totalTokens, costMicroCny: accounting.costMicroCny, toolCalls: run.toolCalls + hostTools, latencyMs: Date.now() - startedAt, reworkRounds }
-      const result = { caseId: input.input.id, category: input.input.category, seed: input.seed, mode: 'C' as const, versions: context.versions, outcome, stop, requirements: { status: 'unreviewed', checks: input.input.checks }, usability: { compiled: audit.compiled, referencesValid: audit.compiled, specifiedEndingsReached: audit.specifiedEndingsReached, mediaPlayback: audit.mediaPlayback }, consumption, author: { edits: 0, confirmations: 0, repeatedInstructions: 0 }, evidence }
-      await save('final.json', { ...result, run, project: await host.snapshot(), audit, providerReceipts: accounting.receipts, runtimeFailures: accounting.failures, benchmarkSessionClosure: 'cancel-without-author-adoption' })
+      const result = { caseId: input.input.id, category: input.input.category, seed: input.seed, mode: 'C' as const, versions: context.versions, outcome, stop, requirements: { status: 'unreviewed', checks: input.input.checks }, usability: audit ? { compiled: audit.compiled, referencesValid: audit.compiled, specifiedEndingsReached: audit.specifiedEndingsReached, mediaPlayback: audit.mediaPlayback } : { status: 'not-reached' }, runtimeFailures: accounting.failures, crewClosure: { status: run.status, reservedMicroPoints: run.reservedMicroPoints }, consumption, author: { edits: 0, confirmations: 0, repeatedInstructions: 0 }, evidence }
+      await save('final.json', { ...result, run, project: await host.snapshot(), audit, providerReceipts: accounting.receipts, benchmarkSessionClosure: 'cancel-without-author-adoption' })
       return result
     },
   }

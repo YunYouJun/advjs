@@ -31,6 +31,14 @@ describe('paired blind review materials and human vote collection', () => {
     expect(result.form.reviews[0].scores['sample-1'].narrative).toBeNull()
     await expect(collectCreativeBlindReviews(result.packet, result.ledger, [result.form])).rejects.toThrow()
   })
+  it('excludes a stage that stopped before audit while retaining its actual cost and quality failure', async () => {
+    const raw = rawSample('C')
+    const c = parseCreativeBlindSample({ ...raw, final: { ...raw.final, outcome: 'generation-quality', usability: { status: 'not-reached' } } })
+    const result = await createCreativeBlindPacket([sample('B'), c], options)
+    expect(result.packet.pairs).toEqual([])
+    expect(result.ledger.excluded).toMatchObject([{ reason: 'final-audit-not-reached', sources: { C: { outcome: 'generation-quality', consumption: c.consumption } } }])
+  })
+
   it('unblinds actual paired scores without creating a real-author or routing claim from fixtures', async () => {
     const result = await createCreativeBlindPacket([sample('B'), sample('C')], options)
     const summary = await collectCreativeBlindReviews(result.packet, result.ledger, [filled(result.form, 'author-a'), filled(result.form, 'author-b')], { blindingReviewedBy: 'fixture-organizer' })

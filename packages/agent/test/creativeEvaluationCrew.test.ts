@@ -17,11 +17,11 @@ const frozen = JSON.parse(readFileSync(new URL('./fixtures/creative-team/v2/proj
 const chapter = 'adv/chapters/station.adv.md'
 const budget = { maxTotalTokens: 64000, maxMicroCny: 6000000, deadlineMs: 900000 }
 const description = { model: 'service-boundary-fixture', prompt: CREATIVE_SINGLE_PROMPT_VERSION, parser: 'fixture-action', executor: 'fixture', safety: 'fixture', pricing: 'fixture', runtime: 'fixture-runtime', inputBound: 'fixture', configurationFingerprint: 'fixture', seedHandling: 'independent-attempt-label' as const }
-const teamPrompt = 'advjs-creative-team-2026-10-27-v7'
+const teamPrompt = 'advjs-creative-team-2026-10-27-v8'
 const input = (): CreativeEvaluationInput => ({ key: 'short-story-01:1729:C', mode: 'C', seed: 1729, input: { id: 'short-story-01', category: 'short-story', prompt: '修订车站短篇，保留两个结局', checks: ['人物一致', '双结局'] }, project: structuredClone(frozen) })
 
 /** Explicit service-boundary substitute. Compiler, core and shared state reducer remain actual implementations. */
-function harness(options: { brokenFirst?: boolean, unknown?: boolean, abort?: AbortController } = {}) {
+function harness(options: { brokenFirst?: boolean, unknown?: boolean, fenced?: boolean, abort?: AbortController } = {}) {
   const evidence = new Map<string, any>()
   const reports: CreativePlaytestReport[] = []
   const decisions: any[] = []
@@ -46,6 +46,8 @@ function harness(options: { brokenFirst?: boolean, unknown?: boolean, abort?: Ab
           get: async () => refresh(),
           async decide(_project, _run, action, decisionId) {
             decisions.push({ ...action, decisionId })
+            if (options.fenced && action.type === 'cancel')
+              return { ...refresh(), status: 'cancelled' as const, reservedMicroPoints: 0 }
             run = reduceCreativeTeamRun(run, { ...action, decisionId }, clock++)
             return refresh()
           },
@@ -88,6 +90,8 @@ function harness(options: { brokenFirst?: boolean, unknown?: boolean, abort?: Ab
         async accounting() {
           if (options.unknown)
             throw new Error('Uncertain service outcome requires reconciliation')
+          if (options.fenced)
+            return { inputTokens: 10, outputTokens: 5, totalTokens: 15, costMicroCny: 25, modelCalls: 1, dispatchStopped: true, failures: [{ taskId: 'fixture-task', category: 'product', code: 'OUTPUT_PARSE_FAILED' }], receipts: [] }
           return { inputTokens: calls * 10, outputTokens: calls * 5, totalTokens: calls * 15, costMicroCny: calls * 25, modelCalls: calls, failures: [], receipts: [{ scope: 'explicit-service-fixture' }] }
         },
       }
@@ -104,6 +108,15 @@ function harness(options: { brokenFirst?: boolean, unknown?: boolean, abort?: Ab
 }
 
 describe('crew comparison controller and actual isolated host', () => {
+  it('ends a fenced task without rework, another advance, or a final usability score', async () => {
+    const h = harness({ fenced: true })
+    const result = await h.evaluator.run(input(), { budget, versions: h.versions, signal: new AbortController().signal })
+    expect(result).toMatchObject({ outcome: 'generation-quality', stop: 'OUTPUT_PARSE_FAILED', usability: { status: 'not-reached' }, consumption: { costMicroCny: 25 } })
+    expect(result.usability).not.toHaveProperty('specifiedEndingsReached')
+    expect(h.decisions.map(item => item.type)).toEqual(['approve-plan', 'cancel'])
+    expect(h.reports).toHaveLength(0)
+  })
+
   it('uses candidate provenance, independently executes the fixed endings, stores reports and keeps author quality unreviewed', async () => {
     const h = harness()
     const source = input()

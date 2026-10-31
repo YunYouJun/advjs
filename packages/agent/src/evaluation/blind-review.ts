@@ -16,6 +16,7 @@ interface Sample {
   budget: Budget
   baseline: unknown
   outcome: string
+  auditNotReached?: boolean
   consumption: Record<string, number>
   material: { files: Record<string, string>, supplement: string }
   evidence: Record<string, string>
@@ -151,7 +152,7 @@ export function parseCreativeBlindSample(value: { input: unknown, final: unknown
   if (supplement.length > 256 * 1024 || !Array.isArray(task.checks) || task.checks.length > 64 || task.checks.some(item => typeof item !== 'string' || item.length > 4000))
     throw new TypeError('Invalid creative review material')
   const checks = task.checks.map(item => String(item))
-  return { task: { id: text(task.id, 128), category, prompt: text(task.prompt), checks }, seed: integer(input.seed, true), mode, versions, budget: budget(value.budget), baseline: input.project, outcome, consumption, material: { files, supplement }, evidence: structuredClone(value.evidence) }
+  return { task: { id: text(task.id, 128), category, prompt: text(task.prompt), checks }, seed: integer(input.seed, true), mode, versions, budget: budget(value.budget), baseline: input.project, outcome, ...(final.usability && record(final.usability).status === 'not-reached' ? { auditNotReached: true } : {}), consumption, material: { files, supplement }, evidence: structuredClone(value.evidence) }
 }
 
 async function packetFingerprint(packet: Omit<CreativeBlindPacket, 'fingerprint'>) {
@@ -192,6 +193,10 @@ export async function createCreativeBlindPacket(samples: readonly Sample[], opti
     }
     if (creativeMediaCanonical({ task: left.task, baseline: left.baseline, versions: left.versions, budget: left.budget }) !== creativeMediaCanonical({ task: right.task, baseline: right.baseline, versions: right.versions, budget: right.budget }))
       throw new TypeError('Paired task, source, media, versions or budgets differ')
+    if (left.auditNotReached || right.auditNotReached) {
+      ledger.excluded.push({ caseId: identity.task.id, category: identity.task.category, seed: identity.seed, reason: 'final-audit-not-reached', sources })
+      continue
+    }
     const invalid = [left, right].find(sample => !['completed', 'generation-quality'].includes(sample.outcome) || sample.consumption.totalTokens > sample.budget.maxTotalTokens || sample.consumption.costMicroCny > sample.budget.maxMicroCny || sample.consumption.latencyMs > sample.budget.deadlineMs)
     if (invalid) {
       ledger.excluded.push({ caseId: identity.task.id, category: identity.task.category, seed: identity.seed, reason: ['completed', 'generation-quality'].includes(invalid.outcome) ? 'cap-exceeded' : invalid.outcome, sources })

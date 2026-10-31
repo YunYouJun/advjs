@@ -175,6 +175,9 @@ function parseOutput(kind: CreativePartnerOutput['kind'], value: unknown, contex
         voiceConstraints: texts(character.voiceConstraints),
         relationships: array(character.relationships, 16).map((item) => {
           const relationship = record(item)
+          const fields = ['targetId', 'type', 'description']
+          if (!fields.every(key => typeof relationship[key] === 'string') || (checkReferences && Object.keys(relationship).some(key => !fields.includes(key))))
+            throw new TypeError('Character relationships require targetId, type and description')
           return { targetId: id(relationship.targetId), type: text(relationship.type, 80), description: text(relationship.description) }
         }),
       }

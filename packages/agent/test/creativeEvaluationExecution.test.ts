@@ -50,6 +50,12 @@ describe('continuous single-agent evaluation and common isolated tools', () => {
     expect(h.messages[3].slice(0, 6)).toEqual(h.messages[2])
     expect(h.messages[1][3].content).toContain('absent')
     expect(h.messages[3][7].content).toContain('actualEnding')
+    expect(JSON.parse(h.messages[3][7].content).toolResult.executions[0]).not.toHaveProperty('trace')
+    expect(h.evidence.get(`${source.key}/tool-3.json`).executions[0].trace.length).toBeGreaterThan(0)
+    expect(JSON.parse(h.messages[0][1].content).specifiedScenarios).toEqual([
+      { id: 'specified-1', choices: [0], expectedEnding: frozen.specifiedEndings[0] },
+      { id: 'specified-2', choices: [1], expectedEnding: frozen.specifiedEndings[1] },
+    ])
     expect(JSON.parse(h.messages[2][5].content).toolResult).toMatchObject({ appliedPaths: [chapter] })
     expect(JSON.parse(h.messages[2][5].content).toolResult).not.toHaveProperty('files')
     expect(h.remaining[1]).toMatchObject({ maxTotalTokens: budget.maxTotalTokens - 3, maxMicroCny: budget.maxMicroCny - 2 })
