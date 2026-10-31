@@ -376,6 +376,6 @@ API `deaca9874a6fa70a72d792d0c8f08fd554c034cb` 新增独立的 `build-creative-p
 
 两个执行选项共享原冻结 Agent、评测器、项目、种子与 SDK 缓存，只有新配置／日历／实际代码版本不同；不复制媒体、依赖或重建工作区 dist。保存无派发评测预检、源码／锁文件摘要、两份原生包、每日期配置及未绑定的许可模板；模板必须在获批正常取消旧 C 后，从实际关闭快照推导正式禁用许可，不能安装离线回放生成的 fixture。
 
-`run.mjs --verify-only --config=/absolute/client-DATE.json` 只验证输入和 SDK 缓存的解析／摘要、编译版本、具体日期、两个原阶段及源路径绑定，不要求或载入账号凭据，不登录／调用服务。`--execute` 在登录前拒绝日期前、到期后、冻结输入变化及伪造本机代码版本；实际消费继续使用原账号池的普通 SDK 登录、私有 JWT RPC、正常任务引擎和账户域结算。真实执行仍须由尚待完成的管理控制器验证完整新范围及直接授权，CLI 的纯核验不是收费批准。
+`run.mjs --verify-only --config=/absolute/client-DATE.json` 只验证输入和 SDK 缓存的解析／摘要、编译版本、具体日期、两个原阶段及源路径绑定，不要求或载入账号凭据，不登录／调用服务。`--execute` 在登录前拒绝日期前、到期后、冻结输入变化及伪造本机代码版本；实际消费继续使用原账号池的普通 SDK 登录、私有 JWT RPC、正常任务引擎和账户域结算。真实执行仍须由管理控制器验证完整新范围及直接授权，CLI 的纯核验不是收费批准。
 
-实际构建与重放证据见[候选验收](../reports/2026-10-27-studio-creative-team-acceptance#dated-story-candidate)。当日余额／日账本、代码与环境切换、唯一新配置／许可／绑定、停止与最后对账控制还未准备为可执行审阅范围；本节不授权发布或收费。
+实际构建与重放证据见[候选验收](../reports/2026-10-27-studio-creative-team-acceptance#dated-story-candidate)。管理控制、选日绑定、代码／环境切换、唯一禁用子许可与停止／最终审计现已形成[具体审阅范围](../plans/2026-10-28-studio-creative-pilot#dated-recovery-controls)，实际验证见[控制验收](../reports/2026-10-27-studio-creative-team-acceptance#dated-recovery-controls)。源安装原语不验证真人批准；控制器在连接 SDK 前校验新清单、直接批准与单日有效窗。免费收尾仍用原环境，只有实际关闭证据通过后才切换选定子配置；任何失败关闭收费入口，不重置账务。原父和新子分别审计，子 priorConsumption 已含全部历史，禁止重复累加。未绑定的任务或缺失收据继续记为未决。本节不授权发布或收费。
