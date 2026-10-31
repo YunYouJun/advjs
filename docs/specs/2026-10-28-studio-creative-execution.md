@@ -395,3 +395,11 @@ API `deaca9874a6fa70a72d792d0c8f08fd554c034cb` 新增独立的 `build-creative-p
 在原许可禁用、Worker 客户端关闭的前提下，普通会员必须用实际消费 SDK 校验免费健康响应及 release／编译版本后，才进入业务读写。只有 `health` 的已知权限尚未就绪可在 30 秒内每 2 秒重读；未知响应、其他错误或版本变化不重试，取消、模型、钱包及许可操作不进入这条重读路径。外层错误与业务响应分别记录，不把 `undefined` 当作有效 JSON。
 
 接续控制器只接受实际已发布的冻结修复包、原环境和原未关闭 C 记录，不再包含代码发布／回退调用；其余原正常取消、历史派生绑定、选日、收费限制及停止审计协议保持。具体范围与证据见[接续计划](../plans/2026-10-28-studio-creative-pilot#gateway-ready-recovery)和[验收](../reports/2026-10-27-studio-creative-team-acceptance#gateway-ready-recovery)。
+
+### 余额拒绝与未挂接准入的核对 {#rejected-reservation-evidence}
+
+2026-10-31 的真实接续已通过上述就绪检查、原 C 正常取消及空财务阶段收尾。短篇 B 的第三次提交返回 402 `AI_POINTS_INSUFFICIENT`：报价要求预占 243.255 积分，可用余额为 185.197。预占是请求的保守上界，不是实际已扣费用，也不因总试跑预算尚有余量而免除真实账户余额要求。
+
+Runtime 先创建任务与幂等指针，再请求账户域预留；预留失败后自动将该任务置为 `failed`／`billingStatus=none`，attempt 和派发次数均为 0。提交未返回接受结果，试跑准入没有挂接任务 ID；自动审计因此保留 unresolved 与 `financialComplete=false`。只读补证可通过同一 application／uid／idempotencyKey 找到实际授权失败任务，核对所属子许可／阶段、钱包流水、用量、供应商证据及预算预留，不能凭没有客户端 taskId 就判定没有创建任务或收费为零。
+
+本轮实际读取证明第三笔未派发、没有钱包／用量／供应商或供应商预留，且前两笔结算与余额差一致。该证据不自动挂接、关闭准入、改写原审计、重置开始时间或重试提交；金额已核对与工作流阶段完成分别记录。实际执行、两笔收据和剩余缺口见[验收报告](../reports/2026-10-27-studio-creative-team-acceptance#gateway-ready-executed)。
