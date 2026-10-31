@@ -379,3 +379,10 @@ API `deaca9874a6fa70a72d792d0c8f08fd554c034cb` 新增独立的 `build-creative-p
 `run.mjs --verify-only --config=/absolute/client-DATE.json` 只验证输入和 SDK 缓存的解析／摘要、编译版本、具体日期、两个原阶段及源路径绑定，不要求或载入账号凭据，不登录／调用服务。`--execute` 在登录前拒绝日期前、到期后、冻结输入变化及伪造本机代码版本；实际消费继续使用原账号池的普通 SDK 登录、私有 JWT RPC、正常任务引擎和账户域结算。真实执行仍须由管理控制器验证完整新范围及直接授权，CLI 的纯核验不是收费批准。
 
 实际构建与重放证据见[候选验收](../reports/2026-10-27-studio-creative-team-acceptance#dated-story-candidate)。管理控制、选日绑定、代码／环境切换、唯一禁用子许可与停止／最终审计现已形成[具体审阅范围](../plans/2026-10-28-studio-creative-pilot#dated-recovery-controls)，实际验证见[控制验收](../reports/2026-10-27-studio-creative-team-acceptance#dated-recovery-controls)。源安装原语不验证真人批准；控制器在连接 SDK 前校验新清单、直接批准与单日有效窗。免费收尾仍用原环境，只有实际关闭证据通过后才切换选定子配置；任何失败关闭收费入口，不重置账务。原父和新子分别审计，子 priorConsumption 已含全部历史，禁止重复累加。未绑定的任务或缺失收据继续记为未决。本节不授权发布或收费。
+
+
+### 原生下载包的源码证明 {#native-code-proof}
+
+实际 SCF `GetFunction` 虽由 Manager 请求 `ShowCode: TRUE`，两私有函数本次返回 `CodeInfo: ""`。这个可选内联结果不能当作真实函数源码；运行时健康元数据也不替代文件证明。控制器应下载 `GetFunctionDownloadUrl` 的实际 ZIP，验证 CRC、无重复且仅有 `index.js`／`package.json` 两个文件、全部原字节和既定 SHA。发布前只核对本次将覆盖的单元，避免把另一已成功更新单元误认作原基线；切换环境后再次核对真实候选字节。回退仅接受完整匹配的原／候选包，不覆盖未知代码。
+
+下载只使用 SDK 提供的地址；临时包进入独占目录并在 finally 回收，证据只保留摘要、长度和状态，不输出代码、环境值、签名地址或凭据。缺失下载内容不是空源码，不放宽环境、身份、运行时或其他边界。来源误停、修正回归和新范围见[计划](../plans/2026-10-28-studio-creative-pilot#native-zip-recovery)及[验收](../reports/2026-10-27-studio-creative-team-acceptance#native-zip-recovery)。
