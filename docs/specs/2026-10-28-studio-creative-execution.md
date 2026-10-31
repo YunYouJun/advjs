@@ -386,3 +386,12 @@ API `deaca9874a6fa70a72d792d0c8f08fd554c034cb` 新增独立的 `build-creative-p
 实际 SCF `GetFunction` 虽由 Manager 请求 `ShowCode: TRUE`，两私有函数本次返回 `CodeInfo: ""`。这个可选内联结果不能当作真实函数源码；运行时健康元数据也不替代文件证明。控制器应下载 `GetFunctionDownloadUrl` 的实际 ZIP，验证 CRC、无重复且仅有 `index.js`／`package.json` 两个文件、全部原字节和既定 SHA。发布前只核对本次将覆盖的单元，避免把另一已成功更新单元误认作原基线；切换环境后再次核对真实候选字节。回退仅接受完整匹配的原／候选包，不覆盖未知代码。
 
 下载只使用 SDK 提供的地址；临时包进入独占目录并在 finally 回收，证据只保留摘要、长度和状态，不输出代码、环境值、签名地址或凭据。缺失下载内容不是空源码，不放宽环境、身份、运行时或其他边界。来源误停、修正回归和新范围见[计划](../plans/2026-10-28-studio-creative-pilot#native-zip-recovery)及[验收](../reports/2026-10-27-studio-creative-team-acceptance#native-zip-recovery)。
+
+
+### 普通 SDK 调用网关的就绪条件 {#member-gateway-readiness}
+
+管理端权限规则读回相同不等于普通 SDK 立即可调用。真实同一登录的两次实验均在元数据开放后继续出现五次 `EXCEED_AUTHORITY`，约 11 秒后才返回健康对象，随后相同账号、SDK 和业务状态读取正常；SDK 将这些网关拒绝作为正常返回的错误对象，而不是异常或业务 `result`。
+
+在原许可禁用、Worker 客户端关闭的前提下，普通会员必须用实际消费 SDK 校验免费健康响应及 release／编译版本后，才进入业务读写。只有 `health` 的已知权限尚未就绪可在 30 秒内每 2 秒重读；未知响应、其他错误或版本变化不重试，取消、模型、钱包及许可操作不进入这条重读路径。外层错误与业务响应分别记录，不把 `undefined` 当作有效 JSON。
+
+接续控制器只接受实际已发布的冻结修复包、原环境和原未关闭 C 记录，不再包含代码发布／回退调用；其余原正常取消、历史派生绑定、选日、收费限制及停止审计协议保持。具体范围与证据见[接续计划](../plans/2026-10-28-studio-creative-pilot#gateway-ready-recovery)和[验收](../reports/2026-10-27-studio-creative-team-acceptance#gateway-ready-recovery)。
