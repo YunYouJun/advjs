@@ -1,6 +1,6 @@
 # Studio 六角色创作伙伴实施计划
 
-- 日期：2026-10-27；最近核验：2026-10-31。
+- 日期：2026-10-27；最近核验：2026-11-01。
 - 状态：实施中；契约、免费评测基线和本地 Runtime 链路已落地，Studio 入口及任务审阅已接入，已接入人物和章节候选修订、文字与作者宿主媒体的统一采用／恢复／撤销；已接通本机指定核心路径执行、报告保存与作者选择负责人的返工交接。真实图片与外部系统对白已在 Web 导入、试听、独立选用及正式播放器中显示／播放。导演已接通作者明确触发的交付建议及实际来源／费用／试玩记录审阅；六角色闭环、生产服务和模型对照评测尚未通过，实际进度与证据见[验收记录](../reports/2026-10-27-studio-creative-team-acceptance)。
 - 范围：Studio 的导演、编剧、角色设计师、美术指导、配音导演、试玩员；共享契约兼顾 Web 与原生 iOS。
 - 总 Issue：[Studio 六角色创作伙伴 #38](https://github.com/YunYouJun/advjs/issues/38)。详细任务与验收以本计划为准，Issue 跟踪阶段与阻塞；计划已随本地基础实现提交，推送后补充可访问的固定版本链接。
@@ -116,6 +116,8 @@ flowchart TD
 其后作者批准仅继续三项的具体方案；旧 B 只结束账务，C 在模型任务提交前因 CloudBase 事务并发报错，短篇 B/C 按约未启动。新增消费为零、历史累计不变，入口已关闭。事务串行读取修复已在本地验证，未部署或重跑；最新状态及证据见[三项执行记录](../reports/2026-10-27-studio-creative-team-acceptance#three-remainder-executed)，不计作真实 C 或完整 B/C 通过。
 
 作者盲评的源文件导出、空白表单、随机配对、私有解盲和分类输入级区间已有[离线收集入口](../specs/2026-10-28-studio-creative-execution#blind-review-workflow)，实际检查见[工具验收](../reports/2026-10-27-studio-creative-team-acceptance#blind-review-workflow)。替身表单只验证流程；真实 B 尚无 C 对照，工具保留其费用但不生成评分。完整真实比较与至少两位独立作者判断继续未完成。三项继续的[具体方案](./2026-10-28-studio-creative-pilot#remaining-three-proposal)已获批准并执行：旧 B 保留质量失败且已结束账务，局部 C 在模型准入前发生事务故障，后续短篇按约未启动。现入口和许可关闭；C 的取消／空阶段收尾及原短篇首请求报价已有[本地验证](../reports/2026-10-27-studio-creative-team-acceptance#undispatched-c-closure)，尚未部署或再次恢复收费，不重置原时钟、调用或消费。带独立代码版本证明的[修复候选](../reports/2026-10-27-studio-creative-team-acceptance#repair-artifact-provenance)现已离线构建，保留原配置、许可与输入；仍须完成线上复核及具体恢复授权。 [具体恢复控制](./2026-10-28-studio-creative-pilot#repair-recovery-proposal)完成了 10 月 30 日的离线和线上核验，但未获新批准，现已跨过原 23:55 许可及费率日历期限；[10 月 31 日过期检查](../reports/2026-10-27-studio-creative-team-acceptance#repair-recovery-expired)确认不能沿用原待批方案收费。本日未重新读取线上状态、未部署或新增收费；后续日期／有效许可及历史衔接须另列具体方案，原失败、账单和首版缺口保留。 已新增[有界跨日接续源码](../specs/2026-10-28-studio-creative-execution#expired-story-grant-source)，只允许原两个短篇、一个新审阅日期及唯一子绑定，保留全部历史消费和原 C 取消证据；新制品及实际停止快照的离线贯通现已完成，提供两个待审阅单日选项，仍只允许最终选定一天；[候选与证据](../reports/2026-10-27-studio-creative-team-acceptance#dated-story-candidate)之后已补齐 235 输入[单日管理控制方案](./2026-10-28-studio-creative-pilot#dated-recovery-controls)及 10 月 31 日 16:39 线上只读核验，余额 253.764 积分、原 C 尚未取消。该 235 输入方案已于 17:02 获批运行，但在发布前因把空内联 CodeInfo 当作源码而误停，未新增消费或发布。现已改为真实下载包核验并通过 17:09 线上只读复核；[256 输入恢复范围](./2026-10-28-studio-creative-pilot#native-zip-recovery)已获批准并于 17:23 发布两修复函数，但普通会员首个读取遇到调用网关规则约 11 秒生效延迟，按约停止且零新增消费。已完成两次真实普通 SDK 诊断及完整免费前置核验，[281 输入接续范围](./2026-10-28-studio-creative-pilot#gateway-ready-recovery)于 20:09 获明确批准并执行一次：复用现有代码，普通会员成功取消／财务收尾原 C；短篇 B 前两次结算新增 68.567 积分／0.045711 元，第三次预占 243.255 积分超过余额 185.197 而停止，短篇 C 未启动。入口和许可已关闭，含历史实际 84.714 积分／0.059332 元；第三笔为零派发授权失败任务，金额已只读核对，未挂接准入及 `financialComplete=false` 保留，不能冒称阶段收尾。没有有效 B/C、独立作者判断或完整作品，[真实执行证据](../reports/2026-10-27-studio-creative-team-acceptance#gateway-ready-executed)不补齐首版及 T10。
+
+2026-11-01 按作者直接指令，原账号经正式积分服务补入 1814.803 积分，并用普通会员收尾昨夜未挂接的零派发准入；本日唯一受限许可下，短篇 B 返回预算耗尽的质量失败，C 人物输出结构错误且原自动采集中断。已保留失败、补齐原解析器复现和实际财务证明、取消 C 剩余工作，未重跑 B/C、换号或生成媒体。新增实际 **74.092 积分／0.055166 元**，含历史 **158.806 积分／0.114498 元**；余额 1925.908，预留与未知金额零、入口和许可关闭。C 原阶段封锁及 `closed=false` 保留；双方均未完成可验收作品，不能据此判定多角色收益、作者盲评或 T10 通过。当前权威结果见[补点后短篇实测](../reports/2026-10-27-studio-creative-team-acceptance#funded-story-results)，前述段落保留历史检查点。
 
 ### M1：制作组基础与导演
 
