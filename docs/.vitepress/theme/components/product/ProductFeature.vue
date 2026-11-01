@@ -1,20 +1,14 @@
 <script setup lang="ts">
-// One thing the product is for, with its own capture.
-// `wide` puts the capture under the text at full width; `side` sets a narrow capture beside it.
-withDefaults(defineProps<{
+defineProps<{
   index: string
   title: string
-  layout?: 'wide' | 'side'
-  flip?: boolean
   /** Feature-status id, when the feature isn't finished */
   status?: string
-}>(), {
-  layout: 'wide',
-})
+}>()
 </script>
 
 <template>
-  <article class="product-feature" :class="[`layout-${layout}`, { flip }]">
+  <article class="product-feature">
     <div class="p-text">
       <p class="index">
         {{ index }}
@@ -26,9 +20,6 @@ withDefaults(defineProps<{
       <div class="body">
         <slot />
       </div>
-    </div>
-    <div class="shot">
-      <slot name="shot" />
     </div>
   </article>
 </template>
@@ -83,36 +74,6 @@ withDefaults(defineProps<{
 
   :deep(p + p) {
     margin-top: 8px;
-  }
-}
-
-.layout-wide .shot {
-  margin-top: 24px;
-}
-
-.layout-side .shot {
-  max-width: 300px;
-  margin: 24px auto 0;
-}
-
-@media (min-width: 640px) {
-  .layout-side {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 240px;
-    gap: 40px;
-    align-items: start;
-
-    .shot {
-      margin: 0;
-    }
-
-    &.flip {
-      grid-template-columns: 240px minmax(0, 1fr);
-
-      .shot {
-        order: -1;
-      }
-    }
   }
 }
 </style>

@@ -2,7 +2,7 @@
 
 - 日期：2026-10-27。
 - 状态：部分实施；图片采用与配音登记共用实际文件恢复检查，Web IndexedDB 中断、恢复和旧图片记录升级已有可执行验证。新服务路径已连接统一里程碑锚点／回执，支持真实图片与配音一起部分写入后的继续／还原；生产、全部宿主与完整冲突合并仍未完成。
-- 范围：[主计划 T07／T09](../plans/2026-10-27-studio-creative-team) 的本机媒体写入恢复。图片和配音业务边界分别见[图片规格](./2026-10-27-studio-creative-art-import)、[配音规格](./2026-10-27-studio-creative-voice-import)，实际证据见[验收记录](../reports/2026-10-27-studio-creative-team-acceptance)。
+- 范围：[主计划 T07／T09](../plans/2026-10-27-studio-creative-team) 的本机媒体写入恢复。图片和配音业务边界分别见[图片规格](./2026-10-27-studio-creative-art-import)、[配音规格](./2026-10-27-studio-creative-voice-import)，实际证据见本地验收记录。
 
 ## 私有意图与已有记录
 

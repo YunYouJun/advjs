@@ -7,8 +7,6 @@
  *   marked.
  * - `review`: Claude Code following `packages/advjs/skills/adv-review/SKILL.md` on that same
  *   project, after `adv check` and `adv debug coverage`. Lines are quoted from its report.
- * - The Editor and Studio previews reuse the product pages' screenshots of the real apps in
- *   `public/img/products/` (shared files: don't rename or re-encode them).
  */
 export interface TerminalLine {
   text: string

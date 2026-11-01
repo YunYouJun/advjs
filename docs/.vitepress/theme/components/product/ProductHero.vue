@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Hero for a product page. The page's own Markdown H1 is the product name;
-// this component adds the line under it, the ways to open the product and a capture of it in use.
+// this component adds the line under it and the ways to open the product.
 defineProps<{
   /** Where the reader is when they use it, in the home page's words: 【电脑前】 */
   where: string
@@ -28,9 +28,6 @@ defineProps<{
     <div class="actions">
       <slot name="actions" />
     </div>
-    <div class="visual">
-      <slot />
-    </div>
   </section>
 </template>
 
@@ -42,12 +39,9 @@ defineProps<{
   --p-mono: var(--vp-font-family-mono);
   --p-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   --p-lamp: #b86e00;
-  --p-bezel: #0b0d12;
-  --p-shadow: 0 1px 2px rgba(15, 23, 42, 0.08), 0 18px 40px -18px rgba(15, 23, 42, 0.35);
 
   .dark & {
     --p-lamp: #ffc46b;
-    --p-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 24px 48px -20px rgba(0, 0, 0, 0.8);
   }
 
   .vp-doc h1 {
@@ -56,6 +50,10 @@ defineProps<{
     font-weight: 900;
     line-height: 1.2;
     letter-spacing: 0.01em;
+  }
+
+  .features {
+    margin-top: 48px;
   }
 
   // Where the product section ends and the reference text begins
@@ -131,9 +129,5 @@ defineProps<{
   gap: 12px 28px;
   align-items: flex-start;
   margin-top: 28px;
-}
-
-.visual {
-  margin-top: 40px;
 }
 </style>

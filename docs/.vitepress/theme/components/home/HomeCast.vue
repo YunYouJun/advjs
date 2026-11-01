@@ -28,7 +28,6 @@ const cast = computed(() => {
     },
     {
       name: 'Editor',
-      preview: 'editor' as const,
       where: c.where.editor,
       line: c.editor,
       links: [
@@ -39,7 +38,6 @@ const cast = computed(() => {
     {
       name: 'Studio',
       feature: 'studio',
-      preview: 'studio' as const,
       where: c.where.studio,
       line: c.studio,
       links: [{ text: c.studioLink, link: '/guide/studio/' }],
@@ -94,52 +92,13 @@ const cast = computed(() => {
           </p>
         </div>
 
-        <!-- Each role, seen at work: real output and real screenshots -->
-        <figure class="preview" :class="`is-${role.preview}`">
+        <figure v-if="role.preview" class="preview">
           <template v-if="role.preview === 'terminal'">
             <div class="term" role="img" :aria-label="t.cast.preview.terminal">
               <template v-for="(line, i) in terminal" :key="i">
                 <span v-if="i === 3" class="term-line is-note">{{ t.cast.preview.written }}</span>
                 <span class="term-line" :class="line.kind && `is-${line.kind}`">{{ line.text }}</span>
               </template>
-            </div>
-          </template>
-
-          <template v-else-if="role.preview === 'editor'">
-            <div class="window">
-              <span class="window-bar" aria-hidden="true">editor.advjs.org</span>
-              <div class="window-body">
-                <img
-                  src="/img/products/editor-script.webp"
-                  :alt="t.cast.preview.editor"
-                  width="1800"
-                  height="1125"
-                  loading="lazy"
-                  decoding="async"
-                >
-                <img
-                  class="playtest"
-                  src="/img/products/editor-playtest.webp"
-                  :alt="t.cast.preview.playtest"
-                  width="1000"
-                  height="687"
-                  loading="lazy"
-                  decoding="async"
-                >
-              </div>
-            </div>
-          </template>
-
-          <template v-else-if="role.preview === 'studio'">
-            <div class="phone">
-              <img
-                src="/img/products/studio-workspace.webp"
-                :alt="t.cast.preview.studio"
-                width="786"
-                height="1704"
-                loading="lazy"
-                decoding="async"
-              >
             </div>
           </template>
 
@@ -204,7 +163,7 @@ const cast = computed(() => {
 }
 
 @media (min-width: 1100px) {
-  .role {
+  .role:has(.preview) {
     grid-template-columns: minmax(10rem, 13rem) minmax(0, 1fr) minmax(0, 1.15fr);
     gap: 0 40px;
     align-items: start;
@@ -278,67 +237,6 @@ const cast = computed(() => {
   margin-top: 6px;
   font-style: italic;
   color: #7d8590;
-}
-
-/* Editor: the app in a quiet window */
-.window {
-  overflow: hidden;
-  border-radius: 10px;
-  background: var(--vp-c-bg-soft);
-  box-shadow:
-    0 0 0 1px var(--vp-c-divider),
-    0 18px 36px -24px rgba(0, 0, 0, 0.45);
-}
-
-.window-bar {
-  display: block;
-  padding: 6px 12px;
-  border-bottom: 1px solid var(--vp-c-divider);
-  font-family: var(--h-mono);
-  font-size: 11px;
-  color: var(--vp-c-text-3);
-}
-
-.window img,
-.phone img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-/* The game running beside the script, as the Editor's playtest panel shows it */
-.window-body {
-  position: relative;
-}
-
-.window .playtest {
-  position: absolute;
-  right: 3%;
-  bottom: 5%;
-  width: 46%;
-  border-radius: 6px;
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.14),
-    0 14px 28px -10px rgba(0, 0, 0, 0.7);
-}
-
-/* Studio: a phone, drawn as a plain bezel */
-.phone {
-  width: min(250px, 66%);
-  padding: 8px;
-  border-radius: 30px;
-  background: #16181b;
-  box-shadow:
-    inset 0 0 0 1.5px #2c2f33,
-    0 18px 36px -20px rgba(0, 0, 0, 0.55);
-}
-
-.phone img {
-  /* Only the top of the overview: health check and content counts */
-  aspect-ratio: 786 / 960;
-  object-fit: cover;
-  object-position: top;
-  border-radius: 22px;
 }
 
 /* Skills: the ask, then the agent's answer */

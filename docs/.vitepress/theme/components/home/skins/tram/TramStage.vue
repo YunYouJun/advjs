@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, ref, watch } from 'vue'
+import xiaoyunUrl from '../../../../../../../demo/starter/public/img/characters/xiaoyun.webp?url'
 import { preloadAi, useAiMode } from '../../../../composables/ai-mode'
 import { useHomeCopy } from '../../../../composables/home'
 import { usePlayer } from '../../../../composables/player'
@@ -102,7 +103,7 @@ watch([current, said], () => {
       <img
         v-if="cast"
         class="sprite"
-        src="/img/xiaoyun.webp"
+        :src="xiaoyunUrl"
         alt=""
         width="619"
         height="619"

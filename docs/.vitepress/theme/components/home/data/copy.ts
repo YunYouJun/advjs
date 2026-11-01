@@ -213,9 +213,6 @@ export const zh = {
     preview: {
       terminal: '终端：adv init、check、build 的实际输出',
       written: '# 把剧本写进 adv/chapters/ 之后',
-      editor: 'ADV.JS Editor：剧本编辑器与试玩',
-      playtest: 'Editor 的试玩面板',
-      studio: 'ADV.JS Studio 手机端截图',
       review: 'Claude Code 按 adv-review 审查末班电车的实际结果（节选）',
       you: '你',
     },
@@ -457,9 +454,6 @@ export const en: HomeCopy = {
     preview: {
       terminal: 'Terminal: real output of adv init, check and build',
       written: '# after writing the story into adv/chapters/',
-      editor: 'The ADV.JS Editor: script editor and playtest',
-      playtest: 'The Editor\'s playtest panel',
-      studio: 'Screenshot of ADV.JS Studio on a phone',
       review: 'A real adv-review of the last-tram story by Claude Code (excerpt, in Chinese)',
       you: 'You',
     },

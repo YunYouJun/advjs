@@ -3,7 +3,7 @@
 - 日期：2026-10-29。
 - 状态：接入清单与文件兼容回归已提供；原生制作组客户端、完整 App 与 iOS 模拟器尚未验收。
 - 范围：[制作组主计划 T10](../plans/2026-10-27-studio-creative-team) 的跨端交接。原生 App 的实现与 N1–N16 验收继续以[原生计划](../plans/2026-10-21-studio-native-ios)为准，不因 Web 或本清单完成而勾选。
-- 结果：[制作组验收报告](../reports/2026-10-27-studio-creative-team-acceptance)；文件采用与恢复继续遵循[采用协议](./2026-10-27-studio-creative-adoption)。
+- 结果：本地验收记录；文件采用与恢复继续遵循[采用协议](./2026-10-27-studio-creative-adoption)。
 
 ## 当前代码边界
 
