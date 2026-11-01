@@ -204,7 +204,6 @@ Electron 将插件文档、内置表单和当前源码的未保存状态合并�
 
 插件有未保存文档时不能停用，先保存或在其工作台明确放弃草稿；停用偏好不会提前写入。文档登记应与视图或插件的真实草稿生命周期一致，不要在隐藏标签时释放，也不要使用已经卸载的保存回调。Electron 关窗走原生「保存并继续 / 取消」流程，已接入的文档不再同时弹浏览器 beforeunload 提示；浏览器独立工具可继续保留原提示。
 
-
 ## 标准项目插件包与 Node 宿主
 
 可信构建可使用 `ADVJS_EDITOR_PLUGIN_PACKAGES`（JSON 数组，每项为绝对本地包目录），无需手写桥接模块。包清单示例：
@@ -231,12 +230,12 @@ Electron 将插件文档、内置表单和当前源码的未保存状态合并�
 
 Node 项目宿主实现 `EditorProjectHostAdapter`：
 
-| 成员 | 职责 |
-| --- | --- |
-| `id / title / apiPrefix` | 稳定插件身份、界面名称、固定 `/api/name` 前缀 |
-| `inspect(path)` | 规范化为真实绝对路径，验证格式与固定输入 / 输出，不执行所选项目代码 |
-| `open(repository, lease)` | 创建仅绑定该仓库的有限 HTTP 文档处理器 |
-| `validateAccess(repository)` | 验证文件位置仍合法，由 lease 组合会话存活校验 |
+| 成员                         | 职责                                                                |
+| ---------------------------- | ------------------------------------------------------------------- |
+| `id / title / apiPrefix`     | 稳定插件身份、界面名称、固定 `/api/name` 前缀                       |
+| `inspect(path)`              | 规范化为真实绝对路径，验证格式与固定输入 / 输出，不执行所选项目代码 |
+| `open(repository, lease)`    | 创建仅绑定该仓库的有限 HTTP 文档处理器                              |
+| `validateAccess(repository)` | 验证文件位置仍合法，由 lease 组合会话存活校验                       |
 
 `createEditorProjectHost(adapter, initialRoot)` 返回控制处理器、文档处理器、随机控制令牌及 `dispose()`。外层只监听 loopback，关闭前调用 `dispose()` 退役全部会话。Electron 主进程使用固定控制 URL 和令牌创建客户端；renderer 只能经现有受限代理访问文档端口。`info.apiVersion` 为 1；客户端兼容旧宿主未声明版本的响应，明确的未知版本会被拒绝。协议沿用 `info / inspect / open / release`，每个窗口持有不可变仓库绑定与单独令牌，不向视图公开控制凭据。
 

@@ -223,7 +223,10 @@ import { applyFlowEdit, flowEditGraph, layoutFlowGraph, parseFlowDocument } from
 
 const document = parseFlowDocument(sourceText)
 const draft = applyFlowEdit(document, {
-  type: 'update-dialogue', nodeId: 'greeting', index: 0, patch: { text: '修改后的对白' },
+  type: 'update-dialogue',
+  nodeId: 'greeting',
+  index: 0,
+  patch: { text: '修改后的对白' },
 })
 const graph = flowEditGraph(draft)
 const layout = layoutFlowGraph(draft)
@@ -243,7 +246,7 @@ import { createPreviewSession } from '@advjs/core/authoring'
 let state = { counter: 0 }
 const preview = createPreviewSession<number>({
   reset: () => { state = { counter: 0 } },
-  apply: amount => { state.counter += amount },
+  apply: (amount) => { state.counter += amount },
   inspect: () => state,
   describe: amount => ({ label: `增加 ${amount}` }),
 })
@@ -259,11 +262,11 @@ await preview.back()
 
 `@advjs/gui/authoring` 提供不注入主题的 Vue 3.5 创作控件，供 Editor、Studio 或外部项目工具按需导入。入口发布源 `.vue` / TypeScript 文件，消费方需要启用 Vue SFC 编译；不经过 GUI 根入口或加载默认主题。`@advjs/gui/authoring/condition` 单独导出纯文本解析辅助函数，不加载 Vue 控件。
 
-| 控件 | 受控输入与事件 | 宿主职责 |
-| --- | --- | --- |
-| `AdvFlowCanvas` | 展示节点、边和尺寸；`selected` / `select` | 投影源数据、提供节点内容和标签；通过 `node` / `toolbar` slot 复用宿主控件 |
-| `AdvConditionInspector` | `value`、可保留的 `draft`、语言适配器；`change` / `invalid` | 提供纯解析和语义校验、变量参考、中文或英文提示；保存前独立校验 |
-| `AdvDiagnosticsPanel` | 诊断、分页尺寸、禁用状态；`navigate` | 跳转文件或节点；通过 `diagnostic` / `pagination` slot 保留宿主外观 |
+| 控件                    | 受控输入与事件                                              | 宿主职责                                                                  |
+| ----------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `AdvFlowCanvas`         | 展示节点、边和尺寸；`selected` / `select`                   | 投影源数据、提供节点内容和标签；通过 `node` / `toolbar` slot 复用宿主控件 |
+| `AdvConditionInspector` | `value`、可保留的 `draft`、语言适配器；`change` / `invalid` | 提供纯解析和语义校验、变量参考、中文或英文提示；保存前独立校验            |
+| `AdvDiagnosticsPanel`   | 诊断、分页尺寸、禁用状态；`navigate`                        | 跳转文件或节点；通过 `diagnostic` / `pagination` slot 保留宿主外观        |
 
 画布提供指针捕获与释放、滚轮平移、组合键缩放、方向键平移、Home 定位和总览；布局和镜头只留在视图内，不写源文件。边的 SVG marker 使用 Vue `useId()`；多个独立 Vue 应用共用文档时，各应用设置不同的 `app.config.idPrefix`。
 
@@ -289,11 +292,11 @@ await preview.dispatch({ type: 'choose', id: 'continue' })
 await preview.back()
 ```
 
-| 控件 | 数据及事件 | 宿主职责 |
-| --- | --- | --- |
-| `AdvPreviewPlayer` | `PreviewDialogue`、`disabled`；`choose` / `next` / `close` / `locate` | 运行真实对白、计算分支和可继续状态；通过 `button`、`empty`、`footer` slot 注入控件与世界操作 |
-| `AdvVariableInspector` | `PreviewVariableGroup[]`；`change(id, value)` | 映射宿主状态与变量声明到控件，按 ID 路由回业务命令，重新计算只读事实；提供 `boolean` / `select` / `unset` slot |
-| `AdvPreviewTrace` | `PreviewTraceItem[]`、步数、`PreviewCursor[]`；`locate(cursor)` | 提供输入记录、状态差异与稳定节点地址；通过 `cursor` slot 定制定位按钮 |
+| 控件                   | 数据及事件                                                            | 宿主职责                                                                                                       |
+| ---------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `AdvPreviewPlayer`     | `PreviewDialogue`、`disabled`；`choose` / `next` / `close` / `locate` | 运行真实对白、计算分支和可继续状态；通过 `button`、`empty`、`footer` slot 注入控件与世界操作                   |
+| `AdvVariableInspector` | `PreviewVariableGroup[]`；`change(id, value)`                         | 映射宿主状态与变量声明到控件，按 ID 路由回业务命令，重新计算只读事实；提供 `boolean` / `select` / `unset` slot |
+| `AdvPreviewTrace`      | `PreviewTraceItem[]`、步数、`PreviewCursor[]`；`locate(cursor)`       | 提供输入记录、状态差异与稳定节点地址；通过 `cursor` slot 定制定位按钮                                          |
 
 变量控件支持布尔、字符串、有限数值、枚举、取消可选值与只读分组；取消返回 `undefined`，与 `false`、`0`、空字符串和枚举中的 `null` 分开。空数值或越界数值保留为控件错误，不发送业务命令；宿主仍须独立校验。枚举通过选项身份映射，不执行输入文本。轨迹默认显示最新 200 条，展示上限与宿主的完整重放历史相互独立；游标保持宿主 ID，不发明新的运行地址。
 

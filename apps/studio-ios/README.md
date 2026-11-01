@@ -36,7 +36,6 @@ node apps/studio-ios/scripts/simulator-session.mjs --only iphone -- test -projec
 node --test apps/studio-ios/scripts/simulator-session.test.mjs
 ```
 
-
 ## 运行
 
 以下命令从仓库根目录执行。干净检出时先构建引擎 golden 用例依赖的包（演示项目的模块配置会导入已构建的 `advjs`）：

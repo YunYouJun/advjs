@@ -33,13 +33,13 @@
   "module": "./index.ts",
   "types": "./index.ts",
   "files": [
+    "authoring",
     "client",
     "dist",
     "index.ts",
     "node",
     "nuxt.mjs",
-    "unocss",
-    "authoring"
+    "unocss"
   ],
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
