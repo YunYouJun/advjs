@@ -1,4 +1,4 @@
-import type { Ref } from 'vue'
+import type { ComputedRef, Ref, ShallowRef } from 'vue'
 import type { AuthoringPreviewAdapter, AuthoringPreviewHost } from './preview-types'
 import { computed, getCurrentScope, onScopeDispose, shallowRef } from 'vue'
 
@@ -7,7 +7,16 @@ export function useAuthoringPreview<Source, Command, View>(
   source: Readonly<Ref<Source>>,
   invalid: Readonly<Ref<boolean>>,
   adapter: AuthoringPreviewAdapter<Source, Command, View>,
-) {
+): {
+  view: ShallowRef<View | null>
+  busy: ShallowRef<boolean>
+  error: ShallowRef<string>
+  stale: ComputedRef<boolean>
+  disabled: ComputedRef<boolean>
+  start: () => Promise<void>
+  dispatch: (command: Command) => Promise<void>
+  back: () => Promise<void>
+} {
   let host: AuthoringPreviewHost<Command, View> | null = null
   let disposed = false
   if (getCurrentScope())

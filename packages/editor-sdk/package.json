@@ -14,15 +14,15 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.mts",
-      "import": "./dist/index.mjs"
+      "default": "./dist/index.mjs"
     },
     "./node": {
       "types": "./dist/node.d.mts",
-      "import": "./dist/node.mjs"
+      "default": "./dist/node.mjs"
     },
     "./host-protocol": {
       "types": "./dist/host-protocol.d.mts",
-      "import": "./dist/host-protocol.mjs"
+      "default": "./dist/host-protocol.mjs"
     }
   },
   "files": [

@@ -69,6 +69,11 @@ describe('workspace preparation profiles', () => {
   it('keeps deployment build entrypoints self-contained', () => {
     const packageJson = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'))
     const parserPackageJson = JSON.parse(readFileSync(resolve(root, 'packages/parser/package.json'), 'utf8'))
+    const sdkPackageJson = JSON.parse(readFileSync(resolve(root, 'packages/editor-sdk/package.json'), 'utf8'))
+    const orderedBuild = packageJson.scripts['build:advjs'].split(' && ')
+    expect(orderedBuild).toContain('pnpm --filter @advjs/editor-sdk build')
+    expect(orderedBuild.indexOf('pnpm --filter @advjs/editor-sdk build')).toBeLessThan(orderedBuild.indexOf('pnpm advjs:build'))
+    expect(sdkPackageJson.exports['./node']).toMatchObject({ default: './dist/node.mjs' })
 
     expect(packageJson.scripts).toMatchObject({
       'build:demo': 'pnpm build:advjs && pnpm -C demo/starter run build',

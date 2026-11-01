@@ -1,5 +1,5 @@
 import type { TreeNode } from '@advjs/gui'
-import { materialDirectoryIcon, materialFileIcon } from '@advjs/gui/client/utils/file-icons'
+import { materialDirectoryIcon, materialFileIcon } from '@advjs/gui/client/utils/file-icons.ts'
 
 export type ProjectFileKind = 'text' | 'image' | 'audio' | 'video' | 'model' | 'unsupported'
 

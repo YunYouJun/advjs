@@ -5,6 +5,8 @@ import { chmod, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import process from 'node:process'
+// Spawned-process lifecycle fixtures run with node --test in CI.
+// eslint-disable-next-line test/no-import-node-test
 import test from 'node:test'
 import { fileURLToPath } from 'node:url'
 

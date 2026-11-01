@@ -83,6 +83,29 @@ async function lockDevice(device) {
   }
 }
 
+async function cleanupSession(device, bootOwned, unlock) {
+  cleaning = true
+  try {
+    if (bootOwned) {
+      // Keep the lock until our child exits and cleanup finishes. Never act on a
+      // changed identity or an unavailable device when cleanup reads fail.
+      const current = findSameDevice(await listDevices(), device)
+      if (current.state === 'Booted' || current.state === 'Booting')
+        await command('xcrun', ['simctl', 'shutdown', device.udid])
+      else if (current.state !== 'Shutdown')
+        throw new Error(`Cleanup cannot confirm the state of ${device.udid}; left untouched`)
+    }
+  }
+  catch (error) {
+    process.stderr.write(`Cleanup could not confirm/shut down ${device.udid}; inspect the device after this task. Data was left untouched.\n`)
+    throw error
+  }
+  finally {
+    await unlock()
+    cleaning = false
+  }
+}
+
 async function session(device, buildArgs) {
   const unlock = await lockDevice(device)
   let bootOwned = false
@@ -111,26 +134,7 @@ async function session(device, buildArgs) {
     await command('xcodebuild', [...args, '-destination', `id=${device.udid}`, '-parallel-testing-enabled', 'NO', '-parallel-testing-worker-count', '1', '-maximum-concurrent-test-simulator-destinations', '1'])
   }
   finally {
-    cleaning = true
-    try {
-      if (bootOwned) {
-        // Keep the lock until our child exits and cleanup finishes. Never act on a
-        // changed identity or an unavailable device when cleanup reads fail.
-        const current = findSameDevice(await listDevices(), device)
-        if (current.state === 'Booted' || current.state === 'Booting')
-          await command('xcrun', ['simctl', 'shutdown', device.udid])
-        else if (current.state !== 'Shutdown')
-          throw new Error(`Cleanup cannot confirm the state of ${device.udid}; left untouched`)
-      }
-    }
-    catch (error) {
-      process.stderr.write(`Cleanup could not confirm/shut down ${device.udid}; inspect the device after this task. Data was left untouched.\n`)
-      throw error
-    }
-    finally {
-      await unlock()
-      cleaning = false
-    }
+    await cleanupSession(device, bootOwned, unlock)
   }
 }
 
@@ -151,16 +155,19 @@ async function main() {
   let explicitConfig = false
   for (let index = 0; index < options.length; index++) {
     const flag = options[index]
-    if (flag === '--only')
+    if (flag === '--only') {
       only = options[++index]
+    }
     else if (flag === '--config') {
       config = options[++index]
       explicitConfig = true
     }
-    else if (flag === '--ci')
+    else if (flag === '--ci') {
       ci = true
-    else
+    }
+    else {
       throw new Error(`Unknown option: ${flag}`)
+    }
   }
   if (!['both', 'iphone', 'ipad'].includes(only) || !config)
     throw new Error('Invalid --only or --config')
