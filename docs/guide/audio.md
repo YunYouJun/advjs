@@ -150,7 +150,7 @@ Voice 播放时只衰减 music 与 ambience，停止或自然结束后恢复；�
 
 配音通过 `lineId + locale + selectedTake` 解析最终资产。为台词添加完整 UUIDv7 标记，必须位于最后一个物理行的末尾：
 
-```md
+```adv
 @guide
 欢迎回来。 {#line_019b1ca0-0000-7000-8000-000000000001}
 

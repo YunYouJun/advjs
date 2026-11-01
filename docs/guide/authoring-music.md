@@ -25,7 +25,7 @@ Suno 入口打开[官方创作页面](https://suno.com/create)。可使用 [Cust
 
 下面是已有稳定资产 ID 的脚本示例。界面导入生成 `audio_<uuidv7>` ID，应使用实际条目 ID。
 
-````md
+````adv
 ```advnode
 [
   {

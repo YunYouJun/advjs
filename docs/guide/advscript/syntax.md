@@ -22,7 +22,7 @@ export type Child = Unknown | Paragraph | Narration | Character | Words | Text |
 
 ## 段落 Paragraph
 
-```md
+```adv
 嘿嘿嘿
 
 哈哈哈
@@ -66,7 +66,7 @@ export interface Dialog extends Node {
 
 譬如:
 
-```md
+```adv
 @小云
 你好呀！
 ```
@@ -121,7 +121,7 @@ export interface Character extends Node {
 
 ## 旁白 Narration
 
-```md
+```adv
 > 我是一段可爱的旁白～
 ```
 
@@ -129,7 +129,7 @@ export interface Character extends Node {
 
 相比 Fountain 使用 `[[]]` 进行注释，AdvScript 支持使用 `<!-- -->` 来对剧本进行注释。
 
-```md
+```adv
 <!-- 注释内容 -->
 ```
 
@@ -141,7 +141,7 @@ export interface Character extends Node {
 
 如：
 
-```md
+```adv
 【门口，夜】
 ```
 
@@ -158,7 +158,7 @@ export interface Character extends Node {
 
 ## 选项 Choice
 
-```md
+```adv
 - [ ] 好的！
 - [ ] 抱歉……
 ```
@@ -179,7 +179,7 @@ export interface Character extends Node {
 
 想要执行操作？
 
-````md
+````adv
 - [ ] 好的！
 
   ```ts
@@ -192,6 +192,22 @@ export interface Character extends Node {
   // ...
   ```
 ````
+
+想要跳转？在场景或标题行尾用 `{#id}` 声明锚点，选项写成指向它的 Markdown 链接：
+
+```adv
+【门口，夜】 {#gate}
+
+@小云
+要进去看看吗？
+
+- [推门进去](#hall)
+- [去下一章](chapter-2#street)
+
+## 大厅 {#hall}
+```
+
+链接目标的完整写法参见[运行时导航与存档](/guide/runtime/navigation-and-saves)。
 
 ## 代码块 Code
 

@@ -1,0 +1,8 @@
+{
+  "title": "无尽列车",
+  "entryChapterId": "tram",
+  "variables": {
+    "stop": 0,
+    "memories": []
+  }
+}

@@ -213,3 +213,88 @@ pnpm --dir demo/flow build
 ```
 
 试玩选中节点是定位预览：使用项目初始变量并重建可推导的持久场景状态，不重放到达该节点前的脚本动作或一次性音效。后续对白和选择由真实运行时执行；完整路径验收仍应从游戏入口试玩。
+
+## 嵌入其他游戏的创作工具
+
+`@advjs/core/authoring` 是不包含 Vue、音频、文件系统及运行时实例的纯数据入口，复用 Editor / Studio 已有的 Flow 编辑协议。该入口由本地源码提供；使用已发布包前，先确认安装版本包含此导出。
+
+```ts
+import { applyFlowEdit, flowEditGraph, layoutFlowGraph, parseFlowDocument } from '@advjs/core/authoring'
+
+const document = parseFlowDocument(sourceText)
+const draft = applyFlowEdit(document, {
+  type: 'update-dialogue', nodeId: 'greeting', index: 0, patch: { text: '修改后的对白' },
+})
+const graph = flowEditGraph(draft)
+const layout = layoutFlowGraph(draft)
+```
+
+`parseFlowDocument` 允许保留未知作者元数据和待修复字段，不能替代 Compiler 及宿主的语义校验。命令保留稳定节点与行身份；布局返回独立坐标，不改变节点数组顺序。显式 `next: null` 表示断开，不会落到下一个数组节点。跨章连线保留在图中，默认布局只遍历当前文档。
+
+游戏自有 JSON 可以通过适配器投影为 `FlowEditDocument`，在修改后还原原格式。宿主须显式映射条件、结束语义和自定义节点，并验证投影往返不会丢失内容。创作文档版本不等于 RuntimeProgram 版本；这里不会自动升级旧运行程序或玩家存档。自定义游戏命令继续使用[运行时插件与活动](/guide/runtime/plugins-and-activities)；桌面工具面板使用[Editor UI 插件](/guide/editor/ui-plugins)。
+
+### 内存预览操作会话
+
+`createPreviewSession(adapter)` 为游戏预览提供有界操作历史、状态差异轨迹、失败恢复和 `back()`。适配器提供 `reset()`、`apply(command)`、`inspect()` 与 `describe(command)`；游戏自行持有对白运行时、变量、世界状态及临时计时器。创建会话前须将适配器初始化到与 `reset()` 相同的状态。
+
+```ts
+import { createPreviewSession } from '@advjs/core/authoring'
+
+let state = { counter: 0 }
+const preview = createPreviewSession<number>({
+  reset: () => { state = { counter: 0 } },
+  apply: amount => { state.counter += amount },
+  inspect: () => state,
+  describe: amount => ({ label: `增加 ${amount}` }),
+})
+await preview.dispatch(2)
+await preview.back()
+```
+
+默认最多 2000 次成功输入，轨迹保留最近 200 条；通过 `maxInputs` / `maxTraceEntries` 显式调整。输入、检查结果和轨迹均复制后保存。失败操作及回退通过重置并重放先前输入恢复完整宿主状态；重放失败后会话拒绝继续操作，需要创建新会话。并发操作被拒绝。
+
+适配器必须只操作独立内存，且重放结果确定。随机数、外部返回值和时间增量应放入输入或固定种子，不应在 `apply` 中读取真实时钟、写正式存档、发奖或调用有外部副作用的服务。会话不会自动隔离这些副作用，也不是正式游戏的存档迁移器。
+
+### 可复用 Vue 创作控件
+
+`@advjs/gui/authoring` 提供不注入主题的 Vue 3.5 创作控件，供 Editor、Studio 或外部项目工具按需导入。入口发布源 `.vue` / TypeScript 文件，消费方需要启用 Vue SFC 编译；不经过 GUI 根入口或加载默认主题。`@advjs/gui/authoring/condition` 单独导出纯文本解析辅助函数，不加载 Vue 控件。
+
+| 控件 | 受控输入与事件 | 宿主职责 |
+| --- | --- | --- |
+| `AdvFlowCanvas` | 展示节点、边和尺寸；`selected` / `select` | 投影源数据、提供节点内容和标签；通过 `node` / `toolbar` slot 复用宿主控件 |
+| `AdvConditionInspector` | `value`、可保留的 `draft`、语言适配器；`change` / `invalid` | 提供纯解析和语义校验、变量参考、中文或英文提示；保存前独立校验 |
+| `AdvDiagnosticsPanel` | 诊断、分页尺寸、禁用状态；`navigate` | 跳转文件或节点；通过 `diagnostic` / `pagination` slot 保留宿主外观 |
+
+画布提供指针捕获与释放、滚轮平移、组合键缩放、方向键平移、Home 定位和总览；布局和镜头只留在视图内，不写源文件。边的 SVG marker 使用 Vue `useId()`；多个独立 Vue 应用共用文档时，各应用设置不同的 `app.config.idPrefix`。
+
+条件适配器提供 `format(value)`、`parse(text)`，可选 `validate(value)`、`references` 和 `examples`。JSON 语言可使用 `createJsonConditionAdapter()`；ADV 表达式字符串可以在适配器里调用 `parseRuntimeExpression()` 后原样返回字符串。控件不执行表达式，也不自动在两种语言间转换。语法未完成时仅发送 `invalid(text)`，不覆盖源值；语法有效的值通过 `change(value)` 作为可修复草稿送回宿主，语义错误依然显示，宿主负责阻止保存和预览。传入 `draft` 可跨选择保留尚未完成的输入；清除可选字段返回 `undefined`。
+
+诊断默认每页 80 项，可逐页查看全部问题；替换诊断集合或改变数量会回到第一页。`navigate` 保留诊断的原字段，包括宿主附带的定位信息。它不读取文件、调用平台服务或持久化偏好。
+
+样式只包含画布几何和必要的内容布局。Editor 的按钮、焦点、字号和颜色仍使用 AGUI，Studio 使用自身规范，外部工具通过 scoped 样式和 slot 连接自己的 token。不要把有皮肤的控件或游戏依赖放入这个入口。当前 Editor 的项目诊断面板已使用同一分页与导航实现；其既有图编辑器仍保留原实现。
+
+### 宿主适配的剧情预览
+
+`useAuthoringPreview(sourceRef, invalidRef, adapter)` 管理预览创建、串行输入、回退、草稿过期及错误状态。`adapter.revision(source)` 返回内容标识，`adapter.create(source)` 创建隔离的内存宿主并提供 `inspect()`、`dispatch(command)`、`back()`；可返回 Promise。宿主自行复制源配置，不可持有或修改实时草稿。创建前捕获版本，创建过程中发生编辑也会使结果过期。校验失败、过期或忙碌时禁止输入，失败重跑保留旧会话，卸载后忽略未完成结果。该 composable 不接触文件、浏览器存储或游戏存档。
+
+```ts
+import { useAuthoringPreview } from '@advjs/gui/authoring'
+
+const preview = useAuthoringPreview(draft, invalid, {
+  revision: source => JSON.stringify(source),
+  create: source => createMyInMemoryHost(structuredClone(source)),
+})
+await preview.start()
+await preview.dispatch({ type: 'choose', id: 'continue' })
+await preview.back()
+```
+
+| 控件 | 数据及事件 | 宿主职责 |
+| --- | --- | --- |
+| `AdvPreviewPlayer` | `PreviewDialogue`、`disabled`；`choose` / `next` / `close` / `locate` | 运行真实对白、计算分支和可继续状态；通过 `button`、`empty`、`footer` slot 注入控件与世界操作 |
+| `AdvVariableInspector` | `PreviewVariableGroup[]`；`change(id, value)` | 映射宿主状态与变量声明到控件，按 ID 路由回业务命令，重新计算只读事实；提供 `boolean` / `select` / `unset` slot |
+| `AdvPreviewTrace` | `PreviewTraceItem[]`、步数、`PreviewCursor[]`；`locate(cursor)` | 提供输入记录、状态差异与稳定节点地址；通过 `cursor` slot 定制定位按钮 |
+
+变量控件支持布尔、字符串、有限数值、枚举、取消可选值与只读分组；取消返回 `undefined`，与 `false`、`0`、空字符串和枚举中的 `null` 分开。空数值或越界数值保留为控件错误，不发送业务命令；宿主仍须独立校验。枚举通过选项身份映射，不执行输入文本。轨迹默认显示最新 200 条，展示上限与宿主的完整重放历史相互独立；游标保持宿主 ID，不发明新的运行地址。
+
+这些控件不创建第二套剧情执行器，不理解配送、地点、清场或通关。业务宿主继续复用自己的编译器、运行时、插件和规则；同一 UI 可消费不同运行时版本。布局、提示、主题和保存功能由消费方组合。本批为源码集成，正式发布包是否包含这些接口须按实际版本检查。

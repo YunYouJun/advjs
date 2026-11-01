@@ -85,7 +85,7 @@ adv check --json
 
 下面的脚本需要 `requiredPlugins: { 'npc-ai': '1.0.0' }`，可以作为单独的 NPC 回答 Program 编译。活动输入使用已知角色和话题；玩家文本、只读游戏状态与请求 ID 由宿主补入：
 
-````md
+````adv
 ```yaml
 type: activity
 use: npc-ai/reply

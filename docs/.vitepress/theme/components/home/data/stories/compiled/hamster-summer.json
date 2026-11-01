@@ -1,0 +1,425 @@
+{
+  "title": "小仓鼠的夏天",
+  "variables": {},
+  "chapters": [
+    {
+      "id": "afternoon",
+      "sources": [
+        "adv/chapters/afternoon/01-room.adv.md",
+        "adv/chapters/afternoon/02-wheel.adv.md"
+      ]
+    },
+    {
+      "id": "evening",
+      "sources": [
+        "adv/chapters/evening/01-seed.adv.md",
+        "adv/chapters/evening/02-knock.adv.md"
+      ]
+    }
+  ],
+  "files": [
+    "adv.config.json",
+    "adv/chapters/afternoon/01-room.adv.md",
+    "adv/chapters/afternoon/02-wheel.adv.md",
+    "adv/chapters/evening/01-seed.adv.md",
+    "adv/chapters/evening/02-knock.adv.md",
+    "adv/characters/observer.character.md",
+    "adv/characters/reader.character.md",
+    "adv/settings/game.json",
+    "adv/world.md"
+  ],
+  "nodes": {
+    "afternoon#start": {
+      "file": "adv/chapters/afternoon/01-room.adv.md",
+      "lines": [
+        1
+      ]
+    },
+    "afternoon#node-1": {
+      "file": "adv/chapters/afternoon/01-room.adv.md",
+      "lines": [
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    "afternoon#node-2": {
+      "file": "adv/chapters/afternoon/01-room.adv.md",
+      "lines": [
+        8
+      ]
+    },
+    "afternoon#node-3": {
+      "file": "adv/chapters/afternoon/01-room.adv.md",
+      "lines": [
+        10,
+        11
+      ]
+    },
+    "afternoon#node-4": {
+      "file": "adv/chapters/afternoon/01-room.adv.md",
+      "lines": [
+        13,
+        14
+      ]
+    },
+    "afternoon#node-5": {
+      "file": "adv/chapters/afternoon/02-wheel.adv.md",
+      "lines": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "afternoon#node-6": {
+      "file": "adv/chapters/afternoon/02-wheel.adv.md",
+      "lines": [
+        6
+      ]
+    },
+    "afternoon#node-7": {
+      "file": "adv/chapters/afternoon/02-wheel.adv.md",
+      "lines": [
+        8,
+        9
+      ]
+    },
+    "evening#seed": {
+      "file": "adv/chapters/evening/01-seed.adv.md",
+      "lines": [
+        1
+      ]
+    },
+    "evening#node-1": {
+      "file": "adv/chapters/evening/01-seed.adv.md",
+      "lines": [
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    "evening#node-2": {
+      "file": "adv/chapters/evening/01-seed.adv.md",
+      "lines": [
+        8
+      ]
+    },
+    "evening#node-3": {
+      "file": "adv/chapters/evening/01-seed.adv.md",
+      "lines": [
+        10,
+        11,
+        12
+      ]
+    },
+    "evening#knock": {
+      "file": "adv/chapters/evening/02-knock.adv.md",
+      "lines": [
+        1
+      ]
+    },
+    "evening#node-5": {
+      "file": "adv/chapters/evening/02-knock.adv.md",
+      "lines": [
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    "evening#node-6": {
+      "file": "adv/chapters/evening/02-knock.adv.md",
+      "lines": [
+        8
+      ]
+    },
+    "evening#node-7": {
+      "file": "adv/chapters/evening/02-knock.adv.md",
+      "lines": [
+        10,
+        11,
+        12
+      ]
+    }
+  },
+  "program": {
+    "schemaVersion": 2,
+    "id": "hamster-summer",
+    "entry": {
+      "chapterId": "afternoon",
+      "nodeId": "start"
+    },
+    "chapters": {
+      "afternoon": {
+        "id": "afternoon",
+        "title": "afternoon",
+        "entry": "start",
+        "nodes": {
+          "start": {
+            "id": "start",
+            "kind": "scene",
+            "data": {
+              "place": "观测者的房间",
+              "time": "夏日午后",
+              "inOrOut": "内景"
+            },
+            "next": {
+              "chapterId": "afternoon",
+              "nodeId": "node-1"
+            }
+          },
+          "node-1": {
+            "id": "node-1",
+            "kind": "effects",
+            "data": {
+              "operations": [
+                {
+                  "type": "background",
+                  "name": "room"
+                }
+              ]
+            },
+            "next": {
+              "chapterId": "afternoon",
+              "nodeId": "node-2"
+            }
+          },
+          "node-2": {
+            "id": "node-2",
+            "kind": "narration",
+            "data": {
+              "text": "冷气把盛夏挡在玻璃外面。笼子里，小仓鼠醒了。",
+              "speakerId": "narrator"
+            },
+            "next": {
+              "chapterId": "afternoon",
+              "nodeId": "node-3"
+            }
+          },
+          "node-3": {
+            "id": "node-3",
+            "kind": "dialog",
+            "data": {
+              "character": "观测者",
+              "speakerId": "观测者",
+              "status": "",
+              "text": "你说，世界上真的有外星人吗？"
+            },
+            "next": {
+              "chapterId": "afternoon",
+              "nodeId": "node-4"
+            }
+          },
+          "node-4": {
+            "id": "node-4",
+            "kind": "dialog",
+            "data": {
+              "character": "读书人",
+              "speakerId": "读书人",
+              "status": "",
+              "text": "也许有。只是它们离我们，比两米还要远。"
+            },
+            "next": {
+              "chapterId": "afternoon",
+              "nodeId": "node-5"
+            }
+          },
+          "node-5": {
+            "id": "node-5",
+            "kind": "effects",
+            "data": {
+              "operations": [
+                {
+                  "type": "background",
+                  "name": "wheel"
+                }
+              ]
+            },
+            "next": {
+              "chapterId": "afternoon",
+              "nodeId": "node-6"
+            }
+          },
+          "node-6": {
+            "id": "node-6",
+            "kind": "narration",
+            "data": {
+              "text": "小仓鼠跳上转轮，哒哒地跑起来，像要跑去两米外的那个世界。",
+              "speakerId": "narrator"
+            },
+            "next": {
+              "chapterId": "afternoon",
+              "nodeId": "node-7"
+            }
+          },
+          "node-7": {
+            "id": "node-7",
+            "kind": "choices",
+            "data": {
+              "options": [
+                {
+                  "id": "choice-1",
+                  "label": "喂它一颗瓜子",
+                  "target": {
+                    "chapterId": "evening",
+                    "nodeId": "seed"
+                  }
+                },
+                {
+                  "id": "choice-2",
+                  "label": "轻轻敲敲笼子",
+                  "target": {
+                    "chapterId": "evening",
+                    "nodeId": "knock"
+                  }
+                }
+              ]
+            },
+            "next": {
+              "chapterId": "afternoon",
+              "nodeId": "end"
+            }
+          },
+          "end": {
+            "id": "end",
+            "kind": "end"
+          }
+        },
+        "order": [
+          "start",
+          "node-1",
+          "node-2",
+          "node-3",
+          "node-4",
+          "node-5",
+          "node-6",
+          "node-7",
+          "end"
+        ]
+      },
+      "evening": {
+        "id": "evening",
+        "title": "evening",
+        "entry": "seed",
+        "nodes": {
+          "seed": {
+            "id": "seed",
+            "kind": "anchor",
+            "data": {
+              "depth": 2,
+              "text": "瓜子"
+            },
+            "next": {
+              "chapterId": "evening",
+              "nodeId": "node-1"
+            }
+          },
+          "node-1": {
+            "id": "node-1",
+            "kind": "effects",
+            "data": {
+              "operations": [
+                {
+                  "type": "background",
+                  "name": "seed"
+                }
+              ]
+            },
+            "next": {
+              "chapterId": "evening",
+              "nodeId": "node-2"
+            }
+          },
+          "node-2": {
+            "id": "node-2",
+            "kind": "narration",
+            "data": {
+              "text": "它用两只前爪捧着瓜子，腮帮子鼓成了一个圆。",
+              "speakerId": "narrator"
+            },
+            "next": {
+              "chapterId": "evening",
+              "nodeId": "node-3"
+            }
+          },
+          "node-3": {
+            "id": "node-3",
+            "kind": "end",
+            "next": {
+              "chapterId": "evening",
+              "nodeId": "knock"
+            }
+          },
+          "knock": {
+            "id": "knock",
+            "kind": "anchor",
+            "data": {
+              "depth": 2,
+              "text": "敲笼子"
+            },
+            "next": {
+              "chapterId": "evening",
+              "nodeId": "node-5"
+            }
+          },
+          "node-5": {
+            "id": "node-5",
+            "kind": "effects",
+            "data": {
+              "operations": [
+                {
+                  "type": "background",
+                  "name": "night"
+                }
+              ]
+            },
+            "next": {
+              "chapterId": "evening",
+              "nodeId": "node-6"
+            }
+          },
+          "node-6": {
+            "id": "node-6",
+            "kind": "narration",
+            "data": {
+              "text": "它停下来，抬起头看你，像在看一颗很远很远的星星。",
+              "speakerId": "narrator"
+            },
+            "next": {
+              "chapterId": "evening",
+              "nodeId": "node-7"
+            }
+          },
+          "node-7": {
+            "id": "node-7",
+            "kind": "end",
+            "next": {
+              "chapterId": "evening",
+              "nodeId": "end"
+            }
+          },
+          "end": {
+            "id": "end",
+            "kind": "end"
+          }
+        },
+        "order": [
+          "seed",
+          "node-1",
+          "node-2",
+          "node-3",
+          "knock",
+          "node-5",
+          "node-6",
+          "node-7",
+          "end"
+        ]
+      }
+    },
+    "requiredPlugins": {},
+    "hash": "f0e2ef2603bfa8fefe0ec85d348232eb3b9b34ba4105dcb5d890b4582160f544"
+  }
+}

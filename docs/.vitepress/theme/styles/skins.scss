@@ -1,0 +1,244 @@
+// Section chrome for each landing page skin.
+// The stages are drawn by each skin's own components; around them, a skin only retints what the
+// sections share: the brand colour, the anchor mark, title type, code panes and corner radii.
+// Pages still follow the reader's light or dark theme. `<html data-adv-skin>` is set before
+// first paint (see `skin-ids.ts`), so these apply before hydration.
+
+// `:root[…]` rather than `html[…]`, to outweigh `:root.dark .adv-home` in home.scss.
+@mixin skin($id) {
+  :root[data-adv-skin='#{$id}'] .adv-home {
+    @content;
+  }
+}
+
+@mixin skin-dark($id) {
+  :root.dark[data-adv-skin='#{$id}'] .adv-home {
+    @content;
+  }
+}
+
+// 星海观测站: an instrument print. Graphite, paper white and one signal orange; no gradients.
+@include skin('scifi') {
+  --sf-signal: #ff5a1f;
+  --vp-c-brand-1: #c2410c;
+  --vp-c-brand-2: #9a3412;
+  --vp-c-brand-3: var(--sf-signal);
+  --vp-c-brand-soft: rgba(255, 90, 31, 0.12);
+  --h-accent: var(--sf-signal);
+  --h-cyan: var(--sf-signal);
+  --h-lamp: var(--sf-signal);
+  --h-link: #ff8a5c;
+  --h-ink: #0c0d0e;
+  --h-story: var(--h-system);
+
+  .h-title {
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  &[data-locale='zh'] .h-title {
+    letter-spacing: 0.02em;
+  }
+
+  // The anchor reads like a readout: a lit square, then the label in mono
+  .h-anchor {
+    font-family: var(--h-mono);
+    letter-spacing: 0.12em;
+
+    &::before {
+      width: 8px;
+      height: 8px;
+      background: var(--sf-signal);
+    }
+  }
+
+  .h-ink {
+    --edge: var(--sf-signal);
+    --line: #2a2b2c;
+    border-radius: 6px;
+  }
+
+  .h-card {
+    --edge: var(--sf-signal);
+    border-radius: 6px;
+  }
+
+  .h-seg {
+    border-radius: 4px;
+
+    > button {
+      border-radius: 2px;
+    }
+  }
+}
+
+@include skin-dark('scifi') {
+  --vp-c-brand-1: #ff7a45;
+  --vp-c-brand-2: #ff9a70;
+}
+
+// 放课后: a galgame in the library at sunset. Rose, a rounded face, soft paper corners.
+@include skin('romance') {
+  --rm-rose: #d94f6a;
+  --vp-c-brand-1: #c2365a;
+  --vp-c-brand-2: #a32b4b;
+  --vp-c-brand-3: var(--rm-rose);
+  --vp-c-brand-soft: rgba(217, 79, 106, 0.12);
+  --h-accent: var(--rm-rose);
+  --h-cyan: #f29bb0;
+  --h-lamp: #f29bb0;
+  --h-link: #f5a6b8;
+  --h-ink: #2b2431;
+  --h-story: 'Hiragino Maru Gothic ProN', 'Yuanti SC', 'YuanTi SC', 'Arial Rounded MT Bold', var(--h-system);
+
+  .h-title {
+    font-weight: 800;
+  }
+
+  // The anchor wears a name tag
+  .h-anchor {
+    padding: 3px 12px 3px 4px;
+    border-radius: 999px;
+    background: var(--vp-c-brand-soft);
+
+    &::before {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--rm-rose)
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23fff' d='M8 13.6 2.7 8.4a3.1 3.1 0 0 1 4.4-4.4L8 4.9l.9-.9a3.1 3.1 0 0 1 4.4 4.4z'/%3E%3C/svg%3E")
+        center / 11px no-repeat;
+    }
+  }
+
+  .h-ink {
+    --edge: var(--rm-rose);
+    --line: rgba(242, 155, 176, 0.18);
+    border-radius: 20px;
+  }
+
+  .h-card {
+    --edge: var(--rm-rose);
+    border-radius: 20px;
+  }
+
+  .h-seg {
+    border-radius: 999px;
+
+    > button {
+      border-radius: 999px;
+    }
+  }
+}
+
+@include skin-dark('romance') {
+  --vp-c-brand-1: #f08aa0;
+  --vp-c-brand-2: #f5a6b8;
+}
+
+// 地图之外: an atlas in iron-gall ink with vermilion rubrication. Song type, ruled lines, fleurons.
+@include skin('fantasy') {
+  --ft-rubric: #a8321c;
+  --vp-c-brand-1: #a8321c;
+  --vp-c-brand-2: #8c2914;
+  --vp-c-brand-3: var(--ft-rubric);
+  --vp-c-brand-soft: rgba(168, 50, 28, 0.1);
+  --h-accent: var(--ft-rubric);
+  --h-cyan: #e0704f;
+  --h-lamp: #e0904f;
+  --h-link: #e8a07a;
+  --h-ink: #241b14;
+
+  .h-title {
+    font-weight: 900;
+  }
+
+  // A fleuron marks each section, as in the margins of an old book
+  .h-anchor::before {
+    content: '❧';
+    width: auto;
+    height: auto;
+    font-size: 16px;
+    color: var(--ft-rubric);
+    background: none;
+  }
+
+  .h-ink {
+    --edge: var(--ft-rubric);
+    --line: rgba(236, 226, 203, 0.14);
+    border-radius: 3px;
+  }
+
+  .h-card {
+    --edge: var(--ft-rubric);
+    border-radius: 3px;
+  }
+
+  .h-seg {
+    border-radius: 3px;
+
+    > button {
+      border-radius: 2px;
+    }
+  }
+}
+
+@include skin-dark('fantasy') {
+  --vp-c-brand-1: #e0704f;
+  --vp-c-brand-2: #e8906f;
+}
+
+// 小仓鼠的夏天: a picture book. Kai type, coral and sage, soft hand-cut corners.
+@include skin('book') {
+  --bk-coral: #e86a4f;
+  --vp-c-brand-1: #c4502f;
+  --vp-c-brand-2: #a8432a;
+  --vp-c-brand-3: var(--bk-coral);
+  --vp-c-brand-soft: rgba(232, 106, 79, 0.12);
+  --h-accent: var(--bk-coral);
+  --h-cyan: #7fb3a6;
+  --h-lamp: #f2b45a;
+  --h-link: #f2b45a;
+  --h-ink: #33281e;
+  --h-story: 'Kaiti SC', 'STKaiti', 'KaiTi', 'BiauKai', var(--adv-font-story);
+
+  &[data-locale='en'] {
+    --h-story: var(--adv-font-story-latin);
+  }
+
+  .h-title {
+    font-weight: 700;
+  }
+
+  // A hamster-round dot, cut a little unevenly
+  .h-anchor::before {
+    width: 14px;
+    height: 14px;
+    border-radius: 46% 54% 50% 50% / 55% 45% 55% 45%;
+    background: #f2b45a;
+  }
+
+  .h-ink {
+    --edge: var(--bk-coral);
+    --line: rgba(242, 180, 90, 0.16);
+    border-radius: 16px;
+  }
+
+  .h-card {
+    --edge: var(--bk-coral);
+    border-radius: 16px;
+  }
+
+  .h-seg {
+    border-radius: 999px;
+
+    > button {
+      border-radius: 999px;
+    }
+  }
+}
+
+@include skin-dark('book') {
+  --vp-c-brand-1: #f0906f;
+  --vp-c-brand-2: #f4a88c;
+}

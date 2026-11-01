@@ -112,7 +112,7 @@ export default defineAdvConfig({
 
 ## 从 Markdown 请求活动
 
-````md
+````adv
 ```yaml
 type: activity
 use: star-map/compare

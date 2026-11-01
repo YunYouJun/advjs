@@ -1,4 +1,10 @@
+---
+pageClass: adv-product-page
+---
+
 # ADV.JS Studio
+
+<StudioProduct />
 
 ADV.JS Studio 是一个移动端/Web 端的 ADV.JS 项目管理与创作工具。
 

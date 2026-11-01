@@ -1,20 +1,38 @@
-@use 'sass:color';
+// ADV.JS docs theme tokens.
+// VitePress 2 reads `--vp-c-brand-1..3` and `--vp-c-brand-soft`.
 
 :root {
-  --vp-c-brand: #0078e7;
-  --vp-c-brand-light: #{color.adjust(#0078e7, $lightness: 5%)};
-  --vp-c-brand-lighter: #{color.adjust(#0078e7, $lightness: 10%)};
-  --vp-c-brand-dark: #{color.adjust(#0078e7, $lightness: -5%)};
+  // Two voices, both from fonts already on the reader's device:
+  // the story in a Song serif, the engine in VitePress' bundled Inter.
+  // Without a CJK serif (most Windows machines) the story falls back to the UI sans, not SimSun.
+  --adv-font-story:
+    'Songti SC', 'STSong', 'Noto Serif SC', 'Noto Serif CJK SC', 'Source Han Serif SC', var(--vp-font-family-base);
+  --adv-font-system: var(--vp-font-family-base);
+  // English pages: without a Song face (Windows, Android) English titles would drop to the UI sans, so Latin text
+  // takes a system serif. Charter has a true black weight on Apple devices; Android aliases Georgia to its serif.
+  // Chinese in the sample script still falls through to the Song stack.
+  --adv-font-story-latin: Charter, 'Bitstream Charter', Georgia, var(--adv-font-story);
+
+  --vp-c-brand-1: #0a6ad0;
+  --vp-c-brand-2: #1680e3;
+  --vp-c-brand-3: #2595e9;
+  --vp-c-brand-soft: rgba(37, 149, 233, 0.14);
 }
 
-// Home
-:root {
-  --vp-home-hero-name-color: transparent;
-  --vp-home-hero-name-background: -webkit-linear-gradient(120deg, #3a76e5 30%, #74f3e8);
-  // --vp-home-hero-image-background-image: linear-gradient(
-  //   -45deg,
-  //   #548ee931 30%,
-  //   #74f3e860
-  // );
-  // --vp-home-hero-image-filter: blur(80px);
+.dark {
+  --vp-c-brand-1: #63c9ff;
+  --vp-c-brand-2: #3fb1f4;
+  --vp-c-brand-3: #2595e9;
+  --vp-c-brand-soft: rgba(37, 149, 233, 0.18);
+
+  // Night blue instead of neutral grey, matching the game stages on the home page.
+  --vp-c-bg: #0d1222;
+  --vp-c-bg-alt: #090d1a;
+  --vp-c-bg-elv: #131a2d;
+  --vp-c-bg-soft: #151c31;
+  --vp-c-divider: #222b45;
+  --vp-c-border: #2c3655;
+  --vp-c-gutter: #060913;
+  --vp-code-block-bg: #0b1430;
+  --vp-code-copy-code-bg: #172447;
 }

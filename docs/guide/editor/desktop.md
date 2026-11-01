@@ -152,3 +152,17 @@ node apps/desktop/scripts/verify-package.mjs
 Studio 回归同时修复了内存项目的 IndexedDB 二进制持久化；旧版本已经丢失的二进制文件需要重新导入，不影响真实目录项目。
 
 宿主与安全边界在 `apps/desktop/src/`；面板通过 `ProjectWorkspace` 读写项目，保持 AGUI Editor、游戏主题和移动 Studio 的设计边界。
+
+## 可信工作台的本地集成
+
+构建时随附的 Editor SDK 插件可通过 `documents.register` 参加原生保存、标题脏标记与关闭保护，详见 [UI 插件](ui-plugins#原生菜单与插件文档)。保存回调必须返回真实持久化结果；失败会保留窗口，不能用浏览器内存或 localStorage 当作保存完成。
+
+开发模式可用 `ADVJS_DESKTOP_PUBLIC_ROOT` 指定可信的本地 Editor 构建目录，`--workspace` 直接进入空工作区；默认目录及已安装客户端行为保持原样。`ADVJS_DESKTOP_HOST_API` 可配置一个固定的 `http://127.0.0.1:端口/api/名称/` 文档端口。桌面项目服务只转发规范化后仍位于该前缀的请求。可信插件通过当前窗口的 `advDesktop.session()` 取得会话，并在同源请求中发送 `Authorization: Bearer <token>`。桥接先校验 Host、Origin 和会话，只向上游传递文档端口自己的凭据。此配置来自启动环境，不能由项目、渲染器或远程 URL 提供；打包客户端忽略这些开发覆盖。它用于本地可信工作台集成，不新增 preload 文件写入接口。
+
+### 工作台仓库与最近记录
+
+可信开发宿主可再配置 `ADVJS_DESKTOP_WORKSPACE_HOST`（固定 `http://127.0.0.1:端口/__advjs/workspaces`）与 `ADVJS_DESKTOP_WORKSPACE_TOKEN`。控制接口只供 Electron 主进程调用，不能经 renderer 文档代理访问；打包客户端不启用此覆盖。宿主提供 `info`、`inspect`、`open`、`release` 四项有限操作，负责自己的仓库格式、语义与输出路径检查，不把通用项目服务变成任意文件访问接口。
+
+该模式复用原生打开、最近项目、欢迎页与项目切换器。打开前先检查候选仓库，再处理当前窗口未保存文档；保存失败或取消时保持旧绑定。普通打开默认在当前窗口切换，已打开的真实路径聚焦已有窗口。每个窗口获得独立的文档会话，代理在主进程绑定会话令牌，不接收 renderer 指定的仓库或令牌。替换服务启动失败保留原绑定，等待期间的新编辑在切换前再次检查；成功切换和关窗后释放旧会话。
+
+窗口标题、状态栏和打开列表使用只读仓库身份，ADV 项目读写 / 预览能力不会因外部仓库而启用。最近记录按宿主 ID 保存在 `workbench-<id>-recent.json`，最多 12 条，与普通 ADV 项目历史分开；布局按真实仓库路径保存。启动恢复最近成功仓库，失效时回退到宿主默认仓库并显示错误。移除历史不删除源目录。渲染器仍只能通过原生目录选择或持久记录 ID 打开仓库，不接收任意路径写入或控制凭据。

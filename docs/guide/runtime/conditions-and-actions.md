@@ -24,7 +24,7 @@ export default defineAdvConfig({
 
 `type: when` 会把条件应用到紧随其后的运行时节点：
 
-````md
+````adv
 ```yaml
 type: when
 condition: starMatched && starMatchScore >= 0.82
@@ -46,7 +46,7 @@ condition: starMatched && starMatchScore >= 0.82
 
 独立动作节点：
 
-````md
+````adv
 ```yaml
 type: actions
 actions:
@@ -76,7 +76,7 @@ actions:
 
 选择下方的 YAML 块可以同时声明可见条件和选中后动作：
 
-````md
+````adv
 - [初始化文明](chapter-2#initialize)
 
   ```yaml

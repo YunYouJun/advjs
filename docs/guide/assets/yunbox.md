@@ -92,6 +92,33 @@ git yunbox clone <仓库地址>
 
 已经 clone 过的仓库，在仓库目录里运行 `git yunbox init && git lfs pull`。之后照常使用 `git add`、`git commit`、`git push`、`git pull`。开子账号、离职回收等操作见 [YunBox 快速开始](https://yunbox.yunle.fun/guide/)。
 
+## 组合使用资源目录
+
+YunBox 负责把源文件送到每个人的工作区，资源目录负责确认拿到的正是清单登记的版本。Git LFS 的对象 ID 就是文件内容的 SHA-256，与资源条目的 `sha256` 是同一个值，所以同一份素材在两边的身份一致，不需要额外映射。
+
+1. 素材文件放在 `adv/assets/` 下，用 YunBox 提交；
+2. 对应的资源条目只写 `path`、`sha256` 和 `bytes`，不写 `objectKey`，资源目录也不需要 `download.source`：
+
+   ```json
+   {
+     "id": "background/opening",
+     "kind": "background",
+     "type": "image",
+     "path": "backgrounds/opening.webp",
+     "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+     "bytes": 245760
+   }
+   ```
+
+3. clone 或拉取后运行 `adv assets verify`，确认素材齐全且与清单一致。这一步只读本地文件，不需要存储插件或 COS 凭据；
+4. 体积大、平时用不到的原图可以继续声明为 `original` variant，用 `adv assets pull --variant original` 按需下载到被忽略的缓存目录。
+
+`adv assets` 能识别还没下载的 LFS 指针文件：
+
+- `adv assets status` 把它们标为 `lfs-pointer` 并单独计数，退出码仍为 0；
+- `adv assets verify` 和 `adv assets pull` 返回失败，提示先运行 `git lfs pull`。`pull` 不会覆盖指针文件，也不会代替 Git LFS 下载它们；
+- 文件已经下载但报告为 `corrupt` 时，说明素材和清单登记的版本不一致。更新素材后，同步更新条目的 `sha256` 和 `bytes`。
+
 ## 在 CI 中构建
 
 CI 从 Git 构建游戏时，LFS 素材需要先拉取，否则构建读到的是指针文件。给 CI 建一个只读子账号（`yunbox subaccount create <名称> --show-key --read-only`），把密钥存进 CI 的机密变量，在构建前拉取：
@@ -108,7 +135,7 @@ CI 从 Git 构建游戏时，LFS 素材需要先拉取，否则构建读到的�
     TENCENTCLOUD_SECRETKEY: ${{ secrets.YUNBOX_SECRET_KEY }}
 ```
 
-`actions/checkout` 保持默认的 `lfs: false`，素材由 YunBox 的传输代理下载。资源目录中还有需要还原的缓存时，在这一步之后运行 `adv assets pull`。发布到公共前缀的步骤继续使用单独的发布凭据。
+`actions/checkout` 保持默认的 `lfs: false`，素材由 YunBox 的传输代理下载。之后运行 `adv assets verify`，有素材没下载或与清单不一致时，构建会在这里失败。资源目录中还有需要还原的缓存时，改为运行 `adv assets pull`。发布到公共前缀的步骤继续使用单独的发布凭据。
 
 ## 验证
 
@@ -122,5 +149,5 @@ adv assets verify    # 资源目录登记的基础条目齐全并通过校验
 
 常见问题：
 
-- **游戏里图片或音频加载失败，文件只有一百多字节**：文件是还没下载的 LFS 指针，内容以 `version https://git-lfs.github.com/spec/v1` 开头。运行 `git yunbox init && git lfs pull`；`adv assets verify` 也会因哈希不符报出这些文件。
+- **游戏里图片或音频加载失败，文件只有一百多字节**：文件是还没下载的 LFS 指针，内容以 `version https://git-lfs.github.com/spec/v1` 开头。运行 `git yunbox init && git lfs pull`；`adv assets status` 会把资源目录登记过的这类文件标为 `lfs-pointer`。
 - **推送时提示没有权限**：运行 `yunbox doctor` 查看密钥和前缀权限，按输出的修复命令处理，或请管理员检查子账号授权。

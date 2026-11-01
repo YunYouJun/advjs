@@ -1,0 +1,487 @@
+{
+  "title": "放课后",
+  "variables": {
+    "affection": 0
+  },
+  "chapters": [
+    {
+      "id": "closing",
+      "sources": [
+        "adv/chapters/closing/01-closing.adv.md"
+      ]
+    },
+    {
+      "id": "library",
+      "sources": [
+        "adv/chapters/library/01-after-class.adv.md",
+        "adv/chapters/library/02-next-page.adv.md"
+      ]
+    }
+  ],
+  "files": [
+    "adv.config.json",
+    "adv/chapters/closing/01-closing.adv.md",
+    "adv/chapters/library/01-after-class.adv.md",
+    "adv/chapters/library/02-next-page.adv.md",
+    "adv/characters/lin-xia.character.md",
+    "adv/settings/game.json",
+    "adv/world.md"
+  ],
+  "nodes": {
+    "closing#closing": {
+      "file": "adv/chapters/closing/01-closing.adv.md",
+      "lines": [
+        1
+      ]
+    },
+    "closing#node-2": {
+      "file": "adv/chapters/closing/01-closing.adv.md",
+      "lines": [
+        3,
+        4,
+        5,
+        6,
+        8,
+        9
+      ]
+    },
+    "closing#node-4": {
+      "file": "adv/chapters/closing/01-closing.adv.md",
+      "lines": [
+        11,
+        12,
+        13,
+        14,
+        16,
+        17
+      ]
+    },
+    "closing#node-5": {
+      "file": "adv/chapters/closing/01-closing.adv.md",
+      "lines": [
+        19,
+        20,
+        21
+      ]
+    },
+    "library#start": {
+      "file": "adv/chapters/library/01-after-class.adv.md",
+      "lines": [
+        1
+      ]
+    },
+    "library#node-1": {
+      "file": "adv/chapters/library/01-after-class.adv.md",
+      "lines": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    "library#node-2": {
+      "file": "adv/chapters/library/01-after-class.adv.md",
+      "lines": [
+        11
+      ]
+    },
+    "library#node-3": {
+      "file": "adv/chapters/library/01-after-class.adv.md",
+      "lines": [
+        13,
+        14
+      ]
+    },
+    "library#node-4": {
+      "file": "adv/chapters/library/01-after-class.adv.md",
+      "lines": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24
+      ]
+    },
+    "library#page": {
+      "file": "adv/chapters/library/02-next-page.adv.md",
+      "lines": [
+        1
+      ]
+    },
+    "library#node-6": {
+      "file": "adv/chapters/library/02-next-page.adv.md",
+      "lines": [
+        3,
+        4
+      ]
+    },
+    "library#node-7": {
+      "file": "adv/chapters/library/02-next-page.adv.md",
+      "lines": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ]
+    },
+    "library#leave": {
+      "file": "adv/chapters/library/02-next-page.adv.md",
+      "lines": [
+        16
+      ]
+    },
+    "library#node-9": {
+      "file": "adv/chapters/library/02-next-page.adv.md",
+      "lines": [
+        18
+      ]
+    },
+    "library#node-10": {
+      "file": "adv/chapters/library/02-next-page.adv.md",
+      "lines": [
+        20
+      ]
+    }
+  },
+  "program": {
+    "schemaVersion": 2,
+    "id": "after-school",
+    "entry": {
+      "chapterId": "library",
+      "nodeId": "start"
+    },
+    "chapters": {
+      "library": {
+        "id": "library",
+        "title": "library",
+        "entry": "start",
+        "nodes": {
+          "start": {
+            "id": "start",
+            "kind": "scene",
+            "data": {
+              "place": "图书室",
+              "time": "放学后",
+              "inOrOut": "内景"
+            },
+            "next": {
+              "chapterId": "library",
+              "nodeId": "node-1"
+            }
+          },
+          "node-1": {
+            "id": "node-1",
+            "kind": "actions",
+            "actions": [
+              {
+                "type": "variables/set",
+                "args": {
+                  "key": "affection",
+                  "value": 0
+                }
+              }
+            ],
+            "next": {
+              "chapterId": "library",
+              "nodeId": "node-2"
+            }
+          },
+          "node-2": {
+            "id": "node-2",
+            "kind": "narration",
+            "data": {
+              "text": "夕阳斜斜地照进来，书架的影子一直伸到你脚边。",
+              "speakerId": "narrator"
+            },
+            "next": {
+              "chapterId": "library",
+              "nodeId": "node-3"
+            }
+          },
+          "node-3": {
+            "id": "node-3",
+            "kind": "dialog",
+            "data": {
+              "character": "林夏",
+              "speakerId": "林夏",
+              "status": "",
+              "text": "图书室六点关门。在那之前……再陪我读一页，好不好？"
+            },
+            "next": {
+              "chapterId": "library",
+              "nodeId": "node-4"
+            }
+          },
+          "node-4": {
+            "id": "node-4",
+            "kind": "choices",
+            "data": {
+              "options": [
+                {
+                  "id": "choice-1",
+                  "label": "再陪她读一页",
+                  "target": {
+                    "chapterId": "library",
+                    "nodeId": "page"
+                  },
+                  "actions": [
+                    {
+                      "type": "variables/increment",
+                      "args": {
+                        "key": "affection"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "choice-2",
+                  "label": "把书签夹进去，先走了",
+                  "target": {
+                    "chapterId": "library",
+                    "nodeId": "leave"
+                  }
+                }
+              ]
+            },
+            "next": {
+              "chapterId": "library",
+              "nodeId": "page"
+            }
+          },
+          "page": {
+            "id": "page",
+            "kind": "anchor",
+            "data": {
+              "depth": 2,
+              "text": "下一页"
+            },
+            "next": {
+              "chapterId": "library",
+              "nodeId": "node-6"
+            }
+          },
+          "node-6": {
+            "id": "node-6",
+            "kind": "dialog",
+            "data": {
+              "character": "林夏",
+              "speakerId": "林夏",
+              "status": "",
+              "text": "这一段我读了三遍。主角到最后，还是没有说出口。"
+            },
+            "next": {
+              "chapterId": "library",
+              "nodeId": "node-7"
+            }
+          },
+          "node-7": {
+            "id": "node-7",
+            "kind": "choices",
+            "data": {
+              "options": [
+                {
+                  "id": "choice-1",
+                  "label": "如果是我，会说出口",
+                  "target": {
+                    "chapterId": "closing",
+                    "nodeId": "closing"
+                  },
+                  "actions": [
+                    {
+                      "type": "variables/increment",
+                      "args": {
+                        "key": "affection"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "choice-2",
+                  "label": "也许不说，才最好",
+                  "target": {
+                    "chapterId": "closing",
+                    "nodeId": "closing"
+                  }
+                }
+              ]
+            },
+            "next": {
+              "chapterId": "library",
+              "nodeId": "leave"
+            }
+          },
+          "leave": {
+            "id": "leave",
+            "kind": "anchor",
+            "data": {
+              "depth": 2,
+              "text": "先走了"
+            },
+            "next": {
+              "chapterId": "library",
+              "nodeId": "node-9"
+            }
+          },
+          "node-9": {
+            "id": "node-9",
+            "kind": "narration",
+            "data": {
+              "text": "门在身后合上。你忽然想起，书签夹错了页。",
+              "speakerId": "narrator"
+            },
+            "next": {
+              "chapterId": "library",
+              "nodeId": "node-10"
+            }
+          },
+          "node-10": {
+            "id": "node-10",
+            "kind": "choices",
+            "data": {
+              "options": [
+                {
+                  "id": "choice-1",
+                  "label": "折回图书室",
+                  "target": {
+                    "chapterId": "closing",
+                    "nodeId": "closing"
+                  }
+                }
+              ]
+            },
+            "next": {
+              "chapterId": "library",
+              "nodeId": "end"
+            }
+          },
+          "end": {
+            "id": "end",
+            "kind": "end"
+          }
+        },
+        "order": [
+          "start",
+          "node-1",
+          "node-2",
+          "node-3",
+          "node-4",
+          "page",
+          "node-6",
+          "node-7",
+          "leave",
+          "node-9",
+          "node-10",
+          "end"
+        ]
+      },
+      "closing": {
+        "id": "closing",
+        "title": "closing",
+        "entry": "closing",
+        "nodes": {
+          "closing": {
+            "id": "closing",
+            "kind": "anchor",
+            "data": {
+              "depth": 2,
+              "text": "闭馆"
+            },
+            "next": {
+              "chapterId": "closing",
+              "nodeId": "node-2"
+            }
+          },
+          "node-2": {
+            "id": "node-2",
+            "kind": "dialog",
+            "data": {
+              "character": "林夏",
+              "speakerId": "林夏",
+              "status": "",
+              "text": "……那，明天放学，我们接着读吧。"
+            },
+            "when": {
+              "type": "binary",
+              "operator": ">=",
+              "left": {
+                "type": "variable",
+                "path": [
+                  "affection"
+                ]
+              },
+              "right": {
+                "type": "literal",
+                "value": 2
+              }
+            },
+            "next": {
+              "chapterId": "closing",
+              "nodeId": "node-4"
+            }
+          },
+          "node-4": {
+            "id": "node-4",
+            "kind": "dialog",
+            "data": {
+              "character": "林夏",
+              "speakerId": "林夏",
+              "status": "",
+              "text": "六点了。路上小心。"
+            },
+            "when": {
+              "type": "binary",
+              "operator": "<",
+              "left": {
+                "type": "variable",
+                "path": [
+                  "affection"
+                ]
+              },
+              "right": {
+                "type": "literal",
+                "value": 2
+              }
+            },
+            "next": {
+              "chapterId": "closing",
+              "nodeId": "node-5"
+            }
+          },
+          "node-5": {
+            "id": "node-5",
+            "kind": "end",
+            "next": {
+              "chapterId": "closing",
+              "nodeId": "end"
+            }
+          },
+          "end": {
+            "id": "end",
+            "kind": "end"
+          }
+        },
+        "order": [
+          "closing",
+          "node-2",
+          "node-4",
+          "node-5",
+          "end"
+        ]
+      }
+    },
+    "requiredPlugins": {},
+    "hash": "44efa0692b234b26bacff18ec91fc20eb22e745763025e715eb9e31861e3332b"
+  }
+}

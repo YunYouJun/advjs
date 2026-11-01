@@ -35,7 +35,7 @@ ADV.JS 已经具备了 AI 优先的基础条件：
 
 **`.adv.md` 剧本格式** — 基于 Markdown 的剧本脚本语言，LLM 可以直接读取和生成：
 
-```md
+```adv
 ---
 plotSummary: 主角在校门口遇见转学生
 ---

@@ -13,21 +13,24 @@ ADV.JS Skills 体系的发展方向。
 - ✅ `adv-adapt` — 来源授权、章节映射、人物/场景清单与来源锚点覆盖审计
 - ✅ `adv-art` — 角色表情矩阵、Codex 候选生成/显式接纳、素材来源/许可、内容哈希 URL 与发布清单审计
 - ✅ `adv-hamster-demo` — 仓鼠完整改编的无缝主线、回声演算、COS 路径和项目级验收约束
+- ✅ `adv-theme` — 按故事选择 L1 token / L2 项目覆盖 / L3 主题包，从预设开始，`adv check` 校验后截图检查与迭代；图片需求交给 `adv-art`
 
 ### CLI
 
 - ✅ `adv init` — 项目初始化
 - ✅ `adv play` 命令组 — JSON 输出 + 会话持久化 + 命名存档槽位 + 回退
-- ✅ `adv check [--fix]` — 语法/角色/场景验证 + 自动桩生成
-- ✅ `adv context` — AI 上下文导出
+- ✅ `adv check [--fix]` — 语法/角色/场景验证 + 自动桩生成；`ADV_THEME_*` 校验主题 token 名称、单位与 WCAG 对比度
+- ✅ `adv context [--theme]` — AI 上下文导出；`--theme` 附加游戏 UI token 契约、对比度配对与预设
 - ✅ `adv debug branches` — AST 分支图导出
 - ✅ `adv debug coverage` — 分支覆盖率报告（单章节 / 全项目聚合；可达场景 / 路径数 / 孤立场景 / 死路径）
 - ✅ `adv assets` 命令组 — 背景生成任务、候选导入、拒绝与显式接纳
+- ✅ `adv theme init --preset` / `adv theme screenshot` — 从预设写入 `theme.config.ts`；截取标题、对话、选项、回看、存档与长文本画面
 
 ### MCP Server
 
 - ✅ Resources：`adv://project/overview`、`adv://characters/*`、`adv://chapters/*`、`adv://scenes`
 - ✅ 分析 Resources：`adv://branches/{id}`、`adv://coverage/{id}`（分支图 / 覆盖率 JSON）
+- ✅ 主题：`adv://theme`（token 契约、对比度配对、预设与项目主题状态）与 `adv_theme_screenshot`（返回截图）
 - ✅ 创建工具：`create_character / create_chapter / create_scene`（单条，含 imagePrompt）
 - ✅ 批量原子工具：`create_characters / create_chapters / create_scenes`
 - ✅ 编辑工具：`edit_character / edit_chapter / edit_scene`
@@ -55,6 +58,8 @@ ADV.JS Skills 体系的发展方向。
 
 ### 待规划
 
+- [ ] 主题截图的视觉回归基线（对比前后两次截图），以及对 `--adv-theme-*` 自定义 token 是否有消费点的检查
+- [ ] 从文档首页皮肤（末班电车、星海观测站、放课后）沉淀更多主题预设
 - [ ] 自动存档触发器（章节切换/选择前自动 quicksave）—— 现已有槽位存储 + history 栈隐式 checkpoint，边际价值已降低
 - [ ] 更多 init 模板（悬疑 / RPG…）—— 仅当出现明确需求再加，避免模板腐烂
 

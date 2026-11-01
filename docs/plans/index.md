@@ -14,13 +14,15 @@
 - [Electron 执行交接提示词](./2026-10-06-electron-desktop-handoff)：启动执行会话；目标与验收只维护在主计划。
 - [Editor UI 插件机制](./2026-10-05-editor-ui-plugins)。
 
-## Studio 原生 App
+## Studio 创作伙伴与原生 App
 
+- [Studio 六角色创作伙伴实施计划](./2026-10-27-studio-creative-team)：导演统筹、六角色交付、可恢复任务与单 Agent 对照评测；待实施。
 - [Studio iPhone／iPad 原生 App 实施计划](./2026-10-21-studio-native-ios)：SwiftUI 原生界面、JavaScriptCore 引擎、WKWebView 试玩与 TestFlight 发布。
 - [Studio 原生 App 执行交接提示词](./2026-10-21-studio-native-ios-handoff)：启动执行会话；目标与验收只维护在主计划。
 
 ## 音频与首发
 
+- [语音供应商资源清理与音文同步](./2026-10-27-voice-lifecycle-alignment)：可选清理、真实时间轴与逐字高亮。
 - [多轨音频与 AI 配音实施计划](./2026-08-12-audio-system-implementation)。
 - [音乐创作与背景音乐／主题曲工作流](./2026-10-12-ai-background-music-generation)：用户创作与 AI 方案交接、导入、试听采用和 Flow 播放；自动生成适配器另列后续任务。
 - [首发 P0 执行清单](./2026-08-11-launch-readiness-p0)。
@@ -36,6 +38,10 @@
 - [仓鼠原文目录](./2026-07-17-hamster-source-catalog)。
 - [仓鼠完整剧情](./2026-07-17-hamster-complete-story)。
 - [ADV 内容创作技能](./2026-07-17-adv-content-skills)。
+
+## 首页
+
+- [首页 AI 模式 P0：无尽列车](./2026-10-22-home-ai-mode-p0)：自带密钥、按站生成 `.adv.md`、流式写入与按需加载。
 
 技术背景见[规格与设计记录](/specs/)，文档维护遵循[写作指南](/contributing/writing-guide)。
 

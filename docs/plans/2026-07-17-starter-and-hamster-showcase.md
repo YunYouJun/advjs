@@ -288,7 +288,7 @@ git commit -m "feat(hamster): define showcase game model"
 
 Compile:
 
-````md
+````adv
 ## 星图 {#star-map}
 
 - [继续观察](#star-map)

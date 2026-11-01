@@ -6,7 +6,7 @@ ADV.JS 使用 JSON/YAML 代码块声明舞台效果、变量动作、条件和�
 
 背景：
 
-````md
+````adv
 ```yaml
 type: background
 name: observatory
@@ -17,7 +17,7 @@ name: observatory
 
 立绘进入与退出：
 
-````md
+````adv
 ```yaml
 type: tachie
 enter:
@@ -30,7 +30,7 @@ exit:
 
 BGM：
 
-````md
+````adv
 ```yaml
 type: bgm
 name: observatory

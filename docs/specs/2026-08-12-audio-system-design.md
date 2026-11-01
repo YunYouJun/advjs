@@ -218,7 +218,7 @@ UI 音效不写入剧情 operation。项目或主题在 `audio/mixer.json` 中�
 
 稳定 ID 的源码语法冻结为行尾属性标记：
 
-```md
+```adv
 @mitsuha
 你好，我们又见面了。 {#line_019c...}
 

@@ -1,0 +1,516 @@
+// Landing page primitives.
+// The page borrows the vocabulary of a visual novel (a stage at night, a speaker's
+// name plate, a dialogue box, in-game choices) and speaks in two voices:
+// the story in a Song serif, the engine in tracked-out Inter.
+// The default skin rides the last tram of the night, so its stage is a tram car:
+// enamel signs for names and choices, an amber LED board for the dialogue.
+// Other skins draw their own stages (components/home/skins/) and retint the sections (skins.scss).
+
+// Framed panel: a hairline border and a top edge that glows at the start and fades out,
+// like the top line of a dialogue box.
+@mixin framed($radius) {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: var(--h-radius, $radius);
+  background:
+    linear-gradient(90deg, var(--edge, transparent), transparent 62%) left top / 100% 1px no-repeat border-box,
+    var(--fill) padding-box;
+}
+
+.adv-home {
+  --h-wall: #0a1330;
+  --h-ink: #0d1211;
+  --h-cyan: #22ffe9;
+  --h-blue: #2595e9;
+  --h-link: #7cc4ff;
+  --h-lamp: #ffc46b;
+  --h-mist: #dbe5f8;
+  --h-mist-2: #a3b6dc;
+  --h-mist-3: #6f84b3;
+
+  // The tram: green-black car, enamel signage, amber LEDs, and the night outside its windows
+  --h-car: #111614;
+  --h-car-line: #252d29;
+  --h-enamel: #1e6b50;
+  --h-enamel-rule: #eef3ef;
+  --h-led: #ffb13b;
+  --h-led-glow: rgba(255, 177, 59, 0.5);
+  --h-led-off: #080a09;
+  --h-sky: linear-gradient(180deg, #0b1636 0%, #13265a 55%, #1d3876 100%);
+
+  // Accent line on page surfaces: the brand gradient, deepened in light mode so it holds up on white
+  --h-accent: linear-gradient(90deg, #0fb3c4, #0a6ad0);
+
+  --h-story: var(--adv-font-story);
+  --h-system: var(--adv-font-system);
+  --h-mono: var(--vp-font-family-mono);
+  --h-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --h-gutter: 16px;
+  --h-max: 1200px;
+  // Height the skin switcher takes above the hero stage
+  --h-switcher: 56px;
+
+  overflow-x: clip;
+  color: var(--vp-c-text-1);
+
+  @media (min-width: 640px) {
+    --h-gutter: 24px;
+  }
+
+  :root.dark & {
+    --h-accent: linear-gradient(90deg, var(--h-cyan), var(--h-blue));
+  }
+
+  &[data-locale='en'] {
+    --h-story: var(--adv-font-story-latin);
+  }
+
+  @media (min-width: 960px) {
+    --h-gutter: 32px;
+  }
+}
+
+// Until hydration the markup shows the default skin. If the head script picked another,
+// hide what that skin redraws so it doesn't flash; its colours already apply.
+html[data-adv-skin]:not([data-adv-skin='tram']) .adv-home:not(.is-ready) .h-skinned {
+  visibility: hidden;
+}
+
+// Engine voice: small, tracked, tabular. Used for HUD readouts, never for prose.
+.adv-home .h-hud {
+  font-family: var(--h-system);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.14em;
+}
+
+// Section scaffolding
+
+.adv-home .h-section {
+  box-sizing: border-box;
+  max-width: calc(var(--h-max) + var(--h-gutter) * 2);
+  margin: 0 auto;
+  padding: 104px var(--h-gutter) 0;
+  scroll-margin-top: var(--vp-nav-height);
+
+  @media (min-width: 960px) {
+    padding-top: 152px;
+  }
+}
+
+.adv-home .h-head {
+  max-width: 38rem;
+  margin-bottom: 44px;
+}
+
+// The section's anchor, written the way .adv.md writes one.
+.adv-home .h-anchor {
+  display: inline-flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+  color: var(--vp-c-brand-1);
+  text-decoration: none;
+
+  &::before {
+    content: '';
+    width: 28px;
+    height: 1px;
+    background: var(--h-accent);
+  }
+
+  &:hover {
+    color: var(--vp-c-brand-2);
+  }
+}
+
+.adv-home .h-title {
+  margin: 0;
+  font-family: var(--h-story);
+  font-size: clamp(30px, 4vw, 46px);
+  font-weight: 900;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  color: var(--vp-c-text-1);
+  text-wrap: balance;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+// Tracking that opens up CJK makes Latin display type look loose.
+.adv-home[data-locale='en'] .h-title {
+  letter-spacing: 0;
+}
+
+.adv-home .h-lead {
+  margin: 18px 0 0;
+  font-size: 17px;
+  line-height: 1.85;
+  color: var(--vp-c-text-2);
+  text-wrap: pretty;
+
+  code {
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: var(--h-mono);
+    font-size: 0.86em;
+    color: var(--vp-c-text-1);
+    background: var(--vp-c-default-soft);
+  }
+}
+
+.adv-home .h-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+  color: var(--vp-c-brand-1);
+  text-decoration: none;
+  text-underline-offset: 3px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// Code and terminal panes: the night without the scenery
+.adv-home .h-ink {
+  @include framed(16px);
+
+  --line: rgba(190, 215, 200, 0.12);
+  --edge: rgba(255, 177, 59, 0.65);
+  --fill: var(--h-ink);
+  overflow: hidden;
+  color: var(--h-mist);
+}
+
+// Cards on page surfaces follow the page theme
+.adv-home .h-card {
+  @include framed(16px);
+
+  --line: var(--vp-c-divider);
+  --edge: var(--vp-c-brand-3);
+  --fill: var(--vp-c-bg-soft);
+}
+
+// Speaker name plate: a small enamel sign, solid colour with a white rule inside the edge
+
+.adv-home .h-plate {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 13px;
+  border-radius: 5px;
+  font-family: var(--h-system);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #fff;
+  background: var(--h-enamel);
+  box-shadow:
+    inset 0 0 0 2px var(--h-enamel),
+    inset 0 0 0 3.5px var(--h-enamel-rule),
+    0 8px 16px -10px rgba(0, 0, 0, 0.7);
+}
+
+// The tram car: the stage the opening story plays on
+
+.adv-home .h-car {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: var(--h-radius, 24px);
+  color: var(--h-mist);
+  background: linear-gradient(180deg, #161d1a, var(--h-car) 40%);
+}
+
+// Amber LED board. Unlit dots fill the board; `.h-led-dots` lays a mesh over its own text,
+// so large type reads as lit dots. Small text stays solid amber to stay readable.
+
+.adv-home .h-led-board {
+  position: relative;
+  box-sizing: border-box;
+  border-radius: 14px;
+  color: var(--h-led);
+  background-color: var(--h-led-off);
+  background-image: radial-gradient(circle, rgba(255, 177, 59, 0.09) 0 1px, transparent 1.4px);
+  background-size: 4px 4px;
+  box-shadow:
+    inset 0 0 0 2px var(--h-car-line),
+    0 24px 48px -28px rgba(0, 0, 0, 0.8);
+}
+
+.adv-home .h-led-dots {
+  position: relative;
+  color: var(--h-led);
+  // Its own unlit dots, on the same grid as the mesh above the text
+  background-image: radial-gradient(circle, rgba(255, 177, 59, 0.09) 0 1px, transparent 1.4px);
+  background-size: 4px 4px;
+  text-shadow:
+    0 0 6px var(--h-led-glow),
+    0 0 20px var(--h-led-glow);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(circle, transparent 0 1.15px, var(--h-led-off) 1.6px);
+    background-size: 4px 4px;
+  }
+}
+
+// Enamel sign: a choice, a stop, a transfer. `--sign` sets the line colour.
+
+.adv-home .h-sign {
+  --sign: var(--h-enamel);
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 58px;
+  padding: 10px 18px 10px 12px;
+  border-radius: 8px;
+  font-family: var(--h-system);
+  color: #fff;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  background: var(--sign);
+  box-shadow:
+    inset 0 0 0 3px var(--sign),
+    inset 0 0 0 4.5px var(--h-enamel-rule),
+    0 16px 28px -16px rgba(0, 0, 0, 0.85);
+  transition: transform 0.2s var(--h-ease);
+
+  .h-sign-text {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .h-sign-label {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.35;
+    letter-spacing: 0.04em;
+  }
+
+  .h-sign-sub {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.72);
+  }
+
+  .h-sign-arrow {
+    flex: none;
+    margin-left: auto;
+    font-size: 18px;
+    opacity: 0.6;
+    transition:
+      opacity 0.2s,
+      transform 0.2s var(--h-ease);
+  }
+
+  &:hover,
+  &:focus-visible {
+    .h-sign-arrow {
+      opacity: 1;
+      transform: translateX(3px);
+    }
+  }
+
+  &:active {
+    transform: scale(0.985);
+  }
+}
+
+// Line number in a white disc, as on a stop sign
+.adv-home .h-roundel {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-family: var(--h-system);
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--sign, var(--h-enamel));
+  background: #fff;
+}
+
+// "Click to continue" chevron
+
+.adv-home .h-next {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--h-cyan);
+  border-bottom: 2px solid var(--h-cyan);
+  filter: drop-shadow(0 0 6px rgba(34, 255, 233, 0.8));
+  transform: rotate(45deg);
+  animation: h-bob 0.9s ease-in-out infinite alternate;
+}
+
+// Quiet control inside a stage (自动 / 记录)
+
+.adv-home .h-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid rgba(150, 185, 245, 0.2);
+  border-radius: 8px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: var(--h-mist-2);
+  cursor: pointer;
+  background: rgba(6, 13, 34, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition:
+    color 0.2s,
+    border-color 0.2s;
+
+  &:hover {
+    color: var(--h-mist);
+    border-color: rgba(150, 185, 245, 0.4);
+  }
+
+  // State lamp for toggles
+  &[aria-pressed]::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--h-mist-3);
+    transform: rotate(45deg);
+    transition:
+      background-color 0.2s,
+      box-shadow 0.2s;
+  }
+
+  &[aria-pressed='true'] {
+    color: var(--h-led);
+    border-color: rgba(255, 177, 59, 0.4);
+
+    &::before {
+      background: var(--h-led);
+      box-shadow: 0 0 8px var(--h-led);
+    }
+  }
+}
+
+// Segmented switch on page surfaces (舞台 / RuntimeProgram, 完整游戏 / 嵌入)
+
+.adv-home .h-seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 10px;
+  background: var(--vp-c-bg-soft);
+
+  > button {
+    height: 34px;
+    padding: 0 16px;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--vp-c-text-2);
+    cursor: pointer;
+    transition:
+      color 0.2s,
+      background-color 0.2s,
+      box-shadow 0.2s;
+
+    &:hover {
+      color: var(--vp-c-text-1);
+    }
+
+    &[aria-selected='true'] {
+      color: var(--vp-c-text-1);
+      background: var(--vp-c-bg);
+      box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.12),
+        inset 0 -2px 0 var(--vp-c-brand-3);
+    }
+  }
+}
+
+.adv-home :is(.h-chip, button, a):focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 3px;
+}
+
+// Night panels: the source pane and the terminal
+.adv-home :is(.source, .terminal) :is(.h-chip, button, a):focus-visible {
+  outline-color: var(--h-cyan);
+}
+
+.adv-home .h-car :is(.h-sign, .h-chip, button, a):focus-visible {
+  outline-color: var(--h-led);
+}
+
+// Typewriter
+
+.adv-home .h-type {
+  white-space: pre-wrap;
+}
+
+.adv-home .h-char {
+  animation: h-char-in 0.18s linear both;
+  animation-delay: calc(var(--i) * var(--h-type-speed, 36ms) + var(--h-type-delay, 0ms));
+}
+
+.adv-home .h-type.is-done .h-char {
+  animation: none;
+}
+
+.adv-home .h-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes h-char-in {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes h-bob {
+  from {
+    transform: translateY(-2px) rotate(45deg);
+  }
+  to {
+    transform: translateY(2px) rotate(45deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adv-home .h-char,
+  .adv-home .h-next {
+    animation: none;
+  }
+
+  .adv-home .h-sign,
+  .adv-home .h-sign .h-sign-arrow {
+    transition: none;
+  }
+}

@@ -1,4 +1,10 @@
+---
+pageClass: adv-product-page
+---
+
 # Editor
+
+<EditorProduct />
 
 `@advjs/editor` 是针对 PC 创作优化的 ADV.JS 编辑器。它既可以作为 [editor.advjs.org](https://editor.advjs.org) 在线使用，也可以由 CLI 在本地打开 Agent 正在修改的项目。
 

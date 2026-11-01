@@ -11,9 +11,11 @@ import typedocSidebar from '../../api/typedoc-sidebar.json'
 import { metaData } from './constants'
 
 import head from './head'
+import { advLanguage, highlightAdvScripts } from './highlight'
 
 const vpConfig = getVitepressConfig({})
 const customElements = new Set(['font'])
+const editLinkPattern = 'https://github.com/YunYouJun/advjs/edit/main/docs/:path'
 
 const nav: DefaultTheme.Config['nav'] = [
   { text: '指南', link: '/guide/' },
@@ -122,6 +124,115 @@ const nav: DefaultTheme.Config['nav'] = [
   },
 ]
 
+// Only the guide has an English entry so far; the other links point at the
+// Chinese pages until they are translated.
+const enNav: DefaultTheme.Config['nav'] = [
+  { text: 'Guide', link: '/en/guide/' },
+  { text: 'AI', link: '/ai/' },
+  { text: 'API', link: '/api/' },
+  {
+    text: 'AGUI',
+    link: '/agui/',
+  },
+  {
+    text: 'About',
+    items: [
+      {
+        text: 'ADV.JS',
+        link: '/about/index',
+      },
+      {
+        text: 'Design',
+        link: '/about/design/',
+      },
+      {
+        text: 'Development',
+        link: '/about/dev/',
+      },
+      {
+        text: 'Vision',
+        link: '/about/future/',
+      },
+
+      {
+        text: 'Roadmap',
+        items: [
+          {
+            text: 'Studio Roadmap',
+            link: '/guide/studio/roadmap',
+          },
+        ],
+      },
+
+      {
+        text: 'Contributing',
+        items: [
+          {
+            text: 'Contributing',
+            link: '/contributing/',
+          },
+          {
+            text: 'Writing Guide',
+            link: '/contributing/writing-guide',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    text: 'Resources',
+    items: [
+      {
+        text: 'Assets',
+        link: '/resources/',
+      },
+      {
+        text: 'Showcases',
+        link: '/resources/showcases',
+      },
+      {
+        text: 'Learning',
+        link: '/resources/learning',
+      },
+    ],
+  },
+  {
+    text: 'Ecosystem',
+    items: [
+      {
+        text: 'Overview',
+        link: '/ecosystem/',
+      },
+      {
+        text: 'Tools',
+        items: [
+          {
+            text: 'Script Parser',
+            link: 'https://parser.advjs.org',
+          },
+          {
+            text: 'VRM Model Editor',
+            link: 'https://vrm.advjs.org',
+          },
+        ],
+      },
+      {
+        text: 'Help',
+        items: [
+          {
+            text: 'GitHub Issues',
+            link: 'https://github.com/YunYouJun/advjs/issues',
+          },
+          {
+            text: 'GitHub Discussions',
+            link: 'https://github.com/YunYouJun/advjs/discussions',
+          },
+        ],
+      },
+    ],
+  },
+]
+
 function sidebarAI(): DefaultTheme.SidebarItem[] {
   return [
     {
@@ -147,6 +258,7 @@ function sidebarAI(): DefaultTheme.SidebarItem[] {
         { text: 'adv-create', link: '/ai/skills/adv-create' },
         { text: 'adv-debug', link: '/ai/skills/adv-debug' },
         { text: 'adv-review', link: '/ai/skills/adv-review' },
+        { text: 'adv-theme', link: '/ai/skills/adv-theme' },
         { text: 'OpenClaw 集成', link: '/ai/skills/openclaw' },
         { text: '路线图', link: '/ai/skills/roadmap' },
       ],
@@ -624,6 +736,16 @@ const userConfig = defineConfig({
 
   head,
 
+  markdown: {
+    ...vpConfig.markdown,
+    // AdvScript embeds Markdown and YAML, which must load in the same batch.
+    languages: [...(vpConfig.markdown?.languages ?? []), 'markdown', 'yaml', advLanguage],
+    async shikiSetup(highlighter) {
+      await vpConfig.markdown?.shikiSetup?.(highlighter)
+      await highlightAdvScripts(highlighter)
+    },
+  },
+
   // Pretty URLs for legal/static pages — `advjs.org/privacy` is referenced
   // from the iOS app and from `apps/studio/src/views/settings/SettingsPrivacyPage.vue`,
   // so the canonical link must resolve without `/about/` in the path.
@@ -647,7 +769,7 @@ const userConfig = defineConfig({
     outline: 'deep',
 
     editLink: {
-      pattern: 'https://github.com/YunYouJun/advjs/edit/main/docs/:path',
+      pattern: editLinkPattern,
       text: '✍️ 帮助改善此页面',
     },
 
@@ -680,6 +802,34 @@ const userConfig = defineConfig({
     },
     en: {
       label: 'English',
+      lang: 'en-US',
+      description: 'The Markdown visual novel engine for the AI era.',
+      // Locale themeConfig is deep-merged over the root one, but arrays and
+      // non-object values such as `nav` and `outline: 'deep'` are replaced.
+      themeConfig: {
+        nav: enNav,
+        outline: {
+          level: 'deep',
+          label: 'On this page',
+        },
+        editLink: {
+          pattern: editLinkPattern,
+          text: '✍️ Edit this page on GitHub',
+        },
+        docFooter: {
+          prev: 'Previous page',
+          next: 'Next page',
+        },
+        lastUpdated: {
+          text: 'Last updated',
+          // Format the date in the page language instead of the browser's.
+          formatOptions: {
+            dateStyle: 'medium',
+            timeStyle: 'medium',
+            forceLocale: true,
+          },
+        },
+      },
     },
   },
 

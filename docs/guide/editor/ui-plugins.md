@@ -108,6 +108,16 @@ pnpm --filter @advjs/editor typecheck
 
 开发插件可以把 `.ts` / `.vue` 源码作为包导出，由编辑器 Vite 构建处理；Vue 应由宿主提供，避免插件私自打包第二份运行时。AGUI 主题样式由宿主加载，插件只引入自己的 scoped 样式。动态拼接的 UnoCSS 类名不能保证进入构建，公共插件优先使用 scoped CSS 与语义 token。
 
+#### 外部可信插件的构建入口
+
+维护者也可以在构建时设置 `ADVJS_EDITOR_PLUGIN_ENTRIES`，其值为现有本地模块**绝对路径的 JSON 数组**。每个模块默认导出 `defineEditorPlugin()` 声明；构建插件将它们加入同一 catalog，因此面板、启停、延迟加载、错误处理与标签保留使用原 SDK。输入必须来自可信的本机构建配置，不能从项目 JSON、查询参数或远程 URL 接收。默认不设置时 catalog 保持原样，也不加载任何游戏业务代码。
+
+外部源码预编译后须把 Vue、`@advjs/editor-sdk` 和宿主 GUI 控件保留为 external，确保共享同一 Vue 及 SDK 注入身份；插件自身运行时与业务格式可以独立固定。插件代码与 scoped CSS 可导出为本地入口，所有执行代码在 Editor 构建期间打包。`ADVJS_EDITOR_BUILD_DIR` 与 `ADVJS_EDITOR_OUTPUT_DIR` 可将中间文件和产物放到集成方的忽略缓存，不覆盖默认 `.nuxt` / `.output` / 发布包。预编译 Editor 不会在启动后根据这些路径安装插件。
+
+游戏自有格式可通过插件注入受控文档端口，例如 `read(signal)`、`validate(document, signal)`、`save(document, expectedRevision, signal)`。该端口属于游戏宿主，不扩展 `ctx.project` 为任意文件写入，不把磁盘句柄或 bridge 凭据传给视图。保存须由游戏原有校验、版本冲突与备份流程处理；取消客户端请求不代表服务端已经提交的写入可以撤销。
+
+外部工作台绑定的文件与 Editor 标准 ADV 项目可能不同，应在面板明确显示绑定范围；切换标准项目不能静默切换业务写入目标。隐藏的保留面板必须停止自身全局快捷键，卸载时移除监听、取消请求并处理未保存草稿。内存草稿恢复与玩家存档分别管理，插件停用后的会话草稿保留策略须由插件说明。
+
 预编译的 `adv-editor` 不会因为游戏项目安装了 npm 包而自动加载 UI 插件。当前没有远程安装、更新市场、任意 DOM 注入或不可信代码沙箱。
 
 底部「插件」面板同时提供[官方供应商目录](./plugins)，首批展示 Breeze、Qwen MLX 和 OpenAI TTS 的源码接入、平台要求与显式状态检测。它们是 Node 作者侧供应商，复用通用音频界面，不作为 UI 插件动态注入；目录不下载或执行远程代码，也不代表 npm 已发布。
@@ -143,7 +153,7 @@ pnpm --filter @advjs/editor typecheck
 
 同一项目会话内重复执行命令会被拦截。切换或关闭项目后，宿主释放旧命令的 busy/error 状态，旧任务完成时不会覆盖新会话的执行状态。插件在异步任务后发布自身结果或通知前，也应比较启动时与当前的 `sessionId`；切换项目不会销毁整个插件，不能只用插件级 `signal` 判断项目是否仍然相同。
 
-目前只提供项目读取与刷新，项目写入未来将复用现有 source patch 校验和冲突处理。游戏运行时、Agent proposal、项目存储仍由各自模块负责。
+标准项目接口仍只提供读取与刷新；游戏自有格式通过受控文档端口保存。游戏运行时、Agent proposal、项目存储仍由各自模块负责。
 
 ### 生命周期
 
@@ -185,3 +195,51 @@ Vue 组件测试需要 Nuxt 生成的 `editor/core/.nuxt/tsconfig.json`。已有
 ## 游戏预览的样式归属
 
 插件面板及工具栏遵循 [AGUI 规范](/agui/design)。面板嵌入的游戏内容遵循 [游戏 UI 契约](/about/design/game-ui)，通过 `AdvContainer` 和局部 `ThemeConfig.ui` 配置主题；不得用游戏 token 改变外部编辑器控件。两者的分工见 [统一设计体系](/about/design/design-system)。
+
+### 原生菜单与插件文档
+
+API v1 增加可选服务 `documents.register`；插件须在 `requires` 中声明。视图通过 `ctx.documents.register(id, { dirty, save })` 登记只读布尔 Ref 和异步保存回调，返回取消登记函数；也会随插件生命周期释放。宿主会为文档 ID 加上插件前缀，拒绝重复登记。此接口不接收任意文件路径或游戏存档，只登记草稿与持久保存结果。
+
+Electron 将插件文档、内置表单和当前源码的未保存状态合并，统一更新标题标记、状态栏、原生保存菜单与关闭 / 重载 / 退出保护。没有标准 ADV 项目时，插件草稿仍可启用原生保存。标签隐藏不取消登记，切换标准项目不清空插件草稿。`save()` 只有在真实写入完成、没有更新的修改时才能返回 `true`；校验错误、冲突、繁忙或取消返回 `false`，异常同样阻止继续。重复保存请求共享同一次操作。
+
+插件有未保存文档时不能停用，先保存或在其工作台明确放弃草稿；停用偏好不会提前写入。文档登记应与视图或插件的真实草稿生命周期一致，不要在隐藏标签时释放，也不要使用已经卸载的保存回调。Electron 关窗走原生「保存并继续 / 取消」流程，已接入的文档不再同时弹浏览器 beforeunload 提示；浏览器独立工具可继续保留原提示。
+
+
+## 标准项目插件包与 Node 宿主
+
+可信构建可使用 `ADVJS_EDITOR_PLUGIN_PACKAGES`（JSON 数组，每项为绝对本地包目录），无需手写桥接模块。包清单示例：
+
+```json
+{
+  "name": "@example/advjs-editor-plugin-story",
+  "version": "1.0.0",
+  "advjs": {
+    "editorPlugin": {
+      "apiVersion": 1,
+      "id": "example.story",
+      "entry": "./dist/plugin.mjs",
+      "styles": ["./dist/plugin.css"],
+      "host": "./dist/host.mjs"
+    }
+  }
+}
+```
+
+先构建插件，再构建 Editor。入口和样式必须是包内真实文件，校验 realpath 后拒绝指向包外的符号链接；版本不支持、ID 缺失或重复、文件缺失时构建失败。Node `host` 只声明宿主入口，不由清单加载器执行，也不进入渲染 bundle。已有 `ADVJS_EDITOR_PLUGIN_ENTRIES` 继续兼容。清单与入口内 `defineEditorPlugin` 的 ID / API 版本应一致，宿主注册表仍负责运行时校验。
+
+`@advjs/editor-sdk/node` 提供 `readEditorPluginPackage`、`createEditorProjectHost` 与 `createEditorProjectHostClient`；Vue 根入口不引入 Node。`@advjs/editor-sdk/host-protocol` 仅提供版本 1 协议类型和固定控制路径。Electron 旧 `WorkbenchHost` 名称保留为 SDK 客户端兼容别名。
+
+Node 项目宿主实现 `EditorProjectHostAdapter`：
+
+| 成员 | 职责 |
+| --- | --- |
+| `id / title / apiPrefix` | 稳定插件身份、界面名称、固定 `/api/name` 前缀 |
+| `inspect(path)` | 规范化为真实绝对路径，验证格式与固定输入 / 输出，不执行所选项目代码 |
+| `open(repository, lease)` | 创建仅绑定该仓库的有限 HTTP 文档处理器 |
+| `validateAccess(repository)` | 验证文件位置仍合法，由 lease 组合会话存活校验 |
+
+`createEditorProjectHost(adapter, initialRoot)` 返回控制处理器、文档处理器、随机控制令牌及 `dispose()`。外层只监听 loopback，关闭前调用 `dispose()` 退役全部会话。Electron 主进程使用固定控制 URL 和令牌创建客户端；renderer 只能经现有受限代理访问文档端口。`info.apiVersion` 为 1；客户端兼容旧宿主未声明版本的响应，明确的未知版本会被拒绝。协议沿用 `info / inspect / open / release`，每个窗口持有不可变仓库绑定与单独令牌，不向视图公开控制凭据。
+
+业务保存处理器必须在读取、编译和最终提交前调用 `lease.validateAccess()`；已释放的会话抛出带 `status: 410` 的错误，不能继续提交。事务、校验、冲突、备份、内容迁移与保存成功的定义由项目宿主管理。SDK 测试使用独立文本适配器验证会话隔离与在途保存退役；项目另外验证真实格式和旧存档兼容。
+
+插件仍是显式可信构建依赖；这里不提供在线市场、动态安装或不可信代码沙箱。调试页面可以注入另一份有限文档端口和展示控件，业务编辑逻辑保持在插件包内。

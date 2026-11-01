@@ -1,0 +1,8 @@
+{
+  "title": "星海观测站",
+  "entryChapterId": "watch",
+  "variables": {
+    "observationCount": 0,
+    "civilizationLevel": 1
+  }
+}

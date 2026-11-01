@@ -44,7 +44,7 @@ export default defineAdvConfig({
 
 采用 `responsive` 时，不要把 UI 位置写死为 1920×1080 像素坐标。优先使用 `clamp()`、百分比、视口单位和 `max-width`，并至少验收桌面横屏与手机竖屏。系统的减少动态效果偏好仍独立生效。
 
-```md
+```adv
 @小云
 你好呀！
 ```

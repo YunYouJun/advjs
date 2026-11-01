@@ -36,6 +36,8 @@ flowchart TB
 
 历史上的 `--adv-*` 前缀覆盖多个用途，不能仅凭前缀认定可跨体系复用。游戏配置只接收公开游戏 token 和 `--adv-theme-*` 扩展；不接收 `--agui-*` 或 Studio 的品牌 token。未来新增跨域样式前，先明确实际消费方。
 
+`@advjs/gui/authoring` 是主题无关的创作交互入口：共享画布交互、条件草稿、诊断分页、预览会话与对白 / 变量 / 轨迹面板，不提供跨产品皮肤。消费方通过 slot 和局部样式复用自己的按钮与 token；Editor 继续使用 AGUI，Studio 与外部作品工具保留各自视觉规范。入口不导入 GUI 全局样式、引擎实例或文件服务。
+
 ## 预览与插件
 
 - `AdvContainer` 标记 `data-adv-ui="game"`，把游戏主题 token 和可选亮暗模式限制在自身 DOM 子树。`AdvGame` 从运行上下文传入主题。

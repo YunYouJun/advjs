@@ -108,7 +108,7 @@ adv assets verify --variant original     # 要求原图齐全并通过校验
 adv assets pull --root ./my-game --json  # 单个机器可读 CLI envelope
 ```
 
-`--variant` 可重复；`default` 表示基础条目而非实际命名 variant。`--variant`、`--originals`、`--all-variants` 互斥。没有声明某种 variant 的条目跳过该 variant；整个目录都没有该名称时报错。`status` 的缺失和损坏数属于查询结果，退出码仍为 0；`verify` 或 `pull` 遇到损坏缓存返回失败并保留文件。先将损坏文件移出缓存，再重新拉取。
+`--variant` 可重复；`default` 表示基础条目而非实际命名 variant。`--variant`、`--originals`、`--all-variants` 互斥。没有声明某种 variant 的条目跳过该 variant；整个目录都没有该名称时报错。`status` 的缺失和损坏数属于查询结果，退出码仍为 0；`verify` 或 `pull` 遇到损坏缓存返回失败并保留文件。先将损坏文件移出缓存，再重新拉取。条目位置上是还没下载的 Git LFS 指针文件时，状态为 `lfs-pointer` 并单独计数；`verify` 和 `pull` 同样返回失败并保留文件，提示先运行 `git lfs pull`。
 
 例如私有 COS 的作者原图与轻量预览可以共用一个资源 ID：
 
@@ -148,7 +148,7 @@ HTTP/CDN 下载可配置 `download.source: { "provider": "http", "baseUrl": "htt
 
 这些命令是用户主动运行的本地 Node 工具：只对可信项目执行 `pull`，并先检查清单的下载源及本机配置的签名器。HTTP 源允许用户明确配置的内网地址，不提供远端不可信清单的 SSRF 隔离；不得直接暴露为远程或 Editor bridge 下载接口。
 
-把二进制缓存目录加入项目 `.gitignore`；分片 JSON 如果位于该目录，需要单独保留跟踪规则。当前原生 `build`/`editor` 不隐式拉取，请先运行 `adv assets pull`，或在项目启动包装器中调用它。私有 COS 鉴权见 [COS 存储规范](./cos)。需要在 Git 中保留二进制源文件历史时，可以用 Git LFS 托管不由本命令下载的文件，见[用 YunBox 管理源素材](./yunbox)。
+把二进制缓存目录加入项目 `.gitignore`；分片 JSON 如果位于该目录，需要单独保留跟踪规则。当前原生 `build`/`editor` 不隐式拉取，请先运行 `adv assets pull`，或在项目启动包装器中调用它。私有 COS 鉴权见 [COS 存储规范](./cos)。需要在 Git 中保留二进制源文件历史时，可以用 Git LFS 托管不由本命令下载的文件，再用 `adv assets verify` 校验，见[组合使用资源目录](./yunbox#组合使用资源目录)。
 
 ## Schema v2
 

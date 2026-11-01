@@ -12,6 +12,7 @@
 
 - [仓鼠旗舰 Demo 与创作调试体验](./2026-07-17-hamster-showcase-demo-design)。
 - [仓鼠完整改编与内容流水线](./2026-07-17-hamster-full-adaptation-design)。
+- [首页 AI 模式：无尽列车、人生模拟器与自由输入](./2026-10-22-home-ai-mode-design)（草案，待确认）。
 
 ## Studio 原生 App
 

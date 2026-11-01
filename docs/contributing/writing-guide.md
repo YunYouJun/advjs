@@ -115,6 +115,7 @@ adv/
 
 - 优先展示项目当前推荐 API，兼容旧写法时明确标注；
 - TypeScript 使用 `ts`，Vue 单文件组件使用 `vue`，AdvScript 指令使用 `yaml`；
+- AdvScript 剧本，即 `.adv.md` 正文或其片段，使用 `adv`，内含代码块时外层写作 ` ````adv `；`.character.md`、场景描述、大纲等普通 Markdown 文件仍使用 `md`；
 - 同一能力存在多种配置方式时使用 VitePress `code-group`，并解释选择条件；
 - 长示例优先通过 `<<<` 引入可测试的真实文件片段，避免复制后逐渐失真；
 - 命令默认不带 `$` 提示符，便于复制；
