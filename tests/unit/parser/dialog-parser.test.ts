@@ -9,7 +9,7 @@ describe('documented dialogue parsing', () => {
   it('matches the dialogue example in the syntax guide', async () => {
     const guide = readFileSync(resolve(root, 'docs/guide/advscript/syntax.md'), 'utf8')
     const section = guide.split('## 对话 Dialog')[1].split('## 人物 Character')[0]
-    const markdown = section.match(/```md\n([\s\S]*?)\n```/)![1]
+    const markdown = section.match(/```(?:adv|md)\n([\s\S]*?)\n```/)![1]
     const expected = JSON.parse(section.match(/```json\n([\s\S]*?)\n```/)![1])
     const ast = await parseAst(markdown)
 
