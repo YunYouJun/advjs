@@ -111,8 +111,8 @@ describe('crew comparison controller and actual isolated host', () => {
   it('ends a fenced task without rework, another advance, or a final usability score', async () => {
     const h = harness({ fenced: true })
     const result = await h.evaluator.run(input(), { budget, versions: h.versions, signal: new AbortController().signal })
-    expect(result).toMatchObject({ outcome: 'generation-quality', stop: 'OUTPUT_PARSE_FAILED', usability: { status: 'not-reached' }, consumption: { costMicroCny: 25 } })
-    expect(result.usability).not.toHaveProperty('specifiedEndingsReached')
+    expect(result).toMatchObject({ outcome: 'generation-quality', stop: 'OUTPUT_PARSE_FAILED', consumption: { costMicroCny: 25 } })
+    expect(result.usability).toEqual({ status: 'not-reached' })
     expect(h.decisions.map(item => item.type)).toEqual(['approve-plan', 'cancel'])
     expect(h.reports).toHaveLength(0)
   })
