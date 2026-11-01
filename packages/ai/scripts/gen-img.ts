@@ -1,7 +1,7 @@
 import { consola } from 'consola'
 import { colors } from 'consola/utils'
 
-import { HUNYUAN_STYLES, hunyuanClient } from '../src'
+import { HUNYUAN_STYLES, hunyuanClient } from '../src/node'
 
 const textToImagePrompts = [
   // '一只可爱的猫咪在草地上玩耍',

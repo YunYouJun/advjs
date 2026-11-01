@@ -1,4 +1,4 @@
-import type { AdvAIConfig } from '../src'
+import type { AdvAIConfig } from '../src/node'
 
 export const aiFormatJSONData: AdvAIConfig = {
   title: 'AI Generated ADVJS',
