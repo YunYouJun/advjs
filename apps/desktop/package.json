@@ -22,6 +22,7 @@
     "test": "playwright test --config playwright.config.ts"
   },
   "dependencies": {
+    "@advjs/editor-sdk": "workspace:*",
     "advjs": "workspace:*"
   },
   "devDependencies": {

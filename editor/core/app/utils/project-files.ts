@@ -1,30 +1,10 @@
 import type { TreeNode } from '@advjs/gui'
+import { materialDirectoryIcon, materialFileIcon } from '@advjs/gui/client/utils/file-icons'
 
 export type ProjectFileKind = 'text' | 'image' | 'audio' | 'video' | 'model' | 'unsupported'
 
-const directoryIcons = new Map([
-  ['assets', 'i-ri-folders-line'],
-  ['chapters', 'i-ri-book-open-line'],
-  ['characters', 'i-ri-folder-user-line'],
-  ['scenes', 'i-ri-landscape-line'],
-  ['images', 'i-ri-folder-image-line'],
-  ['backgrounds', 'i-ri-folder-image-line'],
-  ['portraits', 'i-ri-folder-user-line'],
-  ['avatars', 'i-ri-folder-user-line'],
-  ['textures', 'i-ri-folder-image-line'],
-  ['sprites', 'i-ri-folder-image-line'],
-  ['audio', 'i-ri-folder-music-line'],
-  ['music', 'i-ri-folder-music-line'],
-  ['sounds', 'i-ri-folder-music-line'],
-  ['voices', 'i-ri-folder-music-line'],
-  ['video', 'i-ri-folder-video-line'],
-  ['videos', 'i-ri-folder-video-line'],
-  ['models', 'i-ri-box-3-line'],
-])
-
-export function projectDirectoryIcon(path: string): string {
-  const name = path.split('/').at(-1)?.toLowerCase() ?? ''
-  return directoryIcons.get(name) ?? 'i-ri-folder-line'
+export function projectDirectoryIcon(path: string, expanded = false): string {
+  return materialDirectoryIcon(path, expanded)
 }
 
 export function projectFileKind(path: string): ProjectFileKind {
@@ -39,6 +19,10 @@ export function projectFileKind(path: string): ProjectFileKind {
   if (/(?:\.(?:adv|css|csv|html|ini|js|json|jsx|md|mjs|scss|ts|tsx|txt|vue|xml|yaml|yml)|(?:^|\/)(?:LICENSE|README))$/iu.test(path))
     return 'text'
   return 'unsupported'
+}
+
+export function projectFileAppearance(path: string): { icon: string } {
+  return { icon: materialFileIcon(path) }
 }
 
 export function projectFileTree(paths: readonly string[], expanded: ReadonlySet<string>, query = ''): TreeNode[] {
@@ -56,7 +40,14 @@ export function projectFileTree(paths: readonly string[], expanded: ReadonlySet<
       const directory = index < segments.length - 1
       let node = directory ? directories.get(prefix) : undefined
       if (!node) {
-        node = { id: prefix, name, kind: directory ? 'directory' : 'file', icon: directory ? projectDirectoryIcon(prefix) : path.endsWith('.character.md') ? 'i-ri-user-line' : 'i-ri-file-text-line' }
+        node = {
+          id: prefix,
+          name,
+          kind: directory ? 'directory' : 'file',
+          ...directory
+            ? { icon: projectDirectoryIcon(prefix), expandedIcon: projectDirectoryIcon(prefix, true) }
+            : projectFileAppearance(path),
+        }
         if (directory) {
           node.children = []
           node.expanded = !!filter || expanded.has(prefix)

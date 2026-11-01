@@ -2,9 +2,9 @@ import type { MenuItemConstructorOptions } from 'electron'
 import { describe, expect, it, vi } from 'vitest'
 import { createNativeMenu } from '../../../apps/desktop/src/menu'
 
-function fixture(hasProject = true, locale: 'en' | 'zh-CN' = 'en') {
+function fixture(hasProject = true, locale: 'en' | 'zh-CN' = 'en', hasUnsavedDocuments = false, workbench?: { title: string, hasRepository: boolean }) {
   const callbacks = { command: vi.fn(), create: vi.fn(), newWindow: vi.fn(), openCurrent: vi.fn(), open: vi.fn(), reconnect: vi.fn(), openRecent: vi.fn(), close: vi.fn(), reload: vi.fn(), openHelp: vi.fn() }
-  const menu = createNativeMenu({ platform: 'darwin', hasProject, locale, templates: [{ id: 'rainy-letter', name: '雨夜来信' }], recent: [{ id: 'opaque-id', name: 'My Project' }], ...callbacks })
+  const menu = createNativeMenu({ platform: 'darwin', hasProject, hasUnsavedDocuments, workbench, locale, templates: [{ id: 'rainy-letter', name: '雨夜来信' }], recent: [{ id: 'opaque-id', name: 'My Project' }], ...callbacks })
   function find(id: string, items = menu): MenuItemConstructorOptions | undefined {
     for (const item of items) {
       if (item.id === id)
@@ -24,6 +24,24 @@ function fixture(hasProject = true, locale: 'en' | 'zh-CN' = 'en') {
 }
 
 describe('desktop native menu', () => {
+  it('uses native repository actions and keeps ADV creation disabled in a hosted workbench', () => {
+    const { find } = fixture(false, 'zh-CN', false, { title: 'Example', hasRepository: true })
+    expect(find('desktop.open')?.label).toBe('打开工作台仓库…')
+    expect(find('desktop.open-current')?.label).toBe('切换工作台仓库…')
+    expect(find('desktop.recent')?.label).toBe('最近仓库')
+    expect(find('desktop.close-project')?.enabled).toBe(true)
+    expect(find('desktop.new-project')?.enabled).toBe(false)
+    expect(find('desktop.preview')?.enabled).toBe(false)
+  })
+
+  it('enables Save for plugin drafts without enabling ADV project actions', () => {
+    const { find } = fixture(false, 'en', true)
+    expect(find('desktop.save')?.enabled).toBe(true)
+    expect(find('desktop.save')?.accelerator).toBe('CmdOrCtrl+S')
+    expect(find('desktop.project-settings')?.enabled).toBe(false)
+    expect(fixture(false).find('desktop.save')?.enabled).toBe(false)
+  })
+
   it('opens preferences from Edit while retaining the application menu shortcut', () => {
     const { menu, find, click, callbacks } = fixture(false, 'zh-CN')
     const edit = menu.find(item => item.label === '编辑')!.submenu as MenuItemConstructorOptions[]

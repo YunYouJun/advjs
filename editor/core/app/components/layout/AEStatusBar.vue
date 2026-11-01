@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { useDesktopStore } from '../../stores/useDesktopStore'
+import { useExtensionDocuments } from '../../stores/useExtensionDocuments'
 import AECopyErrorButton from '../error/AECopyErrorButton.vue'
 
 const desktop = useDesktopStore()
 const file = useFileStore()
 const monaco = useMonacoStore()
 const drafts = useProjectDrafts()
+const documents = useExtensionDocuments()
 const console = useConsoleStore()
 const host = window.advDesktop!
 const { locale } = useI18n()
 const zh = computed(() => locale.value === 'zh-CN')
-const dirty = computed(() => drafts.dirty || file.isDirty)
+const dirty = computed(() => documents.dirty || drafts.dirty || file.isDirty)
 const task = computed(() => desktop.status.task)
 const position = computed(() => monaco.positions[file.openedFilePath])
 const taskLabel = computed(() => {
@@ -36,9 +38,9 @@ async function act(action: () => Promise<unknown>) {
       {{ zh ? '切换项目' : 'Projects' }}
     </AGUIButton>
     <span class="status-connection" role="status">
-      {{ !desktop.status.hasProject ? (zh ? '未打开项目' : 'No project') : desktop.status.connected ? (zh ? '已连接' : 'Connected') : (zh ? '连接已断开' : 'Disconnected') }}
+      {{ desktop.status.workbench ? (desktop.status.workbench.name ?? (zh ? '未打开仓库' : 'No repository')) : !desktop.status.hasProject ? (zh ? '未打开项目' : 'No project') : desktop.status.connected ? (zh ? '已连接' : 'Connected') : (zh ? '连接已断开' : 'Disconnected') }}
     </span>
-    <span v-if="desktop.status.hasProject" class="status-saved">{{ dirty ? (zh ? '未保存' : 'Unsaved') : (zh ? '已保存' : 'Saved') }}</span>
+    <span v-if="desktop.status.hasProject || desktop.status.workbench?.root || dirty" class="status-saved">{{ dirty ? (zh ? '未保存' : 'Unsaved') : (zh ? '已保存' : 'Saved') }}</span>
     <span v-if="file.openedFilePath" class="status-file" :title="file.openedFilePath">{{ file.openedFilePath }}</span>
     <span v-if="position" class="status-position">{{ zh ? `行 ${position.lineNumber}，列 ${position.column}` : `Ln ${position.lineNumber}, Col ${position.column}` }}</span>
     <AGUIButton v-if="task" variant="text" class="status-task" :class="{ 'status-task-failed': task.state === 'failed' }" :title="zh ? '任务详情与日志' : 'Task details and logs'" @click="desktop.taskDetailsOpen = true">

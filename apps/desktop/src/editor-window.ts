@@ -1,5 +1,6 @@
 import type { IpcMainInvokeEvent, UtilityProcess } from 'electron'
 import type { DesktopCommand } from './commands.js'
+import type { WorkbenchBinding, WorkbenchHost } from './workbench-host.js'
 import { randomUUID } from 'node:crypto'
 import { mkdir } from 'node:fs/promises'
 import { basename, resolve } from 'node:path'
@@ -16,12 +17,14 @@ interface WindowOptions {
   publicRoot: string
   icon: string
   changed: () => void
+  workbenchHost?: WorkbenchHost
   close: (context: EditorWindow) => void
 }
 export class EditorWindow {
   readonly window: BrowserWindow
   readonly tasks: ReturnType<typeof createDesktopTasks>
   session?: { origin: string, token: string, root?: string }
+  private workbenchBinding?: WorkbenchBinding
   private service?: UtilityProcess
   dirty = false
   disposed = false
@@ -70,11 +73,11 @@ export class EditorWindow {
   }
 
   updateTitle() {
-    const title = this.session?.root ? `${basename(this.session.root)} — ADV.JS Editor` : 'ADV.JS Editor'
+    const title = this.repositoryPath ? `${this.workbenchBinding?.name ?? basename(this.repositoryPath)} — ADV.JS Editor` : 'ADV.JS Editor'
     this.window.setTitle(`${this.dirty ? '● ' : ''}${title}`)
     this.window.setDocumentEdited(this.dirty)
     if (process.platform === 'darwin')
-      this.window.setRepresentedFilename(this.session?.root ?? '')
+      this.window.setRepresentedFilename(this.repositoryPath ?? '')
   }
 
   command(action: DesktopCommand) {
@@ -118,7 +121,7 @@ export class EditorWindow {
         return false
     }
     // Capture the renderer's final layout and editor position before navigation.
-    return !this.session?.root || !this.rendererReady || await this.command('capture-state')
+    return !this.repositoryPath || !this.rendererReady || await this.command('capture-state')
   }
 
   async trust(path: string, reopening = false) {
@@ -155,8 +158,8 @@ export class EditorWindow {
     })
   }
 
-  private async startService(projectRoot: string, empty = false, port = 0) {
-    const child = utilityProcess.fork(resolve(app.isPackaged ? this.options.runtimeRoot : this.options.root, 'dist/service.mjs'), [projectRoot, this.options.publicRoot, empty ? 'empty' : 'project', String(port)], { cwd: this.options.runtimeRoot, stdio: 'pipe', serviceName: 'ADV.JS Project Host' })
+  private async startService(projectRoot: string, empty = false, port = 0, workspaceSession?: string) {
+    const child = utilityProcess.fork(resolve(app.isPackaged ? this.options.runtimeRoot : this.options.root, 'dist/service.mjs'), [projectRoot, this.options.publicRoot, empty ? 'empty' : 'project', String(port)], { cwd: this.options.runtimeRoot, stdio: 'pipe', serviceName: 'ADV.JS Project Host', env: { ...process.env, ADVJS_DESKTOP_WORKSPACE_SESSION: workspaceSession ?? '', ADVJS_DESKTOP_WORKSPACE_TOKEN: '' } })
     child.stdout?.on('data', data => process.stdout.write(data))
     child.stderr?.on('data', data => process.stderr.write(data))
     const ready = await new Promise<{ url: string, root: string, token: string }>((done, fail) => {
@@ -190,13 +193,41 @@ export class EditorWindow {
     return { child, ready }
   }
 
-  async load(path?: string, fingerprint = '') {
+  get repositoryPath() { return this.workbenchBinding?.root ?? this.session?.root }
+  get workbench() {
+    const binding = this.workbenchBinding
+    return binding ? { root: binding.root, name: binding.name } : undefined
+  }
+
+  async loadWorkbench(path?: string) {
+    const binding = path ? await this.options.workbenchHost!.open(path) : undefined
+    try {
+      return await this.load(undefined, '', binding)
+    }
+    catch (error) {
+      if (binding)
+        await this.options.workbenchHost!.release(binding.id).catch(() => {})
+      throw error
+    }
+  }
+
+  async load(path?: string, fingerprint = '', binding?: WorkbenchBinding) {
     const directory = path ?? resolve(app.getPath('userData'), 'empty-workspace')
     if (!path)
       await mkdir(directory, { recursive: true })
-    const { child, ready } = await this.startService(directory, !path)
+    const { child, ready } = await this.startService(directory, !path, 0, binding?.apiToken)
+    // A user may edit while the replacement service is starting. Check again before cutover.
+    if (this.options.workbenchHost && this.dirty && !await this.prepareToLeave()) {
+      await this.stopService(child)
+      if (binding)
+        await this.options.workbenchHost.release(binding.id)
+      return false
+    }
     await this.tasks.dispose()
+    const previousBinding = this.workbenchBinding
+    const previousSession = this.session
     const old = this.service
+    this.workbenchBinding = binding
     this.service = child
     this.session = { origin: new URL(ready.url).origin, token: ready.token, ...(path ? { root: ready.root } : {}) }
     this.trustedConfig = fingerprint
@@ -207,10 +238,22 @@ export class EditorWindow {
     try {
       await this.window.loadURL(`${this.session.origin}/`)
     }
-    finally {
-      if (old)
-        await this.stopService(old)
+    catch (error) {
+      this.service = old
+      this.session = previousSession
+      this.workbenchBinding = previousBinding
+      await this.stopService(child)
+      this.updateTitle()
+      this.options.changed()
+      if (previousSession)
+        await this.window.loadURL(`${previousSession.origin}/`).catch(() => {})
+      throw error
     }
+    if (old)
+      await this.stopService(old)
+    if (previousBinding)
+      await this.options.workbenchHost?.release(previousBinding.id).catch(() => {})
+    return true
   }
 
   async reconnect() {
@@ -236,6 +279,9 @@ export class EditorWindow {
     for (const complete of this.requests.values()) complete(false)
     await this.tasks.dispose()
     await this.stopService()
+    if (this.workbenchBinding)
+      await this.options.workbenchHost?.release(this.workbenchBinding.id).catch(() => {})
+    this.workbenchBinding = undefined
     if (!this.window.isDestroyed())
       this.window.destroy()
   }

@@ -9,6 +9,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      '@advjs/editor-sdk/node': fileURLToPath(new URL('./packages/editor-sdk/src/node.ts', import.meta.url)),
       '@advjs/editor-sdk': fileURLToPath(new URL('./packages/editor-sdk/src/index.ts', import.meta.url)),
       '@advjs/audio': fileURLToPath(new URL('./packages/audio/src/index.ts', import.meta.url)),
       '@advjs/parser': fileURLToPath(new URL('./packages/parser/src/index.ts', import.meta.url)),

@@ -1,4 +1,4 @@
-import type { EditorCommand, EditorPlugin, EditorPluginContext, EditorRegion, EditorService, EditorView } from '@advjs/editor-sdk'
+import type { EditorCommand, EditorDocument, EditorPlugin, EditorPluginContext, EditorRegion, EditorService, EditorView } from '@advjs/editor-sdk'
 import type { VoiceProviderStatusPort } from '@advjs/types'
 import type { InjectionKey } from 'vue'
 import { computed, inject, nextTick, reactive, shallowReactive, watch } from 'vue'
@@ -23,7 +23,8 @@ export interface RegisteredView extends EditorView {
   entry: PluginEntry
 }
 
-export type EditorHostServices = Omit<EditorPluginContext, 'signal' | 'onDispose'> & {
+export type EditorHostServices = Omit<EditorPluginContext, 'signal' | 'onDispose' | 'documents'> & {
+  documents?: { register: (owner: string, id: string, document: EditorDocument) => () => void, hasDirty: (owner: string) => boolean }
   /** Host-only catalog seam; never passed into third-party plugin contexts. */
   voiceProviderStatus?: () => VoiceProviderStatusPort | undefined
 }
@@ -131,6 +132,12 @@ export function createEditorExtensionHost(
         if (!controller.signal.aborted)
           services.notifications.info(message)
       } },
+      documents: services.documents
+        ? { register(id, document) {
+            assertActive()
+            return onDispose(services.documents!.register(entry.plugin.id, id, document))
+          } }
+        : undefined,
       onDispose,
     }
     return {
@@ -159,7 +166,7 @@ export function createEditorExtensionHost(
     entry.abort = resource.abort
     entry.dispose = resource.dispose
     try {
-      validate(entry.plugin, options.available ?? ['project.read', 'project.refresh', 'clipboard.write'])
+      validate(entry.plugin, options.available ?? ['project.read', 'project.refresh', 'clipboard.write', ...(services.documents ? ['documents.register' as const] : [])])
       const cleanup = await entry.plugin.activate?.(resource.context)
       if (cleanup)
         resource.context.onDispose(cleanup)
@@ -177,6 +184,10 @@ export function createEditorExtensionHost(
   }
 
   async function disable(entry: PluginEntry) {
+    if (!disposed && services.documents?.hasDirty(entry.plugin.id)) {
+      entry.error = services.locale.value === 'zh-CN' ? '请先保存或明确放弃未保存草稿，再停用插件。' : 'Save or explicitly discard unsaved drafts before disabling this plugin.'
+      return
+    }
     ++entry.generation
     entry.status = 'disabled'
     entry.abort?.()
@@ -249,9 +260,11 @@ export function createEditorExtensionHost(
       const entry = entries.find(item => item.plugin.id === id)
       if (!entry || (!enabled && entry.required) || disposed)
         return
-      enabled ? disabled.delete(id) : disabled.add(id)
-      options.persistDisabled?.([...disabled])
       await (enabled ? enable(entry) : disable(entry))
+      if (enabled || entry.status === 'disabled') {
+        enabled ? disabled.delete(id) : disabled.add(id)
+        options.persistDisabled?.([...disabled])
+      }
     },
     async dispose() {
       if (disposed)

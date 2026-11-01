@@ -8,11 +8,12 @@ export function useDesktopWorkspaceState(extensions: ReturnType<typeof useEditor
   const project = useProjectStore()
   const console = useConsoleStore()
   let restored = false
+  let hasWorkspace = false
   let timer: ReturnType<typeof setTimeout> | undefined
   let write = Promise.resolve()
   function capture() {
     clearTimeout(timer)
-    if (!restored || !window.advDesktop || !project.projectLocation)
+    if (!restored || !window.advDesktop || !hasWorkspace)
       return Promise.resolve(true)
     const state: DesktopWorkspaceState = JSON.parse(JSON.stringify({ version: 1, layout: app.layout, activeViews: extensions.layout.state.active, openedFile: file.openedFilePath, positions: Object.fromEntries(Object.entries(monaco.positions).slice(-200)) }))
     const pending = write.catch(() => {}).then(() => window.advDesktop!.saveWorkspaceState(state))
@@ -31,6 +32,8 @@ export function useDesktopWorkspaceState(extensions: ReturnType<typeof useEditor
   async function restore() {
     if (!window.advDesktop)
       return
+    const status = await window.advDesktop.status()
+    hasWorkspace = !!project.projectLocation || !!status.workbench?.root
     const state = await window.advDesktop.workspaceState()
     // Each desktop project starts with defaults, never another port's layout.
     app.resetLayout()

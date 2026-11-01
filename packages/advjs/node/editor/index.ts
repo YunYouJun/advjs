@@ -41,6 +41,8 @@ export interface EditorBridgeOptions {
   validateProjectAccess?: () => Promise<void>
   /** Trusted local host configuration; never comes from the renderer. */
   audioJobs?: Omit<EditorVoiceJobsHostOptions, 'projectRoot' | 'validateProjectAccess'>
+  /** Finite trusted local host routes; not loaded from project files or the renderer. */
+  handleHostRequest?: (request: import('node:http').IncomingMessage, response: ServerResponse) => Promise<boolean>
 }
 
 export interface EditorBridgeReadyEvent {
@@ -320,17 +322,21 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
       : await defaultRunCommand(command, projectRoot)
   }
 
-  async function handleApi(
-    request: import('node:http').IncomingMessage,
-    response: ServerResponse,
-    url: URL,
-  ) {
+  function authenticate(request: import('node:http').IncomingMessage) {
     if (request.headers.host !== new URL(editorOrigin).host)
       throw new EditorHttpError(403, 'Editor request host is not allowed')
     if (request.headers.origin && request.headers.origin !== editorOrigin)
       throw new EditorHttpError(403, 'Editor request origin is not allowed')
     if (!tokenMatches(request.headers.authorization, token))
       throw new EditorHttpError(401, 'Editor session token is required')
+  }
+
+  async function handleApi(
+    request: import('node:http').IncomingMessage,
+    response: ServerResponse,
+    url: URL,
+  ) {
+    authenticate(request)
     if (url.pathname === `${API_PREFIX}audio/provider-status` || url.pathname === `${API_PREFIX}audio/provider-status/doctor`) {
       await options.validateProjectAccess?.()
       const controller = new AbortController()
@@ -676,10 +682,17 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
       const nextServer = createServer(async (request, response) => {
         try {
           const url = new URL(request.url ?? '/', editorOrigin || `http://${host}`)
-          if (url.pathname.startsWith(API_PREFIX))
+          if (url.pathname.startsWith(API_PREFIX)) {
             await handleApi(request, response, url)
-          else
+          }
+          else {
+            if (options.handleHostRequest && url.pathname.startsWith('/api/')) {
+              authenticate(request)
+              if (await options.handleHostRequest(request, response))
+                return
+            }
             await serveStatic(request, response, url)
+          }
         }
         catch (error) {
           const statusCode = error instanceof EditorHttpError || error instanceof EditorMutationError ? error.statusCode : error instanceof AdvCommandError ? error.message.startsWith('VOICE_CONFLICT:') ? 409 : 400 : 500

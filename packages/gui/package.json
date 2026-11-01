@@ -25,7 +25,9 @@
       "import": "./dist/unocss/index.mjs"
     },
     "./*": "./*",
-    ".": "./index.ts"
+    ".": "./index.ts",
+    "./authoring": "./authoring/index.ts",
+    "./authoring/condition": "./authoring/condition.ts"
   },
   "main": "./index.ts",
   "module": "./index.ts",
@@ -36,7 +38,8 @@
     "index.ts",
     "node",
     "nuxt.mjs",
-    "unocss"
+    "unocss",
+    "authoring"
   ],
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
@@ -48,9 +51,11 @@
     "build:icons": "tsx scripts/build.ts",
     "prepublishOnly": "pnpm run build",
     "release": "bumpp --no-commit --no-tag --no-push && pnpm publish --no-git-checks",
-    "typecheck": "vue-tsc --noEmit"
+    "typecheck": "vue-tsc --noEmit",
+    "typecheck:authoring": "vue-tsc --noEmit -p authoring/tsconfig.json"
   },
   "dependencies": {
+    "@iconify-json/material-icon-theme": "catalog:icons",
     "@iconify-json/radix-icons": "catalog:icons",
     "@iconify-json/vscode-icons": "catalog:icons",
     "@iconify/vue": "catalog:icons",

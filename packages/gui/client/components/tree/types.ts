@@ -3,6 +3,8 @@ export interface TreeNode {
   name?: string
   type?: string
   icon?: string
+  /** Optional folder artwork used while expanded. */
+  expandedIcon?: string
   /**
    * 是否展开
    */

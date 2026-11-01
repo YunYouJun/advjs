@@ -3,8 +3,14 @@ import { inject } from 'vue'
 
 export type EditorRegion = 'navigation' | 'main' | 'bottom' | 'inspector'
 export type EditorText = Readonly<Record<string, string>>
-export type EditorService = 'project.read' | 'project.refresh' | 'clipboard.write'
+export type EditorService = 'project.read' | 'project.refresh' | 'clipboard.write' | 'documents.register'
 export type EditorCleanup = () => void
+
+export interface EditorDocument {
+  readonly dirty: Readonly<Ref<boolean>>
+  /** True only after durable saving and when no newer edits remain. */
+  save: () => Promise<boolean>
+}
 
 export interface EditorDiagnostic {
   readonly code: string
@@ -35,6 +41,8 @@ export interface EditorPluginContext {
   }
   readonly clipboard: { writeText: (text: string) => Promise<void> }
   readonly notifications: { info: (message: string) => void }
+  /** Optional API v1 addition; declare documents.register in requires. */
+  readonly documents?: { register: (id: string, document: EditorDocument) => EditorCleanup }
   onDispose: (cleanup: EditorCleanup) => EditorCleanup
 }
 

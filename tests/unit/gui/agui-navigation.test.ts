@@ -41,16 +41,18 @@ async function key(element: Element, value: string, options: KeyboardEventInit =
 describe('aGUI tree navigation', () => {
   it.each([false, true])('navigates hierarchy with one tab stop and activates with context menus: %s', async (withMenu) => {
     const child = { name: 'Chapter one' }
-    const root = ref([{ name: 'Story', expanded: false, children: [child] }, { name: 'Assets' }])
+    const root = ref([{ name: 'Story', icon: 'folder-closed', expandedIcon: 'folder-open', expanded: false, children: [child] }, { name: 'Assets' }])
     const activate = vi.fn()
     const open = vi.fn()
     const container = mount(() => h(AGUITree, { 'data': root.value, 'label': 'Project', 'contextMenu': withMenu ? () => [{ label: 'Open', onClick: vi.fn() }] : undefined, 'onNode-activate': activate, 'onNode-dblclick': open }))
     const rows = () => [...container.querySelectorAll<HTMLElement>('[role=treeitem]')]
     expect(container.querySelector('[role=tree]')!.getAttribute('aria-label')).toBe('Project')
     expect(rows().map(row => row.tabIndex)).toEqual([0, -1])
+    expect(rows()[0].querySelector('.agui-tree-icon')!.classList.contains('folder-closed')).toBe(true)
     rows()[0].focus()
     await key(rows()[0], 'ArrowRight')
     expect(rows()[0].getAttribute('aria-expanded')).toBe('true')
+    expect(rows()[0].querySelector('.agui-tree-icon')!.classList.contains('folder-open')).toBe(true)
     expect(rows()).toHaveLength(3)
     await key(rows()[0], 'ArrowRight')
     expect(document.activeElement).toBe(rows()[1])
@@ -64,6 +66,7 @@ describe('aGUI tree navigation', () => {
     expect(document.activeElement).toBe(rows()[0])
     await key(rows()[0], 'ArrowLeft')
     expect(rows()).toHaveLength(2)
+    expect(rows()[0].querySelector('.agui-tree-icon')!.classList.contains('folder-closed')).toBe(true)
     await key(rows()[0], 'End')
     expect(document.activeElement).toBe(rows()[1])
     await key(rows()[1], 'Home')

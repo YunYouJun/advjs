@@ -9,6 +9,7 @@ import ADV from '../../packages/vite-plugin-adv/src'
 import { pwa } from './app/config/pwa'
 import { appDescription } from './app/constants/index'
 import { editorBuildContract } from './build-contract'
+import { editorBundledPlugins } from './bundled-plugins'
 import { resolveEditorCapabilities } from './capabilities'
 
 const editorCapabilities = resolveEditorCapabilities(process.env)
@@ -46,6 +47,7 @@ getLatestCommit().then((hash) => {
 })
 
 export default defineNuxtConfig({
+  buildDir: process.env.ADVJS_EDITOR_BUILD_DIR || '.nuxt',
   ssr: false,
 
   routeRules: {
@@ -119,9 +121,9 @@ export default defineNuxtConfig({
         : ['api/pageview.ts'],
     ],
     output: {
-      dir: editorBuildContract.outputDirectory,
-      publicDir: editorBuildContract.publicDirectory,
-      serverDir: editorBuildContract.serverDirectory,
+      dir: process.env.ADVJS_EDITOR_OUTPUT_DIR || editorBuildContract.outputDirectory,
+      publicDir: process.env.ADVJS_EDITOR_OUTPUT_DIR ? resolve(process.env.ADVJS_EDITOR_OUTPUT_DIR, 'public') : editorBuildContract.publicDirectory,
+      serverDir: process.env.ADVJS_EDITOR_OUTPUT_DIR ? resolve(process.env.ADVJS_EDITOR_OUTPUT_DIR, 'server') : editorBuildContract.serverDirectory,
     },
     esbuild: {
       options: {
@@ -221,6 +223,7 @@ export default defineNuxtConfig({
     },
 
     plugins: [
+      editorBundledPlugins(process.env.ADVJS_EDITOR_PLUGIN_ENTRIES, process.env.ADVJS_EDITOR_PLUGIN_PACKAGES),
       ADV(options, { i18n: false }),
     ],
   },

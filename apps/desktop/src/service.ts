@@ -1,5 +1,6 @@
 import process from 'node:process'
 import { createEditorBridge, loadProject } from 'advjs'
+import { createDesktopHostApi } from './host-api.js'
 import { projectConfigFingerprint } from './project-trust.js'
 
 const root = process.argv[2]!
@@ -13,7 +14,7 @@ async function run() {
       if (project.config.format === 'synthetic')
         throw new Error('请选择包含 adv.config.json 或 adv.config.ts 的 ADV.JS 项目')
     }
-    bridge = await createEditorBridge({ projectRoot: root, publicRoot, port: Number(process.argv[5] ?? 0), validateProjectAccess: async () => {
+    bridge = await createEditorBridge({ projectRoot: root, publicRoot, port: Number(process.argv[5] ?? 0), handleHostRequest: createDesktopHostApi(process.env.ADVJS_DESKTOP_HOST_API, process.env.ADVJS_DESKTOP_WORKSPACE_SESSION), validateProjectAccess: async () => {
       if (await projectConfigFingerprint(root) !== fingerprint)
         throw new Error('可执行配置已变更，请点击“重新连接项目”重新确认信任。')
     } })

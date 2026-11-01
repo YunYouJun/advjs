@@ -5,6 +5,8 @@ interface NativeMenuOptions {
   platform: string
   locale?: 'en' | 'zh-CN'
   hasProject: boolean
+  hasUnsavedDocuments?: boolean
+  workbench?: { title: string, hasRepository: boolean }
   recent: readonly { id: string, name: string }[]
   templates: readonly { id: string, name: string }[]
   create: (id: string) => unknown
@@ -47,20 +49,20 @@ export function createNativeMenu(options: NativeMenuOptions): MenuItemConstructo
       { role: 'quit', label: label('Quit ADV.JS Editor', '退出 ADV.JS Editor') },
     ] },
     { label: label('File', '文件'), submenu: [
-      { id: 'desktop.new-project', label: label('New Project', '新建项目'), submenu: options.templates.map(item => ({ id: `desktop.create.${item.id}`, label: item.name, click: () => options.create(item.id) })) },
+      { id: 'desktop.new-project', label: label('New Project', '新建项目'), enabled: !options.workbench, submenu: options.templates.map(item => ({ id: `desktop.create.${item.id}`, label: item.name, click: () => options.create(item.id) })) },
       action('welcome', 'Welcome', '欢迎页', { enabled: !options.hasProject }),
       { id: 'desktop.new-window', label: label('New Window', '新建窗口'), accelerator: 'CmdOrCtrl+Shift+N', click: () => options.newWindow() },
-      { id: 'desktop.open', label: label('Open Project…', '打开项目…'), accelerator: 'CmdOrCtrl+O', click: () => options.open() },
-      { id: 'desktop.open-current', label: label('Open Project in Current Window…', '在当前窗口打开项目…'), click: () => options.openCurrent() },
+      { id: 'desktop.open', label: options.workbench ? label('Open Workbench Repository…', '打开工作台仓库…') : label('Open Project…', '打开项目…'), accelerator: 'CmdOrCtrl+O', click: () => options.open() },
+      { id: 'desktop.open-current', label: options.workbench ? label('Switch Workbench Repository…', '切换工作台仓库…') : label('Open Project in Current Window…', '在当前窗口打开项目…'), click: () => options.openCurrent() },
       action('project-switcher', 'Switch Project…', '切换项目…', { accelerator: 'CmdOrCtrl+Alt+O' }),
-      { id: 'desktop.recent', label: label('Recent Projects', '最近项目'), submenu: options.recent.length
+      { id: 'desktop.recent', label: options.workbench ? label('Recent Repositories', '最近仓库') : label('Recent Projects', '最近项目'), submenu: options.recent.length
         ? options.recent.map(item => ({ id: `desktop.recent.${item.id}`, label: item.name, click: () => options.openRecent(item.id) }))
         : [{ label: label('No Recent Projects', '没有最近项目'), enabled: false }] },
       separator,
-      action('save', 'Save', '保存', { accelerator: 'CmdOrCtrl+S', enabled: options.hasProject }),
+      action('save', 'Save', '保存', { accelerator: 'CmdOrCtrl+S', enabled: options.hasProject || options.hasUnsavedDocuments === true }),
       action('project-settings', 'Project Settings…', '项目设置…', { enabled: options.hasProject }),
       { id: 'desktop.reconnect', label: label('Reconnect Project', '重新连接项目'), enabled: options.hasProject, click: () => options.reconnect() },
-      { id: 'desktop.close-project', label: label('Close Project', '关闭项目'), enabled: options.hasProject, click: () => options.close() },
+      { id: 'desktop.close-project', label: options.workbench ? label('Close Repository', '关闭仓库') : label('Close Project', '关闭项目'), enabled: options.hasProject || options.workbench?.hasRepository === true, click: () => options.close() },
       separator,
       action('export-directory', 'Export Web Directory…', '导出 Web 目录…', { enabled: options.hasProject }),
       action('export-zip', 'Export ZIP…', '导出 ZIP…', { enabled: options.hasProject }),

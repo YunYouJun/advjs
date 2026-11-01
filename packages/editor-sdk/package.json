@@ -8,10 +8,37 @@
     "url": "git+https://github.com/YunYouJun/advjs.git",
     "directory": "packages/editor-sdk"
   },
-  "publishConfig": { "access": "public" },
-  "exports": { ".": { "types": "./dist/index.d.mts", "import": "./dist/index.mjs" } },
-  "files": ["dist"],
-  "scripts": { "build": "unbuild", "dev": "unbuild --stub", "prepublishOnly": "pnpm run build" },
-  "peerDependencies": { "vue": "catalog:frontend" },
-  "devDependencies": { "typescript": "catalog:dev", "unbuild": "catalog:build", "vue": "catalog:frontend" }
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./node": {
+      "types": "./dist/node.d.mts",
+      "import": "./dist/node.mjs"
+    },
+    "./host-protocol": {
+      "types": "./dist/host-protocol.d.mts",
+      "import": "./dist/host-protocol.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "dev": "unbuild --stub",
+    "prepublishOnly": "pnpm run build"
+  },
+  "peerDependencies": {
+    "vue": "catalog:frontend"
+  },
+  "devDependencies": {
+    "typescript": "catalog:dev",
+    "unbuild": "catalog:build",
+    "vue": "catalog:frontend"
+  }
 }

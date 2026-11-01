@@ -3,6 +3,7 @@ import type { TreeNode } from '@advjs/gui'
 import AGUITree from '@advjs/gui/client/components/tree/AGUITree.vue'
 import { computed, ref, watch } from 'vue'
 import { assetDirectoryTree, assetParentFolder } from '../../utils/asset-browser'
+import { projectDirectoryIcon } from '../../utils/project-files'
 
 const props = defineProps<{ paths: string[], folder: string, label: string, allLabel: string }>()
 const emit = defineEmits<{ browse: [folder: string] }>()
@@ -14,7 +15,7 @@ watch(() => [props.paths, props.folder, props.allLabel] as const, () => {
     expanded.add(folder)
     folder = assetParentFolder(folder)
   }
-  tree.value = [{ id: '', name: props.allLabel, icon: 'i-ri-folders-line', expanded: true, children: assetDirectoryTree(props.paths, expanded) }]
+  tree.value = [{ id: '', name: props.allLabel, icon: projectDirectoryIcon('assets'), expandedIcon: projectDirectoryIcon('assets', true), expanded: true, children: assetDirectoryTree(props.paths, expanded) }]
 }, { immediate: true })
 const current = computed(() => {
   function find(nodes: TreeNode[]): TreeNode | undefined {

@@ -92,10 +92,10 @@ async function openAdvProject() {
       </header>
       <AEProjectRecovery :status="projectStore.recoveryStatus" :project-name="projectStore.pendingProject" :error="projectStore.recoveryError" @retry="projectStore.retryProjectRecovery" />
       <div class="welcome-columns">
-        <AEProjectTemplates :disabled="disabled" :creating="isCreating" @create="createAndLoadProject" />
+        <AEProjectTemplates v-if="!desktopStore.status.workbench" :disabled="disabled" :creating="isCreating" @create="createAndLoadProject" />
         <AERecentProjects :projects="recentProjects" :disabled="disabled" :opened-paths="openedPaths" :error="projectStore.recentProjectError" @reopen="reopenRecentProject" @remove="removeRecentProject" />
       </div>
-      <AGUIDetails :title="zh ? '更多打开方式' : 'More ways to start'" class="welcome-more">
+      <AGUIDetails v-if="!desktopStore.status.workbench" :title="zh ? '更多打开方式' : 'More ways to start'" class="welcome-more">
         <div class="project-actions">
           <ProjectAction v-for="tpl in legacyTemplates" :key="tpl.id" :label="zh ? `${tpl.name}（旧格式）` : tpl.nameEn ?? tpl.name" :description="zh ? '用于已有 JSON 节点工程' : tpl.descEn" :icon="tpl.icon" :disabled="disabled" @click="createAndLoadProject(tpl.id)" />
           <ProjectAction v-if="!desktop" :label="zh ? '新建 ADV Markdown' : 'New ADV Markdown'" :description="zh ? '创建 .adv.md 剧本文件' : 'Create an .adv.md script'" icon="i-ri-file-add-line" @click="createAdvMarkdownFile" />

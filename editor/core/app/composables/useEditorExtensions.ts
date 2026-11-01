@@ -5,9 +5,11 @@ import { editorPluginCatalog } from '../extensions/catalog'
 import { createEditorLayoutState, editorLayoutStateKey, PLUGIN_STATE_KEY, readStorage, saveStorage } from '../extensions/layout-state'
 import { createEditorExtensionHost, editorExtensionHostKey } from '../extensions/registry'
 import { createEditorHostServices } from '../extensions/services'
+import { useExtensionDocuments } from '../stores/useExtensionDocuments'
 
 export function useEditorExtensions() {
   const project = useProjectStore()
+  const documents = useExtensionDocuments()
   const { locale } = useI18n()
   let storage: Storage | undefined
   try {
@@ -25,6 +27,7 @@ export function useEditorExtensions() {
     notify: description => Toast({ title: locale.value === 'zh-CN' ? '编辑器' : 'Editor', description, duration: 2500 }),
   })
   const saved = readStorage(storage, PLUGIN_STATE_KEY)
+  adapter.services.documents = { register: (owner, id, document) => documents.register(owner, id, document), hasDirty: documents.hasDirty }
   const disabled = Array.isArray(saved) ? saved.filter((id): id is string => typeof id === 'string') : []
   const host = createEditorExtensionHost(editorPluginCatalog, adapter.services, {
     disabled,
