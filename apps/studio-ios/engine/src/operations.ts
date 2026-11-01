@@ -10,10 +10,18 @@ import {
   compileProject,
   createLegacyChapterProject,
   createProjectGameConfig,
+  createProjectTemplateFiles,
   fixProjectReferences,
   groupLegacyChapterFiles,
   indexProjectContent,
+  isSafeProjectPackagePath,
   parseAuthoringGameSettings,
+  planProjectPackage,
+  PROJECT_SLUG_RE,
+  projectTemplates,
+  quickStartProjectTemplate,
+  readProjectPackageManifest,
+  toProjectSlug,
   validateProjectContent,
 } from '@advjs/core/project'
 import {
@@ -85,6 +93,15 @@ function errorMessage(error: unknown): string {
 function content<T>(run: () => T): T {
   try {
     return run()
+  }
+  catch (error) {
+    throw new EngineFailure('ENGINE_CONTENT_INVALID', errorMessage(error))
+  }
+}
+
+async function contentAsync<T>(run: () => Promise<T>): Promise<T> {
+  try {
+    return await run()
   }
   catch (error) {
     throw new EngineFailure('ENGINE_CONTENT_INVALID', errorMessage(error))
@@ -261,6 +278,45 @@ export const operations: Record<string, Operation> = {
       glossary: optionalString(input, 'glossary'),
     })
     return { ...project, chapters: groups }
+  },
+
+  'project.templates': () => ({
+    templates: projectTemplates.map(template => template.id),
+    quickStart: quickStartProjectTemplate.id,
+  }),
+
+  'project.fromTemplate': (input) => {
+    const templateId = requireString(input, 'templateId')
+    const name = requireString(input, 'name')
+    return {
+      files: Object.fromEntries(createProjectTemplateFiles(templateId, name).map(file => [file.path, file.content])),
+    }
+  },
+
+  'project.slug': (input) => {
+    const slug = toProjectSlug(requireString(input, 'name'))
+    return { slug, valid: PROJECT_SLUG_RE.test(slug) }
+  },
+
+  'package.plan': async (input) => {
+    const files = requireFileMap(input)
+    const plan = await contentAsync(() => planProjectPackage({
+      files,
+      paths: optionalStringArray(input, 'paths') ?? [],
+      name: requireString(input, 'name'),
+      exportedAt: requireString(input, 'exportedAt'),
+    }))
+    // The exact manifest text Web Studio writes, so packages match byte for byte.
+    return { ...plan, manifestText: JSON.stringify(plan.manifest, null, 2) }
+  },
+
+  'package.inspect': (input) => {
+    const paths = optionalStringArray(input, 'paths') ?? []
+    const manifest = optionalString(input, 'manifest')
+    return {
+      manifest: content(() => readProjectPackageManifest(manifest)),
+      unsafePaths: paths.filter(path => !isSafeProjectPackagePath(path)),
+    }
   },
 
   'chapter.parseAst': (input) => {

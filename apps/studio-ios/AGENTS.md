@@ -1,8 +1,32 @@
-# Studio iOS simulator testing
+# ADV.JS Studio for iPhone and iPad — Agent Guidelines
 
-This checkout contains the P0 spike, not the complete native App. Keep that boundary; do not copy the whole App into this branch to run lifecycle tooling.
+Scope, acceptance (N1–N16) and phase status live in [the implementation plan](../../docs/plans/2026-10-21-studio-native-ios.md); feature inventory and architecture decisions in [the design spec](../../docs/specs/2026-10-21-studio-native-ios-design.md); evidence in [the acceptance report](../../docs/reports/studio-native-ios-acceptance.md). Update all three when a phase changes.
 
-- Use `scripts/simulator-session.mjs` for simulator xcodebuild invocations and reuse the exact runtime/device-type/name profile in `scripts/simulator-profile.json`. Do not create a new simulator per task/phase or fall back to Cook/personal devices. Missing or ambiguous matches must stop.
-- Default to serial iPhone/iPad tests, disable parallel simulator workers, and respect the shared per-UDID lock across worktrees. Never bypass another task's lock or auto-reclaim stale locks.
-- Only close a device this session found Shutdown and successfully booted, after its own child exits. Preserve devices already Booted/Booting. Report uncertain boot/cleanup outcomes; never automatically erase/delete simulators or local data.
-- Verify lifecycle changes with the mock Node suite; do not start real devices merely to test the guard. For the complete native App, use the worktree that contains `StudioApp.xcodeproj` and its own managed entry, not the historical raw spike command.
+## Interface
+
+- Follow [the native Studio specification](../../docs/about/design/studio-native.md): SwiftUI and system components only, brand through `AccentColor`/`StudioTheme`, system text styles, `FormatStyle` for dates and numbers.
+- Every user-facing string goes into `StudioApp/Localizable.xcstrings` with a Simplified Chinese translation that matches the terms in `apps/studio/src/i18n/locales`. Language follows the system per-app setting; do not add an in-app language switch without asking.
+- Add `accessibilityIdentifier`s for UI tests next to, not instead of, readable labels.
+
+## Engine and shared logic
+
+- Never reimplement project-format rules in Swift. Parsing, serialization, discovery, validation, templates, slugs and package rules come from the engine (`engine/`), which only calls shared packages (`@advjs/parser`, `@advjs/core/project`, `@advjs/assets`). Missing behavior goes into those packages first, with Web Studio switched to the same implementation.
+- A breaking change to any engine operation bumps `ENGINE_API_VERSION` and `EngineBridge.supportedAPIVersion` together.
+- After changing shared modules or the engine, run `pnpm -C apps/studio-ios build:engine`, `test:engine`, `golden`, `swift test --package-path apps/studio-ios/Packages/StudioKit`, and Web Studio's unit tests.
+
+## Files and data
+
+- Project folders live in Documents and are the only source of truth. Write through `CoordinatedFiles` (atomic, file-coordinated) and pass the session's `ProjectWatcher` so the App's own writes are not treated as external changes.
+- App-local data (project list, Recently Deleted, drafts, staging) lives under Application Support or temporary directories and must be rebuildable or safe to clear.
+- Deleting is undoable (Recently Deleted, 30 days); projects opened in place are only removed from the list.
+
+## Project
+
+- `StudioApp.xcodeproj` uses Xcode buildable folders and local Swift packages (`Packages/StudioKit`, `Packages/StudioUI`). Add files by creating them in the folders; do not introduce XcodeGen or Tuist. `spike/` is P0 feasibility code and is not part of the App.
+- Generated inputs are not committed: run `build:engine` (engine bundle in StudioKit) and `build:samples` (sample packages in `StudioApp/Samples`) before building the App.
+- Acceptance screenshots and recordings are not committed either. Capture them as UI-test attachments (`XCTAttachment`, `.keepAlways`) and cite the attachment names in the acceptance report; CI uploads the `.xcresult` bundles as the `studio-ios` artifact.
+- Swift 6 language mode with complete concurrency checking; the App target defaults to main-actor isolation.
+
+## Local simulator testing
+
+Run local `xcodebuild` tests through `scripts/simulator-session.mjs`. Use the existing iPhone and iPad pinned in `scripts/simulator-profile.json` and the shared per-UDID lock. Keep testing serial. Stop on missing or ambiguous matches, and preserve devices already running when the session starts. Verify lifecycle changes with the mock Node suite.

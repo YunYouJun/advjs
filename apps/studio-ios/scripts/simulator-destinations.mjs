@@ -6,7 +6,7 @@
  * Usage:
  *   node apps/studio-ios/scripts/simulator-destinations.mjs
  *   node apps/studio-ios/scripts/simulator-destinations.mjs --only iphone   # or ipad
- * This selector is read-only. Use simulator-session.mjs for managed tests.
+ * CI also accepts --boot or --shutdown. Local tests use simulator-session.mjs.
  */
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
@@ -56,19 +56,30 @@ export function selectDevices(devices, only = 'both', profile) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
     const args = process.argv.slice(2)
-    if (args.includes('--boot'))
-      throw new Error('--boot was removed: use simulator-session.mjs to lock, run and clean up owned boots')
+    const lifecycle = ['--boot', '--shutdown'].includes(args.at(-1)) ? args.pop() : undefined
+    if (lifecycle && process.env.CI !== 'true')
+      throw new Error('Use simulator-session.mjs for local simulator lifecycle management')
     const only = args.length === 0 ? 'both' : args.length === 2 && args[0] === '--only' ? args[1] : undefined
     if (!only)
       throw new Error('Usage: simulator-destinations.mjs [--only iphone|ipad|both]')
     const { devices } = JSON.parse(execFileSync('xcrun', ['simctl', 'list', 'devices', 'available', '-j'], { encoding: 'utf8' }))
     const profile = process.env.CI === 'true' ? undefined : JSON.parse(readFileSync(new URL('./simulator-profile.json', import.meta.url), 'utf8'))
     const chosen = selectDevices(devices, only, profile)
-    process.stderr.write(`Using ${chosen.map(device => device.name).join(' and ')} (${chosen[0].runtime}); selection only, no lifecycle management\n`)
-    process.stdout.write(chosen.map(device => `-destination id=${device.udid}`).join(' '))
+    process.stderr.write(`Using ${chosen.map(device => device.name).join(' and ')} (${chosen[0].runtime})\n`)
+    if (lifecycle) {
+      for (const device of chosen) {
+        if (lifecycle === '--boot')
+          execFileSync('xcrun', ['simctl', 'bootstatus', device.udid, '-b'], { stdio: ['ignore', 2, 2] })
+        else if (device.state !== 'Shutdown')
+          execFileSync('xcrun', ['simctl', 'shutdown', device.udid], { stdio: ['ignore', 2, 2] })
+      }
+    }
+    else {
+      process.stdout.write(chosen.map(device => `-destination id=${device.udid}`).join(' '))
+    }
   }
   catch (error) {
     process.stderr.write(`${error.message}\n`)
-    process.exitCode = 1
+    process.exitCode = error.status || 1
   }
 }

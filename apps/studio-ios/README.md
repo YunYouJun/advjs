@@ -16,9 +16,9 @@ SwiftUI 原生 Studio 的工作目录。目标、范围与验收见[实施计划
 
 ## 模拟器入口
 
-日常探针和完整原生 Studio 测试都使用 `scripts/simulator-session.mjs`，不按任务重复新建设备。本工作区包含 P0 探针和 P1 共享引擎；测试正式 App 时通过 `git worktree list` 找到包含 `StudioApp.xcodeproj` 的完整工作区，在其 `apps/studio-ios` 中使用同名入口。
+日常探针和完整原生 Studio 测试都使用 `scripts/simulator-session.mjs`，不按任务重复新建设备。本工作区同时包含 P0 探针、共享引擎和正式 App，可直接在 `apps/studio-ios` 下使用该入口。
 
-`scripts/simulator-profile.json` 固定 iOS27 上已有的 `ADV Studio iPhone 18 Pro` 和 `ADV Studio iPad Pro 11 M5`，同时匹配 runtime、device type 和名称；缺失或重名就停止，不回退到 Cook、任意设备或重建 ADVSpike。要更换设备时先核对现有环境，再显式更新配置。
+`scripts/simulator-profile.json` 固定 iOS27 上已有的 `iPhone 18 Pro` 和 `iPad Pro 11-inch (M5)`，同时匹配 runtime、device type 和名称；缺失或重名就停止，不回退到 Cook、任意设备或重建 ADVSpike。要更换设备时先核对现有环境，再显式更新配置。
 
 入口默认串行 iPhone/iPad；`--only iphone` 或 `--only ipad` 可仅跑一台。各工作区共用 `/tmp/advjs-studio-simulators-<uid>/<UDID>.lock`，禁用模拟器并行 worker；已有锁时停止，不自动抢占或回收旧锁。所有测试任务需使用入口，锁不能阻止外部直接使用 Xcode/simctl。
 

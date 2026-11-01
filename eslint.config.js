@@ -37,6 +37,8 @@ export default antfu(
       'apps/studio-ios/engine/dist/**',
       'apps/studio-ios/Packages/StudioKit/Sources/StudioKit/EngineBundle/**',
       'apps/studio-ios/Packages/StudioKit/Tests/StudioKitTests/Golden/**',
+      // Asset catalogs are written by Xcode in its own JSON style.
+      'apps/studio-ios/**/*.xcassets/**',
       'MATERIAL_*.md',
       'MISSING_*.md',
       'TEMPLATE_*.md',

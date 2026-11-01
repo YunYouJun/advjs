@@ -20,7 +20,7 @@ describe('browser integration prerequisites', () => {
 
   it('installs FFmpeg and checks both executables before browser audio publication', () => {
     const ci = parse(readFileSync(resolve(root, '.github/workflows/ci.yml'), 'utf8'))
-    const commands: string[] = ci.jobs.e2e.steps.flatMap((step: { run?: string }) => step.run ? [step.run] : [])
+    const commands: string[] = ci.jobs.browser.steps.flatMap((step: { run?: string }) => step.run ? [step.run] : [])
     const install = commands.findIndex(command => command.includes('apt-get install --yes --no-install-recommends ffmpeg'))
     const browser = commands.findIndex(command => command.startsWith('pnpm exec playwright test '))
     expect(install).toBeGreaterThanOrEqual(0)

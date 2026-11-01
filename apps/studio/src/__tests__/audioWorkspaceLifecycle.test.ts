@@ -154,7 +154,10 @@ describe('studio audio workspace lifecycle', () => {
     store.currentProjectId = 'second'
     await flushPromises()
     old.resolve(documents)
+    // The second read settles over a varying number of ticks on a busy machine;
+    // once it has, the stale first read must not replace it.
     await vi.waitFor(() => expect(api.snapshot.value?.catalog.id).toBe('second'))
+    await flushPromises()
     expect(api.error.value).toBe('')
     expect(api.snapshot.value?.catalog.id).toBe('second')
     expect(api.snapshot.value?.revision).toBe('voice-revision')
