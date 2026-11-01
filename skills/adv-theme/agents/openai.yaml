@@ -1,0 +1,4 @@
+interface:
+  display_name: ADV Game Theme
+  short_description: Theme an ADV.JS game from its story, checked and screenshot-reviewed
+  default_prompt: Use $adv-theme to design the game UI from the story, apply it with the lightest layer, then pass adv check and review screenshots.

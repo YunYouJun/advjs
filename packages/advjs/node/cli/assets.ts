@@ -184,7 +184,9 @@ export function installAssetsCommand(cli: Argv) {
         if ('items' in result) {
           for (const item of result.items)
             process.stdout.write(`${item.id}: ${item.variant} ${item.state}${item.downloaded ? ' (downloaded)' : ''}\n`)
-          process.stdout.write(`${result.action}: ${result.verified} verified, ${result.missing} missing, ${result.corrupt} corrupt, ${result.downloaded} downloaded\n`)
+          process.stdout.write(`${result.action}: ${result.verified} verified, ${result.missing} missing, ${result.corrupt} corrupt, ${result.lfsPointer} lfs-pointer, ${result.downloaded} downloaded\n`)
+          if (result.lfsPointer)
+            process.stdout.write('Run git lfs pull to download the content of lfs-pointer entries\n')
         }
         else {
           process.stdout.write(`${result.action}: ${result.taskId} (${result.status})\n`)

@@ -144,7 +144,7 @@ describe('adv content Skills', () => {
     const catalog = JSON.parse(readFileSync(resolve(root, 'skills/catalog.json'), 'utf8'))
     const expectedGroups = {
       default: ['adv-art', 'adv-create', 'adv-debug', 'adv-review'],
-      optional: ['adv-adapt', 'adv-story'],
+      optional: ['adv-adapt', 'adv-story', 'adv-theme'],
       repositoryOnly: ['adv-hamster-demo'],
     }
 
@@ -181,6 +181,7 @@ describe('adv content Skills', () => {
       'adv-debug',
       'adv-review',
       'adv-story',
+      'adv-theme',
       'catalog.json',
     ])
     expect(readFileSync(join(output, 'catalog.json'), 'utf8')).not.toContain('demo/hamster')

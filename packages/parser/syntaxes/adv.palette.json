@@ -1,0 +1,75 @@
+{
+  "$comment": "Token colours for adv.tmLanguage.json, shared by the docs site, the home page demo and the editors. Each role lists TextMate scope selectors (prefix match, the longest match wins). A role without a colour keeps the theme foreground.",
+  "roles": {
+    "scene": {
+      "scopes": ["markup.heading.scene.adv", "entity.name.section.scene"],
+      "fontStyle": "bold"
+    },
+    "heading": {
+      "scopes": ["markup.heading.adv", "entity.name.section.adv"],
+      "fontStyle": "bold"
+    },
+    "speaker": {
+      "scopes": ["entity.name.character.adv", "punctuation.definition.character.adv"],
+      "fontStyle": "bold"
+    },
+    "status": {
+      "scopes": ["entity.other.attribute-name.status.adv", "punctuation.definition.status"]
+    },
+    "narration": {
+      "scopes": ["markup.quote.narration"],
+      "fontStyle": "italic"
+    },
+    "choice": {
+      "scopes": ["string.other.choice.adv"]
+    },
+    "anchor": {
+      "scopes": [
+        "meta.attribute.anchor.adv",
+        "entity.name.label.anchor.adv",
+        "markup.underline.link.choice.adv",
+        "constant.other.reference.anchor.adv",
+        "constant.other.reference.chapter.adv",
+        "constant.other.reference.glossary.adv",
+        "entity.name.glossary.adv"
+      ]
+    },
+    "muted": {
+      "scopes": [
+        "meta.attribute.line-id.adv",
+        "constant.other.line-id.adv",
+        "comment.block.adv",
+        "punctuation.definition.comment",
+        "punctuation.definition.frontmatter",
+        "punctuation.definition.heading.adv",
+        "punctuation.definition.quote.begin.adv",
+        "punctuation.definition.list.begin.markdown",
+        "punctuation.definition.choice",
+        "punctuation.definition.checkbox",
+        "constant.language.checkbox.adv",
+        "punctuation.definition.target",
+        "punctuation.definition.glossary"
+      ]
+    }
+  },
+  "palettes": {
+    "light": {
+      "scene": "#b45309",
+      "speaker": "#0e7490",
+      "status": "#0e7490",
+      "narration": "#5b6b85",
+      "choice": "#7c3aed",
+      "anchor": "#0a6ad0",
+      "muted": "#8a94a6"
+    },
+    "dark": {
+      "scene": "#ffc46b",
+      "speaker": "#22ffe9",
+      "status": "#7ee8df",
+      "narration": "#a3b6dc",
+      "choice": "#c4b5fd",
+      "anchor": "#7cc4ff",
+      "muted": "#6f84b3"
+    }
+  }
+}

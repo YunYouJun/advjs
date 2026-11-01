@@ -89,7 +89,9 @@
             "voice.bind",
             "migrate.audio",
             "flow.read",
-            "flow.plan"
+            "flow.plan",
+            "theme.init",
+            "theme.screenshot"
           ]
         },
         "ok": {
@@ -572,7 +574,8 @@
             "downloaded",
             "verified",
             "missing",
-            "corrupt"
+            "corrupt",
+            "lfsPointer"
           ],
           "properties": {
             "action": {
@@ -628,7 +631,8 @@
                     "enum": [
                       "missing",
                       "verified",
-                      "corrupt"
+                      "corrupt",
+                      "lfs-pointer"
                     ]
                   },
                   "downloaded": {
@@ -650,6 +654,10 @@
               "minimum": 0
             },
             "corrupt": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "lfsPointer": {
               "type": "integer",
               "minimum": 0
             }
@@ -3035,6 +3043,207 @@
           "properties": {
             "command": {
               "const": "flow.plan"
+            }
+          }
+        }
+      ]
+    },
+    "themeInitData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "file",
+        "preset",
+        "tokens"
+      ],
+      "properties": {
+        "file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "preset": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tokens": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "themeScreenshotData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "outDir",
+        "report",
+        "shots",
+        "missing",
+        "consoleErrors"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outDir": {
+          "type": "string",
+          "minLength": 1
+        },
+        "report": {
+          "type": "string",
+          "minLength": 1
+        },
+        "shots": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "state",
+              "viewport",
+              "file"
+            ],
+            "properties": {
+              "state": {
+                "enum": [
+                  "title",
+                  "dialogue",
+                  "choice",
+                  "backlog",
+                  "save",
+                  "long-dialogue",
+                  "long-choice"
+                ]
+              },
+              "viewport": {
+                "type": "string",
+                "minLength": 1
+              },
+              "file": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "state",
+              "viewport",
+              "reason"
+            ],
+            "properties": {
+              "state": {
+                "enum": [
+                  "title",
+                  "dialogue",
+                  "choice",
+                  "backlog",
+                  "save",
+                  "long-dialogue",
+                  "long-choice"
+                ]
+              },
+              "viewport": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "consoleErrors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "themeInitSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "theme.init"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/themeInitData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "themeInitFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "theme.init"
+            }
+          }
+        }
+      ]
+    },
+    "themeScreenshotSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "theme.screenshot"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/themeScreenshotData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "themeScreenshotFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "theme.screenshot"
             }
           }
         }

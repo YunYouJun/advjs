@@ -137,7 +137,8 @@
     "no_root": "未找到游戏内容根目录：{0}",
     "stat_characters": "{0} 个角色",
     "stat_chapters": "{0} 个章节",
-    "stat_scenes": "{0} 个场景"
+    "stat_scenes": "{0} 个场景",
+    "theme_desc": "附加游戏 UI token 契约、对比度配对与主题预设"
   },
   "sync": {
     "root_desc": "游戏内容根目录（默认：从 adv.config.json 读取或 ./adv）",
@@ -194,5 +195,17 @@
     "hint_check": "验证项目结构",
     "hint_context": "导出项目上下文供 AI 使用",
     "hint_dev": "启动开发服务器预览"
+  },
+  "theme": {
+    "desc": "从预设开始游戏 UI 主题，或截取主题化后的游戏画面以供检查",
+    "preset_desc": "写入 theme.config.ts 的 token 预设（init）",
+    "force_desc": "替换已有的 theme.config.ts（init）",
+    "url_desc": "截取正在运行的游戏，而不是启动开发服务器",
+    "out_desc": "截图目录（默认：.adv/theme-screenshots）",
+    "viewport_desc": "视口，格式 WIDTHxHEIGHT 或 name=WIDTHxHEIGHT（默认：desktop=1280x720 narrow=390x844）",
+    "color_scheme_desc": "模拟的宿主配色偏好",
+    "locale_desc": "游戏 UI 的浏览器语言（默认：zh-CN）",
+    "init_done": "已按「{1}」预设写入 {0}；请结合故事调整后运行 adv check",
+    "screenshot_done": "已写入 {0} 张截图到 {1}"
   }
 }

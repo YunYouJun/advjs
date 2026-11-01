@@ -844,5 +844,79 @@
         }
       ]
     }
+  },
+  "theme.init": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "theme.init",
+      "ok": true,
+      "data": {
+        "file": "theme.config.ts",
+        "preset": "neon-noir",
+        "tokens": 40
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "theme.init",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_VALIDATION",
+          "message": "theme.config.ts already exists; edit it, or pass --force to replace it to start from the \"neon-noir\" preset."
+        }
+      ]
+    }
+  },
+  "theme.screenshot": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "theme.screenshot",
+      "ok": true,
+      "data": {
+        "url": "http://127.0.0.1:4300",
+        "outDir": ".adv/theme-screenshots",
+        "report": ".adv/theme-screenshots/report.json",
+        "shots": [
+          {
+            "state": "title",
+            "viewport": "desktop",
+            "file": ".adv/theme-screenshots/desktop/1-title.png"
+          },
+          {
+            "state": "dialogue",
+            "viewport": "desktop",
+            "file": ".adv/theme-screenshots/desktop/2-dialogue.png"
+          }
+        ],
+        "missing": [
+          {
+            "state": "choice",
+            "viewport": "desktop",
+            "reason": "No choice menu within 80 steps; the story may have no choices yet."
+          }
+        ],
+        "consoleErrors": []
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "theme.screenshot",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_USAGE",
+          "message": "Theme screenshots need Playwright. Install it in the project with \"npm i -D playwright\" and run \"npx playwright install chromium\"."
+        }
+      ]
+    }
   }
 }

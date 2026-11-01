@@ -137,7 +137,8 @@
     "no_root": "Game content root not found: {0}",
     "stat_characters": "{0} characters",
     "stat_chapters": "{0} chapters",
-    "stat_scenes": "{0} scenes"
+    "stat_scenes": "{0} scenes",
+    "theme_desc": "Append the game UI token contract, contrast pairs and theme presets"
   },
   "sync": {
     "root_desc": "Game content root directory (default: from adv.config.json or ./adv)",
@@ -194,5 +195,17 @@
     "hint_check": "Validate project structure",
     "hint_context": "Export project context for AI",
     "hint_dev": "Start dev server for preview"
+  },
+  "theme": {
+    "desc": "Start a game UI theme from a preset, or screenshot the themed game for review",
+    "preset_desc": "Token preset written to theme.config.ts (init)",
+    "force_desc": "Replace an existing theme.config.ts (init)",
+    "url_desc": "Screenshot a running game instead of starting a dev server",
+    "out_desc": "Screenshot directory (default: .adv/theme-screenshots)",
+    "viewport_desc": "Viewports as WIDTHxHEIGHT or name=WIDTHxHEIGHT (default: desktop=1280x720 narrow=390x844)",
+    "color_scheme_desc": "Host colour-scheme preference to emulate",
+    "locale_desc": "Browser locale for the game UI (default: zh-CN)",
+    "init_done": "Wrote {0} from the \"{1}\" preset; adapt it to the story, then run adv check",
+    "screenshot_done": "Wrote {0} screenshot(s) to {1}"
   }
 }

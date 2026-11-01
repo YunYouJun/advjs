@@ -20,6 +20,7 @@ export { loadPublishedAudioManifest } from './commands/build/audio-release'
 export * from './config'
 export * from './deploy'
 export * from './editor'
+export * from './game-ui'
 export * from './markdown'
 export * from './options'
 

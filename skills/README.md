@@ -37,6 +37,10 @@ skills/
 │   ├── agents/openai.yaml
 │   ├── references/
 │   └── scripts/audit-assets.mjs
+├── adv-theme/
+│   ├── SKILL.md          # Story-driven game UI theme workflow
+│   ├── agents/openai.yaml
+│   └── references/       # Layers and screenshot critique checklist
 └── adv-hamster-demo/
     ├── SKILL.md          # Repository-only hamster composition workflow
     ├── agents/openai.yaml
@@ -100,6 +104,14 @@ semantic and writing-quality judgments.
 Plan character expressions, backgrounds, and CGs; record provenance and
 licenses; validate immutable content-hashed URLs; and publish through a
 provider-specific storage Skill such as `tencent-cloud-cos`.
+
+### adv-theme
+
+Design the player UI from the story brief: pick the lightest layer (tokens,
+project overrides or a theme package), start from a preset with
+`adv theme init --preset <id>`, pass `adv check` (`ADV_THEME_*` diagnostics for
+token names, units and WCAG contrast), and review `adv theme screenshot`
+frames before iterating. Image needs go to `adv-art`.
 
 ### adv-hamster-demo
 

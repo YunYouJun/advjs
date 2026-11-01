@@ -449,7 +449,62 @@ export function createAdvMcpServer(options: CreateAdvMcpServerOptions = {}) {
     },
   )
 
+  server.resource(
+    'game-ui-theme',
+    'adv://theme',
+    { description: 'Game UI theme contract (tokens with kinds, defaults per bundled theme, contrast pairs, presets, layers and rules) plus this project\'s theme, declared tokens and theme diagnostics, as JSON', mimeType: 'application/json' },
+    async (uri: URL) => {
+      const { createGameUiThemeContract, getGameUiThemeProjectState, resolveProjectGameUiTheme } = await import('advjs')
+      const project = getGameUiThemeProjectState(cwd, await resolveProjectGameUiTheme(cwd))
+      return resourceTextContent(uri, JSON.stringify({ ...createGameUiThemeContract(), project }, null, 2))
+    },
+  )
+
   // --------------- Tools ---------------
+
+  server.tool(
+    'adv_theme_screenshot',
+    'Render the game title screen, a dialogue line, the first choice menu, the backlog, the save screen and long dialogue and choice stress frames at desktop and narrow viewports, write PNGs under .adv/theme-screenshots, and return the images for visual review. Needs Playwright with Chromium in the project.',
+    {
+      url: z.string().url().optional().describe('Use a running game preview instead of starting one'),
+      viewports: z.array(z.string().regex(/^(?:[\w-]+=)?\d{2,5}x\d{2,5}$/u)).optional().describe('Viewports such as "desktop=1280x720" or "390x844" (default: desktop=1280x720, narrow=390x844)'),
+      colorScheme: z.enum(['light', 'dark']).optional().describe('Host colour-scheme preference to emulate'),
+      images: z.boolean().default(true).describe('Return JPEG previews in the result'),
+    },
+    async ({ url, viewports, colorScheme, images }: { url?: string, viewports?: string[], colorScheme?: 'light' | 'dark', images: boolean }) => {
+      try {
+        const { captureGameUiScreenshots, parseGameUiViewport } = await import('advjs')
+        const result = await captureGameUiScreenshots({
+          cwd,
+          url,
+          viewports: viewports?.map(parseGameUiViewport),
+          colorScheme,
+          inline: images,
+        })
+        const summary = {
+          outDir: relative(cwd, result.outDir),
+          report: relative(cwd, result.report),
+          shots: result.shots.map(shot => ({ state: shot.state, viewport: shot.viewport, file: relative(cwd, shot.file) })),
+          missing: result.missing,
+          consoleErrors: result.consoleErrors,
+        }
+        return {
+          content: [
+            { type: 'text' as const, text: JSON.stringify(summary, null, 2) },
+            ...result.shots.flatMap(shot => shot.inline
+              ? [
+                  { type: 'text' as const, text: `${shot.viewport} / ${shot.state}` },
+                  { type: 'image' as const, data: shot.inline, mimeType: 'image/jpeg' },
+                ]
+              : []),
+          ],
+        }
+      }
+      catch (error) {
+        return { content: [{ type: 'text' as const, text: error instanceof Error ? error.message : String(error) }], isError: true }
+      }
+    },
+  )
 
   server.tool(
     'adv_validate',

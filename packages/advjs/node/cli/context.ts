@@ -20,6 +20,11 @@ export function installContextCommand(cli: Argv) {
         type: 'number',
         describe: t('context.chapter_desc'),
       })
+      .option('theme', {
+        type: 'boolean',
+        default: false,
+        describe: t('context.theme_desc'),
+      })
       .strict()
       .help(),
     async (argv) => {
@@ -29,6 +34,7 @@ export function installContextCommand(cli: Argv) {
           root: argv.root as string | undefined,
           full: argv.full,
           chapter: argv.chapter as number | undefined,
+          theme: argv.theme,
         })
       }
       catch (err) {

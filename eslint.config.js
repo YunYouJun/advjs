@@ -67,6 +67,13 @@ export default antfu(
     },
   },
   {
+    files: ['**/*.adv.md'],
+    rules: {
+      // AdvScript anchors (`{#start}`) also sit on scene lines, which Markdown does not see as headings.
+      'markdown/no-missing-link-fragments': 'off',
+    },
+  },
+  {
     files: ['apps/studio/**/*'],
     rules: {
       'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',

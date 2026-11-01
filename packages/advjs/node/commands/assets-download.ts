@@ -2,7 +2,7 @@ import type { AdvAssetDownloadItem, AdvAssetDownloadPlan, AdvAssetDownloadSelect
 import type { AdvAssetDownloadSource } from '@advjs/types'
 import { createHash, randomUUID } from 'node:crypto'
 import { createReadStream, createWriteStream } from 'node:fs'
-import { link, lstat, mkdir, realpath, rm } from 'node:fs/promises'
+import { link, lstat, mkdir, readFile, realpath, rm } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import process from 'node:process'
 import { Readable, Transform } from 'node:stream'
@@ -13,7 +13,8 @@ import { dirname, resolve } from 'pathe'
 import { loadProject, ProjectLoadError } from '../project'
 import { AdvCommandError } from './errors'
 
-export type AdvAssetCacheState = 'missing' | 'verified' | 'corrupt'
+/** `lfs-pointer`: a Git LFS pointer stub sits where the asset should be; `git lfs pull` fetches the content. */
+export type AdvAssetCacheState = 'missing' | 'verified' | 'corrupt' | 'lfs-pointer'
 
 export interface AdvAssetCacheItem extends AdvAssetDownloadItem {
   state: AdvAssetCacheState
@@ -28,6 +29,7 @@ export interface AdvAssetCacheResult {
   verified: number
   missing: number
   corrupt: number
+  lfsPointer: number
 }
 
 export interface AdvAssetCacheOptions extends AdvAssetDownloadSelection {
@@ -69,20 +71,37 @@ async function safeDestination(root: string, path: string): Promise<string> {
   return current
 }
 
+// Git LFS pointer spec v1: a text stub under 1024 bytes that starts with the version line.
+const LFS_POINTER_MAX_BYTES = 1024
+const LFS_POINTER = /^version https:\/\/git-lfs\.github\.com\/spec\/v1\r?\n(?:[\s\S]*\n)?oid sha256:[0-9a-f]{64}\r?\nsize \d+\r?\n?$/u
+
+async function isLfsPointer(path: string, size: number): Promise<boolean> {
+  if (size >= LFS_POINTER_MAX_BYTES)
+    return false
+  return LFS_POINTER.test(await readFile(path, 'utf8'))
+}
+
 async function inspect(root: string, item: AdvAssetDownloadItem): Promise<AdvAssetCacheItem> {
   const destination = await safeDestination(root, item.path)
   const file = await metadata(destination)
   if (!file)
     return { ...item, state: 'missing' }
-  if (file.size !== item.bytes)
-    return { ...item, state: 'corrupt' }
-  const hash = createHash('sha256')
-  for await (const chunk of createReadStream(destination))
-    hash.update(chunk)
-  return { ...item, state: hash.digest('hex') === item.sha256 ? 'verified' : 'corrupt' }
+  if (file.size === item.bytes) {
+    const hash = createHash('sha256')
+    for await (const chunk of createReadStream(destination))
+      hash.update(chunk)
+    if (hash.digest('hex') === item.sha256)
+      return { ...item, state: 'verified' }
+  }
+  return { ...item, state: await isLfsPointer(destination, file.size) ? 'lfs-pointer' : 'corrupt' }
 }
 
 function requireVerified(items: AdvAssetCacheItem[], allowMissing: boolean): void {
+  const pointers = items.filter(item => item.state === 'lfs-pointer')
+  if (pointers.length) {
+    const [first] = pointers
+    throw invalid(`Asset cache has ${pointers.length} Git LFS pointer file(s), first ${first.id} (${first.variant}), ${first.path}; run git lfs pull to download their content`)
+  }
   const bad = items.find(item => item.state === 'corrupt' || (!allowMissing && item.state === 'missing'))
   if (bad)
     throw invalid(`Asset cache ${bad.state}: ${bad.id} (${bad.variant}), ${bad.path}`)
@@ -247,5 +266,6 @@ export async function manageAdvAssetCache(action: AdvAssetCacheResult['action'],
     verified: items.filter(item => item.state === 'verified').length,
     missing: items.filter(item => item.state === 'missing').length,
     corrupt: items.filter(item => item.state === 'corrupt').length,
+    lfsPointer: items.filter(item => item.state === 'lfs-pointer').length,
   }
 }

@@ -28,6 +28,8 @@ export interface ContextOptions {
   root?: string
   full?: boolean
   chapter?: number
+  /** Append the game UI token contract, contrast pairs and presets. */
+  theme?: boolean
 }
 
 /**
@@ -273,9 +275,18 @@ export async function advContext(options: ContextOptions) {
   })
 
   const output = formatContext(ctx, options)
+  const { createGameUiThemeContract, formatGameUiThemeContract, getGameUiThemeProjectState, resolveProjectGameUiTheme } = await import('../game-ui')
+  const theme = getGameUiThemeProjectState(cwd, await resolveProjectGameUiTheme(cwd))
+  const themeOutput = options.theme
+    ? formatGameUiThemeContract(createGameUiThemeContract(), theme)
+    : [
+        '# Game UI Theme\n',
+        `Theme \`${theme.theme}\`, colour scheme ${theme.colorScheme ?? 'inherited from the host'}, ${Object.keys(theme.tokens).length} declared token(s), ${theme.diagnostics.length} theme diagnostic(s).`,
+        'Run `adv context --theme` for the token contract, contrast pairs and presets.',
+      ].join('\n')
 
   process.stdout.write('\n')
-  log(output)
+  log([output, themeOutput].filter(Boolean).join('\n'))
 
   // Print summary
   const stats: string[] = []

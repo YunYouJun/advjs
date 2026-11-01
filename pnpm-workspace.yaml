@@ -377,6 +377,7 @@ catalogs:
     '@iconify-json/ep': ^1.2.4
     '@iconify-json/file-icons': ^1.2.2
     '@iconify-json/logos': ^1.2.12
+    '@iconify-json/material-icon-theme': ^1.2.73
     '@iconify-json/mdi': ^1.2.3
     '@iconify-json/radix-icons': ^1.2.6
     '@iconify-json/ri': ^1.2.10

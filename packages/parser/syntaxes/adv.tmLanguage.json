@@ -1,0 +1,233 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "adv",
+  "displayName": "ADV Script",
+  "scopeName": "text.adv",
+  "aliases": ["advscript"],
+  "fileTypes": ["adv.md"],
+  "embeddedLangs": ["markdown", "yaml"],
+  "embeddedLangsLazy": ["typescript", "javascript", "json"],
+  "patterns": [
+    { "include": "#frontmatter" },
+    { "include": "#block" }
+  ],
+  "repository": {
+    "block": {
+      "patterns": [
+        { "include": "#comment" },
+        { "include": "#fenced-code-advnode" },
+        { "include": "#scene" },
+        { "include": "#heading" },
+        { "include": "#narration" },
+        { "include": "#narration-parenthesized" },
+        { "include": "#dialogue" },
+        { "include": "#choices" },
+        { "include": "#glossary-definition" },
+        { "include": "text.html.markdown" }
+      ]
+    },
+    "inline": {
+      "patterns": [
+        { "include": "#anchor" },
+        { "include": "#glossary-reference" },
+        { "include": "#comment" },
+        { "include": "text.html.markdown#inline" }
+      ]
+    },
+    "frontmatter": {
+      "begin": "\\A(?=(-{3,}))",
+      "end": "^(?:[ ]{0,3}\\1-*[ \\t]*|[ \\t]*\\.{3})$",
+      "applyEndPatternLast": 1,
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.frontmatter.end.adv" }
+      },
+      "name": "meta.frontmatter.adv",
+      "patterns": [
+        {
+          "begin": "\\A(-{3,})(.*)$",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.frontmatter.begin.adv" },
+            "2": { "name": "comment.frontmatter.adv" }
+          },
+          "while": "^(?!(?:[ ]{0,3}\\1-*[ \\t]*|[ \\t]*\\.{3})$)",
+          "contentName": "meta.embedded.block.frontmatter",
+          "patterns": [{ "include": "source.yaml" }]
+        }
+      ]
+    },
+    "comment": {
+      "begin": "<!--",
+      "end": "-->",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.comment.begin.adv" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.comment.end.adv" }
+      },
+      "name": "comment.block.adv"
+    },
+    "fenced-code-advnode": {
+      "begin": "(^|\\G)(\\s*)(`{3,}|~{3,})\\s*(?i:(advnode)((\\s+|[,:?{])[^`]*)?$)",
+      "beginCaptures": {
+        "3": { "name": "punctuation.definition.markdown" },
+        "4": { "name": "fenced_code.block.language.markdown" },
+        "5": { "name": "fenced_code.block.language.attributes.markdown" }
+      },
+      "end": "(^|\\G)(\\2|\\s{0,3})(\\3)\\s*$",
+      "endCaptures": {
+        "3": { "name": "punctuation.definition.markdown" }
+      },
+      "name": "markup.fenced_code.block.markdown",
+      "patterns": [
+        {
+          "begin": "(^|\\G)(\\s*)(.*)",
+          "while": "(^|\\G)(?!\\s*([`~]{3,})\\s*$)",
+          "contentName": "meta.embedded.block.json",
+          "patterns": [{ "include": "source.json" }]
+        }
+      ]
+    },
+    "scene": {
+      "comment": "【地点，时间，内外景】 with an optional trailing {#anchor}.",
+      "match": "(^|\\G)[ ]{0,3}(【)(?!】)([^，】\\n]*)(?:(，)([^，】\\n]*))?(?:(，)([^，】\\n]*))?(?:(，)([^】\\n]*))?(】)(?:[ \\t]+(\\{#[^\\s}]*\\}))?[ \\t]*$",
+      "name": "markup.heading.scene.adv",
+      "captures": {
+        "2": { "name": "punctuation.definition.scene.begin.adv" },
+        "3": { "name": "entity.name.section.scene.place.adv" },
+        "4": { "name": "punctuation.separator.scene.adv" },
+        "5": { "name": "entity.name.section.scene.time.adv" },
+        "6": { "name": "punctuation.separator.scene.adv" },
+        "7": { "name": "entity.name.section.scene.in-or-out.adv" },
+        "8": { "name": "punctuation.separator.scene.adv" },
+        "9": { "name": "entity.name.section.scene.adv" },
+        "10": { "name": "punctuation.definition.scene.end.adv" },
+        "11": { "patterns": [{ "include": "#anchor" }] }
+      }
+    },
+    "heading": {
+      "comment": "ATX heading with an optional trailing {#anchor}; headings are jump targets.",
+      "match": "(^|\\G)[ ]{0,3}(#{1,6})(?:[ \\t]+(.*?))?(?:[ \\t]+(\\{#[^\\s}]*\\}))?(?:[ \\t]+(#+))?[ \\t]*$",
+      "name": "markup.heading.adv",
+      "captures": {
+        "2": { "name": "punctuation.definition.heading.adv" },
+        "3": {
+          "name": "entity.name.section.adv",
+          "patterns": [{ "include": "#inline" }]
+        },
+        "4": { "patterns": [{ "include": "#anchor" }] },
+        "5": { "name": "punctuation.definition.heading.adv" }
+      }
+    },
+    "anchor": {
+      "patterns": [
+        {
+          "comment": "Stable dialogue line identity: {#line_<uuidv7>}.",
+          "match": "(\\{)(#)(line_[^\\s}]*)(\\})",
+          "name": "meta.attribute.line-id.adv",
+          "captures": {
+            "1": { "name": "punctuation.definition.attribute.begin.adv" },
+            "2": { "name": "punctuation.definition.anchor.adv" },
+            "3": { "name": "constant.other.line-id.adv" },
+            "4": { "name": "punctuation.definition.attribute.end.adv" }
+          }
+        },
+        {
+          "match": "(\\{)(#)([^\\s}]*)(\\})",
+          "name": "meta.attribute.anchor.adv",
+          "captures": {
+            "1": { "name": "punctuation.definition.attribute.begin.adv" },
+            "2": { "name": "punctuation.definition.anchor.adv" },
+            "3": { "name": "entity.name.label.anchor.adv" },
+            "4": { "name": "punctuation.definition.attribute.end.adv" }
+          }
+        }
+      ]
+    },
+    "narration": {
+      "comment": "> 旁白. Continuation lines must repeat the marker.",
+      "begin": "(^|\\G)[ ]{0,3}(>)[ ]?",
+      "beginCaptures": {
+        "2": { "name": "punctuation.definition.quote.begin.adv" }
+      },
+      "while": "(^|\\G)[ ]{0,3}(>)[ ]?",
+      "whileCaptures": {
+        "2": { "name": "punctuation.definition.quote.begin.adv" }
+      },
+      "name": "markup.quote.narration.adv",
+      "patterns": [{ "include": "#inline" }]
+    },
+    "narration-parenthesized": {
+      "comment": "（旁白） on a line of its own.",
+      "match": "(^|\\G)[ ]{0,3}(（)(.+)(）)(?:[ \\t]+(\\{#line_[^\\s}]*\\}))?[ \\t]*$",
+      "name": "markup.quote.narration.parenthesized.adv",
+      "captures": {
+        "2": { "name": "punctuation.definition.narration.begin.adv" },
+        "3": { "patterns": [{ "include": "#inline" }] },
+        "4": { "name": "punctuation.definition.narration.end.adv" },
+        "5": { "patterns": [{ "include": "#anchor" }] }
+      }
+    },
+    "dialogue": {
+      "comment": "@名字（状态） followed by the lines of the same paragraph. Shiki skips blank lines, so the block also ends where another ADV block starts.",
+      "begin": "(^|\\G)[ ]{0,3}(@)[ \\t]*([^\\s(（][^(（\\n]*?)?(?:[ \\t]*([（(])([^）)\\n]*)([）)]))?[ \\t]*$",
+      "beginCaptures": {
+        "2": { "name": "punctuation.definition.character.adv" },
+        "3": { "name": "entity.name.character.adv" },
+        "4": { "name": "punctuation.definition.status.begin.adv" },
+        "5": { "name": "entity.other.attribute-name.status.adv" },
+        "6": { "name": "punctuation.definition.status.end.adv" }
+      },
+      "while": "(^|\\G)(?=[ \\t]*\\S)(?![ ]{0,3}(?:@|【|（.*）[ \\t]*(?:\\{#[^\\s}]*\\}[ \\t]*)?$|\\[\\^[^\\]\\s]+\\]:|[-*+][ \\t]|[0-9]{1,9}[.)][ \\t]|>|#{1,6}(?:[ \\t]|$)|`{3,}|~{3,}|<!--))",
+      "name": "meta.dialogue.adv",
+      "patterns": [{ "include": "#inline" }]
+    },
+    "choices": {
+      "comment": "Every list item is a choice: `- [文字](章节#锚点)`, `- [ ] 文字` or `- 文字`. Indented lines (such as yaml actions) belong to the option.",
+      "begin": "(^|\\G)([ ]{0,3})([-*+]|[0-9]{1,9}[.)])[ \\t]+(?:(\\[)([ xX])(\\])(?=[ \\t]|$)[ \\t]*)?(?:(\\[)((?:[^\\[\\]\\\\]|\\\\.)*)(\\])(\\()[ \\t]*(([^\\s()#]*)(?:(#)([^\\s()]*))?)[ \\t]*(\\))|(?![`~]{3})(.*?))[ \\t]*$",
+      "beginCaptures": {
+        "3": { "name": "punctuation.definition.list.begin.markdown" },
+        "4": { "name": "punctuation.definition.checkbox.begin.adv" },
+        "5": { "name": "constant.language.checkbox.adv" },
+        "6": { "name": "punctuation.definition.checkbox.end.adv" },
+        "7": { "name": "punctuation.definition.choice.begin.adv" },
+        "8": { "name": "string.other.choice.adv" },
+        "9": { "name": "punctuation.definition.choice.end.adv" },
+        "10": { "name": "punctuation.definition.target.begin.adv" },
+        "11": { "name": "markup.underline.link.choice.adv" },
+        "12": { "name": "constant.other.reference.chapter.adv" },
+        "13": { "name": "punctuation.definition.anchor.adv" },
+        "14": { "name": "constant.other.reference.anchor.adv" },
+        "15": { "name": "punctuation.definition.target.end.adv" },
+        "16": {
+          "name": "string.other.choice.adv",
+          "patterns": [{ "include": "#inline" }]
+        }
+      },
+      "while": "((^|\\G)([ ]{2,4}|\\t))|(^[ \\t]*$)",
+      "name": "markup.list.choice.adv",
+      "patterns": [{ "include": "#block" }]
+    },
+    "glossary-definition": {
+      "comment": "[^术语]: 定义, with indented continuation lines.",
+      "begin": "(^|\\G)[ ]{0,3}(\\[\\^)([^\\]\\s]+)(\\])(:)",
+      "beginCaptures": {
+        "2": { "name": "punctuation.definition.glossary.begin.adv" },
+        "3": { "name": "entity.name.glossary.adv" },
+        "4": { "name": "punctuation.definition.glossary.end.adv" },
+        "5": { "name": "punctuation.separator.key-value.adv" }
+      },
+      "while": "((^|\\G)([ ]{4}|\\t))|(^[ \\t]*$)",
+      "name": "meta.definition.glossary.adv",
+      "patterns": [{ "include": "#inline" }]
+    },
+    "glossary-reference": {
+      "match": "(\\[\\^)([^\\]\\s]+)(\\])(?!:)",
+      "name": "meta.reference.glossary.adv",
+      "captures": {
+        "1": { "name": "punctuation.definition.glossary.begin.adv" },
+        "2": { "name": "constant.other.reference.glossary.adv" },
+        "3": { "name": "punctuation.definition.glossary.end.adv" }
+      }
+    }
+  }
+}
