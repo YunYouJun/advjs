@@ -60,6 +60,7 @@ jobs:
         with:
           node-version: 'lts/*'
           cache: pnpm
+          registry-url: https://registry.npmjs.org
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Require a successful candidate workflow before promotion

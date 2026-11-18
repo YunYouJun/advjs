@@ -1,4 +1,4 @@
-export const LAUNCH_VERSION = '0.1.4'
+export const LAUNCH_VERSION = '0.1.5'
 export const PACKAGE_REPOSITORY = 'https://github.com/YunYouJun/advjs'
 export const ENTRY_PACKAGES = Object.freeze(['advjs', '@advjs/editor', '@advjs/mcp-server'])
 
