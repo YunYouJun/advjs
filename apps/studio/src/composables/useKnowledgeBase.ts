@@ -1,104 +1,14 @@
+import type { KnowledgeEntry, KnowledgeSection } from '@advjs/core/project'
 import type { ComputedRef, Ref } from 'vue'
 import type { IFileSystem } from '../utils/fs'
+import { knowledgeDomain, newKnowledgeEntry, parseKnowledgeEntry } from '@advjs/core/project'
 import { computed, ref } from 'vue'
 import { downloadFromCloud, listCloudFiles } from '../utils/cloudSync'
 
-const TITLE_RE = /^#[ \t]+(\S[\S \t]*)$/m
-const MD_EXT_RE = /\.md$/
+export type { KnowledgeEntry, KnowledgeSection } from '@advjs/core/project'
+
 const ENGLISH_WORD_RE = /[a-z]{2,}/gi
 const NON_CJK_RE = /[a-z0-9\s.,!?;:'"()\-[\]{}]/gi
-const KNOWLEDGE_PREFIX_RE = /^adv\/knowledge\//
-const SAFE_TITLE_RE = /[^a-z0-9\u4E00-\u9FFF]+/g
-const TRIM_UNDERSCORE_RE = /^_|_$/g
-
-export interface KnowledgeSection {
-  /** Title of the parent knowledge file */
-  entryTitle: string
-  /** ## heading text */
-  heading: string
-  /** Section content (without heading) */
-  content: string
-  /** Domain this section belongs to */
-  domain: string
-}
-
-export interface KnowledgeEntry {
-  /** Subdirectory name (e.g. 'law'), root = 'general' */
-  domain: string
-  /** File path */
-  file: string
-  /** Title extracted from # heading or filename */
-  title: string
-  /** Full raw content */
-  content: string
-  /** Parsed sections */
-  sections: KnowledgeSection[]
-}
-
-/**
- * Split markdown content into sections by ## headings.
- * Returns an array of { heading, content } objects.
- */
-function splitIntoSections(
-  markdown: string,
-  entryTitle: string,
-  domain: string,
-): KnowledgeSection[] {
-  const lines = markdown.split('\n')
-  const sections: KnowledgeSection[] = []
-  let currentHeading = ''
-  let currentLines: string[] = []
-
-  for (const line of lines) {
-    if (line.startsWith('## ')) {
-      // Save previous section if it has content
-      if (currentLines.length > 0) {
-        const content = currentLines.join('\n').trim()
-        if (content) {
-          sections.push({
-            entryTitle,
-            heading: currentHeading,
-            content,
-            domain,
-          })
-        }
-      }
-      currentHeading = line.slice(3).trim()
-      currentLines = []
-    }
-    else {
-      // Skip the top-level # heading line
-      if (line.startsWith('# ') && sections.length === 0 && currentLines.length === 0)
-        continue
-      currentLines.push(line)
-    }
-  }
-
-  // Save last section
-  if (currentLines.length > 0) {
-    const content = currentLines.join('\n').trim()
-    if (content) {
-      sections.push({
-        entryTitle,
-        heading: currentHeading,
-        content,
-        domain,
-      })
-    }
-  }
-
-  return sections
-}
-
-/**
- * Extract title from markdown content (first # heading) or fallback to filename.
- */
-function extractTitle(content: string, filename: string): string {
-  const match = content.match(TITLE_RE)
-  if (match)
-    return match[1].trim()
-  return filename.replace(MD_EXT_RE, '')
-}
 
 /**
  * Extract keywords from a user message for search matching.
@@ -378,38 +288,6 @@ const domains: ComputedRef<string[]> = computed(() => {
  */
 export function useKnowledgeBase() {
   /**
-   * Parse a single knowledge file into a KnowledgeEntry.
-   */
-  function parseEntry(file: string, content: string, domain: string): KnowledgeEntry {
-    const filename = file.split('/').pop() || file
-    const title = extractTitle(content, filename)
-    const sections = splitIntoSections(content, title, domain)
-
-    return {
-      domain,
-      file,
-      title,
-      content,
-      sections,
-    }
-  }
-
-  /**
-   * Determine domain from file path.
-   * `adv/knowledge/law/criminal.md` → 'law'
-   * `adv/knowledge/overview.md` → 'general'
-   */
-  function extractDomain(filePath: string): string {
-    // Remove the adv/knowledge/ prefix
-    const knowledgePath = filePath.replace(KNOWLEDGE_PREFIX_RE, '')
-    const parts = knowledgePath.split('/')
-    // If there's a subdirectory, use it as domain
-    if (parts.length > 1)
-      return parts[0]
-    return 'general'
-  }
-
-  /**
    * Load knowledge files from COS cloud storage.
    */
   async function loadFromCos(
@@ -430,8 +308,8 @@ export function useKnowledgeBase() {
           const content = await downloadFromCloud(cosConfig, file)
           // Normalize path relative to project prefix
           const relativePath = file.startsWith(prefix) ? file.slice(prefix.length) : file
-          const domain = extractDomain(relativePath)
-          newEntries.push(parseEntry(file, content, domain))
+          const domain = knowledgeDomain(relativePath)
+          newEntries.push(parseKnowledgeEntry(file, content, domain))
         }
         catch {
           // skip unreadable files
@@ -458,8 +336,8 @@ export function useKnowledgeBase() {
       for (const file of knowledgeFiles) {
         try {
           const content = await fs.readFile(file)
-          const domain = extractDomain(file)
-          newEntries.push(parseEntry(file, content, domain))
+          const domain = knowledgeDomain(file)
+          newEntries.push(parseKnowledgeEntry(file, content, domain))
           snapshot.set(file, content.length)
         }
         catch {
@@ -500,18 +378,8 @@ export function useKnowledgeBase() {
     title: string,
     content: string,
   ): Promise<KnowledgeEntry> {
-    const safeTitle = title
-      .toLowerCase()
-      .replace(SAFE_TITLE_RE, '_')
-      .replace(TRIM_UNDERSCORE_RE, '')
-      || 'untitled'
-
-    const dir = domain === 'general' ? 'adv/knowledge' : `adv/knowledge/${domain}`
-    const file = `${dir}/${safeTitle}.md`
-    const fullContent = `# ${title}\n\n${content}`
-
-    const entry = parseEntry(file, fullContent, domain)
-    await fs.writeFile(file, fullContent)
+    const entry = newKnowledgeEntry(domain, title, content)
+    await fs.writeFile(entry.file, entry.content)
     entries.value = [...entries.value, entry]
     return entry
   }

@@ -140,6 +140,21 @@ struct StudioAlert: Identifiable {
             case .renameUnsupportedForExternal: return String(localized: "Projects opened from another location keep their folder name. Rename them in the Files app.")
             }
         }
+        if let error = error as? ContentAuthoringError {
+            switch error {
+            case .sourceChanged: return String(localized: "The entry changed on disk. Reopen it or resolve the draft conflict.")
+            case .unreadable: return String(localized: "The entry could not be read. Check its source file.")
+            }
+        }
+        if case EngineError.engine(let failure) = error, failure.code == "ENGINE_AUTHORING_INVALID" {
+            return String(localized: "The content could not be processed. Check the entry fields or import file.")
+        }
+        if let error = error as? ProjectImageError {
+            switch error {
+            case .invalidImage: return String(localized: "This image could not be imported. Check the format and file size.")
+            case .missingImage: return String(localized: "The image file is missing from the project.")
+            }
+        }
         return error.localizedDescription
     }
 }
