@@ -21,7 +21,7 @@ export interface SourceEditorBinding {
   navigate: (source: ProjectSourcePosition, isCurrent: () => boolean) => Promise<boolean>
 }
 
-export type MonacoEditorLanguage = 'json' | 'javascript' | 'typescript' | 'html' | 'css' | 'markdown' | 'plaintext'
+export type MonacoEditorLanguage = 'adv' | 'json' | 'javascript' | 'typescript' | 'html' | 'css' | 'markdown' | 'plaintext'
 
 /**
  * global monaco editor store

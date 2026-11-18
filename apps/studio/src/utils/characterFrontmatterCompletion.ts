@@ -11,11 +11,12 @@
  * - When typing `template:`, suggest the enum values.
  *
  * The provider is registered against the YAML and Markdown language IDs so
- * that both plain Markdown editors and the custom `adv-markdown` language pick
+ * that both plain Markdown editors and the custom `adv` language pick
  * it up when the user edits a character file.
  */
 
 import type * as Monaco from 'monaco-editor'
+import { ADV_LANGUAGE_ID } from './advLanguage'
 
 /**
  * Leaf field definition for a single frontmatter namespace.
@@ -244,7 +245,7 @@ function buildItems(
  *
  * Cheap to instantiate — the provider carries no state and all fields are
  * module-scope constants, so we can register it multiple times (YAML,
- * Markdown, adv-markdown) without worry.
+ * Markdown, adv) without worry.
  */
 export function createCharacterFrontmatterCompletionProvider(): Monaco.languages.CompletionItemProvider {
   return {
@@ -346,7 +347,7 @@ export function createCharacterFrontmatterCompletionProvider(): Monaco.languages
 
 /**
  * Register the character frontmatter completion provider against the
- * language IDs that Monaco uses for Markdown / YAML / our custom adv-markdown.
+ * language IDs that Monaco uses for Markdown / YAML / our custom adv language.
  *
  * Idempotent: every call returns a disposable and Monaco de-dupes language
  * registrations internally, but we guard at the caller level via a module
@@ -355,7 +356,7 @@ export function createCharacterFrontmatterCompletionProvider(): Monaco.languages
 export function registerCharacterFrontmatterCompletion(monaco: typeof Monaco): Monaco.IDisposable[] {
   const provider = createCharacterFrontmatterCompletionProvider()
   const disposables: Monaco.IDisposable[] = []
-  for (const lang of ['yaml', 'markdown', 'adv-markdown']) {
+  for (const lang of ['yaml', 'markdown', ADV_LANGUAGE_ID]) {
     disposables.push(monaco.languages.registerCompletionItemProvider(lang, provider))
   }
   return disposables

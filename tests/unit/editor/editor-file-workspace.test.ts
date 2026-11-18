@@ -87,7 +87,7 @@ describe('editor file workspace', () => {
     expect(file.fileKind).toBe('image')
     expect(file.previewUrl).toBe('blob:preview')
     expect(monaco.fileContent).toBe('# chapter.adv.md')
-    expect(monaco.language).toBe('markdown')
+    expect(monaco.language).toBe('adv')
     expect(file.isDirty).toBe(false)
     await file.setOpenedFileHandle(handle('story.md'))
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:preview')

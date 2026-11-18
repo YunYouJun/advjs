@@ -3,7 +3,10 @@ import type { Text as YText } from 'yjs'
 import { getFileTypeFromPath, getIconFromFileType } from '@advjs/gui'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getMonaco, registerCharacterFrontmatterCompletionIfNeeded } from '../utils/monacoSetup'
+import { useProjectContent } from '../composables/useProjectContent'
+import { advMonacoTheme } from '../utils/advLanguage'
+import { detectEditorLanguage } from '../utils/editorLanguage'
+import { getMonaco, registerAdvLanguageIfNeeded, registerCharacterFrontmatterCompletionIfNeeded } from '../utils/monacoSetup'
 
 const props = withDefaults(defineProps<{
   content?: string
@@ -44,24 +47,6 @@ let diffOriginalModel: any = null
 let diffModifiedModel: any = null
 let initToken = 0
 
-const EXT_LANGUAGE_MAP: Record<string, string> = {
-  'ts': 'typescript',
-  'tsx': 'typescript',
-  'js': 'javascript',
-  'jsx': 'javascript',
-  'json': 'json',
-  'md': 'markdown',
-  'adv.md': 'markdown',
-  'vue': 'html',
-  'html': 'html',
-  'css': 'css',
-  'scss': 'scss',
-  'yaml': 'yaml',
-  'yml': 'yaml',
-  'xml': 'xml',
-  'svg': 'xml',
-}
-
 /** Language label for the type badge */
 const EXT_LABEL_MAP: Record<string, string> = {
   'adv.md': 'ADV Script',
@@ -98,16 +83,19 @@ const fileTypeLabel = computed(() => {
   return EXT_LABEL_MAP[ext] || ext.toUpperCase() || 'File'
 })
 
-function detectLanguage(filename: string): string {
-  if (!filename)
-    return props.language
+const projectContent = useProjectContent()
 
-  // Check compound extensions first
-  if (filename.endsWith('.adv.md'))
-    return 'markdown'
+/** Project names offered after `@` and inside `【】`. */
+function completionContext() {
+  return {
+    characterNames: projectContent.characters.value.map(character => character.name).filter(Boolean),
+    sceneNames: projectContent.scenes.value.map(scene => scene.name),
+    locationNames: projectContent.locations.value.map(location => location.name),
+  }
+}
 
-  const ext = filename.split('.').pop()?.toLowerCase() || ''
-  return EXT_LANGUAGE_MAP[ext] || props.language
+function editorTheme() {
+  return advMonacoTheme(document.documentElement.classList.contains('dark'))
 }
 
 function getInitialEditorValue(): string {
@@ -149,10 +137,11 @@ async function initEditor() {
   // Register character frontmatter schema completions (idempotent — only
   // actually registers on first call).
   await registerCharacterFrontmatterCompletionIfNeeded()
+  await registerAdvLanguageIfNeeded(completionContext)
   if (token !== initToken)
     return
 
-  const lang = detectLanguage(props.filename)
+  const lang = detectEditorLanguage(props.filename, props.language)
   const isDiff = props.originalContent !== undefined
 
   if (isDiff) {
@@ -167,6 +156,7 @@ async function initEditor() {
       // highlighter is pending. Its cancellation otherwise rejects unhandled.
       occurrencesHighlight: 'off',
       renderSideBySide: window.innerWidth >= 768,
+      theme: editorTheme(),
     })
 
     diffOriginalModel = monaco.editor.createModel(props.originalContent || '', lang)
@@ -189,7 +179,7 @@ async function initEditor() {
       lineNumbers: 'on',
       wordWrap: 'on',
       occurrencesHighlight: 'off',
-      theme: document.documentElement.classList.contains('dark') ? 'vs-dark' : 'vs',
+      theme: editorTheme(),
     })
 
     await bindCollabText(editorModel)
@@ -263,7 +253,7 @@ watch(() => props.filename, (filename) => {
   }
   if (!monaco)
     return
-  const lang = detectLanguage(filename)
+  const lang = detectEditorLanguage(filename, props.language)
   for (const model of [editorModel, diffOriginalModel, diffModifiedModel]) {
     if (model)
       monaco.editor.setModelLanguage(model, lang)

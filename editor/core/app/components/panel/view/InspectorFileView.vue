@@ -2,7 +2,8 @@
 import type { IDisposable, editor as MonacoEditor } from 'monaco-editor'
 import { AdvGameLoadStatusEnum, useAdvContext } from '@advjs/client'
 import { parseCharacterMd } from '@advjs/parser'
-import { computed, nextTick, onBeforeUnmount, shallowRef, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, shallowRef, watch } from 'vue'
+import { advMonacoTheme, registerAdvMonacoLanguage } from '../../../../../../packages/shared/adv-monaco'
 import { insertStoryTemplate } from '../../../utils/story-templates'
 import CharacterAvatarPanel from '../../character/CharacterAvatarPanel.vue'
 import CharacterVisualPanel from '../../character/CharacterVisualPanel.vue'
@@ -42,6 +43,14 @@ const listeners: IDisposable[] = []
 let unregisterChapterEditor: (() => void) | undefined
 let unregisterSourceEditor: (() => void) | undefined
 const editorReady = shallowRef(false)
+// Monaco falls back to the light theme for unknown names, so define the ADV
+// language and themes before the editor is created.
+const languagesReady = shallowRef(false)
+onMounted(async () => {
+  registerAdvMonacoLanguage(await useMonaco())
+  if (active)
+    languagesReady.value = true
+})
 const sourceReady = computed(() => Boolean(editorReady.value && editor && active && !restoringPosition.value && !file.loading && file.fileKind === 'text' && editorPath === file.openedFilePath))
 const chapterReady = computed(() => Boolean(sourceReady.value && file.openedFileHandle && file.fileName.endsWith('.adv.md')))
 function savePosition() {
@@ -213,13 +222,17 @@ function goToNode() {
     </div>
     <ClientOnly>
       <LazyMonacoEditor
+        v-if="languagesReady"
         v-show="!reading"
         class="file-monaco" :model-value="monaco.fileContent" :lang="monaco.language"
-        :options="{ ...monaco.options, theme: colorMode.value === 'dark' ? 'vs-dark' : 'vs' }"
+        :options="{ ...monaco.options, theme: advMonacoTheme(colorMode.value === 'dark') }"
         :editor-options="{ automaticLayout: true }"
         @update:model-value="monaco.fileContent = $event"
         @load="loaded"
       />
+      <p v-else-if="!reading" class="file-reading" role="status">
+        {{ zh ? '正在加载编辑器…' : 'Loading editor…' }}
+      </p>
       <template #fallback>
         <p class="file-reading" role="status">
           {{ zh ? '正在加载编辑器…' : 'Loading editor…' }}
