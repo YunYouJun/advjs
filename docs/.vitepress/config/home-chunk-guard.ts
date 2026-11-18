@@ -10,10 +10,13 @@ const FORBIDDEN = [
   '/packages/parser/src/',
   '/packages/core/src/project/',
   '/components/home/ai/',
-  '/shiki/dist/engine-javascript',
+  '/node_modules/shiki/',
+  '/node_modules/@shikijs/',
+  '/node_modules/remark-',
+  '/node_modules/unified/',
 ]
 
-const HOME_PAGES = [/\/docs\/index\.md$/, /\/docs\/en\/index\.md$/]
+const HOME_PAGES = ['/docs/index.md', '/docs/en/index.md']
 
 /** Fails the client build when AI mode leaks into the home page's first load. */
 export function homeChunkGuard(): Plugin {
@@ -27,11 +30,16 @@ export function homeChunkGuard(): Plugin {
       const byName = new Map(chunks.map(chunk => [chunk.fileName, chunk]))
       // VitePress builds the app and every page as entries; the roots are the app and the home pages.
       type Chunk = typeof chunks[number]
-      const isHome = (chunk: Chunk) => !!chunk.facadeModuleId && HOME_PAGES.some(page => page.test(chunk.facadeModuleId!))
       const isApp = (chunk: Chunk) => chunk.isEntry && !!chunk.facadeModuleId?.includes('/vitepress/dist/client/app/')
-      const roots = chunks.filter(chunk => isHome(chunk) || isApp(chunk))
-      if (!roots.some(isHome) || !roots.some(isApp))
-        this.error('home-chunk-guard: could not find the app entry and the home page chunks')
+      const roots = chunks.filter(isApp)
+      if (!roots.length)
+        this.error('home-chunk-guard: could not find the app entry')
+      for (const page of HOME_PAGES) {
+        const chunk = chunks.find(chunk => chunk.facadeModuleId?.endsWith(page))
+        if (!chunk)
+          this.error(`home-chunk-guard: could not find the entry for ${page}`)
+        roots.push(chunk)
+      }
 
       const seen = new Set<string>()
       const queue = roots.map(chunk => chunk.fileName)
