@@ -1,7 +1,7 @@
 {
   "name": "@advjs/theme-default",
   "type": "module",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Default Theme for ADV.JS",
   "author": {
     "name": "YunYouJun",
@@ -48,12 +48,12 @@
     "colorSchema": "both"
   },
   "dependencies": {
-    "@advjs/client": "workspace:0.1.4",
-    "@advjs/types": "workspace:0.1.4",
+    "@advjs/client": "workspace:0.1.5",
+    "@advjs/types": "workspace:0.1.5",
     "@iconify-json/ri": "catalog:icons"
   },
   "devDependencies": {
-    "@advjs/core": "workspace:0.1.4",
-    "advjs": "workspace:0.1.4"
+    "@advjs/core": "workspace:0.1.5",
+    "advjs": "workspace:0.1.5"
   }
 }

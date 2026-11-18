@@ -1,7 +1,7 @@
 {
   "name": "advjs",
   "type": "module",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "ADV.JS - A front-end visual novel game engine",
   "author": {
     "name": "YunYouJun",
@@ -54,15 +54,15 @@
     "export": "tsx node/cli/index.ts export"
   },
   "dependencies": {
-    "@advjs/assets": "workspace:0.1.4",
-    "@advjs/audio": "workspace:0.1.4",
-    "@advjs/client": "workspace:0.1.4",
-    "@advjs/core": "workspace:0.1.4",
-    "@advjs/devtools": "workspace:0.1.4",
-    "@advjs/editor": "workspace:0.1.4",
-    "@advjs/parser": "workspace:0.1.4",
-    "@advjs/theme-default": "workspace:0.1.4",
-    "@advjs/types": "workspace:0.1.4",
+    "@advjs/assets": "workspace:0.1.5",
+    "@advjs/audio": "workspace:0.1.5",
+    "@advjs/client": "workspace:0.1.5",
+    "@advjs/core": "workspace:0.1.5",
+    "@advjs/devtools": "workspace:0.1.5",
+    "@advjs/editor": "workspace:0.1.5",
+    "@advjs/parser": "workspace:0.1.5",
+    "@advjs/theme-default": "workspace:0.1.5",
+    "@advjs/types": "workspace:0.1.5",
     "@antfu/ni": "catalog:utils",
     "@antfu/utils": "catalog:utils",
     "@devframes/service-shiki": "catalog:",

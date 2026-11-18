@@ -99,7 +99,7 @@ afterAll(async () => {
 
 describe('launch package manifest', () => {
   it('defines a complete, consistently versioned public package graph', async () => {
-    expect(LAUNCH_VERSION).toBe('0.1.4')
+    expect(LAUNCH_VERSION).toBe('0.1.5')
     // Pin the public members; actual package dependencies determine their order.
     expect(PACKAGE_SPECS.map(spec => spec.name).sort()).toEqual([
       '@advjs/types',

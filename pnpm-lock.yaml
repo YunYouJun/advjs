@@ -1127,7 +1127,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/agent
       '@advjs/audio':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../../packages/audio
       '@advjs/client':
         specifier: workspace:*
@@ -1513,7 +1513,7 @@ importers:
   editor/core:
     dependencies:
       '@advjs/audio':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../../packages/audio
     devDependencies:
       '@advjs/assets':
@@ -1804,31 +1804,31 @@ importers:
   packages/advjs:
     dependencies:
       '@advjs/assets':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../assets
       '@advjs/audio':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../audio
       '@advjs/client':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../client
       '@advjs/core':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../core
       '@advjs/devtools':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../devtools
       '@advjs/editor':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../../editor/core
       '@advjs/parser':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../parser
       '@advjs/theme-default':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../../themes/theme-default
       '@advjs/types':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../types
       '@antfu/ni':
         specifier: catalog:utils
@@ -1973,10 +1973,10 @@ importers:
   packages/agent:
     dependencies:
       '@advjs/core':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../core
       '@advjs/types':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../types
       js-yaml:
         specifier: catalog:utils
@@ -2020,7 +2020,7 @@ importers:
   packages/assets:
     dependencies:
       '@advjs/types':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../types
     devDependencies:
       unbuild:
@@ -2030,10 +2030,10 @@ importers:
   packages/audio:
     dependencies:
       '@advjs/assets':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../assets
       '@advjs/types':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../types
     devDependencies:
       unbuild:
@@ -2083,19 +2083,19 @@ importers:
   packages/client:
     dependencies:
       '@advjs/audio':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../audio
       '@advjs/core':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../core
       '@advjs/parser':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../parser
       '@advjs/types':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../types
       '@advjs/unocss':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../unocss
       '@antfu/utils':
         specifier: catalog:utils
@@ -2177,16 +2177,16 @@ importers:
   packages/core:
     dependencies:
       '@advjs/assets':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../assets
       '@advjs/audio':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../audio
       '@advjs/parser':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../parser
       '@advjs/types':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../types
       '@types/mdast':
         specifier: catalog:types
@@ -2233,7 +2233,7 @@ importers:
   packages/devtools:
     dependencies:
       '@advjs/types':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../types
       '@devframes/service-shiki':
         specifier: 'catalog:'
@@ -2258,7 +2258,7 @@ importers:
         version: 4.5.0
     devDependencies:
       '@advjs/gui':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../gui
       '@vitejs/plugin-vue':
         specifier: catalog:build
@@ -2352,10 +2352,10 @@ importers:
   packages/mcp-server:
     dependencies:
       '@advjs/core':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../core
       '@advjs/parser':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../parser
       '@modelcontextprotocol/ext-apps':
         specifier: catalog:cli
@@ -2364,7 +2364,7 @@ importers:
         specifier: catalog:cli
         version: 1.30.0(supports-color@10.2.2)(zod@4.4.3)
       advjs:
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../advjs
       pathe:
         specifier: catalog:utils
@@ -2374,7 +2374,7 @@ importers:
         version: 4.4.3
     devDependencies:
       '@advjs/types':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../types
       unbuild:
         specifier: catalog:build
@@ -2383,13 +2383,13 @@ importers:
   packages/parser:
     dependencies:
       '@advjs/audio':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../audio
       '@advjs/types':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../types
       '@advjs/unocss':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../unocss
       '@types/mdast':
         specifier: catalog:types
@@ -2978,29 +2978,29 @@ importers:
   themes/theme-default:
     dependencies:
       '@advjs/client':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../../packages/client
       '@advjs/types':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../../packages/types
       '@iconify-json/ri':
         specifier: catalog:icons
         version: 1.2.10
     devDependencies:
       '@advjs/core':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../../packages/core
       advjs:
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../../packages/advjs
 
   themes/theme-pominis:
     dependencies:
       '@advjs/client':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../../packages/client
       '@advjs/types':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../../packages/types
     devDependencies:
       '@advjs/core':
@@ -3013,10 +3013,10 @@ importers:
   themes/theme-starter:
     dependencies:
       '@advjs/client':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../../packages/client
       '@advjs/types':
-        specifier: workspace:0.1.4
+        specifier: workspace:0.1.5
         version: link:../../packages/types
     devDependencies:
       advjs:

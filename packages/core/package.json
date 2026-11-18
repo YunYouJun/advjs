@@ -1,7 +1,7 @@
 {
   "name": "@advjs/core",
   "type": "module",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Core library for AdvJS, providing essential functionalities and utilities.",
   "repository": {
     "type": "git",
@@ -49,10 +49,10 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@advjs/assets": "workspace:0.1.4",
-    "@advjs/audio": "workspace:0.1.4",
-    "@advjs/parser": "workspace:0.1.4",
-    "@advjs/types": "workspace:0.1.4",
+    "@advjs/assets": "workspace:0.1.5",
+    "@advjs/audio": "workspace:0.1.5",
+    "@advjs/parser": "workspace:0.1.5",
+    "@advjs/types": "workspace:0.1.5",
     "@types/mdast": "catalog:types",
     "consola": "catalog:cli",
     "dayjs": "catalog:utils",
