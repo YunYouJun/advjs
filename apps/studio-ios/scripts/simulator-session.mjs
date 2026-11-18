@@ -141,7 +141,7 @@ async function session(device, buildArgs) {
 async function main() {
   const args = process.argv.slice(2)
   if (args.includes('--help')) {
-    process.stdout.write('Usage: simulator-session.mjs [--only iphone|ipad|both] [--config profile.json | --ci] -- <xcodebuild arguments>\nExisting devices only; both runs serially; use {family} in result bundle paths.\n')
+    process.stdout.write('Usage: simulator-session.mjs [--only iphone|ipad|both] [--config profile.json] -- <xcodebuild arguments>\nExisting devices only; both runs serially; use {family} in result bundle paths.\n')
     return
   }
   const separator = args.indexOf('--')
@@ -151,8 +151,6 @@ async function main() {
   const buildArgs = args.slice(separator + 1)
   let only = 'both'
   let config = new URL('./simulator-profile.json', import.meta.url)
-  let ci = false
-  let explicitConfig = false
   for (let index = 0; index < options.length; index++) {
     const flag = options[index]
     if (flag === '--only') {
@@ -160,10 +158,6 @@ async function main() {
     }
     else if (flag === '--config') {
       config = options[++index]
-      explicitConfig = true
-    }
-    else if (flag === '--ci') {
-      ci = true
     }
     else {
       throw new Error(`Unknown option: ${flag}`)
@@ -171,12 +165,10 @@ async function main() {
   }
   if (!['both', 'iphone', 'ipad'].includes(only) || !config)
     throw new Error('Invalid --only or --config')
-  if (ci && (process.env.CI !== 'true' || explicitConfig))
-    throw new Error('--ci requires CI=true and cannot be combined with --config')
   const reserved = ['-destination', '-parallel-testing-enabled', '-parallel-testing-worker-count', '-maximum-concurrent-test-simulator-destinations']
   if (buildArgs.some(arg => reserved.some(flag => arg === flag || arg.startsWith(`${flag}=`))))
     throw new Error('Destination and simulator parallelism are owned by this session; remove those xcodebuild arguments')
-  const profile = ci ? undefined : JSON.parse(await readFile(config, 'utf8'))
+  const profile = JSON.parse(await readFile(config, 'utf8'))
   const selected = selectDevices(await listDevices(), only, profile)
   for (const device of selected) {
     if (interrupted)
