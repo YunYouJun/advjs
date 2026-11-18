@@ -77,7 +77,7 @@ public enum CoordinatedFiles {
         }
     }
 
-    private static func coordinate<T>(
+    static func coordinate<T>(
         filePresenter: NSFilePresenter?,
         _ body: (NSFileCoordinator, NSErrorPointer) -> Result<T, Error>
     ) throws -> T {

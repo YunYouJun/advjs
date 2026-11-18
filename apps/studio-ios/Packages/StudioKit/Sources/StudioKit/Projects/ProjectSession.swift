@@ -36,12 +36,12 @@ public final class ProjectSession: Identifiable {
     public static let debounce: Duration = .milliseconds(400)
 
     private let store: ProjectStore
-    private let engine: EngineBridge
-    private let draftStore: DraftStore
+    let engine: EngineBridge
+    let draftStore: DraftStore
     typealias SnapshotReader = @Sendable (URL, ProjectWatcher?) async throws -> ProjectSnapshot
     private let readSnapshot: SnapshotReader
     private var access: ProjectFolderAccess?
-    private var watcher: ProjectWatcher?
+    private(set) var watcher: ProjectWatcher?
     private var pendingReload: Task<Void, Never>?
     /// Async disk/engine work may finish out of order on this reentrant actor.
     private var loadGeneration = 0
@@ -354,7 +354,7 @@ public final class ProjectSession: Identifiable {
         resumeLoadWaiters()
     }
 
-    private func refreshDrafts() {
+    func refreshDrafts() {
         drafts = draftStore.all()
         conflicts = draftStore.conflicts(with: snapshot?.files ?? [:])
     }

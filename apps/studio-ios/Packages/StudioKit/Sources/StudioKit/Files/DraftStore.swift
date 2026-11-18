@@ -62,7 +62,7 @@ public struct DraftStore: Sendable {
         let draft = FileDraft(
             path: path,
             text: text,
-            baseSHA256: existing?.baseSHA256 ?? base.map(Self.sha256),
+            baseSHA256: existing == nil ? base.map(Self.sha256) : existing?.baseSHA256,
             updatedAt: now
         )
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)

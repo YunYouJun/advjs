@@ -19,6 +19,7 @@ import {
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { useProjectCover } from '../composables/useProjectCover'
 import { useStudioStore } from '../stores/useStudioStore'
 
 const props = defineProps<{
@@ -40,6 +41,8 @@ const editUrl = ref('')
 const editCosPrefix = ref('')
 const editDescription = ref('')
 const coverFileInput = ref<HTMLInputElement | null>(null)
+const { currentCover, uploadCover, removeCover } = useProjectCover(() => props.open)
+const isUpdatingCover = ref(false)
 
 const project = computed(() => studioStore.currentProject)
 
@@ -117,22 +120,32 @@ async function handleSave() {
   emit('close')
 }
 
-async function handleCoverUpload(event: Event) {
+async function updateCover(action: () => Promise<void>) {
+  if (isUpdatingCover.value)
+    return
+  isUpdatingCover.value = true
+  try {
+    await action()
+  }
+  catch {
+    const toast = await toastController.create({ message: t('common.error'), duration: 2500, color: 'danger' })
+    await toast.present()
+  }
+  finally {
+    isUpdatingCover.value = false
+  }
+}
+
+function handleCoverUpload(event: Event) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
-  input.value = '' // reset for re-selection
-  if (!file || !project.value)
-    return
-
-  // Resize and convert to JPEG data URL
-  const dataUrl = await resizeImage(file, 800, 0.8)
-  studioStore.updateProject(project.value.projectId, { cover: dataUrl })
+  input.value = ''
+  if (file)
+    void updateCover(() => uploadCover(file))
 }
 
 function handleCoverRemove() {
-  if (!project.value)
-    return
-  studioStore.updateProject(project.value.projectId, { cover: undefined })
+  void updateCover(removeCover)
 }
 
 function handleOpenSharePage() {
@@ -140,29 +153,6 @@ function handleOpenSharePage() {
     return
   emit('close')
   router.push(`/share/${encodeURIComponent(project.value.projectId)}`)
-}
-
-function resizeImage(file: File, maxWidth: number, quality: number): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.onload = () => {
-      const ratio = Math.min(1, maxWidth / img.width)
-      const w = Math.round(img.width * ratio)
-      const h = Math.round(img.height * ratio)
-      const canvas = document.createElement('canvas')
-      canvas.width = w
-      canvas.height = h
-      const ctx = canvas.getContext('2d')
-      if (!ctx) {
-        reject(new Error('Canvas not supported'))
-        return
-      }
-      ctx.drawImage(img, 0, 0, w, h)
-      resolve(canvas.toDataURL('image/jpeg', quality))
-    }
-    img.onerror = () => reject(new Error('Failed to load image'))
-    img.src = URL.createObjectURL(file)
-  })
 }
 
 async function handleDelete() {
@@ -292,16 +282,16 @@ async function handleDelete() {
             <h3 class="card-title">
               {{ t('projectSettings.cover') }}
             </h3>
-            <div v-if="project?.cover" class="cover-preview">
-              <img :src="project.cover" alt="Cover" class="cover-preview__img">
-              <button type="button" class="cover-preview__remove" @click="handleCoverRemove">
+            <div v-if="currentCover" class="cover-preview">
+              <img :src="currentCover" :alt="t('projectSettings.cover')" class="cover-preview__img">
+              <button type="button" class="cover-preview__remove" :disabled="isUpdatingCover" @click="handleCoverRemove">
                 <div class="i-carbon-close" />
               </button>
             </div>
             <div class="field">
-              <button type="button" class="btn-upload" @click="coverFileInput?.click()">
+              <button type="button" class="btn-upload" :disabled="isUpdatingCover" @click="coverFileInput?.click()">
                 <div class="i-carbon-image" />
-                {{ project?.cover ? t('projectSettings.coverUpload') : t('projectSettings.coverUpload') }}
+                {{ t('projectSettings.coverUpload') }}
               </button>
               <input
                 ref="coverFileInput"
