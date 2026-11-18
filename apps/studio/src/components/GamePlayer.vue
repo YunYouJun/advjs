@@ -67,6 +67,7 @@ const $adv: AdvContext = setupAdvContext({
   runtimePlugins,
   progressionStorage: false,
   galleryStorage,
+  extrasStorage: galleryStorage,
 })
 provide(injectionAdvContext, $adv)
 

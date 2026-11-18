@@ -3,7 +3,7 @@
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { compileMarkdownProgram, createAdvRuntime } from '../../../packages/core/src'
+import { compileMarkdownProgram, createAdvRuntime, createRuntimeRouteGraph, validateGameExtras } from '../../../packages/core/src'
 import { civilization, starMap } from '../../../plugins/plugin-interactions/src'
 
 const root = resolve(import.meta.dirname, '../../..')
@@ -152,6 +152,23 @@ describe('hamster demo runtime', () => {
       civilizationLevel: 2,
     })
     expect(runtime.state.variables.unlockedEndings).toEqual(['starlight-echo'])
+    expect(runtime.state.variables.unlockedAchievements).toEqual([
+      'first-observation',
+      'perfect-alignment',
+      'civilization-archive',
+      'archive-complete',
+    ])
+  })
+
+  it('declares extras that match every unlock and replay anchor in the scripts', async () => {
+    const { program } = await compileHamsterProgram()
+    const settings = JSON.parse(await readFile(resolve(root, 'demo/hamster/adv/settings/game.json'), 'utf8'))
+
+    expect(validateGameExtras({ game: settings, program })).toEqual([])
+    expect(settings.progression.keys).toEqual(expect.arrayContaining([settings.endings.key, settings.achievements.key]))
+    const route = createRuntimeRouteGraph(program!)
+    expect(route.nodes.filter(node => node.entry)).toHaveLength(16)
+    expect(route.edges).toContainEqual(expect.objectContaining({ source: 'hamster-cage#observers', target: 'world-destruction#starry-room' }))
   })
 
   it('keeps the complete route reachable after an imperfect star-map comparison', async () => {
@@ -165,6 +182,7 @@ describe('hamster demo runtime', () => {
       starMatched: false,
       starMatchScore: 0.61,
     })
+    expect(runtime.state.variables.unlockedAchievements).not.toContain('perfect-alignment')
   })
 
   it('runs the postgame echo simulation as an independent world-internal route', async () => {

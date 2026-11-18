@@ -76,7 +76,7 @@ my-game/
 
 ### `adv/settings/game.json`
 
-`adv/settings/game.json` 保存需要在 Studio 与正式游戏之间共享的纯数据，例如标题、初始变量、跨周目键、画廊展示数据和必需插件版本。
+`adv/settings/game.json` 保存需要在 Studio 与正式游戏之间共享的纯数据，例如标题、初始变量、跨周目键、画廊展示数据、[附录](/guide/runtime/extras)中的结局、成就、回想与音乐鉴赏，以及必需插件版本。
 
 ```json
 {

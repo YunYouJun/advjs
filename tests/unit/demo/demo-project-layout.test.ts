@@ -62,6 +62,7 @@ describe('demo project layout', () => {
         canonicalCompleted: false,
         storyMode: 'main',
         unlockedEndings: [],
+        unlockedAchievements: [],
         curiosity: 0,
         empathy: 0,
         control: 0,
@@ -76,7 +77,7 @@ describe('demo project layout', () => {
       progression: {
         id: 'hamster',
         version: 1,
-        keys: ['canonicalCompleted', 'unlockedEndings'],
+        keys: ['canonicalCompleted', 'unlockedEndings', 'unlockedAchievements'],
       },
       requiredPlugins: {
         'star-map': '1.0.0',

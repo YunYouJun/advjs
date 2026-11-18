@@ -41,6 +41,7 @@ export function useAdvStartActions() {
     },
     openLoadGame: () => app.toggleShowLoadMenu(),
     openFlowChart: () => router.push('/flow-chart'),
+    openExtras: () => router.push('/extras'),
     openSettings: () => {
       app.menus.settings = true
     },

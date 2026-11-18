@@ -4,6 +4,12 @@ export {
   syncRuntimePresentation,
 } from './effects'
 export type { AdvPresentationResources } from './effects'
+export { createBrowserExtrasController, extrasNamespace } from './extras'
+export type {
+  BrowserExtrasOptions,
+  RuntimeExtrasCapture,
+  RuntimeExtrasController,
+} from './extras'
 export { createBrowserGalleryController } from './gallery'
 export type {
   BrowserGalleryOptions,

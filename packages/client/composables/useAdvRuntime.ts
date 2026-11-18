@@ -35,6 +35,7 @@ export interface CreateAdvRuntimeHostOptions extends AdvRuntimeHostInstallOption
     state: Readonly<RuntimeState>,
     current: RuntimeNode | undefined,
     program: RuntimeProgram,
+    effects: readonly RuntimeEffect[],
   ) => void
 }
 
@@ -77,12 +78,12 @@ export function createAdvRuntimeHost(options: CreateAdvRuntimeHostOptions): AdvR
   let unsubscribeTrace: (() => void) | undefined
   const traceSubscribers = new Set<RuntimeTraceSubscriber>()
 
-  const sync = () => {
+  const sync = (effects: readonly RuntimeEffect[] = []) => {
     if (!runtime || !program.value)
       return
     state.value = structuredClone(runtime.state)
     current.value = runtime.current
-    options.onState?.(state.value, current.value, structuredClone(program.value))
+    options.onState?.(state.value, current.value, structuredClone(program.value), effects)
   }
 
   const requireRuntime = (): AdvRuntime => {
@@ -109,7 +110,7 @@ export function createAdvRuntimeHost(options: CreateAdvRuntimeHostOptions): AdvR
     runtime = createAdvRuntime(runtimeOptions)
     unsubscribe = runtime.subscribe((nextState, effects) => {
       options.onEffects?.(effects, nextState)
-      sync()
+      sync(effects)
     })
     unsubscribeTrace = runtime.subscribeTrace((entry) => {
       for (const subscriber of traceSubscribers)

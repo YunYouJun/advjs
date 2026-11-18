@@ -9,6 +9,8 @@ import type {
   AdvGameProgressionConfig,
   JsonObject,
 } from '@advjs/types'
+import type { AdvGameExtrasConfig } from '../extras/config'
+import { parseGameExtras } from '../extras/config'
 
 export interface AuthoringGalleryItem {
   id: string
@@ -33,7 +35,7 @@ export interface AuthoringGameGalleryConfig {
 export type AuthoringGameSettings = Partial<Pick<
   AdvGameConfig,
   'title' | 'description' | 'variables' | 'progression' | 'requiredPlugins'
->> & { gallery?: AuthoringGameGalleryConfig }
+>> & AdvGameExtrasConfig & { gallery?: AuthoringGameGalleryConfig }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value))
@@ -124,7 +126,12 @@ export function parseAuthoringGameSettings(text: string | undefined): AuthoringG
     settings.requiredPlugins = structuredClone(value.requiredPlugins) as Record<string, string>
   }
 
-  return settings
+  try {
+    return { ...settings, ...parseGameExtras(value) }
+  }
+  catch (cause) {
+    throw invalidSettings(cause instanceof Error ? cause.message : String(cause))
+  }
 }
 
 export function applyAuthoringGameSettings(

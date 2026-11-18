@@ -24,6 +24,7 @@ import {
 } from '@advjs/parser'
 import { normalizeAdvAssetManifest } from '../assets'
 import { compileFlowProgram, compileMarkdownProgram, isRuntimeIdentifier } from '../compiler'
+import { validateGameExtras } from '../extras/validate'
 import { validateProjectAudio } from './audio'
 import { collectProjectFlowChapters } from './flow'
 
@@ -51,6 +52,7 @@ const CONFIG_FIELDS = new Set([
   'theme',
 ])
 const GAME_FIELDS = new Set([
+  'achievements',
   'assets',
   'audio',
   'bgm',
@@ -58,26 +60,33 @@ const GAME_FIELDS = new Set([
   'characters',
   'cover',
   'description',
+  'endings',
   'entryChapterId',
   'favicon',
   'gallery',
   'locale',
   'id',
+  'musicRoom',
   'progression',
+  'replays',
   'requiredPlugins',
   'scenes',
   'title',
   'variables',
 ])
 const NORMALIZED_GAME_FIELDS = [
+  'achievements',
   'audio',
   'bgm',
   'cover',
   'description',
+  'endings',
   'favicon',
   'gallery',
   'locale',
+  'musicRoom',
   'progression',
+  'replays',
   'title',
   'variables',
 ] as const
@@ -899,6 +908,14 @@ export async function compileProject(
     })))
   }
 
+  diagnostics.push(...validateGameExtras({
+    game: gameConfig,
+    gamePath: gameConfigPath ?? configPath,
+    program,
+    assets,
+    chapterSources: sourceMap.chapters,
+    files,
+  }))
   diagnostics.push(...await validateProjectAudio({ files, root, assets, characters: characterResult.characters, program, sourceLocale: typeof gameConfig.locale === 'string' ? gameConfig.locale : undefined }))
   sortDiagnostics(diagnostics)
   if (diagnostics.some(diagnostic => diagnostic.severity === 'error'))

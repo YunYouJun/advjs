@@ -196,11 +196,12 @@ describe('hamster complete adaptation contract', () => {
       canonicalCompleted: false,
       storyMode: 'main',
       unlockedEndings: [],
+      unlockedAchievements: [],
     })
     expect(settings.progression).toEqual({
       id: 'hamster',
       version: 1,
-      keys: ['canonicalCompleted', 'unlockedEndings'],
+      keys: ['canonicalCompleted', 'unlockedEndings', 'unlockedAchievements'],
     })
     expect(settings.progression.keys).not.toContain('storyMode')
   })

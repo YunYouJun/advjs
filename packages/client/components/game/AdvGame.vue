@@ -9,6 +9,7 @@ import { useBeforeUnload } from '../../composables'
 import { useAdvContext } from '../../composables/useAdvContext'
 import { useAdvMotionPreference } from '../../composables/useAdvMotionPreference'
 import { injectionAdvPlayer } from '../../constants'
+import AdvAchievementToast from '../extras/AdvAchievementToast.vue'
 
 defineProps<{
   frontmatter?: AdvConfig
@@ -94,6 +95,7 @@ const showToolbar = computed(() => app.showUi && !app.menus.settings && !app.sho
     </div>
     <template #controls>
       <AdvGameUI v-show="showToolbar" />
+      <AdvAchievementToast v-if="$adv.extras" />
     </template>
   </AdvContainer>
 </template>

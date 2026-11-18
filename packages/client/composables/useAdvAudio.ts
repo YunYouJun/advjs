@@ -264,6 +264,22 @@ export function useAdvAudio(options: {
       audio.setUserSettings(userSettings)
       options.onUserSettings?.(structuredClone(userSettings))
     },
+    /** Music room playback on the music bus, outside any story session; `null` stops it. */
+    async playMusic(assetId: string | null) {
+      if (disposed)
+        return
+      const request = ++effectGeneration
+      const audio = getEngine()
+      if (assetId)
+        await audio.unlock()
+      if (request !== effectGeneration)
+        return
+      stopVoice()
+      await audio.syncState({
+        bgm: assetId ? { assetId, loop: true, fadeInMs: 600 } : null,
+        ambience: {},
+      }, { reason: 'advance', fadeOutMs: 600 })
+    },
     async playUi(cue: string) {
       const audio = getEngine()
       await audio.unlock()
