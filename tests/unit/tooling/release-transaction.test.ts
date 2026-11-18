@@ -1,8 +1,9 @@
 // @vitest-environment node
 
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   abortRelease,
+  createCommandReleaseAdapter,
   createMemoryTransactionStore,
   promoteRelease,
 } from '../../../scripts/release/promote.mjs'
@@ -114,6 +115,51 @@ function fakeAdapter(fault?: 'pages' | 'npm' | 'release') {
 }
 
 describe('release promotion transaction', () => {
+  it('waits for the successful canonical Pages deployment for the candidate SHA', async () => {
+    const { manifest } = releaseFixture()
+    const deployment = {
+      deployment_trigger: { metadata: { commit_hash: manifest.source.sha } },
+      environment: 'production',
+      id: 'pages-new',
+      latest_stage: { status: 'success' },
+      url: 'https://pages-new.advjs.pages.dev',
+    }
+    const fetch = vi.fn()
+      .mockResolvedValueOnce(Response.json({ success: true, result: {
+        canonical_deployment: {
+          ...deployment,
+          deployment_trigger: { metadata: { commit_hash: manifest.previous.main.sha } },
+          id: 'pages-old',
+        },
+        latest_deployment: deployment,
+      } }))
+      .mockResolvedValueOnce(Response.json({ success: true, result: { canonical_deployment: deployment } }))
+    const adapter = createCommandReleaseAdapter({
+      cloudflareAccountId: 'pages-account',
+      cloudflareApiToken: 'pages-token',
+      fetch,
+      repository: 'YunYouJun/advjs',
+    })
+    vi.useFakeTimers()
+    try {
+      const pending = adapter.waitForPages(manifest.source.sha, manifest)
+      await vi.advanceTimersByTimeAsync(10_000)
+      await expect(pending).resolves.toEqual({
+        deploymentId: 'pages-new',
+        sourceSha: manifest.source.sha,
+        url: deployment.url,
+      })
+      expect(fetch).toHaveBeenCalledTimes(2)
+      expect(fetch).toHaveBeenCalledWith(
+        'https://api.cloudflare.com/client/v4/accounts/pages-account/pages/projects/advjs',
+        expect.objectContaining({ headers: { authorization: 'Bearer pages-token' } }),
+      )
+    }
+    finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('dry-runs the ordered plan without mutation or evidence', async () => {
     const { manifest } = releaseFixture()
     const adapter = fakeAdapter()
