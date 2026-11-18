@@ -1,12 +1,36 @@
 import type * as Monaco from 'monaco-editor'
 import type { LanguageRegistration, ThemeRegistration } from 'shiki/core'
 import type { StateStack } from 'shiki/textmate'
+import { consola } from 'consola/browser'
 import advPalette from '../parser/syntaxes/adv.palette.json'
 
 /** Monaco language id for `.adv.md`, matching the TextMate grammar name. */
 export const ADV_LANGUAGE_ID = 'adv'
 
 export const ADV_MONACO_THEMES = { light: 'adv-light', dark: 'adv-dark' } as const
+
+// ADV models previously used Monaco's Markdown language configuration.
+const advLanguageConfiguration: Monaco.languages.LanguageConfiguration = {
+  comments: { blockComment: ['<!--', '-->'] },
+  brackets: [['{', '}'], ['[', ']'], ['(', ')']],
+  autoClosingPairs: [
+    { open: '{', close: '}' },
+    { open: '[', close: ']' },
+    { open: '(', close: ')' },
+    { open: '<', close: '>', notIn: ['string'] },
+  ],
+  surroundingPairs: [
+    { open: '(', close: ')' },
+    { open: '[', close: ']' },
+    { open: '`', close: '`' },
+  ],
+  folding: {
+    markers: {
+      start: /^\s*<!--\s*#?region\b.*-->/u,
+      end: /^\s*<!--\s*#?endregion\b.*-->/u,
+    },
+  },
+}
 
 type AdvRole = keyof typeof advPalette.roles
 type AdvScheme = keyof typeof advPalette.palettes
@@ -161,10 +185,11 @@ export function registerAdvMonacoLanguage(monaco: typeof Monaco): boolean {
     return false
   registered.add(monaco.languages)
   monaco.languages.register({ id: ADV_LANGUAGE_ID, extensions: ['.adv.md'], aliases: ['ADV Script', 'advscript'] })
+  monaco.languages.setLanguageConfiguration(ADV_LANGUAGE_ID, advLanguageConfiguration)
   // Shiki and the grammars load when the first `adv` model is tokenized.
   monaco.languages.registerTokensProviderFactory(ADV_LANGUAGE_ID, {
     create: () => createAdvTokensProvider().catch((error) => {
-      console.error('[advjs] Failed to load the ADV grammar; showing plain text.', error)
+      consola.error('[advjs] Failed to load the ADV grammar; showing plain text.', error)
       return plainTokensProvider
     }),
   })

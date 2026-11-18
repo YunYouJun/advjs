@@ -22,7 +22,7 @@ async function tokenize(source: string) {
 
 function fakeMonaco() {
   return {
-    languages: { register: vi.fn(), registerTokensProviderFactory: vi.fn() },
+    languages: { register: vi.fn(), setLanguageConfiguration: vi.fn(), registerTokensProviderFactory: vi.fn() },
     editor: { defineTheme: vi.fn() },
   }
 }
@@ -112,6 +112,11 @@ describe('editor ADV script highlighting', () => {
     expect(registerAdvMonacoLanguage(monaco as unknown as typeof Monaco)).toBe(false)
     expect(monaco.languages.register).toHaveBeenCalledOnce()
     expect(monaco.languages.register).toHaveBeenCalledWith(expect.objectContaining({ id: ADV_LANGUAGE_ID, extensions: ['.adv.md'] }))
+    expect(monaco.languages.setLanguageConfiguration).toHaveBeenCalledExactlyOnceWith(ADV_LANGUAGE_ID, expect.objectContaining({
+      comments: { blockComment: ['<!--', '-->'] },
+      brackets: expect.arrayContaining([['[', ']']]),
+      folding: expect.objectContaining({ markers: expect.any(Object) }),
+    }))
     expect(monaco.languages.registerTokensProviderFactory).toHaveBeenCalledOnce()
     expect(monaco.editor.defineTheme.mock.calls.map(([name, theme]) => [name, theme.base, theme.inherit])).toEqual([
       [ADV_MONACO_THEMES.light, 'vs', true],

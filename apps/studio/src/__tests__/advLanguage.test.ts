@@ -5,7 +5,7 @@ import { detectEditorLanguage } from '../utils/editorLanguage'
 
 function fakeMonaco() {
   return {
-    languages: { register: vi.fn(), registerTokensProviderFactory: vi.fn(), registerCompletionItemProvider: vi.fn() },
+    languages: { register: vi.fn(), setLanguageConfiguration: vi.fn(), registerTokensProviderFactory: vi.fn(), registerCompletionItemProvider: vi.fn() },
     editor: { defineTheme: vi.fn() },
   }
 }
