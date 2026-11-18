@@ -37,6 +37,7 @@ import {
   stringifySceneMd,
   updateChapterMd,
 } from '@advjs/parser'
+import { contentAuthoringOperations } from './content-authoring'
 import {
   isRecord,
   optionalBoolean,
@@ -50,6 +51,7 @@ import {
   requireString,
 } from './input'
 import { officialPluginVersions, officialRuntimePlugins } from './plugins'
+import { projectImageOperations } from './project-images'
 import { ENGINE_API_VERSION, EngineFailure } from './protocol'
 
 type Operation = (input: Input) => unknown
@@ -372,6 +374,9 @@ export const operations: Record<string, Operation> = {
       return source && { path: source.path, manifest: normalizeAdvAssetManifest(source.manifest, { allowEmpty: true }) }
     })
   },
+
+  ...contentAuthoringOperations,
+  ...projectImageOperations,
 
   'host.selfTest': async (input) => {
     const text = requireString(input, 'text')

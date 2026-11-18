@@ -10,6 +10,8 @@ enum RootTab: String, Hashable {
 /// Parts of an open project.
 enum ProjectSection: String, Hashable, CaseIterable, Identifiable {
     case overview
+    case content
+    case world
     case files
     case health
 
@@ -18,6 +20,8 @@ enum ProjectSection: String, Hashable, CaseIterable, Identifiable {
     var title: LocalizedStringKey {
         switch self {
         case .overview: "Overview"
+        case .content: "Story Content"
+        case .world: "World"
         case .files: "Files"
         case .health: "Project Health"
         }
@@ -26,6 +30,8 @@ enum ProjectSection: String, Hashable, CaseIterable, Identifiable {
     var systemImage: String {
         switch self {
         case .overview: "square.grid.2x2"
+        case .content: "books.vertical"
+        case .world: "globe"
         case .files: "folder"
         case .health: "stethoscope"
         }

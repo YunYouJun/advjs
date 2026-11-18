@@ -215,6 +215,66 @@ const schoolRomanceTemplate: ProjectTemplateDefinition = {
 `,
     },
     {
+      path: 'adv/characters/ye-qing.character.md',
+      content: `---
+id: ye-qing
+name: 叶晴
+---
+
+## 性格
+
+开朗活泼，有些迷糊，对人真诚。
+
+## 背景
+
+转学生，擅长画画，随身带着速写本。
+`,
+    },
+    {
+      path: 'adv/characters/lu-yuan.character.md',
+      content: `---
+id: lu-yuan
+name: 陆远
+---
+
+## 性格
+
+沉稳内敛。
+
+## 背景
+
+学生会副会长，擅长弹吉他。
+`,
+    },
+    {
+      path: 'adv/characters/su-xiaoyu.character.md',
+      content: `---
+id: su-xiaoyu
+name: 苏小鱼
+---
+
+## 性格
+
+古灵精怪，社交达人。
+
+## 背景
+
+叶晴在新学校认识的第一个朋友。
+`,
+    },
+    {
+      path: 'adv/characters/homeroom-teacher.character.md',
+      content: `---
+id: homeroom-teacher
+name: 班主任
+---
+
+## 背景
+
+叶晴转学后所在班级的班主任。
+`,
+    },
+    {
       path: 'adv/chapters/01.adv.md',
       content: `---
 scene: classroom

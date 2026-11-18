@@ -52,11 +52,12 @@ struct ProjectSectionLabel: View {
     var body: some View {
         Label(section.title, systemImage: section.systemImage)
             .badge(badge)
+            .accessibilityIdentifier(section == .content ? "story-content-section" : "project-section-\(section.rawValue)")
     }
 
     private var badge: Int {
         switch section {
-        case .overview: 0
+        case .overview, .content, .world: 0
         case .files: session.snapshot?.paths.count ?? 0
         case .health: session.validation?.issues.count ?? 0
         }
@@ -72,6 +73,10 @@ struct ProjectSectionView: View {
         switch section {
         case .overview:
             ProjectOverviewView(session: session)
+        case .content:
+            ContentLibraryView()
+        case .world:
+            ProjectWorldView(session: session).id(session.id)
         case .files:
             FileBrowserView(session: session)
         case .health:
@@ -93,6 +98,7 @@ extension View {
                 FileDetailView(session: session, path: path)
             }
         }
+        .contentDestinations(session)
     }
 }
 
@@ -209,6 +215,7 @@ struct ProjectOverviewView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
+                ProjectCoverSection(session: session)
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Description")
                         .font(.headline)
