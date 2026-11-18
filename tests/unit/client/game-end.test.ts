@@ -8,7 +8,7 @@ import AdvContainer from '../../../packages/client/components/internals/AdvConta
 
 const app = { isHorizontal: true, rotation: 0, transition: false, showUi: true, menus: {} }
 const adv = {
-  $auto: { paused: shallowRef(false), stop: vi.fn() },
+  $auto: { paused: shallowRef(false), skipEnabled: shallowRef(false), stop: vi.fn() },
   $audio: { reset: vi.fn(async () => {}) },
   config: shallowRef({ viewportFit: 'responsive' }),
   themeConfig: shallowRef<ThemeConfig>({}),
@@ -16,7 +16,7 @@ const adv = {
   resources: { tachiesMapRef: shallowRef({}) },
 }
 
-vi.mock('@advjs/client', () => ({ useAppStore: () => app }))
+vi.mock('@advjs/client', () => ({ useAppStore: () => app, useGameStore: () => ({}) }))
 vi.mock('../../../packages/client/stores', () => ({ useAppStore: () => app }))
 vi.mock('../../../packages/client/composables', () => ({ useBeforeUnload: vi.fn() }))
 vi.mock('../../../packages/client/composables/useAdvContext', () => ({ useAdvContext: () => ({ $adv: adv }) }))

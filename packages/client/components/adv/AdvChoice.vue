@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { RuntimeChoice, RuntimeNode } from '@advjs/types'
 import { useAdvContext } from '@advjs/client'
+import { runtimeAddressKey } from '@advjs/core'
 import { computed } from 'vue'
 import { useAdvMotionPreference } from '../../composables/useAdvMotionPreference'
+import { useGameControlsI18n } from '../../composables/useGameControlsI18n'
 
 const props = defineProps<{
   node: RuntimeNode
@@ -10,9 +12,20 @@ const props = defineProps<{
 
 const { $adv } = useAdvContext()
 const motion = useAdvMotionPreference()
+const { t } = useGameControlsI18n()
 const choices = computed(() => {
   const options = props.node.data?.options
   return Array.isArray(options) ? options as unknown as RuntimeChoice[] : []
+})
+/** Choices taken in this or any earlier playthrough of the same program. */
+const taken = computed(() => {
+  const readLog = $adv.readLog
+  const cursor = $adv.store.state.cursor
+  if (!readLog || cursor.nodeId !== props.node.id)
+    return new Set<string>()
+  void readLog.revision.value
+  const address = runtimeAddressKey(cursor)
+  return new Set(choices.value.filter(choice => readLog.isChoiceTaken(address, choice.id)).map(choice => choice.id))
 })
 
 function choose(choice: RuntimeChoice) {
@@ -33,8 +46,15 @@ function choose(choice: RuntimeChoice) {
   >
     <ul class="adv-options-container">
       <li v-for="choice in choices" :key="choice.id" class="adv-option-item">
-        <button class="adv-option" type="button" @click="choose(choice)">
+        <button
+          class="adv-option" :class="{ 'adv-option-read': taken.has(choice.id) }" type="button"
+          :data-read="taken.has(choice.id) || undefined" @click="choose(choice)"
+        >
           {{ choice.label }}
+          <template v-if="taken.has(choice.id)">
+            <span class="adv-option-read-mark" aria-hidden="true">✓</span>
+            <span class="sr-only">{{ t('choices.read') }}</span>
+          </template>
         </button>
       </li>
     </ul>
@@ -122,6 +142,14 @@ function choose(choice: RuntimeChoice) {
     background-color: var(--adv-choice-hover-bg, rgb(59 130 246 / 80%));
     @apply shadow-lg;
   }
+
+  &.adv-option-read:not(:hover, :focus-visible) {
+    color: var(--adv-choice-read-color, var(--adv-choice-color, inherit));
+  }
+}
+
+.adv-option-read-mark {
+  margin-inline-start: 0.35em;
 }
 
 @container adv-viewport (max-width: 600px) {

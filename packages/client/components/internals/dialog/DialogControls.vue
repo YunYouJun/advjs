@@ -24,12 +24,12 @@ const rowId = useId()
 const playing = computed(() => $adv.$auto.enabled.value || $adv.$auto.skipEnabled.value)
 const groups = ['playback', 'saves', 'utility'] as const
 const actions = computed(() => [
-  { key: 'history', group: 'playback', run: () => app.toggleHistory() },
-  { key: 'auto', group: 'playback', pressed: $adv.$auto.enabled.value, run: () => $adv.$auto.toggle() },
-  { key: 'skip', group: 'playback', pressed: $adv.$auto.skipEnabled.value, run: () => $adv.$auto.toggleSkip() },
+  { key: 'history', shortcut: t('shortcuts.history'), group: 'playback', run: () => app.toggleHistory() },
+  { key: 'auto', shortcut: t('shortcuts.auto'), group: 'playback', pressed: $adv.$auto.enabled.value, run: () => $adv.$auto.toggle() },
+  { key: 'skip', shortcut: t('shortcuts.skip'), group: 'playback', pressed: $adv.$auto.skipEnabled.value, run: () => $adv.$auto.toggleSkip() },
   { key: 'save', icon: 'i-ri-save-line', group: 'saves', run: () => app.toggleShowSaveMenu() },
   { key: 'load', icon: 'i-ri-folder-upload-line', group: 'saves', run: () => app.toggleShowLoadMenu() },
-  { key: 'hide', group: 'utility', run: () => app.toggleUi() },
+  { key: 'hide', shortcut: t('shortcuts.hide'), group: 'utility', run: () => app.toggleUi() },
 ])
 const actionGroups = computed(() => groups.map(key => ({ key, actions: actions.value.filter(action => action.group === key) })))
 
@@ -87,7 +87,7 @@ function onFocusOut(event: FocusEvent) {
         <QuickSaveControls v-if="group.key === 'saves'" show-labels inline :hints-disabled="!visible" @active="saveActive = $event" @hint-open="hintOpen = $event" />
         <GameControlHint
           v-for="action in group.actions" :key="action.key"
-          :label="t(`controls.${action.key}`)" :description="t(`hints.${action.key}`)" side="top"
+          :label="t(`controls.${action.key}`)" :description="t(`hints.${action.key}`)" :shortcut="action.shortcut" side="top"
           :disabled="!visible" @open="hintOpen = $event"
         >
           <button type="button" class="dialog-control" :aria-label="t(`controls.${action.key}`)" :aria-pressed="action.pressed" @click="action.run">

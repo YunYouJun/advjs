@@ -122,10 +122,14 @@ describe('extras in browser sessions', () => {
     await context.runtime.next()
     const progression = localStorage.getItem(context.progression!.storageKey)
     const extras = localStorage.getItem(context.extras!.storageKey)
+    const readLogKey = context.readLog!.storageKey!
+    const readLog = localStorage.getItem(readLogKey)
+    expect(readLog).not.toBeNull()
     context.extrasNotices.value = []
 
     await context.init({ isolated: true, variables: { replayed: true } })
     expect(game.previewMode).toBe(true)
+    expect(context.readLog?.storageKey).toBeUndefined()
     expect(context.runtime.state.value.variables).toEqual({ canonicalCompleted: false, unlockedEndings: [], unlockedAchievements: [], replayed: true })
     await context.runtime.go({ chapterId: 'opening', nodeId: 'secret' })
 
@@ -133,6 +137,9 @@ describe('extras in browser sessions', () => {
     expect(context.runtime.state.value.stage.cg).toBe('secret-cg')
     expect(localStorage.getItem(context.progression!.storageKey)).toBe(progression)
     expect(localStorage.getItem(context.extras!.storageKey)).toBe(extras)
+    const visited = context.store.state.visited.at(-1)!
+    expect(context.readLog?.isRead(visited)).toBe(true)
+    expect(localStorage.getItem(readLogKey)).toBe(readLog)
     expect(localStorage.getItem(context.gallery!.storageKey)).toBeNull()
     expect(context.gallery?.unlocked.value).toEqual([])
     expect(context.extras?.endings.value).toEqual([])

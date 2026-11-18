@@ -2,6 +2,7 @@
 import type { RuntimeNode } from '@advjs/types'
 import { useAdvContext, useSettingsStore } from '@advjs/client'
 import { computed, onBeforeUnmount, onMounted, shallowRef, watch } from 'vue'
+import { useAdvAdvanceHandler } from '../../composables/useAdvKeys'
 
 const props = defineProps<{
   node: RuntimeNode
@@ -98,9 +99,11 @@ function next() {
     displaySentences.value = displaySentences.value.map(sentence => ({ ...sentence, started: true }))
   }
   else {
-    $adv.runtime.next()
+    return $adv.runtime.next()
   }
 }
+
+useAdvAdvanceHandler($adv, next)
 
 onMounted(playSentencesAnimation)
 onBeforeUnmount(() => {

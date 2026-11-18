@@ -1,10 +1,21 @@
 <script setup lang="ts">
 import type { DisplayFontSize, DisplaySpeed, MotionPreference } from '@advjs/client'
-import { useAdvContext, useAdvSettingsControls, useAudioStore } from '@advjs/client'
+import { useAdvSettingsControls, useAudioStore } from '@advjs/client'
+import SkipModeSettings from '@advjs/client/components/menu/settings/SkipModeSettings.vue'
+import { computed } from 'vue'
 
-const { $adv } = useAdvContext()
 const controls = useAdvSettingsControls()
 const audio = useAudioStore()
+const musicVolume = volume('music')
+const uiVolume = volume('ui')
+
+function volume(bus: 'music' | 'ui') {
+  return computed({
+    get: () => audio.settings.buses?.[bus]?.gain ?? 1,
+    set: gain => audio.setBus(bus, { gain }),
+  })
+}
+
 const motionOptions: Array<{ value: MotionPreference, label: string, hint: string }> = [
   { value: 'full', label: '完整', hint: '保留转场、入场与逐帧动画' },
   { value: 'reduced', label: '克制', hint: '缩短转场并降低舞台位移' },
@@ -38,7 +49,6 @@ function setSpeed(value: DisplaySpeed) {
 function resetAll() {
   controls.reset()
   audio.reset()
-  $adv.$bgm.setVolume(audio.bgmVolume)
 }
 </script>
 
@@ -103,17 +113,19 @@ function resetAll() {
         </div>
       </fieldset>
 
+      <SkipModeSettings />
+
       <fieldset>
         <legend>声音</legend>
         <label class="hamster-settings__slider">
           <span>背景音乐</span>
-          <input v-model.number="audio.bgmVolume" type="range" min="0" max="1" step="0.05">
-          <output>{{ Math.round(audio.bgmVolume * 100) }}%</output>
+          <input v-model.number="musicVolume" type="range" min="0" max="1" step="0.05">
+          <output>{{ Math.round(musicVolume * 100) }}%</output>
         </label>
         <label class="hamster-settings__slider">
           <span>界面音效</span>
-          <input v-model.number="audio.soundVolume" type="range" min="0" max="1" step="0.05">
-          <output>{{ Math.round(audio.soundVolume * 100) }}%</output>
+          <input v-model.number="uiVolume" type="range" min="0" max="1" step="0.05">
+          <output>{{ Math.round(uiVolume * 100) }}%</output>
         </label>
       </fieldset>
     </div>

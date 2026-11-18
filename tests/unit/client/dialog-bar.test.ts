@@ -6,8 +6,10 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { effectScope, nextTick, shallowRef } from 'vue'
 import { createI18n } from 'vue-i18n'
 import DialogBarSettings from '../../../packages/client/components/menu/settings/DialogBarSettings.vue'
+import SkipModeSettings from '../../../packages/client/components/menu/settings/SkipModeSettings.vue'
 import { useDialogBarPreference } from '../../../packages/client/composables/useDialogBarPreference'
 import { useDialogBarVisibility } from '../../../packages/client/composables/useDialogBarVisibility'
+import { useSkipPreference } from '../../../packages/client/composables/useSkipPreference'
 import { useSettingsStore } from '../../../packages/client/stores/settings'
 
 afterEach(() => {
@@ -37,6 +39,26 @@ it('restores the chosen display mode across sessions and tolerates older saved s
   expect(useDialogBarPreference().value).toBe('auto')
   useSettingsStore().resetSettings()
   expect(useDialogBarPreference().value).toBe('always')
+  disposePinia(pinia)
+})
+
+it('defaults skip to read text only, persists the choice and tolerates older saved settings', async () => {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  const settings = useSettingsStore()
+  delete settings.storage.skip
+  await nextTick()
+  expect(useSkipPreference().value).toBe('read')
+  const wrapper = mount(SkipModeSettings, {
+    global: { plugins: [pinia, createI18n({ legacy: false, locale: 'en' })] },
+  })
+  expect(wrapper.text()).toContain('first line you have not read')
+  await wrapper.get('input[value="all"]').setValue()
+  expect(settings.storage.skip).toBe('all')
+  expect(wrapper.text()).toContain('still stops at choices')
+  await nextTick()
+  expect(JSON.parse(localStorage.getItem(ns('settings'))!).skip).toBe('all')
+  wrapper.unmount()
   disposePinia(pinia)
 })
 

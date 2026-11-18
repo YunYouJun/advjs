@@ -63,7 +63,7 @@ async function toggleFullscreen() {
         <span v-if="isFullscreen" i-ri-fullscreen-exit-line />
         <span v-else i-ri-fullscreen-line />
       </GameIconButton>
-      <GameIconButton :label="t('controls.settings')" :description="t('hints.settings')" @click="app.menus.settings = true">
+      <GameIconButton :label="t('controls.settings')" :description="t('hints.settings')" :shortcut="t('shortcuts.settings')" @click="app.menus.settings = true">
         <span i-ri-settings-3-line />
       </GameIconButton>
     </nav>

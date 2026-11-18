@@ -10,6 +10,7 @@ import type { PixiGame } from '../pixi/game'
 import type { RuntimeExtrasController } from '../runtime/extras'
 import type { RuntimeGalleryController } from '../runtime/gallery'
 import type { RuntimeProgressionController } from '../runtime/progression'
+import type { RuntimeReadLogController } from '../runtime/read-log'
 import type { AdvStore } from '../stores'
 import type { ADV_RUNTIME } from '../utils'
 import type { ActivityRendererRegistry } from './activity'
@@ -57,6 +58,10 @@ export interface AdvContext {
   extras?: RuntimeExtrasController
   /** Achievements unlocked during this page session, waiting for the toast. */
   extrasNotices: ShallowRef<AdvGameExtraItem[]>
+  /** Read nodes and taken choices across playthroughs of the installed program. */
+  readLog?: RuntimeReadLogController
+  /** Advance the active text view using the same action as a click. */
+  advanceHandler?: () => unknown
   pixiGame?: PixiGame
 }
 

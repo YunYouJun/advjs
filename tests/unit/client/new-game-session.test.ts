@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { computed, effectScope } from 'vue'
 import { createFakeAudioBackend } from '../../../packages/audio/src/testing'
 import { setupAdvContext } from '../../../packages/client/setup/context'
+import { useSettingsStore } from '../../../packages/client/stores/settings'
 import { useGameStore } from '../../../packages/client/stores/useGameStore'
 
 const audioBackend = vi.hoisted(() => ({ current: undefined as unknown }))
@@ -132,6 +133,8 @@ describe('new game session boundary', () => {
 
   it.each(['auto', 'skip'])('clears %s and its pending timer without changing the saved delay preference', async (mode) => {
     const { context } = setup()
+    if (mode === 'skip')
+      useSettingsStore().storage.skip = 'all'
     await context.init()
     await context.runtime.start()
     vi.useFakeTimers()
