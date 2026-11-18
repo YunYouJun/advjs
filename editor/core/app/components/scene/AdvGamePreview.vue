@@ -88,7 +88,8 @@ async function refreshPreview() {
         </AGUIButton>
       </div>
       <div class="flex flex-1 min-h-0 w-full items-center justify-center relative">
-        <AdvGame v-if="show" class="h-full w-full" />
+        <!-- Shortcuts only while the preview has focus, so editor typing and F5 stay with the editor. -->
+        <AdvGame v-if="show" class="h-full w-full" key-controls="focus" />
         <div v-else class="preview-start">
           <AGUIButton theme="primary" :loading="pending" @click="runPreviewAction(startSourcePreview)">
             {{ zh ? '启动项目预览' : 'Start source preview' }}

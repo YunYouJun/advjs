@@ -66,6 +66,7 @@ const $adv: AdvContext = setupAdvContext({
   fetcher: fetchChapter,
   runtimePlugins,
   progressionStorage: false,
+  readLogStorage: false,
   galleryStorage,
 })
 provide(injectionAdvContext, $adv)
@@ -458,6 +459,8 @@ defineExpose({
     <AdvGame
       v-if="ready"
       class="game-player__game"
+      :key-controls="authoringSeekActive || runtimeInspectorOpen ? false : 'focus'"
+      :inert="authoringSeekActive"
       :class="{ 'game-player__game--seek-preview': authoringSeekActive }"
     />
 

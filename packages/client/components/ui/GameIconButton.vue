@@ -5,13 +5,13 @@ import GameControlHint from './GameControlHint.vue'
 
 defineOptions({ inheritAttrs: false })
 
-defineProps<{ label: string, description?: string }>()
+defineProps<{ label: string, description?: string, shortcut?: string }>()
 
 const $adv = inject(injectionAdvContext, undefined)
 </script>
 
 <template>
-  <GameControlHint :label="label" :description="description">
+  <GameControlHint :label="label" :description="description" :shortcut="shortcut">
     <button v-bind="$attrs" type="button" class="game-icon-button" :aria-label="label" @click="$adv?.$audio.playUi?.('confirm')">
       <span class="game-icon" aria-hidden="true"><slot /></span>
     </button>

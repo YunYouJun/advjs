@@ -30,6 +30,25 @@ const messages = {
       autoDescription: 'Collapse after 3 seconds of inactivity. Hover near the bottom or select Controls to reopen.',
       collapsedDescription: 'Start with only the Controls button. Expand it whenever you need; dialogue stays visible.',
     },
+    skipSettings: {
+      title: 'Skip',
+      read: 'Read text only',
+      all: 'All text',
+      readDescription: 'Skipping stops at the first line you have not read in any playthrough.',
+      allDescription: 'Skipping also passes unread lines. It still stops at choices and endings.',
+    },
+    shortcuts: {
+      history: 'L · Wheel up · Gamepad Y',
+      auto: 'A · Gamepad X',
+      skip: 'Hold Ctrl',
+      hide: 'H · Right-click',
+      quickSave: 'S · F5',
+      quickLoad: 'F9',
+      settings: 'Esc',
+    },
+    choices: {
+      read: '(chosen before)',
+    },
     controls: {
       label: 'Playback controls',
       system: 'Game settings and display',
@@ -95,6 +114,25 @@ const messages = {
       alwaysDescription: '在对白下方持续显示播放与存读档操作。',
       autoDescription: '停止操作 3 秒后收起。PC 鼠标移到底部，或点击“操作栏”即可展开。',
       collapsedDescription: '默认只显示“操作栏”入口，需要时展开，对白始终保留。',
+    },
+    skipSettings: {
+      title: '快进',
+      read: '仅已读文本',
+      all: '全部文本',
+      readDescription: '快进在任一周目都未读过的第一句停下。',
+      allDescription: '快进也会跳过未读文本，但仍在选项和结局处停下。',
+    },
+    shortcuts: {
+      history: 'L · 滚轮上滑 · 手柄 Y',
+      auto: 'A · 手柄 X',
+      skip: '按住 Ctrl',
+      hide: 'H · 右键',
+      quickSave: 'S · F5',
+      quickLoad: 'F9',
+      settings: 'Esc',
+    },
+    choices: {
+      read: '（已选过）',
     },
     controls: {
       label: '剧情播放操作',

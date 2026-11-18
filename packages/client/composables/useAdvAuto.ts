@@ -1,3 +1,4 @@
+import type { SkipMode } from '../stores/settings/types'
 import type { AdvContext } from '../types'
 import { useStorage } from '@vueuse/core'
 import { getCurrentScope, onScopeDispose, shallowRef, watch } from 'vue'
@@ -7,10 +8,11 @@ import { getCurrentScope, onScopeDispose, shallowRef, watch } from 'vue'
  *
  * - **Auto mode**: when the typewriter finishes (notifyPrintDone), wait `delay` ms and advance.
  * - **Skip mode**: advance every `skipInterval` ms regardless of typewriter; pauses on choices/end.
+ *   With `skipMode: 'read'` it also stops at the first node `$adv.readLog` had not recorded as read.
  *
  * Both modes are mutually exclusive. Choices and end nodes always halt both.
  */
-export function useAdvAuto($adv: AdvContext) {
+export function useAdvAuto($adv: AdvContext, options: { skipMode?: () => SkipMode } = {}) {
   const enabled = shallowRef(false)
   const skipEnabled = shallowRef(false)
   const paused = shallowRef(false)
@@ -36,10 +38,19 @@ export function useAdvAuto($adv: AdvContext) {
       || (status !== undefined && status !== 'playing')
   }
 
+  /** Without a read log (e.g. before a program is installed) every line counts as read. */
+  function stopsAtUnread() {
+    return options.skipMode?.() !== 'all' && $adv.readLog?.currentWasRead.value === false
+  }
+
   function scheduleAdvance() {
     clearTimer()
     if (shouldHalt()) {
       enabled.value = false
+      skipEnabled.value = false
+      return
+    }
+    if (skipEnabled.value && stopsAtUnread()) {
       skipEnabled.value = false
       return
     }
@@ -58,6 +69,10 @@ export function useAdvAuto($adv: AdvContext) {
     timer = null
     if (paused.value || shouldHalt() || (!enabled.value && !skipEnabled.value))
       return
+    if (skipEnabled.value && stopsAtUnread()) {
+      skipEnabled.value = false
+      return
+    }
     try {
       await $adv.runtime.next()
     }

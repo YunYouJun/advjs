@@ -440,6 +440,10 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
               link: '/guide/runtime/navigation-and-saves',
             },
             {
+              text: '玩家操作与已读',
+              link: '/guide/runtime/controls',
+            },
+            {
               text: '场景演出与素材',
               link: '/guide/runtime/presentation',
             },

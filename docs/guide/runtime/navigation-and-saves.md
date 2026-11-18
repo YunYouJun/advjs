@@ -1,5 +1,7 @@
 # 运行时导航与存档
 
+键盘、鼠标、手柄和快进设置见[玩家操作与已读记录](./controls)。
+
 ADV.JS 会先把 Markdown 或 Flow 编译成纯数据 `RuntimeProgram`，再由浏览器、CLI 和 Studio 共用的 `createAdvRuntime()` 执行。宿主只负责输入、渲染和存储，不再各自解释章节跳转。
 
 ## 稳定节点与精确跳转

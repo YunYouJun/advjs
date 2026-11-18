@@ -4,6 +4,7 @@ import type { GlossaryReference } from '../../../utils/glossary'
 import { useAdvContext, useAppStore, useSettingsStore } from '@advjs/client'
 import { computed, onBeforeUnmount, shallowRef, watch } from 'vue'
 import { useAdvDialogBox } from '../../../composables/useAdvDialogBox'
+import { useAdvAdvanceHandler } from '../../../composables/useAdvKeys'
 import AdvAvatarImage from '../../adv/AdvAvatarImage.vue'
 
 const props = defineProps<{
@@ -36,6 +37,7 @@ const {
   showNextCursor,
   curDialog,
 } = useAdvDialogBox()
+useAdvAdvanceHandler($adv, next)
 
 const printRun = shallowRef(0)
 watch(() => props.node, () => {

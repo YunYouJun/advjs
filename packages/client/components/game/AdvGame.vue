@@ -4,15 +4,19 @@ import type { AdvConfig } from '@advjs/types'
 import type { VNodeChild } from 'vue'
 
 import { useAppStore } from '@advjs/client'
-import { computed, onBeforeUnmount, provide, shallowRef, watch } from 'vue'
+import { computed, onBeforeUnmount, provide, shallowRef, useTemplateRef, watch } from 'vue'
 import { useBeforeUnload } from '../../composables'
 import { useAdvContext } from '../../composables/useAdvContext'
+import { useAdvKeys } from '../../composables/useAdvKeys'
 import { useAdvMotionPreference } from '../../composables/useAdvMotionPreference'
+import { useAdvQuickSave } from '../../composables/useAdvQuickSave'
 import { injectionAdvPlayer } from '../../constants'
 
-defineProps<{
+const props = withDefaults(defineProps<{
   frontmatter?: AdvConfig
-}>()
+  /** Restrict shortcuts to the game's focus when embedded in an authoring surface. */
+  keyControls?: 'page' | 'focus' | false
+}>(), { keyControls: 'page' })
 
 defineSlots<{
   default?: () => VNodeChild
@@ -33,10 +37,15 @@ if (!import.meta.env.DEV && typeof __DEV__ !== 'undefined' && !__DEV__)
   useBeforeUnload()
 
 const app = useAppStore()
+const quickSave = useAdvQuickSave($adv)
+const container = useTemplateRef<{ $el: HTMLElement }>('container')
+useAdvKeys($adv, { root: () => container.value?.$el, scope: () => props.keyControls })
+
 watch(() => app.menus.settings || app.showGlossary || app.showHistory || app.showSaveMenu || app.showLoadMenu, (paused) => {
   $adv.$auto.paused.value = paused
 }, { immediate: true, flush: 'sync' })
 onBeforeUnmount(() => {
+  quickSave.cancel()
   $adv.$auto.stop()
   void $adv.$audio.reset()
 })
@@ -48,6 +57,10 @@ const showToolbar = computed(() => app.showUi && !app.menus.settings && !app.sho
 
 <template>
   <AdvContainer
+    ref="container"
+    class="adv-game-root"
+    data-adv-key-controls
+    :tabindex="keyControls ? -1 : undefined"
     text="white"
     :config="$adv.config?.value"
     :theme="$adv.themeConfig.value"
@@ -99,6 +112,10 @@ const showToolbar = computed(() => app.showUi && !app.menus.settings && !app.sho
 </template>
 
 <style scoped>
+.adv-game-root:focus:not(:focus-visible) {
+  outline: none;
+}
+
 .adv-ui {
   --adv-control-target: calc(36px / var(--adv-screen-scale, 1));
   --adv-control-bottom: calc(8px / var(--adv-screen-scale, 1));

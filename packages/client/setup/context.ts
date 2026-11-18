@@ -15,13 +15,14 @@ import {
   compileClientRuntimeProgram,
   createActivityRendererRegistry,
   createBrowserGalleryController,
+  createBrowserReadLog,
   createBrowserRuntimeProgression,
   shouldCreateAutoSave,
   syncRuntimePresentation,
   validateSpritesheetDeclarations,
   validateSpritesheetImages,
 } from '../runtime'
-import { useAdvStore, useAudioStore, useGameStore } from '../stores'
+import { useAdvStore, useAudioStore, useGameStore, useSettingsStore } from '../stores'
 import { ADV_RUNTIME, initGameRuntime } from '../utils'
 
 const BOOTSTRAP_PROGRAM: RuntimeProgram = {
@@ -80,6 +81,7 @@ export function setupAdvContext(ctx: {
   runtimePlugins?: unknown
   progressionStorage?: Storage | false
   galleryStorage?: Storage | false
+  readLogStorage?: Storage | false
 }) {
   const store = useAdvStore(ctx.pinia)
   const game = useGameStore(ctx.pinia)
@@ -92,6 +94,9 @@ export function setupAdvContext(ctx: {
   const galleryStorage = ctx.galleryStorage === false
     ? undefined
     : ctx.galleryStorage ?? (typeof localStorage === 'undefined' ? undefined : localStorage)
+  const readLogStorage = ctx.readLogStorage === false
+    ? undefined
+    : ctx.readLogStorage ?? (typeof localStorage === 'undefined' ? undefined : localStorage)
   let initializationGeneration = 0
   let advContext: AdvContext
   const audio = useAudioStore(ctx.pinia)
@@ -100,7 +105,12 @@ export function setupAdvContext(ctx: {
   const runtime = createAdvRuntimeHost({
     program: BOOTSTRAP_PROGRAM,
     plugins,
-    onState(state, current, program) {
+    onState(state, current, program, effects) {
+      const restored = effects.some(effect => effect.type === 'runtime.restore' || effect.type === 'runtime.back')
+      if (restored)
+        advContext?.$auto.stop()
+      // Update the read flag before publishing the node to synchronous skip watchers.
+      advContext?.readLog?.capture(state, { restored })
       store.$syncRuntime(state, current, program)
       syncRuntimePresentation(state, ctx.gameConfig.value, ADV_RUNTIME)
       if (advContext?.progression) {
@@ -205,6 +215,9 @@ export function setupAdvContext(ctx: {
       else {
         advContext.gallery = undefined
       }
+      advContext.readLog = createBrowserReadLog(result.program, {
+        storage: game.previewMode ? undefined : readLogStorage,
+      })
       const initialVariables = advContext.progression
         ? advContext.progression.restore(ctx.gameConfig.value.variables ?? {})
         : ctx.gameConfig.value.variables
@@ -233,7 +246,10 @@ export function setupAdvContext(ctx: {
     // The traversal is read-only; avoid recursively expanding Vue's JsonValue proxy type.
     voiceLineIds: state => followingVoiceLineIds(runtime.program.value as unknown as RuntimeProgram | undefined, state.cursor),
   })
-  advContext.$auto = useAdvAuto(advContext)
+  const settings = useSettingsStore(ctx.pinia)
+  advContext.$auto = useAdvAuto(advContext, {
+    skipMode: () => settings.storage.skip === 'all' ? 'all' : 'read',
+  })
 
   runtime.subscribeTrace((entry) => {
     if (!shouldCreateAutoSave(entry))

@@ -6,6 +6,8 @@ import { useAdvMotionPreference } from '../../composables/useAdvMotionPreference
 withDefaults(defineProps<{
   label: string
   description?: string
+  /** Keyboard or controller shortcut, e.g. "A / Gamepad X". */
+  shortcut?: string
   side?: 'top' | 'bottom'
   disabled?: boolean
 }>(), { side: 'bottom' })
@@ -36,6 +38,7 @@ function setOpen(value: boolean) {
           >
             <strong class="game-control-tooltip-title">{{ label }}</strong>
             <span v-if="description" class="game-control-tooltip-description">{{ description }}</span>
+            <kbd v-if="shortcut" class="game-control-tooltip-shortcut">{{ shortcut }}</kbd>
           </TooltipContent>
         </TooltipPortal>
       </TooltipRoot>
@@ -72,8 +75,16 @@ function setOpen(value: boolean) {
 }
 
 :global([data-adv-ui='game'] .game-control-tooltip-title),
-:global([data-adv-ui='game'] .game-control-tooltip-description) {
+:global([data-adv-ui='game'] .game-control-tooltip-description),
+:global([data-adv-ui='game'] .game-control-tooltip-shortcut) {
   display: block;
+}
+
+:global([data-adv-ui='game'] .game-control-tooltip-shortcut) {
+  margin-top: 6px;
+  color: var(--adv-c-text-3, var(--adv-c-text-2, #d6cbb9));
+  font: inherit;
+  font-size: 11px;
 }
 
 :global([data-adv-ui='game'] .game-control-tooltip-title) {

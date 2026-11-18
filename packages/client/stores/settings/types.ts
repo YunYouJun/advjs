@@ -2,6 +2,8 @@ import type { UseSpeechSynthesisOptions } from '@vueuse/core'
 
 export interface SettingOptions {
   dialogBar?: DialogBarMode
+  /** Older saved settings may omit it; read through `useSkipPreference()`. */
+  skip?: SkipMode
   text: TextOptions
   play: {
     mdUrl: string
@@ -15,6 +17,9 @@ export interface SettingOptions {
 }
 
 export type DialogBarMode = 'always' | 'auto' | 'collapsed'
+
+/** `read` stops skipping at the first line never read in any playthrough. */
+export type SkipMode = 'read' | 'all'
 
 export type MotionPreference = 'full' | 'reduced' | 'none'
 
