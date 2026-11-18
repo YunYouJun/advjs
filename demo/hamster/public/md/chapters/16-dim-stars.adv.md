@@ -133,6 +133,9 @@ actions:
   - type: variables/push-unique
     key: unlockedEndings
     value: starlight-echo
+  - type: variables/push-unique
+    key: unlockedAchievements
+    value: archive-complete
 ```
 
 > 工作站冷却后重新亮起待机灯。记忆结晶里仍保存着无数次仰望；下一次演算，可以从另一组星图参数开始。

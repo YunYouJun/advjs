@@ -98,6 +98,7 @@ const audioAssets = Object.fromEntries(assetCatalog.list({ kind: 'bgm' })
     {
       src: assetUrl(asset.id),
       kind: 'bgm' as const,
+      title: asset.title,
       sha256: asset.sha256,
       mime: asset.mimeType,
     },

@@ -6,15 +6,21 @@ import '@vue-flow/core/dist/theme-default.css'
 </script>
 
 <template>
-  <div class="size-full overflow-hidden">
-    <div class="absolute left-0 top-0 z-10 w-full bg-white/10 backdrop-blur-sm">
-      <BaseHeader />
-    </div>
+  <!-- BaseHeader reads the game color mode, which the empty layout does not provide. -->
+  <AdvThemeScope class="adv-route-page size-full overflow-hidden">
+    <BaseHeader />
     <AdvFlowChart />
-  </div>
+  </AdvThemeScope>
 </template>
 
 <route lang="yaml">
 meta:
   layout: empty
 </route>
+
+<style scoped>
+.adv-route-page {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+</style>

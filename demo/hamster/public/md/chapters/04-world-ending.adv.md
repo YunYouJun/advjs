@@ -66,6 +66,15 @@ input:
 ```
 
 ```yaml
+type: actions
+when: 'starMatched && starMatchScore >= 0.82'
+actions:
+  - type: variables/push-unique
+    key: unlockedAchievements
+    value: perfect-alignment
+```
+
+```yaml
 type: when
 condition: starMatched && starMatchScore >= 0.82
 ```

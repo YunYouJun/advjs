@@ -19,12 +19,15 @@ const router = useRouter()
         观测归档完成
       </h2>
       <p class="hamster-end__lead">
-        最后一束星光已经写入档案。八枚记忆结晶与“回声演算”现已开放。
+        最后一束星光已经写入档案。八枚记忆结晶、观测附录与“回声演算”现已开放。
       </p>
       <div class="hamster-end__rule" />
       <div class="hamster-end__actions">
         <button type="button" @click="router.push('/start')">
           返回标题
+        </button>
+        <button type="button" @click="router.push('/extras')">
+          观测附录
         </button>
         <button type="button" class="primary" @click="router.push('/gallery')">
           查看 CG 回廊

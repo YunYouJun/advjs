@@ -27,6 +27,14 @@ fade:
 ```
 
 ```yaml
+type: actions
+actions:
+  - type: variables/push-unique
+    key: unlockedAchievements
+    value: first-observation
+```
+
+```yaml
 type: tachie
 enter:
   - name: 观测者

@@ -5,6 +5,7 @@
     "canonicalCompleted": false,
     "storyMode": "main",
     "unlockedEndings": [],
+    "unlockedAchievements": [],
     "curiosity": 0,
     "empathy": 0,
     "control": 0,
@@ -21,7 +22,8 @@
     "version": 1,
     "keys": [
       "canonicalCompleted",
-      "unlockedEndings"
+      "unlockedEndings",
+      "unlockedAchievements"
     ]
   },
   "gallery": {
@@ -71,6 +73,108 @@
       }
     ]
   },
+  "endings": {
+    "key": "unlockedEndings",
+    "items": [
+      {
+        "id": "starlight-echo",
+        "title": "星光回响",
+        "hint": "陪观测者走完全部十六章",
+        "description": "最后一束星光写入档案，工作站的待机灯重新亮起。"
+      },
+      {
+        "id": "still-gazing",
+        "title": "仍在仰望",
+        "hint": "回声演算中，把星光交还给仍在仰望者",
+        "description": "星图没有许诺答案，黑暗之外始终保留方向。"
+      },
+      {
+        "id": "endless-wheel",
+        "title": "无尽转轮",
+        "hint": "回声演算中，把宇宙固定为永不出错的转轮",
+        "description": "世界安全、精确，也再没有意外。"
+      },
+      {
+        "id": "common-hamster",
+        "title": "普通仓鼠",
+        "hint": "回声演算中，只记住那只普通仓鼠",
+        "description": "所有星海故事，都从笼子里那只仓鼠开始。"
+      }
+    ]
+  },
+  "achievements": {
+    "key": "unlockedAchievements",
+    "items": [
+      {
+        "id": "first-observation",
+        "title": "第一次观测",
+        "hint": "开始观测",
+        "description": "盛夏午后，两米外的笼子里有一只仓鼠。"
+      },
+      {
+        "id": "perfect-alignment",
+        "title": "星图吻合",
+        "hint": "在“回溯星图”中让星点完全重合",
+        "description": "轨迹与历史残差重合。"
+      },
+      {
+        "id": "civilization-archive",
+        "title": "文明档案",
+        "hint": "见证仓人建立第一份文明档案",
+        "description": "记忆结晶让经验跑得比短暂生命更远。"
+      },
+      {
+        "id": "archive-complete",
+        "title": "观测归档",
+        "hint": "抵达黯淡的星空",
+        "description": "十六章观测全部归档。"
+      }
+    ]
+  },
+  "replays": [
+    {
+      "id": "summer-afternoon",
+      "title": "夏日午后",
+      "hint": "仓鼠的笼子",
+      "chapterId": "hamster-cage",
+      "nodeId": "summer-afternoon",
+      "endNodeId": "observers"
+    },
+    {
+      "id": "compare-star-map",
+      "title": "回溯星图",
+      "hint": "世界的终焉",
+      "chapterId": "world-ending",
+      "nodeId": "compare-star-map"
+    },
+    {
+      "id": "rex",
+      "title": "雷克斯暴龙",
+      "hint": "残暴的蜥蜴王",
+      "chapterId": "lizard-king",
+      "nodeId": "rex",
+      "endNodeId": "ba-appears"
+    },
+    {
+      "id": "final-answer",
+      "title": "黯淡的星空",
+      "hint": "黯淡的星空",
+      "chapterId": "dim-stars"
+    },
+    {
+      "id": "still-gazing",
+      "title": "仍在仰望",
+      "hint": "回声演算",
+      "chapterId": "hamster-cage",
+      "nodeId": "ending-still-gazing",
+      "endNodeId": "echo-end",
+      "variables": {
+        "canonicalCompleted": true,
+        "storyMode": "echo"
+      }
+    }
+  ],
+  "musicRoom": {},
   "requiredPlugins": {
     "star-map": "1.0.0",
     "civilization": "1.0.0"

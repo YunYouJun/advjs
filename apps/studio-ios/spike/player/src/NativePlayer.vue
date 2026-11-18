@@ -75,6 +75,7 @@ const $adv: AdvContext = setupAdvContext({
   // Saves belong to the native host; the page keeps nothing between sessions.
   progressionStorage: memoryStorage(),
   galleryStorage: memoryStorage(),
+  extrasStorage: memoryStorage(),
 })
 provide(injectionAdvContext, $adv)
 

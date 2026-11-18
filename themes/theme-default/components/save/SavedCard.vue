@@ -2,7 +2,7 @@
 import type { AdvGameSaveRecord, AdvGameSaveSlot } from '@advjs/client'
 import { createManualSaveSlot, injectionAdvPlayer, screenshotGameThumb, useAdvContext, useAppStore, useGameStore } from '@advjs/client'
 import dayjs from 'dayjs'
-import { computed, inject, onMounted, shallowRef } from 'vue'
+import { computed, inject, onMounted, onScopeDispose, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -29,6 +29,10 @@ const record = shallowRef<AdvGameSaveRecord>()
 const memo = shallowRef('')
 const isEditing = shallowRef(false)
 const busy = shallowRef(false)
+let disposed = false
+onScopeDispose(() => {
+  disposed = true
+})
 
 const preview = computed(() => {
   const snapshot = record.value?.snapshot
@@ -97,6 +101,7 @@ async function saveCardMeta() {
  * 存储至该卡片
  */
 async function saveToCard() {
+  const preview = game.previewMode
   const curRecord = $adv.runtime.snapshot()
   try {
     record.value = await game.save(props.recordSlot, curRecord)
@@ -110,6 +115,9 @@ async function saveToCard() {
   // Cross-origin media or unsupported CSS can make DOM capture fail.
   try {
     const dataUrl = await screenshotGameThumb()
+    // A replay thumbnail may finish after navigation switched back to real slots.
+    if (preview && (disposed || !game.previewMode))
+      return
     record.value = await game.updateMeta(props.recordSlot, { thumbnail: dataUrl })
   }
   catch (e) {

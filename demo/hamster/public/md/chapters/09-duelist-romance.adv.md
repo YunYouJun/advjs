@@ -93,6 +93,9 @@ actions:
   - type: variables/push-unique
     key: memories
     value: 记忆结晶让经验跑得比短暂生命更远
+  - type: variables/push-unique
+    key: unlockedAchievements
+    value: civilization-archive
 ```
 
 > 记忆结晶被收进第一份文明档案。时间再次加速，投影里仓人已能用石木长矛反过来狩猎始盗龙。

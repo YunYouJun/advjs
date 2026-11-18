@@ -31,7 +31,9 @@ export default defineAdvConfig({
 2. 从 `advjs:progression:{encoded-id}:v{version}` 读取进度记录；
 3. 只把 `keys` 白名单中的持久值覆盖到默认变量；
 4. 以合并后的 `initialVariables` 创建 Runtime；
-5. Runtime 状态变化后，再把白名单字段同步回浏览器存储。
+5. 剧情推进时，把本次变化的白名单字段同步回浏览器存储。声明为结局或成就的列表会合并已解锁 ID。
+
+读档和历史回退恢复快照中的剧情变量，保留浏览器中较新的跨周目进度。从旧档继续游玩时，剧本新产生的变化仍会记录，下一次新游戏会继承这些进度。
 
 Core Runtime 不读取 `localStorage`，也不知道某个字段是否持久化。只要给定相同 Program 和合并后的初始变量，它仍产生相同结果。CLI、单元测试和其他宿主可以显式提供同样的初始变量，而不需要模拟浏览器存储。
 
@@ -43,7 +45,7 @@ Core Runtime 不读取 `localStorage`，也不知道某个字段是否持久化�
 
 - 主线是否完整通关；
 - 已解锁结局 ID；
-- CG、音乐或附录的解锁 ID；
+- CG、音乐或[附录](/guide/runtime/extras)的解锁 ID；
 - 明确设计为跨周目继承的少量标记。
 
 不适合：
@@ -93,8 +95,8 @@ Studio 试玩默认禁用浏览器 progression，始终从项目 `variables` 开
 {
   "id": "hamster",
   "version": 1,
-  "keys": ["canonicalCompleted", "unlockedEndings"]
+  "keys": ["canonicalCompleted", "unlockedEndings", "unlockedAchievements"]
 }
 ```
 
-首次游玩进入一条连续的 16 章主线。终章设置内部完成标记 `canonicalCompleted: true`，标题页随后开放世界内的“回声演算”；来源作品的分段关系不会进入游戏展示。`storyMode` 不持久化，避免玩家被永久留在通关后演算中。
+首次游玩进入一条连续的 16 章主线。终章设置内部完成标记 `canonicalCompleted: true`，标题页随后开放世界内的“回声演算”；来源作品的分段关系不会进入游戏展示。`storyMode` 不持久化，避免玩家被永久留在通关后演算中。结局与成就列表在[附录](/guide/runtime/extras)中展示。

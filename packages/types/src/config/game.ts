@@ -14,6 +14,8 @@ export interface AdvGameAudioSource {
 
 export interface AdvGameAudioAsset extends AdvGameAudioSource {
   kind: 'bgm' | 'ambience' | 'voice' | 'sfx' | 'ui'
+  /** Player-facing name, e.g. for the music room. */
+  title?: string
   /** Host-resolved processed transports; the master hash still identifies the selected take. */
   variants?: Partial<Record<'opus' | 'aac', AdvGameAudioSource>>
 }
@@ -43,6 +45,49 @@ export interface AdvGameGalleryConfig {
   items: AdvGalleryItem[]
 }
 
+export interface AdvGameExtraItem {
+  /** Stable ID written into the progression key by `variables/push-unique`. */
+  id: string
+  title: string
+  /** Shown while locked; omit to keep the entry fully secret. */
+  hint?: string
+  /** Shown after unlocking. */
+  description?: string
+}
+
+/** Endings or achievements unlocked by IDs stored in one top-level runtime variable. */
+export interface AdvGameUnlockListConfig {
+  /** Top-level array variable, ideally listed in `progression.keys`. */
+  key?: string
+  items: AdvGameExtraItem[]
+}
+
+/** A replayable scene starting at an authored anchor. */
+export interface AdvGameReplayConfig {
+  id: string
+  title: string
+  hint?: string
+  chapterId: string
+  /** Anchor node ID; defaults to the chapter entry. */
+  nodeId?: string
+  /** Replay stops when this anchor of the same chapter is reached; otherwise at the chapter boundary. */
+  endNodeId?: string
+  /** Variables applied over `gameConfig.variables` for the isolated replay session. */
+  variables?: JsonObject
+}
+
+export interface AdvGameMusicTrack {
+  /** BGM asset ID in `audio.assets`. */
+  id: string
+  title?: string
+  description?: string
+}
+
+export interface AdvGameMusicRoomConfig {
+  /** Display order and metadata; omitted means every BGM asset in the catalog. */
+  tracks?: AdvGameMusicTrack[]
+}
+
 export interface AdvGameProgressionConfig {
   /** Stable storage namespace for this game. */
   id: string
@@ -65,6 +110,14 @@ export interface AdvGameConfig {
   progression?: AdvGameProgressionConfig
   /** Optional CG collection displayed by the client gallery. */
   gallery?: AdvGameGalleryConfig
+  /** Named endings unlocked through a progression key. */
+  endings?: AdvGameUnlockListConfig
+  /** Achievements unlocked through a progression key. */
+  achievements?: AdvGameUnlockListConfig
+  /** Scenes replayable from the extras menu after their anchor was reached once. */
+  replays?: AdvGameReplayConfig[]
+  /** Heard BGM listed by the extras music room. */
+  musicRoom?: AdvGameMusicRoomConfig
   /** Runtime plugin names and exact versions required by the compiled Program. */
   requiredPlugins?: Record<string, string>
   /**

@@ -29,6 +29,7 @@ export function projectRuntimeAudioAsset(asset: AdvAssetEntry): AdvGameAudioAsse
   return {
     ...runtimeAudioSource(asset, asset.duration),
     kind: asset.kind as AdvGameAudioAsset['kind'],
+    ...(asset.kind === 'bgm' && asset.title ? { title: asset.title } : {}),
     ...(Object.keys(variants).length ? { variants } : {}),
   }
 }

@@ -452,6 +452,10 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
               link: '/guide/runtime/meta-progression',
             },
             {
+              text: '附录：结局、成就与回想',
+              link: '/guide/runtime/extras',
+            },
+            {
               text: '插件与活动',
               link: '/guide/runtime/plugins-and-activities',
             },

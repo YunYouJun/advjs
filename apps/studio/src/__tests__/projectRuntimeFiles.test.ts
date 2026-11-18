@@ -47,6 +47,8 @@ describe('studio runtime project files', () => {
           items: [{ id: 'star-in-hand', title: '恒星在手', src: 'cg/star.webp' }],
         },
         requiredPlugins: { 'star-map': '1.0.0' },
+        endings: { key: 'unlockedEndings', items: [{ id: 'starlight-echo', title: '星光回响' }] },
+        replays: [{ id: 'opening', title: '夏日午后', chapterId: 'intro' }],
       }),
     })
 
@@ -63,7 +65,14 @@ describe('studio runtime project files', () => {
         items: [{ id: 'star-in-hand', title: '恒星在手', src: 'cg/star.webp' }],
       },
       requiredPlugins: { 'star-map': '1.0.0' },
+      endings: { key: 'unlockedEndings', items: [{ id: 'starlight-echo', title: '星光回响' }] },
+      replays: [{ id: 'opening', title: '夏日午后', chapterId: 'intro' }],
     })
+  })
+
+  it('rejects invalid extras in game settings', async () => {
+    const fs = createFs({ 'adv/settings/game.json': JSON.stringify({ achievements: { items: [{ id: 'a' }] } }) })
+    await expect(loadStudioGameSettings(fs)).rejects.toThrow('ADV_STUDIO_INVALID_GAME_SETTINGS: achievements.items[0].title')
   })
 
   it('prefers the authoring chapter directory over mirrored classic files', async () => {

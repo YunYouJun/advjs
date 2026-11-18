@@ -1,6 +1,7 @@
 import type { AdvAst, AdvCharacter, AdvGameConfig, AdvProjectCompileResult, AdvProjectFileMap, JsonObject } from '@advjs/types'
 import { isRuntimeAudioAsset, parseAudioMixerConfig, parseVoiceLedger, projectRuntimeAudioAsset, projectRuntimeVoiceLedger, runtimeAudioAssetIds } from '@advjs/audio'
 import { projectGlossarySource, readGlossaryContent } from '@advjs/parser'
+import { parseGameExtras } from '../extras/config'
 import { projectRuntimeFlowChapter } from './flow'
 
 /** Player identity deliberately excludes author notes, AI prompts and private attributes. */
@@ -99,6 +100,13 @@ export function createProjectGameConfig(compilation: AdvProjectCompileResult, fi
   const gallery = isRecord(game.gallery) ? game.gallery : undefined
   const progression = isRecord(game.progression) ? game.progression : undefined
   const variables = isRecord(game.variables) ? game.variables : undefined
+  let extras: ReturnType<typeof parseGameExtras> = {}
+  try {
+    extras = parseGameExtras(game)
+  }
+  catch {
+    // Compilation reports ADV_PROJECT_INVALID_EXTRAS; the player simply omits the screens.
+  }
   const ledger = files['adv/audio/voice-ledger.json'] ? currentProgramVoiceLedger(compilation, files['adv/audio/voice-ledger.json']) : undefined
   const selectedVoiceIds = runtimeAudioAssetIds(ledger)
   const musicIds = currentProgramMusicIds(compilation)
@@ -146,6 +154,7 @@ export function createProjectGameConfig(compilation: AdvProjectCompileResult, fi
     requiredPlugins: Object.fromEntries(project.plugins.map(plugin => [plugin.name, plugin.version])),
     gallery: gallery as AdvGameConfig['gallery'],
     progression: progression as AdvGameConfig['progression'],
+    ...extras,
     variables,
   }
 }

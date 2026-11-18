@@ -1,14 +1,17 @@
 import type { AdvGameProgressionConfig, JsonObject } from '@advjs/types'
+import { diffRuntimeVariables } from '@advjs/core'
 
 export interface BrowserRuntimeProgressionOptions {
   storage?: Storage
   prefix?: string
+  /** Configured ending and achievement lists accumulate unlocked IDs. */
+  unlockKeys?: readonly string[]
 }
 
 export interface RuntimeProgressionController {
   readonly storageKey: string
   restore: (initialVariables: JsonObject) => JsonObject
-  capture: (variables: Readonly<JsonObject>) => void
+  capture: (variables: Readonly<JsonObject>, previous?: Readonly<JsonObject>) => void
   clear: () => void
 }
 
@@ -75,19 +78,22 @@ export function createBrowserRuntimeProgression(
   const storage = options.storage ?? globalThis.localStorage
   const prefix = options.prefix ?? 'advjs:progression:'
   const storageKey = `${prefix}${encodeURIComponent(normalized.id)}:v${normalized.version}`
+  const unlockKeys = new Set(options.unlockKeys)
+
+  function read() {
+    try {
+      return storedVariables(storage.getItem(storageKey))
+    }
+    catch {
+      return undefined
+    }
+  }
 
   return {
     storageKey,
     restore(initialVariables) {
       const restored = cloneJsonObject(initialVariables)
-      let value: string | null
-      try {
-        value = storage.getItem(storageKey)
-      }
-      catch {
-        return restored
-      }
-      const saved = storedVariables(value)
+      const saved = read()
       if (!saved)
         return restored
 
@@ -97,11 +103,24 @@ export function createBrowserRuntimeProgression(
       }
       return restored
     },
-    capture(variables) {
+    capture(variables, previous) {
+      const changed = previous
+        ? new Set(diffRuntimeVariables(previous, variables).map(change => change.path.split('.', 1)[0]))
+        : undefined
+      if (changed && !normalized.keys.some(key => changed.has(key)))
+        return
+      const saved = read()
       const selected: JsonObject = {}
       for (const key of normalized.keys) {
-        if (Object.hasOwn(variables, key))
-          selected[key] = structuredClone(variables[key])
+        const source = changed && !changed.has(key) ? saved : variables
+        const value = source && Object.hasOwn(source, key) ? source[key] : undefined
+        const unlocked = saved?.[key]
+        if (unlockKeys.has(key) && Array.isArray(unlocked)) {
+          selected[key] = [...new Set([...unlocked, ...Array.isArray(value) ? value : []])]
+        }
+        else if (value !== undefined) {
+          selected[key] = structuredClone(value)
+        }
       }
       const record: StoredRuntimeProgression = {
         schemaVersion: 1,
