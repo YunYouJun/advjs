@@ -47,7 +47,8 @@ jobs:
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
-          node-version: 'lts/*'
+          # Electron Packager 18.4 stalls extracting the Linux archive on Node 26.
+          node-version: ${{ matrix.platform == 'linux' && '24.x' || 'lts/*' }}
           cache: pnpm
       - name: Validate desktop source and version
         run: node scripts/release/desktop-artifacts.mjs validate-build
