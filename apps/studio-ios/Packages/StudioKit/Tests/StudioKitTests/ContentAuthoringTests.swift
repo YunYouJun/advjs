@@ -77,6 +77,32 @@ struct ContentAuthoringTests {
         await session.close()
     }
 
+    @Test("Source and form edits share one draft")
+    func sourceAndFormDraft() async throws {
+        let studio = try TemporaryStudio()
+        defer { studio.remove() }
+        let session = try await open(studio)
+        let path = "adv/characters/ye-qing.character.md"
+        let original = try await session.contentDocument(.character, path: path)
+        let body = "\n## 手记\n\n源码草稿 💡\n"
+        let raw = original.source + body
+        session.stageDraft(raw, for: path, basedOn: original.savedSource)
+
+        let document = try await session.contentDocument(.character, path: path)
+        #expect(document.source == raw)
+        let revised = try await session.stageContent(.character, path: path, document: document,
+                                                     changes: ["name": .string("新的名字")])
+        #expect(revised.hasSuffix(body))
+        #expect(session.text(at: path) == revised)
+        #expect(session.snapshot?.files[path] == original.savedSource)
+        try await session.saveContent(path)
+        let saved = try await session.contentDocument(.character, path: path)
+        #expect(saved.source == revised)
+        #expect(saved.data["name"] == .string("新的名字"))
+        #expect(!session.hasDraft(path))
+        await session.close()
+    }
+
     @Test("Batch preview is read-only and reports invalid rows and ID conflicts")
     func batch() async throws {
         let studio = try TemporaryStudio()

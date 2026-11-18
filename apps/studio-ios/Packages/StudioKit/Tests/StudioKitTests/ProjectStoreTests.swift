@@ -126,7 +126,7 @@ struct ProjectStoreTests {
         #expect(imported.name == "Round Trip 2")
         let original = try ProjectSnapshot.read(at: folder)
         let copy = try ProjectSnapshot.read(at: studio.directories.projects.appending(path: "Round Trip 2"))
-        #expect(copy.files == original.files.filter { $0.key.hasPrefix("adv/") })
+        #expect(copy.files == original.files.filter { $0.key.hasPrefix("adv/") || $0.key == "adv.config.json" })
         #expect(try Data(contentsOf: studio.directories.projects.appending(path: "Round Trip 2/adv/assets/cover.png")) == Data([0x89, 0x50, 0x4E, 0x47, 0x00, 0xFF]))
     }
 

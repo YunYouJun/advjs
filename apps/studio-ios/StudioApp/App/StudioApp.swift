@@ -9,6 +9,7 @@ struct StudioApp: App {
     var body: some Scene {
         WindowGroup(id: "main") {
             RootView()
+                .modifier(PlaytestHost())
                 .environment(model)
                 .tint(StudioTheme.purple)
                 .preferredColorScheme(model.appearance.colorScheme)
@@ -21,10 +22,14 @@ struct StudioApp: App {
         WindowGroup("Project", id: "project", for: UUID.self) { $projectID in
             if let projectID {
                 ProjectWindowView(projectID: projectID)
+                    .modifier(PlaytestHost())
                     .environment(model)
                     .tint(StudioTheme.purple)
                     .preferredColorScheme(model.appearance.colorScheme)
             }
+        }
+        .commands {
+            StudioCommands(model: model)
         }
     }
 }

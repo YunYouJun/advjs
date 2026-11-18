@@ -6,7 +6,7 @@
  * Usage: pnpm -C apps/studio-ios build:samples
  * Output: StudioApp/Samples/<slug>.advpkg.zip (not committed)
  */
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { cp, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import process from 'node:process'
 import JSZip from 'jszip'
@@ -21,7 +21,34 @@ const SAMPLES = [
   { slug: 'murder-mystery', name: '雪夜庄园' },
 ]
 
+async function buildOfflineFixture() {
+  const source = resolve(engineRoot, '../spike/fixtures/offline-player')
+  const output = resolve(engineRoot, '../StudioAppUITests/OfflineFixture.bundle')
+  await cp(source, output, { recursive: true })
+  const path = 'adv/chapters/start.adv.md'
+  const original = await readFile(resolve(source, path), 'utf8')
+  const settingsPath = 'adv/settings/game.json'
+  const settings = JSON.parse(await readFile(resolve(source, settingsPath), 'utf8'))
+  settings.requiredPlugins.civilization = '1.0.0'
+  settings.colorScheme = 'light'
+  const activity = [
+    '',
+    '```yaml',
+    'type: activity',
+    'use: civilization/initialize',
+    'input:',
+    '  suggestedName: Seed',
+    '  principles: [memory, curiosity]',
+    '  defaultLevel: 1',
+    '```',
+    '',
+  ].join('\n')
+  await writeFile(resolve(output, path), original.replace('## 结束 {#ending}', `${activity}\n## 结束 {#ending}`))
+  await writeFile(resolve(output, settingsPath), JSON.stringify(settings, null, 2))
+}
+
 async function main() {
+  await buildOfflineFixture()
   const output = resolve(engineRoot, '../StudioApp/Samples')
   await mkdir(output, { recursive: true })
   for (const sample of SAMPLES) {

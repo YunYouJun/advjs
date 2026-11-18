@@ -34,8 +34,16 @@ struct ProjectSectionList: View {
             ProjectSummaryHeader(session: session) { _ in selection = .files }
             Section {
                 ForEach(ProjectSection.allCases) { section in
-                    ProjectSectionLabel(session: session, section: section)
-                        .tag(section)
+                    Button {
+                        selection = section
+                    } label: {
+                        ProjectSectionLabel(session: session, section: section)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier(section.accessibilityIdentifier)
+                    .tag(section)
                 }
             }
         }
@@ -52,12 +60,13 @@ struct ProjectSectionLabel: View {
     var body: some View {
         Label(section.title, systemImage: section.systemImage)
             .badge(badge)
-            .accessibilityIdentifier(section == .content ? "story-content-section" : "project-section-\(section.rawValue)")
+            .accessibilityIdentifier(section.accessibilityIdentifier)
     }
 
     private var badge: Int {
         switch section {
         case .overview, .content, .world: 0
+        case .chapters: session.index?.chapters.count ?? 0
         case .files: session.snapshot?.paths.count ?? 0
         case .health: session.validation?.issues.count ?? 0
         }
@@ -73,6 +82,8 @@ struct ProjectSectionView: View {
         switch section {
         case .overview:
             ProjectOverviewView(session: session)
+        case .chapters:
+            ChapterListView(session: session)
         case .content:
             ContentLibraryView()
         case .world:
@@ -96,6 +107,12 @@ extension View {
                 FileBrowserView(session: session, folder: path)
             case .file(let path):
                 FileDetailView(session: session, path: path)
+            case .chapter(let path):
+                ChapterEditorView(session: session, path: path)
+            case .source(let location):
+                ChapterEditorView(session: session, path: location.path, location: location)
+            case .analysis:
+                ChapterAnalysisView(session: session)
             }
         }
         .contentDestinations(session)
@@ -140,11 +157,16 @@ struct ProjectSummaryHeader: View {
 
 struct ProjectToolbar: ToolbarContent {
     let session: ProjectSession
-    @Environment(AppModel.self) private var model
+    @Environment(PlaytestCoordinator.self) private var playtest
 
     var body: some ToolbarContent {
         ToolbarItem(placement: .primaryAction) {
             ExportMenu(session: session)
+        }
+        ToolbarItem(placement: .secondaryAction) {
+            Button("Play from Project Start", systemImage: "play") { playtest.offer(session, start: .project) }
+                .disabled(playtest.isPreparing)
+                .accessibilityIdentifier("play-project")
         }
     }
 }
@@ -206,6 +228,7 @@ struct ExportMenu: View {
 /// Counts and health at a glance, plus the game description.
 struct ProjectOverviewView: View {
     let session: ProjectSession
+    @Environment(PlaytestCoordinator.self) private var playtest
     @Environment(AppModel.self) private var model
     @State private var description = ""
     @FocusState private var editingDescription: Bool
@@ -232,7 +255,12 @@ struct ProjectOverviewView: View {
 
                 if let index = session.index {
                     LazyVGrid(columns: columns, spacing: 12) {
-                        StatTile("Chapters", value: index.chapters.count, systemImage: "book.pages")
+                        NavigationLink(value: ProjectRoute.section(.chapters)) {
+                            StatTile("Chapters", value: index.chapters.count, systemImage: "book.pages")
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("overview-chapters")
                         StatTile("Characters", value: index.characters.count, systemImage: "person.2")
                         StatTile("Scenes", value: index.scenes.count, systemImage: "photo")
                         StatTile("Locations", value: index.locations.count, systemImage: "map")
@@ -241,6 +269,10 @@ struct ProjectOverviewView: View {
                     }
                 }
 
+                Button("Play from Project Start", systemImage: "play") { playtest.offer(session, start: .project) }
+                    .buttonStyle(.bordered)
+                    .disabled(playtest.isPreparing)
+                    .accessibilityIdentifier("overview-play")
                 HealthSummaryCard(session: session)
 
                 if let date = session.lastReloadedAt {
@@ -252,6 +284,7 @@ struct ProjectOverviewView: View {
             .padding()
         }
         .navigationTitle("Overview")
+        .focusedSceneValue(\.runPlaytest, RunPlaytestAction { playtest.offer(session, start: .project) })
         .onAppear { description = currentDescription }
         .onChange(of: session.snapshot?.files["adv/settings/game.json"]) { _, _ in
             if !editingDescription { description = currentDescription }
@@ -309,6 +342,7 @@ struct HealthSummaryCard: View {
             }
             .padding()
             .background(.background.secondary, in: .rect(cornerRadius: 12))
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("health-summary")

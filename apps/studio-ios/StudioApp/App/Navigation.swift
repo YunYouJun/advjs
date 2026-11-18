@@ -1,4 +1,5 @@
 import Foundation
+import StudioKit
 import SwiftUI
 
 /// Top-level entries. World and Play join as their features ship (P3, P4).
@@ -10,16 +11,19 @@ enum RootTab: String, Hashable {
 /// Parts of an open project.
 enum ProjectSection: String, Hashable, CaseIterable, Identifiable {
     case overview
+    case chapters
     case content
     case world
     case files
     case health
 
     var id: String { rawValue }
+    var accessibilityIdentifier: String { self == .content ? "story-content-section" : "project-section-\(rawValue)" }
 
     var title: LocalizedStringKey {
         switch self {
         case .overview: "Overview"
+        case .chapters: "Chapters"
         case .content: "Story Content"
         case .world: "World"
         case .files: "Files"
@@ -30,6 +34,7 @@ enum ProjectSection: String, Hashable, CaseIterable, Identifiable {
     var systemImage: String {
         switch self {
         case .overview: "square.grid.2x2"
+        case .chapters: "book.pages"
         case .content: "books.vertical"
         case .world: "globe"
         case .files: "folder"
@@ -50,4 +55,7 @@ enum ProjectRoute: Hashable {
     case section(ProjectSection)
     case folder(String)
     case file(String)
+    case chapter(String)
+    case source(SourceLocation)
+    case analysis
 }

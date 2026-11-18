@@ -3,7 +3,9 @@ import XCTest
 @MainActor
 extension XCTestCase {
     func attachScreenshot(_ app: XCUIApplication, _ name: String) {
-        let attachment = XCTAttachment(screenshot: app.screenshot())
+        // The app snapshot can be cropped when the iPad is in landscape.
+        let screenshot = UIDevice.current.userInterfaceIdiom == .pad ? XCUIScreen.main.screenshot() : app.screenshot()
+        let attachment = XCTAttachment(screenshot: screenshot)
         attachment.name = name
         attachment.lifetime = .keepAlways
         add(attachment)
@@ -23,7 +25,12 @@ extension XCTestCase {
 
     /// Documents of the App's UI-testing data directory on this simulator,
     /// found through the container metadata next to the test runner's own.
-    func studioUITestingDocuments(bundleIdentifier: String = "org.advjs.studio.dev") throws -> URL {
+    func studioUITestingDocuments() throws -> URL {
+        #if DEBUG
+        let bundleIdentifier = "org.advjs.studio.dev"
+        #else
+        let bundleIdentifier = "org.advjs.studio"
+        #endif
         let applications = URL(fileURLWithPath: NSHomeDirectory()).deletingLastPathComponent()
         for container in try FileManager.default.contentsOfDirectory(at: applications, includingPropertiesForKeys: nil) {
             let metadata = container.appending(path: ".com.apple.mobile_container_manager.metadata.plist")

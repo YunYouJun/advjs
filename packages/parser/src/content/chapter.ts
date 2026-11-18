@@ -1,5 +1,6 @@
 import {
   dumpYamlFrontmatter,
+  formatBodyRaw,
   loadFrontmatterObject,
   mergeManagedFrontmatter,
   parseFrontmatterAndBody,
@@ -29,8 +30,8 @@ export function parseChapterMd(content: string, filename: string): ChapterFormDa
 
   return {
     filename,
-    title: fm.title || filename.replace('.adv.md', ''),
-    plotSummary: fm.plotSummary || fm.description || '',
+    title: typeof fm.title === 'string' && fm.title ? fm.title : filename.replace('.adv.md', ''),
+    plotSummary: typeof fm.plotSummary === 'string' ? fm.plotSummary : typeof fm.description === 'string' ? fm.description : '',
     content,
   }
 }
@@ -67,9 +68,12 @@ export function stringifyChapterMd(chapter: ChapterFormData): string {
  * differ from what its `content` declares. Everything else in `content`,
  * including unknown frontmatter keys and the script body, is kept.
  */
-export function updateChapterMd(chapter: ChapterFormData): string {
-  if (!chapter.content.trim())
-    return stringifyChapterMd(chapter)
+export function updateChapterMd(chapter: ChapterFormData, editedBody?: string): string {
+  const body = editedBody === chapterFormBody(chapter.content) ? undefined : editedBody
+  if (!chapter.content.trim()) {
+    const metadata = stringifyChapterMd({ ...chapter, content: '' })
+    return metadata + (body === undefined ? chapter.content : metadata ? formatBodyRaw(body).slice(1) : body)
+  }
 
   const baseline = parseChapterMd(chapter.content, chapter.filename)
   const document = readFrontmatterSource(chapter.content)
@@ -78,12 +82,23 @@ export function updateChapterMd(chapter: ChapterFormData): string {
     baseline,
     chapter,
     CHAPTER_METADATA_KEYS,
+    (key, value) => key === 'plotSummary' && typeof document?.data.description === 'string' ? value : value || undefined,
   )
-  if (!changed)
-    return chapter.content
+  if (!changed) {
+    if (body === undefined)
+      return chapter.content
+    if (document)
+      return chapter.content.slice(0, chapter.content.length - document.bodyRaw.length) + formatBodyRaw(body)
+    return body
+  }
   if (document)
-    return writeFrontmatterSource(data, document.bodyRaw)
+    return writeFrontmatterSource(data, body === undefined ? document.bodyRaw : formatBodyRaw(body))
   return Object.keys(data).length > 0
-    ? `---\n${dumpYamlFrontmatter(data)}\n---\n\n${chapter.content.replace(/^\n+/u, '')}`
-    : chapter.content
+    ? `---\n${dumpYamlFrontmatter(data)}\n---\n\n${(body ?? chapter.content)}`
+    : (body ?? chapter.content)
+}
+
+/** Body shown in structured editors. Keep raw bytes in the original source until edited. */
+export function chapterFormBody(source: string): string {
+  return readFrontmatterSource(source)?.body ?? source
 }

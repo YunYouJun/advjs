@@ -3466,6 +3466,506 @@
           }
         }
       }
+    },
+    "Can’t Read Chapter Metadata" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法读取章节信息"
+          }
+        }
+      }
+    },
+    "Can’t Start Playtest" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法开始试玩"
+          }
+        }
+      }
+    },
+    "Chapter Content" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "章节正文"
+          }
+        }
+      }
+    },
+    "Chapter Editor" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "章节编辑器"
+          }
+        }
+      }
+    },
+    "Chapter Title" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "章节标题"
+          }
+        }
+      }
+    },
+    "Close Player" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭播放器"
+          }
+        }
+      }
+    },
+    "Couldn’t initialize offline playback." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法初始化离线播放器。"
+          }
+        }
+      }
+    },
+    "Couldn’t load resource “%@”." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法加载资源“%@”。"
+          }
+        }
+      }
+    },
+    "Couldn’t load the offline player." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法加载离线播放器。"
+          }
+        }
+      }
+    },
+    "Delete Chapter?" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除章节？"
+          }
+        }
+      }
+    },
+    "Diagnostics" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "诊断"
+          }
+        }
+      }
+    },
+    "Diagnostics and Program" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "诊断与程序节点"
+          }
+        }
+      }
+    },
+    "Filename" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件名"
+          }
+        }
+      }
+    },
+    "Find and Replace" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查找与替换"
+          }
+        }
+      }
+    },
+    "Form" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "表单"
+          }
+        }
+      }
+    },
+    "Insert Character" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "插入角色"
+          }
+        }
+      }
+    },
+    "Insert Scene" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "插入场景"
+          }
+        }
+      }
+    },
+    "Line %lld, Column %lld" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第 %lld 行，第 %lld 列"
+          }
+        }
+      }
+    },
+    "New Chapter" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新建章节"
+          }
+        }
+      }
+    },
+    "No Chapters" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂无章节"
+          }
+        }
+      }
+    },
+    "Open the source file to edit this chapter." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请打开源文件编辑该章节。"
+          }
+        }
+      }
+    },
+    "Play from Chapter Start" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从章节开头试玩"
+          }
+        }
+      }
+    },
+    "Play from Current Line" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从当前行试玩"
+          }
+        }
+      }
+    },
+    "Play from Project Start" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从项目开头试玩"
+          }
+        }
+      }
+    },
+    "Playback Options" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放选项"
+          }
+        }
+      }
+    },
+    "Playtest" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "试玩"
+          }
+        }
+      }
+    },
+    "Playtest Draft" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以草稿试玩"
+          }
+        }
+      }
+    },
+    "Playtest with Unsaved Changes" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用未保存的修改试玩"
+          }
+        }
+      }
+    },
+    "Plot Summary" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "梗概"
+          }
+        }
+      }
+    },
+    "Program Nodes" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "程序节点"
+          }
+        }
+      }
+    },
+    "Redo" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重做"
+          }
+        }
+      }
+    },
+    "Rename Chapter" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重命名章节"
+          }
+        }
+      }
+    },
+    "Restart" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重开"
+          }
+        }
+      }
+    },
+    "Run Playtest" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始试玩"
+          }
+        }
+      }
+    },
+    "Save and Playtest" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存并试玩"
+          }
+        }
+      }
+    },
+    "Search Chapters" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索章节"
+          }
+        }
+      }
+    },
+    "Source File" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "源文件"
+          }
+        }
+      }
+    },
+    "Starting Game…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在启动游戏…"
+          }
+        }
+      }
+    },
+    "Step Back" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回退一步"
+          }
+        }
+      }
+    },
+    "The draft couldn’t be saved on this device." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法在此设备上保存草稿。"
+          }
+        }
+      }
+    },
+    "The game stopped. Close the player and try again." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "游戏已停止。请关闭播放器后重试。"
+          }
+        }
+      }
+    },
+    "The offline player couldn’t complete the command." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "离线播放器无法完成操作。"
+          }
+        }
+      }
+    },
+    "The offline player couldn’t start the game." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "离线播放器无法启动游戏。"
+          }
+        }
+      }
+    },
+    "The offline player is missing from this build." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前构建缺少离线播放器。"
+          }
+        }
+      }
+    },
+    "The offline player sent an invalid message." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "离线播放器返回了无效消息。"
+          }
+        }
+      }
+    },
+    "The offline player took too long to start." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "离线播放器启动超时。"
+          }
+        }
+      }
+    },
+    "The project couldn’t be prepared for playback." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法为此项目准备试玩。"
+          }
+        }
+      }
+    },
+    "There’s no executable node at or after this position." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前位置及其后没有可执行节点。"
+          }
+        }
+      }
+    },
+    "This file changed on disk. Review the conflict before saving." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "磁盘上的文件已变更。请处理冲突后再保存。"
+          }
+        }
+      }
+    },
+    "Play from This Node" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从此节点试玩"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

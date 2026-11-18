@@ -18,6 +18,7 @@ import {
   parseAuthoringGameSettings,
   planProjectPackage,
   PROJECT_SLUG_RE,
+  projectMarkdownChapterPath,
   projectTemplates,
   quickStartProjectTemplate,
   readProjectPackageManifest,
@@ -25,6 +26,7 @@ import {
   validateProjectContent,
 } from '@advjs/core/project'
 import {
+  chapterFormBody,
   parseAst,
   parseAudioMd,
   parseChapterMd,
@@ -122,6 +124,13 @@ function compileOptions(input: Input): AdvProjectCompileOptions {
   return { plugins: officialPluginVersions(), ...options } as AdvProjectCompileOptions
 }
 
+function compilationFiles(input: Input) {
+  const files = requireFileMap(input)
+  if (!optionalBoolean(input, 'native') || files['adv.config.json'] !== undefined)
+    return files
+  return { ...files, 'adv.config.json': JSON.stringify({ format: 'adv-md', root: 'adv' }) }
+}
+
 function gameSettings(files: Record<string, string>) {
   try {
     return parseAuthoringGameSettings(files['adv/settings/game.json'])
@@ -197,25 +206,47 @@ export const operations: Record<string, Operation> = {
     const { index } = projectIndex(input)
     return {
       ...index,
-      chapters: index.chapters.map(({ content: _content, ...chapter }) => chapter),
+      chapters: index.chapters.map(({ content, ...chapter }) => {
+        if (chapter.format !== 'adv-md' || !content)
+          return chapter
+        try {
+          return { ...chapter, title: parseChapterMd(content, chapter.name).title }
+        }
+        catch {
+          return chapter
+        }
+      }),
     }
   },
 
   'project.compile': async (input) => {
-    const files = requireFileMap(input)
+    const files = compilationFiles(input)
     const result = await compileProject({ files }, compileOptions(input))
     return { ...result, diagnostics: result.diagnostics.map(fromProjectDiagnostic) }
   },
 
   'project.playerConfig': async (input) => {
-    const files = requireFileMap(input)
+    const files = compilationFiles(input)
     const baseUrl = requireString(input, 'baseUrl')
     const compilation = await compileProject({ files }, compileOptions(input))
     const diagnostics = compilation.diagnostics.map(fromProjectDiagnostic)
+    const { project, sourceMap } = compilation
+    const native = optionalBoolean(input, 'native')
+    const orientation = project.extensions.game.orientation
+    const appearance = project.extensions.game.colorScheme
+    const metadata = native
+      ? {
+          program: project.program,
+          sourceMap,
+          orientation: orientation === 'landscape' || orientation === 'portrait' ? orientation : 'system',
+          colorScheme: appearance === 'light' ? 'light' : 'dark',
+        }
+      : {}
     if (compilation.diagnostics.some(item => item.severity === 'error'))
-      return { diagnostics }
+      return { diagnostics, ...metadata }
     return {
       diagnostics,
+      ...metadata,
       gameConfig: resolvePlayerUrls(createProjectGameConfig(compilation, files), compilation.project.assets, baseUrl),
     }
   },
@@ -291,7 +322,7 @@ export const operations: Record<string, Operation> = {
     const templateId = requireString(input, 'templateId')
     const name = requireString(input, 'name')
     return {
-      files: Object.fromEntries(createProjectTemplateFiles(templateId, name).map(file => [file.path, file.content])),
+      files: Object.fromEntries(createProjectTemplateFiles(templateId, name, { playable: optionalBoolean(input, 'playable') }).map(file => [file.path, file.content])),
     }
   },
 
@@ -321,6 +352,10 @@ export const operations: Record<string, Operation> = {
     }
   },
 
+  'chapter.path': input => content(() => ({
+    path: projectMarkdownChapterPath(requireString(input, 'filename'), optionalString(input, 'currentPath')),
+  })),
+
   'chapter.parseAst': (input) => {
     const source = requireString(input, 'content')
     const glossary = optionalString(input, 'glossary') ?? ''
@@ -333,7 +368,7 @@ export const operations: Record<string, Operation> = {
     return content(() => {
       switch (type) {
         case 'audio': return parseAudioMd(source)
-        case 'chapter': return parseChapterMd(source, optionalString(input, 'filename') ?? 'chapter.adv.md')
+        case 'chapter': return { ...parseChapterMd(source, optionalString(input, 'filename') ?? 'chapter.adv.md'), body: chapterFormBody(source) }
         case 'character': return parseCharacterMd(source)
         case 'location': return parseLocationMd(source)
         case 'scene': return parseSceneMd(source)
@@ -353,7 +388,7 @@ export const operations: Record<string, Operation> = {
           title: typeof data.title === 'string' ? data.title : '',
           plotSummary: typeof data.plotSummary === 'string' ? data.plotSummary : undefined,
           content: requireString(data, 'content'),
-        })
+        }, optionalString(data, 'body'))
         case 'character': return stringifyCharacterMd(data as unknown as AdvCharacter, { source })
         case 'location': return stringifyLocationMd(data as any, { source })
         case 'scene': return stringifySceneMd(data as any, { source })

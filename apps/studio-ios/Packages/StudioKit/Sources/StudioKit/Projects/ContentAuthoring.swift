@@ -168,14 +168,15 @@ extension ProjectSession {
             guard text(at: path) == document.source || !hasDraft(path) else {
                 throw ContentAuthoringError.sourceChanged
             }
-            try draftStore.save(write.text, for: path, base: document.savedSource)
-            refreshDrafts()
+            stageDraft(write.text, for: path, basedOn: document.savedSource)
+            try flushDrafts()
         }
         return write.text
     }
 
     public func saveContent(_ path: String) async throws {
-        guard let draft = draftStore.draft(for: path) else { return }
+        guard let draft = drafts.first(where: { $0.path == path }) else { return }
+        try flushDrafts()
         let baseline = snapshot?.files[path]
         guard draft.baseSHA256 == baseline.map(DraftStore.sha256) else {
             throw ContentAuthoringError.sourceChanged

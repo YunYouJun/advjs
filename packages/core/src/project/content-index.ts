@@ -133,6 +133,15 @@ export function discoverProjectChapterFiles(paths: readonly string[], format: Pr
   return []
 }
 
+/** Resolve a user-entered Markdown chapter filename using the shared authoring convention. */
+export function projectMarkdownChapterPath(filename: string, currentPath?: string): string {
+  const stem = filename.replace(/\.adv\.md$/u, '')
+  if (!/^[\w-]+$/u.test(stem))
+    throw new Error('ADV_STUDIO_CONTENT_PATH_INVALID')
+  const directory = currentPath === undefined ? 'adv/chapters/' : currentPath.slice(0, currentPath.lastIndexOf('/') + 1)
+  return `${directory}${stem}.adv.md`
+}
+
 /** Display name of a chapter file. */
 export function projectChapterName(file: string): string {
   return basename(file).replace(CHAPTER_NAME_RE, '') || file

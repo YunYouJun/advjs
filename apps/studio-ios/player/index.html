@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- WebKit additionally limits network and project media types at the native boundary. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self' advjs-player:; style-src 'self' advjs-player: 'unsafe-inline'; img-src 'self' advjs-player: data: blob:; media-src 'self' advjs-player: data: blob:; connect-src 'self' advjs-player: data: blob:; font-src 'self' advjs-player: data:; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>ADV.JS Player</title>
+    <style>
+      html,
+      body,
+      #app {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>

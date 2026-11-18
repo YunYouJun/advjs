@@ -126,6 +126,9 @@ struct StudioAlert: Identifiable {
     }
 
     static func describe(_ error: Error) -> String {
+        if error is CoordinatedFiles.WriteError {
+            return String(localized: "This file changed on disk. Review the conflict before saving.")
+        }
         if let error = error as? ProjectLibraryError {
             switch error {
             case .notFound: return String(localized: "The project no longer exists.")

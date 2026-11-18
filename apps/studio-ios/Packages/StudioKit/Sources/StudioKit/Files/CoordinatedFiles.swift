@@ -4,6 +4,9 @@ import Foundation
 /// processes through `NSFileCoordinator`. Pass the caller's own presenter so
 /// its writes do not come back to it as external changes.
 public enum CoordinatedFiles {
+    public enum WriteError: Error {
+        case sourceChanged
+    }
     public static func read(_ url: URL, filePresenter: NSFilePresenter? = nil) throws -> Data {
         try coordinate(filePresenter: filePresenter) { coordinator, error in
             var result: Result<Data, Error> = .failure(CocoaError(.fileReadUnknown))
@@ -17,11 +20,29 @@ public enum CoordinatedFiles {
     /// Replace `url` atomically: the new bytes go to a temporary file in the
     /// same directory, which then replaces the original in one step.
     public static func write(_ data: Data, to url: URL, filePresenter: NSFilePresenter? = nil) throws {
+        try replace(data, at: url, filePresenter: filePresenter) { _ in }
+    }
+
+    static func write(_ data: Data, to url: URL, matching baseSHA256: String?, filePresenter: NSFilePresenter?) throws {
+        try replace(data, at: url, filePresenter: filePresenter) { url in
+            let existing: Data?
+            do { existing = try Data(contentsOf: url) }
+            catch let error as CocoaError where error.code == .fileReadNoSuchFile { existing = nil }
+            guard existing == data || existing.map(DraftStore.sha256) == baseSHA256 else {
+                throw WriteError.sourceChanged
+            }
+        }
+    }
+
+    private static func replace(_ data: Data, at url: URL, filePresenter: NSFilePresenter?, verify: (URL) throws -> Void) throws {
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         try coordinate(filePresenter: filePresenter) { coordinator, error in
             var result: Result<Void, Error> = .failure(CocoaError(.fileWriteUnknown))
             coordinator.coordinate(writingItemAt: url, options: .forReplacing, error: error) { writeURL in
-                result = Result { try data.write(to: writeURL, options: .atomic) }
+                result = Result {
+                    try verify(writeURL)
+                    try data.write(to: writeURL, options: .atomic)
+                }
             }
             return result
         }

@@ -7,7 +7,7 @@ public enum EngineOperations {}
 // MARK: - Snapshots
 
 /// Project files as the engine sees them: text by project-relative path, plus every path.
-public struct EngineProjectInput: Encodable, Sendable {
+public struct EngineProjectInput: Encodable, Equatable, Sendable {
     public let files: [String: String]
     public let paths: [String]
 
@@ -27,10 +27,12 @@ public struct EngineTemplateList: Decodable, Sendable, Equatable {
 public struct EngineTemplateInput: Encodable, Sendable {
     public let templateId: String
     public let name: String
+    public let playable: Bool?
 
-    public init(templateId: String, name: String) {
+    public init(templateId: String, name: String, playable: Bool? = nil) {
         self.templateId = templateId
         self.name = name
+        self.playable = playable
     }
 }
 
@@ -44,6 +46,7 @@ public struct EngineProjectIndex: Decodable, Sendable, Equatable {
     public struct Chapter: Decodable, Sendable, Equatable, Hashable {
         public let file: String
         public let name: String
+        public let title: String?
         public let preview: String
         public let format: String?
     }

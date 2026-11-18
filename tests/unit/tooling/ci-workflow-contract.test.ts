@@ -147,7 +147,7 @@ describe('github Actions launch baseline', () => {
     expect(studio['runs-on']).toBe('ubuntu-latest')
     expectCommandBefore(studio, 'pnpm prepare:workspace studio-ios', 'pnpm -C apps/studio exec vitest run')
     expectCommandBefore(studio, 'pnpm -C apps/studio-ios build:engine', 'pnpm -C apps/studio-ios test:engine')
-    const golden = 'pnpm -C apps/studio-ios golden && pnpm -C apps/studio-ios build:samples'
+    const golden = 'pnpm -C apps/studio-ios golden && pnpm -C apps/studio-ios build:samples && pnpm -C apps/studio-ios build:player'
     expectCommandBefore(studio, 'pnpm -C apps/studio-ios test:engine', golden)
     const upload = studio.steps.find(step => step.with?.name === 'studio-ios-inputs')!
     expect(studio.steps.indexOf(upload)).toBeGreaterThan(studio.steps.findIndex(step => step.run === golden))
@@ -159,6 +159,8 @@ describe('github Actions launch baseline', () => {
       'apps/studio-ios/Packages/StudioKit/Sources/StudioKit/EngineBundle/',
       'apps/studio-ios/Packages/StudioKit/Tests/StudioKitTests/Golden/',
       'apps/studio-ios/StudioApp/Samples/',
+      'apps/studio-ios/StudioApp/OfflinePlayer.bundle/',
+      'apps/studio-ios/StudioAppUITests/OfflineFixture.bundle/',
     ])
     const native = ci.jobs['studio-ios']
     expect(native.needs).toEqual(['studio-changes', 'studio-unit'])

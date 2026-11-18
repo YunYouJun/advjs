@@ -31,13 +31,20 @@ export interface AdvContext {
   $audio: ReturnType<typeof useAdvAudio>
   $auto: ReturnType<typeof useAdvAuto>
 
-  /** A host may cancel a pending preview without installing an obsolete program. */
   /**
+   * A host may cancel a pending preview without installing an obsolete program.
    * `persistence: false` detaches browser progression, gallery and extras (draft previews).
    * `isolated: true` keeps them readable but uses memory saves and writes none of them
    * (scene replay). `variables` override the configured initial variables.
+   * `compiledProgram` lets a host install a program it already compiled.
    */
-  init: (options?: { isCurrent?: () => boolean, persistence?: boolean, isolated?: boolean, variables?: JsonObject }) => Promise<void>
+  init: (options?: {
+    isCurrent?: () => boolean
+    persistence?: boolean
+    isolated?: boolean
+    variables?: JsonObject
+    compiledProgram?: RuntimeProgram
+  }) => Promise<void>
   /** The installed program, or a compiled one without starting a session (extras screens). */
   loadProgram: () => Promise<RuntimeProgram | undefined>
   /**

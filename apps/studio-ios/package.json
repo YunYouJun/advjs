@@ -6,6 +6,7 @@
   "description": "ADV.JS Studio for iPhone and iPad: JavaScriptCore engine, offline player and SwiftUI app",
   "scripts": {
     "build:engine": "tsx engine/build.ts",
+    "build:player": "vite build --config player/vite.config.ts",
     "build:samples": "tsx scripts/build-samples.ts",
     "golden": "tsx engine/golden.ts",
     "test:engine": "vitest run --config engine/vitest.config.ts",

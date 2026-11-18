@@ -218,7 +218,9 @@ export function setupAdvContext(ctx: {
       if (!isCurrent())
         return
       const gameConfig = ctx.gameConfig.value
-      const result = await compileProgram(gameConfig)
+      const result = options.compiledProgram
+        ? { program: options.compiledProgram, diagnostics: [] }
+        : await compileProgram(gameConfig)
       if (!isCurrent())
         return
       const spritesheetDiagnostics = [

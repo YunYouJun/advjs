@@ -3,6 +3,8 @@
  * Each template turns a display name into project files; hosts write them.
  */
 
+import { extractCharacterRefs, parseCharacterMd, stringifyCharacterMd } from '@advjs/parser'
+
 // ---------------------------------------------------------------------------
 // Template file definitions
 // ---------------------------------------------------------------------------
@@ -954,9 +956,29 @@ plotSummary: 海边的偶遇
  * Files for a new project. Unknown template IDs fall back to the starter;
  * `quick-start` selects {@link quickStartProjectTemplate}.
  */
-export function createProjectTemplateFiles(templateId: string, projectName: string): ProjectTemplateFile[] {
+export function createProjectTemplateFiles(templateId: string, projectName: string, options: { playable?: boolean } = {}): ProjectTemplateFile[] {
   const template = templateId === quickStartProjectTemplate.id
     ? quickStartProjectTemplate
     : getProjectTemplate(templateId) ?? starterTemplate
-  return template.files(projectName)
+  const files = template.files(projectName)
+  if (!options.playable)
+    return files
+
+  const characters = files.filter(file => file.path.endsWith('.character.md')).map(file => parseCharacterMd(file.content))
+  const names = new Set(characters.flatMap(character => [character.id, character.name, ...(character.aliases ?? [])]))
+  const ids = new Set(characters.map(character => character.id))
+  const speakers = new Set(files.filter(file => file.path.endsWith('.adv.md')).flatMap(file => extractCharacterRefs(file.content)))
+  let index = 1
+  for (const name of speakers) {
+    if (names.has(name) || name === '旁白')
+      continue
+    while (ids.has(`character-${index}`))
+      index += 1
+    const id = `character-${index++}`
+    files.push({ path: `adv/characters/${id}.character.md`, content: stringifyCharacterMd({ id, name }) })
+  }
+
+  if (!files.some(file => file.path === 'adv.config.json'))
+    files.unshift({ path: 'adv.config.json', content: `${JSON.stringify({ format: 'adv-md', root: 'adv' }, null, 2)}\n` })
+  return files
 }

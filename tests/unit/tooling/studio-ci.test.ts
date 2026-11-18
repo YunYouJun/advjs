@@ -17,6 +17,8 @@ describe('studio CI scope', () => {
       'apps/studio-ios/StudioApp/App/RootView.swift',
       'apps/studio-ios/engine/src/operations.ts',
       'packages/core/src/project/templates.ts',
+      'packages/client/setup/context.ts',
+      'themes/theme-default/components/ui/AdvIconButton.vue',
       'packages/parser/src/character.ts',
       'packages/assets/src/url.ts',
       'packages/audio/src/index.ts',
