@@ -36,6 +36,54 @@ describe('native project readiness', () => {
       resolveFs(fs)
       await ready
       expect(content.getFs()).toBe(fs)
+      let resolveOlder!: (fs: IFileSystem) => void
+      let resolveNewer!: (fs: IFileSystem) => void
+      mocks.createFs.mockImplementationOnce(() => new Promise<IFileSystem>((resolve) => {
+        resolveOlder = resolve
+      }))
+      mocks.createFs.mockImplementationOnce(() => new Promise<IFileSystem>((resolve) => {
+        resolveNewer = resolve
+      }))
+      store.currentProject = { projectId: 'older-project' }
+      await flushPromises()
+      store.currentProject = { projectId: 'newer-project' }
+      const newerReady = content.whenReady()
+      await flushPromises()
+      const newerFs = { ...fs }
+      resolveNewer(newerFs)
+      await newerReady
+      expect(content.getFs()).toBe(newerFs)
+      resolveOlder({ ...fs })
+      await flushPromises()
+      expect(content.getFs()).toBe(newerFs)
+      const previousFs = {
+        ...fs,
+        listFiles: async (dir: string) => dir === 'adv/characters' ? ['adv/characters/previous.character.md'] : [],
+        readFile: async () => '---\nid: previous\nname: Previous project character\n---\n',
+      } as unknown as IFileSystem
+      mocks.createFs.mockResolvedValueOnce(previousFs)
+      store.currentProject = { projectId: 'previous-populated-project' }
+      await content.whenReady()
+      expect(content.characters.value[0]!.id).toBe('previous')
+      let releaseOldRead!: (value: string) => void
+      const oldReader = {
+        ...fs,
+        listFiles: async (dir: string) => dir === 'adv/characters' ? ['adv/characters/old.character.md'] : [],
+        readFile: vi.fn(() => new Promise<string>(resolve => releaseOldRead = resolve)),
+      } as unknown as IFileSystem
+      mocks.createFs.mockResolvedValueOnce(oldReader)
+      store.currentProject = { projectId: 'slow-source-reader' }
+      await vi.waitFor(() => expect(oldReader.readFile).toHaveBeenCalled())
+      expect(content.characters.value).toEqual([])
+      const finalFs = { ...fs }
+      mocks.createFs.mockResolvedValueOnce(finalFs)
+      store.currentProject = { projectId: 'final-current-reader' }
+      await content.whenReady()
+      releaseOldRead('---\nid: old\nname: Old project character\n---\n')
+      await flushPromises()
+      expect(content.getFs()).toBe(finalFs)
+      expect(content.characters.value).toEqual([])
+      expect(content.stats.value.characters).toBe(0)
     }
     finally {
       scope.stop()

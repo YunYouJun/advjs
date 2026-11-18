@@ -1,0 +1,433 @@
+{
+  "title": "末班电车",
+  "variables": {},
+  "chapters": [
+    {
+      "id": "clock",
+      "sources": [
+        "adv/chapters/clock/01-clock.adv.md",
+        "adv/chapters/clock/02-terminus.adv.md"
+      ]
+    },
+    {
+      "id": "tram",
+      "sources": [
+        "adv/chapters/tram/01-depart.adv.md",
+        "adv/chapters/tram/02-bookshop.adv.md"
+      ]
+    }
+  ],
+  "files": [
+    "adv.config.json",
+    "adv/chapters/clock/01-clock.adv.md",
+    "adv/chapters/clock/02-terminus.adv.md",
+    "adv/chapters/tram/01-depart.adv.md",
+    "adv/chapters/tram/02-bookshop.adv.md",
+    "adv/characters/xiaoyun.character.md",
+    "adv/settings/game.json",
+    "adv/world.md"
+  ],
+  "nodes": {
+    "clock#clock": {
+      "file": "adv/chapters/clock/01-clock.adv.md",
+      "lines": [
+        1
+      ]
+    },
+    "clock#node-1": {
+      "file": "adv/chapters/clock/01-clock.adv.md",
+      "lines": [
+        3,
+        4
+      ]
+    },
+    "clock#node-2": {
+      "file": "adv/chapters/clock/01-clock.adv.md",
+      "lines": [
+        6,
+        7
+      ]
+    },
+    "clock#sea": {
+      "file": "adv/chapters/clock/02-terminus.adv.md",
+      "lines": [
+        1
+      ]
+    },
+    "clock#node-4": {
+      "file": "adv/chapters/clock/02-terminus.adv.md",
+      "lines": [
+        3
+      ]
+    },
+    "clock#node-5": {
+      "file": "adv/chapters/clock/02-terminus.adv.md",
+      "lines": [
+        5,
+        6,
+        7
+      ]
+    },
+    "clock#observatory": {
+      "file": "adv/chapters/clock/02-terminus.adv.md",
+      "lines": [
+        9
+      ]
+    },
+    "clock#node-7": {
+      "file": "adv/chapters/clock/02-terminus.adv.md",
+      "lines": [
+        11
+      ]
+    },
+    "clock#node-8": {
+      "file": "adv/chapters/clock/02-terminus.adv.md",
+      "lines": [
+        13,
+        14,
+        15
+      ]
+    },
+    "tram#start": {
+      "file": "adv/chapters/tram/01-depart.adv.md",
+      "lines": [
+        1
+      ]
+    },
+    "tram#node-1": {
+      "file": "adv/chapters/tram/01-depart.adv.md",
+      "lines": [
+        3
+      ]
+    },
+    "tram#node-2": {
+      "file": "adv/chapters/tram/01-depart.adv.md",
+      "lines": [
+        5,
+        6
+      ]
+    },
+    "tram#node-3": {
+      "file": "adv/chapters/tram/01-depart.adv.md",
+      "lines": [
+        8,
+        9
+      ]
+    },
+    "tram#bookshop": {
+      "file": "adv/chapters/tram/02-bookshop.adv.md",
+      "lines": [
+        1
+      ]
+    },
+    "tram#node-5": {
+      "file": "adv/chapters/tram/02-bookshop.adv.md",
+      "lines": [
+        3
+      ]
+    },
+    "tram#node-6": {
+      "file": "adv/chapters/tram/02-bookshop.adv.md",
+      "lines": [
+        5,
+        6
+      ]
+    },
+    "tram#node-7": {
+      "file": "adv/chapters/tram/02-bookshop.adv.md",
+      "lines": [
+        8,
+        9,
+        10
+      ]
+    }
+  },
+  "program": {
+    "schemaVersion": 2,
+    "id": "last-tram",
+    "entry": {
+      "chapterId": "tram",
+      "nodeId": "start"
+    },
+    "chapters": {
+      "tram": {
+        "id": "tram",
+        "title": "tram",
+        "entry": "start",
+        "nodes": {
+          "start": {
+            "id": "start",
+            "kind": "scene",
+            "data": {
+              "place": "7 路电车",
+              "time": "深夜",
+              "inOrOut": "内景"
+            },
+            "next": {
+              "chapterId": "tram",
+              "nodeId": "node-1"
+            }
+          },
+          "node-1": {
+            "id": "node-1",
+            "kind": "narration",
+            "data": {
+              "text": "车厢里只剩你一个乘客。窗外的灯，一盏一盏往后退。",
+              "speakerId": "narrator"
+            },
+            "next": {
+              "chapterId": "tram",
+              "nodeId": "node-2"
+            }
+          },
+          "node-2": {
+            "id": "node-2",
+            "kind": "dialog",
+            "data": {
+              "character": "小云",
+              "speakerId": "小云",
+              "status": "",
+              "text": "末班车不收钱。告诉我，你想在哪一站下车。"
+            },
+            "next": {
+              "chapterId": "tram",
+              "nodeId": "node-3"
+            }
+          },
+          "node-3": {
+            "id": "node-3",
+            "kind": "choices",
+            "data": {
+              "options": [
+                {
+                  "id": "choice-1",
+                  "label": "在旧书店下车",
+                  "target": {
+                    "chapterId": "tram",
+                    "nodeId": "bookshop"
+                  }
+                },
+                {
+                  "id": "choice-2",
+                  "label": "坐到钟楼",
+                  "target": {
+                    "chapterId": "clock",
+                    "nodeId": "clock"
+                  }
+                }
+              ]
+            },
+            "next": {
+              "chapterId": "tram",
+              "nodeId": "bookshop"
+            }
+          },
+          "bookshop": {
+            "id": "bookshop",
+            "kind": "anchor",
+            "data": {
+              "depth": 2,
+              "text": "旧书店"
+            },
+            "next": {
+              "chapterId": "tram",
+              "nodeId": "node-5"
+            }
+          },
+          "node-5": {
+            "id": "node-5",
+            "kind": "narration",
+            "data": {
+              "text": "书店老板递来一本只写到一半的书。",
+              "speakerId": "narrator"
+            },
+            "next": {
+              "chapterId": "tram",
+              "nodeId": "node-6"
+            }
+          },
+          "node-6": {
+            "id": "node-6",
+            "kind": "dialog",
+            "data": {
+              "character": "小云",
+              "speakerId": "小云",
+              "status": "",
+              "text": "后半本，要你自己来写。"
+            },
+            "next": {
+              "chapterId": "tram",
+              "nodeId": "node-7"
+            }
+          },
+          "node-7": {
+            "id": "node-7",
+            "kind": "end",
+            "next": {
+              "chapterId": "tram",
+              "nodeId": "end"
+            }
+          },
+          "end": {
+            "id": "end",
+            "kind": "end"
+          }
+        },
+        "order": [
+          "start",
+          "node-1",
+          "node-2",
+          "node-3",
+          "bookshop",
+          "node-5",
+          "node-6",
+          "node-7",
+          "end"
+        ]
+      },
+      "clock": {
+        "id": "clock",
+        "title": "clock",
+        "entry": "clock",
+        "nodes": {
+          "clock": {
+            "id": "clock",
+            "kind": "anchor",
+            "data": {
+              "depth": 2,
+              "text": "钟楼"
+            },
+            "next": {
+              "chapterId": "clock",
+              "nodeId": "node-1"
+            }
+          },
+          "node-1": {
+            "id": "node-1",
+            "kind": "dialog",
+            "data": {
+              "character": "小云",
+              "speakerId": "小云",
+              "status": "",
+              "text": "往左是海边，往右是天文台。"
+            },
+            "next": {
+              "chapterId": "clock",
+              "nodeId": "node-2"
+            }
+          },
+          "node-2": {
+            "id": "node-2",
+            "kind": "choices",
+            "data": {
+              "options": [
+                {
+                  "id": "choice-1",
+                  "label": "去海边",
+                  "target": {
+                    "chapterId": "clock",
+                    "nodeId": "sea"
+                  }
+                },
+                {
+                  "id": "choice-2",
+                  "label": "去天文台",
+                  "target": {
+                    "chapterId": "clock",
+                    "nodeId": "observatory"
+                  }
+                }
+              ]
+            },
+            "next": {
+              "chapterId": "clock",
+              "nodeId": "sea"
+            }
+          },
+          "sea": {
+            "id": "sea",
+            "kind": "anchor",
+            "data": {
+              "depth": 2,
+              "text": "海边"
+            },
+            "next": {
+              "chapterId": "clock",
+              "nodeId": "node-4"
+            }
+          },
+          "node-4": {
+            "id": "node-4",
+            "kind": "narration",
+            "data": {
+              "text": "潮水退下去，沙滩上留着一行没写完的字。",
+              "speakerId": "narrator"
+            },
+            "next": {
+              "chapterId": "clock",
+              "nodeId": "node-5"
+            }
+          },
+          "node-5": {
+            "id": "node-5",
+            "kind": "end",
+            "next": {
+              "chapterId": "clock",
+              "nodeId": "observatory"
+            }
+          },
+          "observatory": {
+            "id": "observatory",
+            "kind": "anchor",
+            "data": {
+              "depth": 2,
+              "text": "天文台"
+            },
+            "next": {
+              "chapterId": "clock",
+              "nodeId": "node-7"
+            }
+          },
+          "node-7": {
+            "id": "node-7",
+            "kind": "narration",
+            "data": {
+              "text": "望远镜对准的那颗星，还没有名字。",
+              "speakerId": "narrator"
+            },
+            "next": {
+              "chapterId": "clock",
+              "nodeId": "node-8"
+            }
+          },
+          "node-8": {
+            "id": "node-8",
+            "kind": "end",
+            "next": {
+              "chapterId": "clock",
+              "nodeId": "end"
+            }
+          },
+          "end": {
+            "id": "end",
+            "kind": "end"
+          }
+        },
+        "order": [
+          "clock",
+          "node-1",
+          "node-2",
+          "sea",
+          "node-4",
+          "node-5",
+          "observatory",
+          "node-7",
+          "node-8",
+          "end"
+        ]
+      }
+    },
+    "requiredPlugins": {},
+    "hash": "48c4846b26b3137cc9ab7ad835a0744a76a6194707b3d6d4d0bdd6195fee60be"
+  }
+}

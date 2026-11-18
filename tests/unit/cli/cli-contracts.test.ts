@@ -71,6 +71,8 @@ describe('launch CLI contracts', () => {
       'migrate.audio',
       'flow.read',
       'flow.plan',
+      'theme.init',
+      'theme.screenshot',
     ])
     expect(ADV_ERROR_CODES).toEqual([
       'ADV_USAGE',
@@ -116,7 +118,7 @@ describe('launch CLI contracts', () => {
       },
       skills: {
         default: ['adv-create', 'adv-debug', 'adv-review', 'adv-art'],
-        optional: ['adv-story', 'adv-adapt'],
+        optional: ['adv-story', 'adv-adapt', 'adv-theme'],
         repositoryOnly: ['adv-hamster-demo'],
       },
       agentClients: ['codex', 'claude-code', 'cursor'],

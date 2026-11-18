@@ -1,4 +1,4 @@
-import type { FSItem } from '../components/explorer/types'
+import type { AGUIFileMutationRequest, AGUIFileTransferRequest, AGUIFileTransferResult, FSDirItem, FSItem } from '../components/explorer/types'
 import type { AGUIAssetsExplorerState } from './useAssetsExplorer'
 import { listFilesInDir } from './useAssetsExplorer'
 import { Toast } from './useToast'
@@ -97,7 +97,64 @@ export function useFileOperations(state: AGUIAssetsExplorerState) {
     if (!dir)
       return
     const list = await listFilesInDir(dir, { showFiles: true })
-    setCurFileList(list)
+    if (curDir.value === dir)
+      setCurFileList(list)
+  }
+
+  async function hostOperation(operation: () => Promise<boolean | AGUIFileTransferResult>): Promise<AGUIFileTransferResult> {
+    const root = rootDir.value
+    const dir = curDir.value
+    let receipt: AGUIFileTransferResult = { success: false }
+    try {
+      const path = root && dir ? await root.handle.resolve(dir.handle) : null
+      if (rootDir.value !== root || curDir.value !== dir)
+        return receipt
+      const result = await operation()
+      receipt = typeof result === 'boolean' ? { success: result } : result
+      if (receipt.success && root && rootDir.value === root && curDir.value === dir) {
+        let currentPath = path?.join('/') ?? ''
+        const moved = typeof result === 'object' && result.moves?.find(move => currentPath === move.source || currentPath.startsWith(`${move.source}/`))
+        if (moved)
+          currentPath = moved.target + currentPath.slice(moved.source.length)
+        const list = await listFilesInDir(root, { showFiles: true })
+        if (rootDir.value !== root || curDir.value !== dir)
+          return receipt
+        state.tree.value = { name: root.name, handle: root.handle, children: list, expanded: true }
+        let nextDir: FSDirItem = root
+        let children = list
+        for (const part of currentPath.split('/').filter(Boolean)) {
+          const child = children.find(item => item.name === part && item.kind === 'directory') as FSDirItem | undefined
+          if (!child)
+            break
+          nextDir = child
+          children = child.children ?? []
+        }
+        state.setCurDir(nextDir)
+        setCurFileList(children)
+        selection.clearSelection()
+      }
+      return receipt
+    }
+    catch (error) {
+      Toast({ title: 'Transfer Failed', description: String(error), type: 'error' })
+      return receipt
+    }
+  }
+  async function hostTransfer(request: AGUIFileTransferRequest) {
+    return (await hostOperation(() => state.onTransfer!(request))).success
+  }
+  async function hostMutation(request: AGUIFileMutationRequest) {
+    return hostOperation(() => state.onMutation!(request))
+  }
+  async function selectCreated(receipt: AGUIFileTransferResult, dir: FSDirItem, root: FSDirItem | undefined) {
+    const current = curDir.value
+    if (!receipt.success || !receipt.createdName || rootDir.value !== root || !current || !await current.handle.isSameEntry(dir.handle) || curDir.value !== current || rootDir.value !== root)
+      return
+    const item = curFileList.value.find(item => item.name === receipt.createdName)
+    if (item) {
+      selection.select(item)
+      selection.startRenaming(item)
+    }
   }
 
   async function renameItem(item: FSItem, newName: string) {
@@ -108,8 +165,8 @@ export function useFileOperations(state: AGUIAssetsExplorerState) {
 
     const parentHandle = item.parent.handle
 
-    // Check if name already exists
-    if (await nameExistsInDir(parentHandle, newName)) {
+    // A host transfer freezes and checks the target inside its own write queue.
+    if (!state.onTransfer && await nameExistsInDir(parentHandle, newName)) {
       Toast({ title: 'Error', description: `"${newName}" already exists`, type: 'error' })
       return false
     }
@@ -120,6 +177,9 @@ export function useFileOperations(state: AGUIAssetsExplorerState) {
       if (result === false)
         return false
     }
+
+    if (state.onTransfer)
+      return hostTransfer({ items: [item], targetDir: item.parent, move: true, names: [newName] })
 
     try {
       if (item.kind === 'file' && item.handle) {
@@ -158,6 +218,9 @@ export function useFileOperations(state: AGUIAssetsExplorerState) {
       if (result === false)
         return false
     }
+
+    if (state.onMutation)
+      return (await hostMutation({ kind: 'delete', items: [...items] })).success
 
     // eslint-disable-next-line no-alert
     const confirmed = confirm(
@@ -199,6 +262,12 @@ export function useFileOperations(state: AGUIAssetsExplorerState) {
         return
     }
 
+    if (state.onMutation) {
+      const root = rootDir.value
+      await selectCreated(await hostMutation({ kind: 'create', targetDir: dir, name: folderName, entryKind: 'directory' }), dir, root)
+      return
+    }
+
     try {
       const uniqueName = await getUniqueName(dir.handle, folderName, 'directory')
       await dir.handle.getDirectoryHandle(uniqueName, { create: true })
@@ -229,6 +298,12 @@ export function useFileOperations(state: AGUIAssetsExplorerState) {
       const result = await state.onCreate(dir, fileName, 'file')
       if (result === false)
         return
+    }
+
+    if (state.onMutation) {
+      const root = rootDir.value
+      await selectCreated(await hostMutation({ kind: 'create', targetDir: dir, name: fileName, entryKind: 'file' }), dir, root)
+      return
     }
 
     try {
@@ -263,6 +338,14 @@ export function useFileOperations(state: AGUIAssetsExplorerState) {
       return
 
     const { items, mode } = selection.clipboard.value
+
+    if (state.onTransfer) {
+      const clipboard = selection.clipboard.value
+      const success = await hostTransfer({ items: [...items], targetDir: dir, move: mode === 'cut' })
+      if (success && mode === 'cut' && selection.clipboard.value === clipboard)
+        selection.clearClipboard()
+      return
+    }
 
     try {
       for (const item of items) {
@@ -300,6 +383,11 @@ export function useFileOperations(state: AGUIAssetsExplorerState) {
     if (!dir?.handle)
       return
 
+    if (state.onTransfer) {
+      await hostTransfer({ items: [...items], targetDir: dir, move: false })
+      return
+    }
+
     try {
       for (const item of items) {
         if (!item.handle)
@@ -322,6 +410,12 @@ export function useFileOperations(state: AGUIAssetsExplorerState) {
     }
   }
 
+  async function importFiles(dir: FSDirItem, files: readonly File[]) {
+    if (!state.onMutation)
+      return false
+    return (await hostMutation({ kind: 'import', targetDir: dir, files: [...files] })).success
+  }
+
   return {
     refreshDir,
     renameItem,
@@ -332,6 +426,7 @@ export function useFileOperations(state: AGUIAssetsExplorerState) {
     cutItems,
     pasteItems,
     duplicateItems,
+    importFiles,
   }
 }
 

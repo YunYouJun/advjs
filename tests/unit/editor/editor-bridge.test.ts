@@ -2,7 +2,7 @@
 
 import { Buffer } from 'node:buffer'
 import { mkdir, mkdtemp, realpath, rm, symlink, writeFile } from 'node:fs/promises'
-import { createServer as createHttpServer } from 'node:http'
+import { createServer as createHttpServer, request as httpRequest } from 'node:http'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -45,6 +45,40 @@ afterEach(async () => {
 })
 
 describe('editor bridge', () => {
+  it('protects trusted host routes with the bound origin while retaining built-in API authentication', async () => {
+    const { projectRoot, publicRoot } = await fixture()
+    let handled = 0
+    const bridge = await createEditorBridge({ projectRoot, publicRoot, port: 0, async handleHostRequest(request, response) {
+      if (request.url !== '/api/game/chapter')
+        return false
+      handled++
+      response.writeHead(200, { 'Content-Type': 'application/json' })
+      response.end('{"saved":true}')
+      return true
+    } })
+    const ready = await bridge.start()
+    try {
+      const url = new URL('/api/game/chapter', ready.url)
+      expect((await fetch(url, { headers: { Origin: 'https://example.com' } })).status).toBe(403)
+      const wrongHost = await new Promise<number | undefined>((done, reject) => {
+        const request = httpRequest(url, { headers: { Host: 'example.com' } }, (response) => {
+          response.resume()
+          done(response.statusCode)
+        })
+        request.on('error', reject)
+        request.end()
+      })
+      expect(wrongHost).toBe(403)
+      expect((await fetch(url)).status).toBe(401)
+      expect((await fetch(url, { method: 'PUT', headers: apiHeaders('wrong'), body: '{}' })).status).toBe(401)
+      expect(handled).toBe(0)
+      expect(await (await fetch(url, { headers: apiHeaders(bridge.token) })).json()).toEqual({ saved: true })
+      expect((await fetch(new URL('/__advjs/api/project', ready.url))).status).toBe(401)
+      expect(await (await fetch(new URL('/', ready.url))).text()).toContain('ADV.JS Editor')
+    }
+    finally { await bridge.stop() }
+  })
+
   it('serves Devframe JSON tokens through the authenticated bridge with bounded inputs', async () => {
     const { projectRoot, publicRoot } = await fixture()
     const bridge = await createEditorBridge({ host: '127.0.0.1', port: 0, projectRoot, publicRoot })

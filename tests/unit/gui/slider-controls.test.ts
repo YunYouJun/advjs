@@ -68,3 +68,50 @@ describe.each([
     wrapper.unmount()
   })
 })
+
+describe('editor vertical slider', () => {
+  it('uses real vertical geometry, exposes spoken values on the thumb and keeps Up/Down/Home/End controlled', async () => {
+    const wrapper = mount(AGUISlider, { props: { modelValue: 25, min: 0, max: 100, step: 5, orientation: 'vertical', variant: 'media', showInput: true, label: '音量' }, attrs: { 'aria-valuetext': '25%', 'style': { height: '180px' } } })
+    try {
+      const thumb = wrapper.get('[role="slider"]')
+      expect(thumb.attributes('aria-orientation')).toBe('vertical')
+      expect(thumb.attributes('aria-label')).toBe('音量')
+      expect(thumb.attributes('aria-valuetext')).toBe('25%')
+      expect(wrapper.get('.agui-slider').attributes('aria-valuetext')).toBeUndefined()
+      expect(wrapper.get('.agui-slider-range').attributes('data-orientation')).toBe('vertical')
+      expect(wrapper.get('.agui-slider-range').attributes('style')).toContain('bottom: 0%')
+      expect(wrapper.get('.agui-slider-range').attributes('style')).toContain('top: 75%')
+      expect(wrapper.attributes('style')).toContain('height: 180px')
+      expect(wrapper.classes()).toContain('agui-slider-container--media')
+      for (const [key, expected] of [['ArrowUp', 30], ['ArrowDown', 25], ['Home', 0], ['End', 100]] as const) {
+        await thumb.trigger('keydown', { key })
+        expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([expected])
+        expect(wrapper.emitted('input')?.at(-1)).toEqual([expected])
+        await wrapper.setProps({ modelValue: expected })
+        expect(thumb.attributes('aria-valuenow')).toBe(String(expected))
+        expect((wrapper.get('input[type="number"]').element as HTMLInputElement).value).toBe(String(expected))
+      }
+    }
+    finally { wrapper.unmount() }
+  })
+
+  it('disables vertical keyboard and numeric edits while keeping the optional input after the track', async () => {
+    const wrapper = mount(AGUISlider, { props: { modelValue: 40, min: 0, max: 100, orientation: 'vertical', showInput: true, disabled: true } })
+    try {
+      expect(wrapper.attributes('data-orientation')).toBe('vertical')
+      expect(wrapper.classes()).toContain('agui-slider-container--with-input')
+      const thumb = wrapper.get('[role="slider"]')
+      expect((thumb.element as HTMLButtonElement).disabled).toBe(true)
+      expect(thumb.attributes('aria-orientation')).toBe('vertical')
+      for (const key of ['ArrowUp', 'ArrowDown', 'Home', 'End'])
+        await thumb.trigger('keydown', { key })
+      const input = wrapper.get('input[type="number"]')
+      expect((input.element as HTMLInputElement).disabled).toBe(true)
+      expect(input.element.previousElementSibling).toBe(wrapper.get('.agui-slider').element)
+      await input.setValue('90')
+      expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+      expect(wrapper.emitted('input')).toBeUndefined()
+    }
+    finally { wrapper.unmount() }
+  })
+})

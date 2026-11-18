@@ -651,9 +651,9 @@ function resourceCatalog(
     else if (asset.kind === 'cg') {
       cgs.push(asset.id)
     }
-    else if (asset.kind === 'tachie' && asset.characterId) {
+    else if ((asset.kind === 'tachie' || (asset.kind === 'character' && asset.type === 'image')) && asset.characterId) {
       const statuses = tachies[asset.characterId] ?? []
-      statuses.push(asset.state ?? asset.expression ?? asset.id)
+      statuses.push(asset.kind === 'character' ? asset.expression ?? 'default' : asset.state ?? asset.expression ?? asset.id)
       tachies[asset.characterId] = statuses
     }
   }
@@ -703,9 +703,11 @@ function resourceCatalog(
           speakers[name] = character.id
       }
     }
-    if (!isRecord(character.tachies))
+    const catalogStatuses = typeof character.id === 'string' ? tachies[character.id] ?? [] : []
+    const authoredStatuses = isRecord(character.tachies) ? Object.keys(character.tachies) : []
+    const statuses = [...catalogStatuses, ...authoredStatuses]
+    if (!statuses.length)
       continue
-    const statuses = Object.keys(character.tachies)
     for (const name of [character.id, character.name, ...Array.isArray(character.aliases) ? character.aliases : []]) {
       if (typeof name === 'string')
         tachies[name] = [...new Set([...tachies[name] ?? [], ...statuses])]
@@ -858,6 +860,7 @@ export async function compileProject(
       staticAnalysis: options.staticAnalysis ? { variables: isRecord(gameConfig.variables) ? gameConfig.variables as JsonObject : undefined } : undefined,
     })
     program = compiled.program
+    sourceMap.nodes = Object.fromEntries(Object.entries(compiled.sourceMap ?? {}).flatMap(([address, location]) => location.file ? [[address, { path: location.file, line: location.line, column: location.column, ...(location.endLine === undefined ? {} : { endLine: location.endLine, endColumn: location.endColumn }) }]] : []))
     diagnostics.push(...compiled.diagnostics.map((diagnostic): AdvProjectDiagnostic => ({
       code: diagnostic.code,
       severity: diagnostic.severity,
@@ -883,6 +886,7 @@ export async function compileProject(
       staticAnalysis: options.staticAnalysis ? { variables: isRecord(gameConfig.variables) ? gameConfig.variables as JsonObject : undefined } : undefined,
     })
     program = compiled.program
+    sourceMap.nodes = Object.fromEntries(Object.entries(compiled.sourceMap ?? {}).flatMap(([address, location]) => location.file ? [[address, { path: location.file, line: location.line, column: location.column, ...(location.endLine === undefined ? {} : { endLine: location.endLine, endColumn: location.endColumn }) }]] : []))
     diagnostics.push(...compiled.diagnostics.map(diagnostic => ({
       code: diagnostic.code,
       severity: diagnostic.severity,

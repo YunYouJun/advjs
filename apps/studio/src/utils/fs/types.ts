@@ -36,6 +36,19 @@ export interface FsFileEntry {
  * Implementations handle the mapping to their native path system.
  */
 export interface IFileSystem {
+  /** Coordinate the entire queued operation, readiness check and compensation across instances. */
+  withWriteLock?: <T>(operation: () => Promise<T>) => Promise<T>
+  /** Optional durable barrier for adapters whose ordinary writes are buffered. */
+  flush?: () => Promise<void>
+  /** Refresh persisted paths without discarding local edits; rejects conflicting drafts. */
+  refresh?: () => Promise<void>
+  /**
+   * Stage writes in an isolated view, then atomically compare the complete durable baseline.
+   * Validation runs again immediately before the durable write. The scoped view expires on return.
+   */
+  transaction?: (operation: (scope: IFileSystem) => Promise<void>, validate?: () => void) => Promise<void>
+  /** Durable external-change hints only; callers must re-read and unsubscribe on scope exit. */
+  subscribeExternalChanges?: (listener: () => void) => () => void
   /** Human-readable backend name for debugging */
   readonly backend: 'browser' | 'capacitor' | 'memory'
 
@@ -72,8 +85,8 @@ export interface IFileSystem {
   /** Delete a file */
   deleteFile: (path: string) => Promise<void>
 
-  /** Delete a directory (recursive) */
-  rmdir: (path: string) => Promise<void>
+  /** Delete a directory; recursive by default, or require an empty directory. */
+  rmdir: (path: string, options?: { recursive?: boolean }) => Promise<void>
 
   // --- Batch / utility ---
 

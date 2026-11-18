@@ -49,7 +49,7 @@
 }
 ```
 
-```md [wlwz/ch1/node1.md]
+```adv [wlwz/ch1/node1.md]
 ---
 plotSummary: 这个节点的剧情概要
 ---

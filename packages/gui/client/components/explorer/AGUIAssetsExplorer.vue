@@ -11,7 +11,7 @@ import {
   ContextMenuTrigger,
 } from 'reka-ui'
 import { Pane, Splitpanes } from 'splitpanes'
-import { computed, onMounted, provide, ref, toRaw, watch } from 'vue'
+import { computed, onMounted, provide, ref, shallowRef, toRaw, watch } from 'vue'
 
 import { AGUIAssetsExplorerSymbol, listFilesInDir, openRootDir as openRootDirUtil, saveFile, useAGUIAssetsExplorer } from '../../composables'
 import { getEmptyAreaContextMenu } from '../../composables/useExplorerContextMenu'
@@ -19,6 +19,7 @@ import { useExplorerKeyboard } from '../../composables/useExplorerKeyboard'
 import { useFileOperations } from '../../composables/useFileOperations'
 import { useFileSelection } from '../../composables/useFileSelection'
 import { getTreeNodeContextMenu } from '../../composables/useTreeContextMenu'
+import { bCssVars } from '../../styles/icons'
 import { sortFSItems } from '../../utils'
 import AGUISlider from '../AGUISlider.vue'
 import AGUIBreadcrumb from '../breadcrumb/AGUIBreadcrumb.vue'
@@ -29,6 +30,7 @@ import AGUIFileList from './AGUIFileList.vue'
 import AGUIOpenDirectory from './AGUIOpenDirectory.vue'
 
 import './explorer.scss'
+import '../../styles/css-vars.scss'
 
 const props = defineProps<AGUIAssetsExplorerProps>()
 
@@ -93,6 +95,8 @@ const state = {
   onRename: props.onRename,
   onDelete: props.onDelete,
   onCreate: props.onCreate,
+  get onTransfer() { return props.onTransfer },
+  get onMutation() { return props.onMutation },
 
   emit,
 
@@ -125,6 +129,7 @@ watch(() => props.rootDir, async (newRootDir) => {
 }, { immediate: true })
 
 const size = ref(64)
+const iconVars = shallowRef('')
 const search = ref('')
 const visibleFileList = computed(() => curFileList.value.filter(item => item.name.toLocaleLowerCase().includes(search.value.trim().toLocaleLowerCase())))
 watch(curDir, () => {
@@ -272,6 +277,10 @@ useEventListener(explorerContent, 'drop', async (e: DragEvent) => {
     ))
   }
   else {
+    if (props.onMutation) {
+      await ops.importFiles(dir, fileItems.flatMap(item => item.file ? [item.file] : []))
+      return
+    }
     for (const fileItem of fileItems) {
       if (fileItem.file)
         await saveFile(fileItem.file, curDirHandle)
@@ -298,12 +307,13 @@ function onEmptyAreaContextMenu() {
 }
 
 onMounted(() => {
+  iconVars.value = bCssVars()
   window.AGUI_DRAGGING_ITEM_MAP = new Map()
 })
 </script>
 
 <template>
-  <div class="agui-assets-explorer">
+  <div class="agui-assets-explorer" :style="iconVars">
     <AGUIExplorerControls v-model:search="search" />
     <Splitpanes class="agui-explorer-panes">
       <Pane size="24">

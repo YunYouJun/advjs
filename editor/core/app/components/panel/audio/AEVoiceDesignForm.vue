@@ -2,6 +2,7 @@
 import type { VoiceDesignDefinition, VoiceDesignDraft, VoiceDesignSnapshot, VoiceDesignSource } from '@advjs/types'
 import AGUIProperty from '@advjs/gui/client/components/AGUIProperty.vue'
 import AGUIButton from '@advjs/gui/client/components/button/AGUIButton.vue'
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
 import AGUIInput from '@advjs/gui/client/components/input/AGUIInput.vue'
 import AGUISelect from '@advjs/gui/client/components/select/AGUISelect.vue'
 import { computed, shallowRef, watch } from 'vue'
@@ -52,6 +53,10 @@ function voiceOptions(row: typeof rows.value[number]) {
     options.push({ value: row.definition.providerVoiceId, label: `${row.definition.providerVoiceId} · 原有绑定` })
   return options
 }
+function referenceModes(row: typeof rows.value[number]) {
+  const modes = providerInfo(row.providerId)?.referenceModes ?? ['icl', 'embedding-only']
+  return modes.map(value => ({ value, label: value === 'icl' ? '参考音频与文本' : '仅声音特征' }))
+}
 function updateDefinition(row: typeof rows.value[number], operation: (definition: VoiceDesignDefinition) => void) {
   change((draft) => {
     operation(draft.locales[row.locale]!.providers[row.providerId]!)
@@ -74,7 +79,7 @@ function updateSource(row: typeof rows.value[number], source: VoiceDesignSource)
 function chooseReference(row: typeof rows.value[number], assetId: string) {
   const asset = props.snapshot.referenceAssets.find(asset => asset.id === assetId)
   if (asset)
-    updateDefinition(row, (definition) => { definition.reference = { ...definition.reference, mode: definition.reference?.mode ?? 'icl', assetId: asset.id, sha256: asset.sha256 } })
+    updateDefinition(row, (definition) => { definition.reference = { ...definition.reference, mode: definition.reference?.mode ?? providerInfo(row.providerId)?.referenceModes?.[0] ?? 'icl', assetId: asset.id, sha256: asset.sha256 } })
 }
 function addBinding() {
   const locale = newLocale.value.trim()
@@ -101,7 +106,7 @@ function remove(row: typeof rows.value[number]) {
 </script>
 
 <template>
-  <fieldset class="ae-design-form" :disabled="disabled">
+  <AGUIForm class="ae-design-form" :disabled="disabled" as="fieldset">
     <AGUIProperty :for="`${idPrefix}-speaker`" label="角色／旁白">
       <AGUISelect :id="`${idPrefix}-speaker`" label="设计角色／旁白" :model-value="modelValue.characterId" :options="speakerOptions" :disabled="disabled" @update:model-value="update('characterId', String($event))" />
     </AGUIProperty>
@@ -115,7 +120,7 @@ function remove(row: typeof rows.value[number]) {
       <AGUIInput :id="`${idPrefix}-version`" :model-value="modelValue.version" @update:model-value="update('version', String($event))" />
     </AGUIProperty>
     <CharacterVoiceIntentEditor :model-value="modelValue.intent" :id-prefix="idPrefix" @update:model-value="change(draft => { draft.intent = $event })" />
-    <section v-for="(row, index) in rows" :key="`${row.locale}/${row.providerId}`" class="ae-design-binding" :aria-label="`${row.locale} ${row.providerId} 音色实现`">
+    <AGUIForm v-for="(row, index) in rows" :key="`${row.locale}/${row.providerId}`" class="ae-design-binding" :aria-label="`${row.locale} ${row.providerId} 音色实现`" as="section">
       <p class="ae-design-caption">
         {{ row.locale }} · {{ row.providerId }}
       </p>
@@ -139,7 +144,7 @@ function remove(row: typeof rows.value[number]) {
           <AGUIInput :id="`${idPrefix}-reference-text-${index}`" :model-value="row.definition.reference?.text ?? ''" @update:model-value="updateDefinition(row, definition => { if (definition.reference) definition.reference.text = String($event) })" />
         </AGUIProperty>
         <AGUIProperty :for="`${idPrefix}-reference-mode-${index}`" label="参考模式">
-          <AGUISelect :id="`${idPrefix}-reference-mode-${index}`" :label="`${row.locale} ${row.providerId} 参考模式`" :model-value="row.definition.reference?.mode ?? 'icl'" :options="[{ value: 'icl', label: '参考音频与文本' }, { value: 'embedding-only', label: '仅声音特征' }]" :disabled="disabled" @update:model-value="updateDefinition(row, definition => { if (definition.reference) definition.reference.mode = $event as 'icl' | 'embedding-only' })" />
+          <AGUISelect :id="`${idPrefix}-reference-mode-${index}`" :label="`${row.locale} ${row.providerId} 参考模式`" :model-value="row.definition.reference?.mode ?? 'icl'" :options="referenceModes(row)" :disabled="disabled" @update:model-value="updateDefinition(row, definition => { if (definition.reference) definition.reference.mode = $event as 'icl' | 'embedding-only' })" />
         </AGUIProperty>
         <AGUIProperty v-for="field in ['license', 'subject', 'consentRecord'] as const" :key="field" :for="`${idPrefix}-${field}-${index}`" :label="({ license: '使用许可', subject: '声音主体', consentRecord: '项目同意文件' })[field]">
           <AGUIInput :id="`${idPrefix}-${field}-${index}`" :model-value="row.definition.rights?.[field] ?? ''" @update:model-value="updateDefinition(row, definition => { definition.rights ??= { license: '', subject: '', consentRecord: '' }; definition.rights[field] = String($event) })" />
@@ -150,8 +155,8 @@ function remove(row: typeof rows.value[number]) {
           移除设计绑定
         </AGUIButton>
       </div>
-    </section>
-    <div v-if="!disabled" class="ae-design-add">
+    </AGUIForm>
+    <AGUIForm v-if="!disabled" class="ae-design-add">
       <AGUIProperty :for="`${idPrefix}-new-locale`" label="新增语言">
         <AGUIInput :id="`${idPrefix}-new-locale`" v-model="newLocale" placeholder="zh-CN" />
       </AGUIProperty>
@@ -161,24 +166,18 @@ function remove(row: typeof rows.value[number]) {
       <AGUIButton data-testid="design-add-binding" :disabled="!newProvider" @click="addBinding">
         添加语言／供应商实现
       </AGUIButton>
-    </div>
+    </AGUIForm>
     <p v-if="formError" class="ae-resource-error" role="alert">
       {{ formError }}
     </p>
-  </fieldset>
+  </AGUIForm>
 </template>
 
 <style scoped>
-.ae-design-form {
-  border: 0;
-  margin: 0;
-  padding: 0;
-  min-width: 0;
-}
 .ae-design-binding,
 .ae-design-add {
   border-top: 1px solid var(--agui-c-divider-light);
-  padding: 8px 0;
+  padding: var(--agui-space-2) 0;
 }
 .ae-design-caption {
   margin: 0 0 8px;

@@ -2,6 +2,7 @@
 import type { VoiceListeningSession } from '@advjs/audio'
 import AGUIDetails from '@advjs/gui/client/components/AGUIDetails.vue'
 import AGUIProperty from '@advjs/gui/client/components/AGUIProperty.vue'
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
 import AGUIInput from '@advjs/gui/client/components/input/AGUIInput.vue'
 import AGUITextarea from '@advjs/gui/client/components/textarea/AGUITextarea.vue'
 import { useId } from 'vue'
@@ -14,21 +15,13 @@ const fields = [{ key: 'reviewerId', label: '听审者（化名）', max: 80 }, 
 
 <template>
   <AGUIDetails title="听审环境（必填）" open>
-    <div class="ae-listening-environment">
+    <AGUIForm class="ae-listening-environment">
       <AGUIProperty v-for="field in fields" :key="field.key" :for="`${id}-${field.key}`" :label="field.label">
         <AGUIInput :id="`${id}-${field.key}`" :model-value="environment[field.key]" :maxlength="field.max" @update:model-value="emit('update', { ...props.environment, [field.key]: String($event) })" />
       </AGUIProperty>
       <AGUIProperty :for="`${id}-notes`" label="环境备注">
         <AGUITextarea :id="`${id}-notes`" :model-value="environment.notes" :rows="2" @update:model-value="emit('update', { ...props.environment, notes: String($event) })" />
       </AGUIProperty>
-    </div>
+    </AGUIForm>
   </AGUIDetails>
 </template>
-
-<style scoped>
-.ae-listening-environment {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-</style>

@@ -90,7 +90,8 @@
     ],
     "optional": [
       "adv-story",
-      "adv-adapt"
+      "adv-adapt",
+      "adv-theme"
     ],
     "repositoryOnly": [
       "adv-hamster-demo"

@@ -1,5 +1,6 @@
 import type { HeadConfig } from 'vitepress'
 import * as pkg from '../../package.json'
+import { skinHeadScript } from '../theme/components/home/data/skin-ids'
 import { metaData } from './constants'
 
 const head: HeadConfig[] = [
@@ -30,23 +31,10 @@ const head: HeadConfig[] = [
   ['meta', { property: 'og:title', content: metaData.title }],
   ['meta', { property: 'og:image', content: '/assets/logo.svg' }],
   ['meta', { property: 'og:description', content: metaData.description }],
+  // No web font requests: VitePress bundles Inter, and CJK text uses fonts already on the device.
 
-  ['link', { rel: 'dns-prefetch', href: 'https://fonts.gstatic.com' }],
-  [
-    'link',
-    {
-      rel: 'preconnect',
-      crossorigin: 'anonymous',
-      href: 'https://fonts.gstatic.com',
-    },
-  ],
-  [
-    'link',
-    {
-      href: 'https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter:wght@200;400;500;600&display=swap',
-      rel: 'stylesheet',
-    },
-  ],
+  // The home page skin, applied before first paint so the page doesn't flash the default one.
+  ['script', {}, skinHeadScript],
 ]
 
 export default head

@@ -1,3 +1,4 @@
+import type { WorkbenchInfo } from './workbench-host.js'
 import { randomUUID } from 'node:crypto'
 import { mkdir, readFile, realpath, rename, writeFile } from 'node:fs/promises'
 import { basename, isAbsolute, resolve } from 'node:path'
@@ -8,6 +9,7 @@ import { redactErrorReport } from './error-report.js'
 import { createNativeMenu } from './menu.js'
 import { createProjectDirectory, findProjectTemplate, parseProjectCreationInput, suggestProjectFolder } from './project-creation.js'
 import { projectConfigFingerprint } from './project-trust.js'
+import { createWorkbenchHost } from './workbench-host.js'
 import { createWorkspaceStateStorage } from './workspace-state.js'
 
 if (process.env.ADVJS_DESKTOP_TEST_DATA)
@@ -21,7 +23,11 @@ let projectTemplates: Parameters<typeof findProjectTemplate>[0] = []
 const iconName = app.isPackaged ? 'icon' : 'icon-dev'
 const appIcon = resolve(app.isPackaged ? process.resourcesPath : resolve(root, 'assets/generated'), `${iconName}.${process.platform === 'win32' ? 'ico' : 'png'}`)
 const runtimeRoot = app.isPackaged ? resolve(process.resourcesPath, 'runtime') : root
-const publicRoot = app.isPackaged ? resolve(runtimeRoot, 'node_modules/@advjs/editor/dist') : resolve(root, '../../editor/core/dist')
+const publicRoot = app.isPackaged ? resolve(runtimeRoot, 'node_modules/@advjs/editor/dist') : resolve(process.env.ADVJS_DESKTOP_PUBLIC_ROOT || resolve(root, '../../editor/core/dist'))
+if (app.isPackaged)
+  delete process.env.ADVJS_DESKTOP_HOST_API
+const workbenchHost = app.isPackaged ? undefined : createWorkbenchHost(process.env.ADVJS_DESKTOP_WORKSPACE_HOST, process.env.ADVJS_DESKTOP_WORKSPACE_TOKEN)
+let workbenchInfo: WorkbenchInfo | undefined
 const stateStorage = createWorkspaceStateStorage(resolve(app.getPath('userData'), 'workspace-state'))
 const windows = new Map<number, EditorWindow>()
 let active: EditorWindow | undefined
@@ -34,7 +40,7 @@ let recentWrite = Promise.resolve()
 interface EditorPreferences { locale?: 'en' | 'zh-CN', onboarded: boolean, projectsDirectory?: string, previewVueDevtools?: boolean }
 let preferences: EditorPreferences = { onboarded: false }
 let preferenceWrite = Promise.resolve()
-const recentFile = () => resolve(app.getPath('userData'), 'recent-projects.json')
+const recentFile = () => resolve(app.getPath('userData'), workbenchInfo ? `workbench-${workbenchInfo.id}-recent.json` : 'recent-projects.json')
 const preferencesFile = () => resolve(app.getPath('userData'), 'editor-preferences.json')
 
 // Serialize open/replace/close decisions, including directory pickers, so two
@@ -89,7 +95,7 @@ function setPreferences(value: unknown) {
   return write
 }
 function createWindow() {
-  const context = new EditorWindow({ root, runtimeRoot, publicRoot, icon: appIcon, changed, close: (context) => {
+  const context = new EditorWindow({ root, runtimeRoot, publicRoot, icon: appIcon, changed, workbenchHost, close: (context) => {
     void enqueue(async () => {
       if (!context.disposed && await context.prepareToLeave())
         await context.dispose()
@@ -103,6 +109,8 @@ function createWindow() {
     updateMenu()
   })
   context.window.on('closed', () => {
+    if (!context.disposed)
+      void context.dispose().catch(() => {})
     windows.delete(id)
     if (active === context)
       active = undefined
@@ -114,7 +122,7 @@ function createWindow() {
 async function newWindow() {
   const context = createWindow()
   try {
-    await context.load()
+    await (workbenchHost ? context.loadWorkbench() : context.load())
     context.focus()
     return context
   }
@@ -128,7 +136,41 @@ function openTarget(value: unknown): 'auto' | 'current' {
     throw new Error('Invalid project open target')
   return value === 'current' ? 'current' : 'auto'
 }
+async function openWorkbench(source: EditorWindow, path?: string) {
+  try {
+    if (source.disposed)
+      return false
+    if (!path) {
+      const selection = await dialog.showOpenDialog(source.window, { title: `打开${workbenchInfo!.title}`, properties: ['openDirectory'] })
+      if (selection.canceled)
+        return false
+      path = selection.filePaths[0]
+    }
+    if (!path)
+      return false
+    const repository = await workbenchHost!.inspect(path)
+    const existing = [...windows.values()].find(context => !context.disposed && context.repositoryPath === repository.root)
+    if (existing) {
+      existing.focus()
+      return true
+    }
+    if (!await source.prepareToLeave())
+      return false
+    if (!await source.loadWorkbench(repository.root))
+      return false
+    const entry = { ...(recent.find(item => item.path === repository.root) ?? { id: randomUUID(), path: repository.root }), name: repository.name, lastOpenedAt: Date.now() }
+    await saveRecentProjects(projects => [entry, ...projects.filter(item => item.path !== repository.root)].slice(0, 12))
+    source.focus()
+    return true
+  }
+  catch (error) {
+    source.notify('无法打开工作台仓库', error)
+    return false
+  }
+}
 async function openProject(source: EditorWindow, path?: string, target: 'auto' | 'current' = 'auto') {
+  if (workbenchHost)
+    return openWorkbench(source, path)
   let destination = source
   try {
     if (source.disposed)
@@ -173,8 +215,7 @@ async function openProject(source: EditorWindow, path?: string, target: 'auto' |
 async function closeProject(context: EditorWindow) {
   if (!await context.prepareToLeave())
     return false
-  await context.load()
-  return true
+  return workbenchHost ? context.loadWorkbench() : context.load()
 }
 function projectCreationDirectory(context: EditorWindow) {
   return context.projectCreationDirectory ?? preferences.projectsDirectory ?? resolve(app.getPath('documents'), 'advjs-projects')
@@ -218,7 +259,7 @@ async function createProject(context: EditorWindow, id: unknown, value: unknown)
 }
 function snapshot(context: EditorWindow) {
   return {
-    opened: [...windows.values()].filter(item => item.session?.root && !item.disposed).map(item => ({ id: String(item.window.id), name: basename(item.session!.root!), path: item.session!.root!, current: item === context })),
+    opened: [...windows.values()].filter(item => item.repositoryPath && !item.disposed).map(item => ({ id: String(item.window.id), name: item.workbench?.name ?? basename(item.repositoryPath!), path: item.repositoryPath!, current: item === context })),
     recent: recent.map(item => ({ ...item })),
   }
 }
@@ -234,8 +275,10 @@ function updateMenu() {
     platform: process.platform,
     locale: preferences.locale,
     hasProject: !!context?.session?.root,
+    hasUnsavedDocuments: context?.dirty,
+    workbench: workbenchInfo ? { title: workbenchInfo.title, hasRepository: !!context?.workbench } : undefined,
     recent,
-    templates: projectTemplates.map(item => ({ id: item.meta.id, name: preferences.locale === 'zh-CN' ? item.meta.name : item.meta.nameEn ?? item.meta.name })),
+    templates: (workbenchInfo ? [] : projectTemplates).map(item => ({ id: item.meta.id, name: preferences.locale === 'zh-CN' ? item.meta.name : item.meta.nameEn ?? item.meta.name })),
     create: (id) => {
       findProjectTemplate(projectTemplates, id)
       context?.window.webContents.send('desktop:event', { type: 'create-project', templateId: id })
@@ -277,13 +320,18 @@ async function quit() {
 }
 function registerIpc() {
   const handlers: Record<string, (context: EditorWindow, ...args: unknown[]) => unknown> = {
-    'ready': context => context.ready(),
+    'ready': (context) => {
+      const notices = context.ready()
+      if (!context.session?.root && process.argv.includes('--workspace'))
+        void context.command('workspace')
+      return notices
+    },
     'prepare-leave': context => context.prepareToLeave(),
     'reconnect': context => enqueue(() => context.reconnect()),
     'task-status': context => context.tasks.status(),
     'status': (context) => {
       const preview = context.tasks.previewStatus()
-      return { connected: context.connected, dirty: context.dirty, hasProject: !!context.session?.root, task: context.tasks.status(), preview: { ...preview, vueDevtools: preview.active && preview.runMode === 'live' ? preview.vueDevtools : preferences.previewVueDevtools === true } }
+      return { ...(workbenchInfo ? { workbench: { id: workbenchInfo.id, title: workbenchInfo.title, ...context.workbench } } : {}), connected: context.connected, dirty: context.dirty, hasProject: !!context.session?.root, task: context.tasks.status(), preview: { ...preview, vueDevtools: preview.active && preview.runMode === 'live' ? preview.vueDevtools : preferences.previewVueDevtools === true } }
     },
     'task-cancel': context => context.tasks.cancel(),
     'preview-stop': context => context.tasks.closePreview(),
@@ -335,6 +383,8 @@ function registerIpc() {
     },
     'creation-directory': context => enqueue(() => selectProjectCreationDirectory(context)),
     'create': (context, id, options) => {
+      if (workbenchHost)
+        throw new Error('当前工作台请使用打开仓库')
       findProjectTemplate(projectTemplates, id)
       parseProjectCreationInput(options)
       return enqueue(() => createProject(context, id, options))
@@ -347,7 +397,7 @@ function registerIpc() {
       if (typeof id !== 'string')
         throw new Error('Invalid project window')
       const target = windows.get(Number(id))
-      if (!target?.session?.root || target.disposed)
+      if (!target?.repositoryPath || target.disposed)
         throw new Error('Project window is closed')
       target.focus()
       return true
@@ -367,10 +417,10 @@ function registerIpc() {
       return saveRecentProjects(projects => projects.filter(item => item.id !== id))
     },
     'session': context => context.session,
-    'workspace-state': context => context.session?.root ? stateStorage.read(context.session.root) : { version: 1 },
+    'workspace-state': context => context.repositoryPath ? stateStorage.read(context.repositoryPath) : { version: 1 },
     'save-workspace-state': (context, state) => {
-      if (context.session?.root)
-        return stateStorage.write(context.session.root, state)
+      if (context.repositoryPath)
+        return stateStorage.write(context.repositoryPath, state)
     },
     'copy-error-report': (context, report) => {
       if (typeof report !== 'string' || report.length > 1_000_000)
@@ -384,6 +434,7 @@ function registerIpc() {
         throw new Error('Invalid dirty state')
       context.dirty = value
       context.updateTitle()
+      updateMenu()
     },
     'command-result': (context, id, success) => {
       if (typeof id !== 'string' || typeof success !== 'boolean')
@@ -431,6 +482,7 @@ else {
       void enqueue(newWindow)
   })
   app.whenReady().then(async () => {
+    workbenchInfo = await workbenchHost?.info()
     projectTemplates = JSON.parse(await readFile(resolve(root, 'dist/project-templates.json'), 'utf8'))
     if (!app.isPackaged)
       app.dock?.setIcon(appIcon)
@@ -442,9 +494,11 @@ else {
     registerIpc()
     await enqueue(async () => {
       const context = createWindow()
-      const path = launchPath(process.argv) ?? recent[0]?.path
-      if (!path || !await openProject(context, path))
-        await context.load()
+      const path = launchPath(process.argv) ?? recent[0]?.path ?? workbenchInfo?.defaultRoot
+      if (!path || !await openProject(context, path)) {
+        if (!workbenchInfo || path === workbenchInfo.defaultRoot || !await openProject(context, workbenchInfo.defaultRoot))
+          await (workbenchHost ? context.loadWorkbench() : context.load())
+      }
     })
   }).catch((error) => {
     process.stderr.write(`${error.stack ?? error}\n`)

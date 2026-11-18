@@ -2,6 +2,7 @@
 import { createMusicMetadata, parseMusicMetadata } from '@advjs/audio'
 import AGUIProperty from '@advjs/gui/client/components/AGUIProperty.vue'
 import AGUIButton from '@advjs/gui/client/components/button/AGUIButton.vue'
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
 import AGUIInput from '@advjs/gui/client/components/input/AGUIInput.vue'
 import AGUISelect from '@advjs/gui/client/components/select/AGUISelect.vue'
 import AGUIToolbar from '@advjs/gui/client/components/toolbar/AGUIToolbar.vue'
@@ -104,7 +105,7 @@ async function initialize() {
         <span class="ae-resource-caption">{{ filtered.length }} / {{ assets.audio.length }}</span>
       </template>
     </AGUIToolbar>
-    <div class="ae-audio-fields">
+    <AGUIForm class="ae-audio-fields" padded>
       <AGUIButton v-if="!assets.manifest" :disabled="!audio.supportedRoot || !project.workspace?.writeFiles" :loading="pending" data-testid="audio-initialize" @click="initialize">
         创建原生音频目录
       </AGUIButton>
@@ -133,7 +134,7 @@ async function initialize() {
       <p v-if="error" class="ae-resource-error" role="alert">
         {{ error }}
       </p>
-    </div>
+    </AGUIForm>
     <ul class="ae-resource-list">
       <AEProjectAudioItem v-for="asset in assets.audio" v-show="visibleIds.has(asset.id)" :key="`${workspaceGeneration}:${asset.id}`" :asset="asset" :visible="visible && visibleIds.has(asset.id)" />
     </ul>
@@ -144,10 +145,6 @@ async function initialize() {
 </template>
 
 <style scoped>
-.ae-audio-fields {
-  padding: 8px;
-  container: agui-properties / inline-size;
-}
 .ae-audio-import {
   display: flex;
   flex-wrap: wrap;

@@ -120,7 +120,7 @@ export const useStudioStore = defineStore('studio', () => {
    * Update editable fields of an existing project (name, url, cosPrefix).
    * If the project is the current one, also refreshes the persisted state.
    */
-  function updateProject(projectId: string, updates: Partial<Pick<StudioProject, 'name' | 'url' | 'cosPrefix' | 'source' | 'description' | 'cover'>>) {
+  function updateProject(projectId: string, updates: Partial<Pick<StudioProject, 'name' | 'url' | 'cosPrefix' | 'source' | 'description' | 'cover' | 'syncedAt'>>) {
     const project = projects.value.find(p => p.projectId === projectId)
     if (!project)
       return
@@ -137,6 +137,8 @@ export const useStudioStore = defineStore('studio', () => {
       project.description = updates.description || undefined
     if ('cover' in updates)
       project.cover = updates.cover || undefined
+    if ('syncedAt' in updates)
+      project.syncedAt = updates.syncedAt
 
     saveToStorage()
 

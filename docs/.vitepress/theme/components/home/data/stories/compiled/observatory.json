@@ -1,0 +1,566 @@
+{
+  "title": "星海观测站",
+  "variables": {
+    "civilizationLevel": 1,
+    "observationCount": 0
+  },
+  "chapters": [
+    {
+      "id": "contact",
+      "sources": [
+        "adv/chapters/contact/01-contact.adv.md"
+      ]
+    },
+    {
+      "id": "watch",
+      "sources": [
+        "adv/chapters/watch/01-briefing.adv.md",
+        "adv/chapters/watch/02-console.adv.md"
+      ]
+    }
+  ],
+  "files": [
+    "adv.config.json",
+    "adv/chapters/contact/01-contact.adv.md",
+    "adv/chapters/watch/01-briefing.adv.md",
+    "adv/chapters/watch/02-console.adv.md",
+    "adv/characters/observer.character.md",
+    "adv/settings/game.json",
+    "adv/world.md"
+  ],
+  "nodes": {
+    "contact#contact": {
+      "file": "adv/chapters/contact/01-contact.adv.md",
+      "lines": [
+        1
+      ]
+    },
+    "contact#node-1": {
+      "file": "adv/chapters/contact/01-contact.adv.md",
+      "lines": [
+        3,
+        4
+      ]
+    },
+    "contact#node-3": {
+      "file": "adv/chapters/contact/01-contact.adv.md",
+      "lines": [
+        6,
+        7,
+        8,
+        9,
+        11
+      ]
+    },
+    "contact#node-4": {
+      "file": "adv/chapters/contact/01-contact.adv.md",
+      "lines": [
+        13,
+        14,
+        15
+      ]
+    },
+    "watch#start": {
+      "file": "adv/chapters/watch/01-briefing.adv.md",
+      "lines": [
+        1
+      ]
+    },
+    "watch#node-1": {
+      "file": "adv/chapters/watch/01-briefing.adv.md",
+      "lines": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    "watch#node-2": {
+      "file": "adv/chapters/watch/01-briefing.adv.md",
+      "lines": [
+        14
+      ]
+    },
+    "watch#node-3": {
+      "file": "adv/chapters/watch/01-briefing.adv.md",
+      "lines": [
+        16,
+        17
+      ]
+    },
+    "watch#observe": {
+      "file": "adv/chapters/watch/02-console.adv.md",
+      "lines": [
+        1
+      ]
+    },
+    "watch#node-5": {
+      "file": "adv/chapters/watch/02-console.adv.md",
+      "lines": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ]
+    },
+    "watch#record": {
+      "file": "adv/chapters/watch/02-console.adv.md",
+      "lines": [
+        25
+      ]
+    },
+    "watch#node-7": {
+      "file": "adv/chapters/watch/02-console.adv.md",
+      "lines": [
+        27
+      ]
+    },
+    "watch#node-8": {
+      "file": "adv/chapters/watch/02-console.adv.md",
+      "lines": [
+        29
+      ]
+    },
+    "watch#evolve": {
+      "file": "adv/chapters/watch/02-console.adv.md",
+      "lines": [
+        31
+      ]
+    },
+    "watch#node-11": {
+      "file": "adv/chapters/watch/02-console.adv.md",
+      "lines": [
+        33,
+        34,
+        35,
+        36,
+        38
+      ]
+    },
+    "watch#node-13": {
+      "file": "adv/chapters/watch/02-console.adv.md",
+      "lines": [
+        40,
+        41,
+        42,
+        43,
+        45
+      ]
+    },
+    "watch#node-14": {
+      "file": "adv/chapters/watch/02-console.adv.md",
+      "lines": [
+        47
+      ]
+    }
+  },
+  "program": {
+    "schemaVersion": 2,
+    "id": "observatory",
+    "entry": {
+      "chapterId": "watch",
+      "nodeId": "start"
+    },
+    "chapters": {
+      "watch": {
+        "id": "watch",
+        "title": "watch",
+        "entry": "start",
+        "nodes": {
+          "start": {
+            "id": "start",
+            "kind": "scene",
+            "data": {
+              "place": "观测站 OBS-01",
+              "time": "标准时 0427",
+              "inOrOut": "内景"
+            },
+            "next": {
+              "chapterId": "watch",
+              "nodeId": "node-1"
+            }
+          },
+          "node-1": {
+            "id": "node-1",
+            "kind": "actions",
+            "actions": [
+              {
+                "type": "variables/set",
+                "args": {
+                  "key": "observationCount",
+                  "value": 0
+                }
+              },
+              {
+                "type": "variables/set",
+                "args": {
+                  "key": "civilizationLevel",
+                  "value": 1
+                }
+              }
+            ],
+            "next": {
+              "chapterId": "watch",
+              "nodeId": "node-2"
+            }
+          },
+          "node-2": {
+            "id": "node-2",
+            "kind": "narration",
+            "data": {
+              "text": "培养皿里的那颗行星，今天又转过了一圈。",
+              "speakerId": "narrator"
+            },
+            "next": {
+              "chapterId": "watch",
+              "nodeId": "node-3"
+            }
+          },
+          "node-3": {
+            "id": "node-3",
+            "kind": "dialog",
+            "data": {
+              "character": "观测者",
+              "speakerId": "观测者",
+              "status": "",
+              "text": "目标：仓鼠文明。它们刚刚学会用火。"
+            },
+            "next": {
+              "chapterId": "watch",
+              "nodeId": "observe"
+            }
+          },
+          "observe": {
+            "id": "observe",
+            "kind": "anchor",
+            "data": {
+              "depth": 2,
+              "text": "观测"
+            },
+            "next": {
+              "chapterId": "watch",
+              "nodeId": "node-5"
+            }
+          },
+          "node-5": {
+            "id": "node-5",
+            "kind": "choices",
+            "data": {
+              "options": [
+                {
+                  "id": "choice-1",
+                  "label": "继续观测",
+                  "target": {
+                    "chapterId": "watch",
+                    "nodeId": "record"
+                  },
+                  "actions": [
+                    {
+                      "type": "variables/increment",
+                      "args": {
+                        "key": "observationCount"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "choice-2",
+                  "label": "调快时间流速",
+                  "target": {
+                    "chapterId": "watch",
+                    "nodeId": "evolve"
+                  },
+                  "actions": [
+                    {
+                      "type": "variables/increment",
+                      "args": {
+                        "key": "civilizationLevel"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "choice-3",
+                  "label": "回应它们的目光",
+                  "target": {
+                    "chapterId": "contact",
+                    "nodeId": "contact"
+                  },
+                  "when": {
+                    "type": "binary",
+                    "operator": ">=",
+                    "left": {
+                      "type": "variable",
+                      "path": [
+                        "observationCount"
+                      ]
+                    },
+                    "right": {
+                      "type": "literal",
+                      "value": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "next": {
+              "chapterId": "watch",
+              "nodeId": "record"
+            }
+          },
+          "record": {
+            "id": "record",
+            "kind": "anchor",
+            "data": {
+              "depth": 2,
+              "text": "记录"
+            },
+            "next": {
+              "chapterId": "watch",
+              "nodeId": "node-7"
+            }
+          },
+          "node-7": {
+            "id": "node-7",
+            "kind": "narration",
+            "data": {
+              "text": "它们在洞穴的墙上，画下了夜空。",
+              "speakerId": "narrator"
+            },
+            "next": {
+              "chapterId": "watch",
+              "nodeId": "node-8"
+            }
+          },
+          "node-8": {
+            "id": "node-8",
+            "kind": "choices",
+            "data": {
+              "options": [
+                {
+                  "id": "choice-1",
+                  "label": "回到观测",
+                  "target": {
+                    "chapterId": "watch",
+                    "nodeId": "observe"
+                  }
+                }
+              ]
+            },
+            "next": {
+              "chapterId": "watch",
+              "nodeId": "evolve"
+            }
+          },
+          "evolve": {
+            "id": "evolve",
+            "kind": "anchor",
+            "data": {
+              "depth": 2,
+              "text": "演化"
+            },
+            "next": {
+              "chapterId": "watch",
+              "nodeId": "node-11"
+            }
+          },
+          "node-11": {
+            "id": "node-11",
+            "kind": "narration",
+            "data": {
+              "text": "第一座天文台，在它们的山顶上落成。",
+              "speakerId": "narrator"
+            },
+            "when": {
+              "type": "binary",
+              "operator": ">=",
+              "left": {
+                "type": "variable",
+                "path": [
+                  "civilizationLevel"
+                ]
+              },
+              "right": {
+                "type": "literal",
+                "value": 3
+              }
+            },
+            "next": {
+              "chapterId": "watch",
+              "nodeId": "node-13"
+            }
+          },
+          "node-13": {
+            "id": "node-13",
+            "kind": "narration",
+            "data": {
+              "text": "一千年过去，它们学会了耕种。",
+              "speakerId": "narrator"
+            },
+            "when": {
+              "type": "binary",
+              "operator": "<",
+              "left": {
+                "type": "variable",
+                "path": [
+                  "civilizationLevel"
+                ]
+              },
+              "right": {
+                "type": "literal",
+                "value": 3
+              }
+            },
+            "next": {
+              "chapterId": "watch",
+              "nodeId": "node-14"
+            }
+          },
+          "node-14": {
+            "id": "node-14",
+            "kind": "choices",
+            "data": {
+              "options": [
+                {
+                  "id": "choice-1",
+                  "label": "回到观测",
+                  "target": {
+                    "chapterId": "watch",
+                    "nodeId": "observe"
+                  }
+                }
+              ]
+            },
+            "next": {
+              "chapterId": "watch",
+              "nodeId": "end"
+            }
+          },
+          "end": {
+            "id": "end",
+            "kind": "end"
+          }
+        },
+        "order": [
+          "start",
+          "node-1",
+          "node-2",
+          "node-3",
+          "observe",
+          "node-5",
+          "record",
+          "node-7",
+          "node-8",
+          "evolve",
+          "node-11",
+          "node-13",
+          "node-14",
+          "end"
+        ]
+      },
+      "contact": {
+        "id": "contact",
+        "title": "contact",
+        "entry": "contact",
+        "nodes": {
+          "contact": {
+            "id": "contact",
+            "kind": "anchor",
+            "data": {
+              "depth": 2,
+              "text": "接触"
+            },
+            "next": {
+              "chapterId": "contact",
+              "nodeId": "node-1"
+            }
+          },
+          "node-1": {
+            "id": "node-1",
+            "kind": "dialog",
+            "data": {
+              "character": "观测者",
+              "speakerId": "观测者",
+              "status": "",
+              "text": "它们第一次抬头看星星的时候，我正好在看它们。"
+            },
+            "next": {
+              "chapterId": "contact",
+              "nodeId": "node-3"
+            }
+          },
+          "node-3": {
+            "id": "node-3",
+            "kind": "narration",
+            "data": {
+              "text": "山顶的天文台，把镜头转向了你。",
+              "speakerId": "narrator"
+            },
+            "when": {
+              "type": "binary",
+              "operator": ">=",
+              "left": {
+                "type": "variable",
+                "path": [
+                  "civilizationLevel"
+                ]
+              },
+              "right": {
+                "type": "literal",
+                "value": 3
+              }
+            },
+            "next": {
+              "chapterId": "contact",
+              "nodeId": "node-4"
+            }
+          },
+          "node-4": {
+            "id": "node-4",
+            "kind": "end",
+            "next": {
+              "chapterId": "contact",
+              "nodeId": "end"
+            }
+          },
+          "end": {
+            "id": "end",
+            "kind": "end"
+          }
+        },
+        "order": [
+          "contact",
+          "node-1",
+          "node-3",
+          "node-4",
+          "end"
+        ]
+      }
+    },
+    "requiredPlugins": {},
+    "hash": "351f6a8dff3a905f8dcd256dadeb91ef43308a78ef4dbf4503f154ba907d2eb9"
+  }
+}

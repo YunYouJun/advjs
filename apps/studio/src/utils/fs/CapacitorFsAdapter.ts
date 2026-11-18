@@ -95,8 +95,10 @@ export class CapacitorFsAdapter implements IFileSystem {
       await this.stat(path)
       return true
     }
-    catch {
-      return false
+    catch (error) {
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'OS-PLUG-FILE-0008')
+        return false
+      throw error
     }
   }
 
@@ -162,12 +164,12 @@ export class CapacitorFsAdapter implements IFileSystem {
     })
   }
 
-  async rmdir(path: string): Promise<void> {
+  async rmdir(path: string, options?: { recursive?: boolean }): Promise<void> {
     const { Filesystem, Directory } = await getCapFs()
     await Filesystem.rmdir({
       path: this.resolvePath(path),
       directory: Directory.Documents,
-      recursive: true,
+      recursive: options?.recursive ?? true,
     })
   }
 

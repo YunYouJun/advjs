@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AdvMusicMetadata } from '@advjs/types'
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
 import AGUIDetails from '@advjs/gui/components/AGUIDetails.vue'
 import AGUIProperty from '@advjs/gui/components/AGUIProperty.vue'
 import AGUIInput from '@advjs/gui/components/input/AGUIInput.vue'
@@ -26,7 +27,7 @@ function brief(value: Partial<NonNullable<AdvMusicMetadata['brief']>>) {
 </script>
 
 <template>
-  <div class="ae-music-fields">
+  <AGUIForm class="ae-music-fields">
     <AGUIProperty label="音乐用途">
       <AGUISelect label="音乐用途" :model-value="modelValue.usage" :options="usages" :disabled="disabled" @update:model-value="patch({ usage: $event as AdvMusicMetadata['usage'] })" />
     </AGUIProperty>
@@ -49,8 +50,9 @@ function brief(value: Partial<NonNullable<AdvMusicMetadata['brief']>>) {
       <AGUIInput :id="`${id}-permission`" :model-value="modelValue.rights?.permissionNote ?? ''" :disabled="disabled" placeholder="可选，例如许可范围或订单记录说明" @update:model-value="rights({ permissionNote: $event || undefined })" />
     </AGUIProperty>
     <AGUIDetails title="创作意图与交接内容" :open="Boolean(modelValue.brief)">
-      <label :for="`${id}-summary`">创作方案</label>
-      <AGUITextarea :id="`${id}-summary`" :model-value="modelValue.brief?.summary ?? ''" :disabled="disabled" :rows="3" placeholder="描述主题、段落、旋律或歌词需求；不代表已生成" @update:model-value="brief({ summary: $event })" />
+      <AGUIProperty :for="`${id}-summary`" label="创作方案" label-align="top">
+        <AGUITextarea :id="`${id}-summary`" :model-value="modelValue.brief?.summary ?? ''" :disabled="disabled" :rows="3" placeholder="描述主题、段落、旋律或歌词需求；不代表已生成" @update:model-value="brief({ summary: $event })" />
+      </AGUIProperty>
       <AGUIProperty :for="`${id}-mood`" label="情绪">
         <AGUIInput :id="`${id}-mood`" :model-value="modelValue.brief?.mood ?? ''" :disabled="disabled" @update:model-value="brief({ mood: $event || undefined })" />
       </AGUIProperty>
@@ -76,19 +78,10 @@ function brief(value: Partial<NonNullable<AdvMusicMetadata['brief']>>) {
     <p class="ae-resource-caption">
       创作意图不保证实际时长或循环接缝。主题曲、OP、ED 和插曲仍使用 BGM / music 总线；来源页面不是音频播放地址。
     </p>
-  </div>
+  </AGUIForm>
 </template>
 
 <style scoped>
-.ae-music-fields {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-.ae-music-fields :deep(.agui-details-content) {
-  display: grid;
-  gap: 4px;
-}
 .ae-music-fields label {
   font-size: 12px;
 }

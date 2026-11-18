@@ -6,6 +6,7 @@
   "description": "ADV.JS Studio for iPhone and iPad: JavaScriptCore engine, offline player and SwiftUI app",
   "scripts": {
     "build:engine": "tsx engine/build.ts",
+    "build:samples": "tsx scripts/build-samples.ts",
     "golden": "tsx engine/golden.ts",
     "test:engine": "vitest run --config engine/vitest.config.ts",
     "test:swift": "swift test --package-path Packages/StudioKit"
@@ -18,6 +19,7 @@
     "@advjs/types": "workspace:*",
     "esbuild": "catalog:build",
     "eslint": "catalog:dev",
+    "jszip": "catalog:",
     "tsx": "catalog:dev",
     "vitest": "catalog:test"
   }

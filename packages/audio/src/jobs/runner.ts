@@ -4,7 +4,9 @@ import { canonicalAudioJson } from '../fingerprint'
 import { createAudioId } from '../ids'
 import { audioProjectMediaPath } from '../project-media'
 import { resolveVoiceSpokenText } from '../spoken-text'
+import { parseVoiceAlignment } from '../voice-alignment'
 import { findVoiceTakeByFingerprint, validateVoiceRights } from '../voice-ledger'
+import { VOICE_GENERATION_RECEIPT_MAX_BYTES } from './contracts'
 import { voiceGenerationInputFingerprint } from './planner'
 import { reduceVoiceGenerationJob } from './reducer'
 import { parseVoiceGenerationStore, pruneVoiceGenerationStore } from './store'
@@ -17,13 +19,21 @@ export class VoiceGenerationNotDispatchedError extends Error {
 }
 
 function storedCandidate(candidate: AdvVoiceCandidate): StoredVoiceCandidate {
-  const { text: _text, characterId: _speaker, inputFingerprint: _fingerprint, ...safe } = candidate
+  const { text: _text, characterId: _speaker, inputFingerprint: _fingerprint, alignment, ...safe } = candidate
+  if (alignment) {
+    const { text: _prose, ...timing } = parseVoiceAlignment(alignment, { text: candidate.text, sha256: candidate.sha256, durationSeconds: candidate.durationSeconds })
+    Object.assign(safe, { alignment: timing })
+  }
   canonicalAudioJson(JSON.parse(JSON.stringify(safe)))
+  if (new TextEncoder().encode(JSON.stringify(safe)).byteLength > VOICE_GENERATION_RECEIPT_MAX_BYTES)
+    throw new Error('AUDIO_JOB_RECEIPT_LIMIT')
   return JSON.parse(JSON.stringify(safe)) as StoredVoiceCandidate
 }
 
 /** Existing authoring services own synthesis, verified registration and catalog writes. */
 export function createVoiceGenerationRunner(options: VoiceGenerationRunnerOptions) {
+  if (options.batchSize !== undefined && (!Number.isInteger(options.batchSize) || options.batchSize < 1 || options.batchSize > 5000))
+    throw new Error('AUDIO_JOB_BATCH_SIZE_INVALID')
   const now = options.now ?? Date.now
   const controllers = new Map<string, AbortController>()
   const pending = new Map<string, Promise<VoiceGenerationJob>>()
@@ -105,7 +115,7 @@ export function createVoiceGenerationRunner(options: VoiceGenerationRunnerOption
     return { snapshot, input }
   }
 
-  async function registerCandidate(id: string, task: VoiceGenerationTask, safe: StoredVoiceCandidate, input: VoiceGenerationResolvedInput) {
+  async function registerCandidate(id: string, task: VoiceGenerationTask, safe: StoredVoiceCandidate, input: VoiceGenerationResolvedInput, committedRecovery = false) {
     // A paid result is already durable. Recheck source/profile/dictionary after
     // synthesis before accepting it; recovery keeps the receipt without billing.
     await taskInput(task)
@@ -114,7 +124,23 @@ export function createVoiceGenerationRunner(options: VoiceGenerationRunnerOption
     let take = existing
     let catalog = snapshot.catalog
     if (!take) {
-      const candidate: AdvVoiceCandidate = { ...safe, characterId: input.speakerId, text: resolveVoiceSpokenText(input.displayText, { override: input.spokenText, locale: input.locale, pronunciation: input.pronunciation }) }
+      const text = resolveVoiceSpokenText(input.displayText, { override: input.spokenText, locale: input.locale, pronunciation: input.pronunciation })
+      const { alignment: timing, ...receipt } = safe
+      // Committed recovery receipts keep only their immutable media identity.
+      // Identical dialogue on another line can recover timing from its native
+      // take, without retaining another full timeline in application data.
+      let alignment = timing
+      if (!alignment && committedRecovery) {
+        for (const line of Object.values(snapshot.ledger.lines)) {
+          const original = line.locales[task.locale]?.takes.find(take => take.inputFingerprint === task.inputFingerprint && take.sha256 === safe.sha256 && take.alignment)
+          if (original?.alignment) {
+            const { text: _text, ...nativeTiming } = parseVoiceAlignment(original.alignment, { text, sha256: safe.sha256, durationSeconds: safe.durationSeconds })
+            alignment = nativeTiming
+            break
+          }
+        }
+      }
+      const candidate: AdvVoiceCandidate = { ...receipt, characterId: input.speakerId, text, ...(alignment ? { alignment: parseVoiceAlignment({ ...alignment, text }, { text, sha256: safe.sha256, durationSeconds: safe.durationSeconds }) } : {}) }
       const registered = await options.authoring.register({ ...input, candidate, providerVoiceId: input.voiceId, expectedRevision: snapshot.revision })
       catalog = registered.catalog
       take = findVoiceTakeByFingerprint(registered.ledger, task.lineId, task.locale, task.inputFingerprint)
@@ -126,7 +152,8 @@ export function createVoiceGenerationRunner(options: VoiceGenerationRunnerOption
       throw new Error('AUDIO_JOB_PROVENANCE_CHANGED')
     // Move the recovery receipt to the committed native master; temporary preview
     // cleanup cannot turn a completed fingerprint into a second paid request.
-    const receipt = { ...safe, path: audioProjectMediaPath(catalog, asset) }
+    const { alignment: _timing, ...identity } = safe
+    const receipt = { ...identity, path: audioProjectMediaPath(catalog, asset) }
     await options.store.mutate((state) => {
       const record = state.idempotency[task.idempotencyKey]
       if (record) {
@@ -140,8 +167,8 @@ export function createVoiceGenerationRunner(options: VoiceGenerationRunnerOption
     })
   }
 
-  async function register(id: string, task: VoiceGenerationTask, safe: StoredVoiceCandidate, input: VoiceGenerationResolvedInput) {
-    const operation = registration.catch(() => {}).then(() => registerCandidate(id, task, safe, input))
+  async function register(id: string, task: VoiceGenerationTask, safe: StoredVoiceCandidate, input: VoiceGenerationResolvedInput, committedRecovery = false) {
+    const operation = registration.catch(() => {}).then(() => registerCandidate(id, task, safe, input, committedRecovery))
     registration = operation
     return await operation
   }
@@ -184,7 +211,19 @@ export function createVoiceGenerationRunner(options: VoiceGenerationRunnerOption
         await change(id, task.id, 'blocked', 'CACHE_MEDIA_INVALID')
         return
       }
-      await change(id, task.id, 'committed', undefined, { takeId: cached.id, assetId: cached.assetId })
+      await options.store.mutate((state) => {
+        const receipt = state.idempotency[task.idempotencyKey]
+        if (receipt?.candidate && receipt.candidate.sha256 === cached.sha256) {
+          if (receipt.accountId !== currentJob.accountId || receipt.projectId !== currentJob.projectId || receipt.inputFingerprint !== task.inputFingerprint)
+            throw new Error('AUDIO_JOB_SCOPE_INVALID')
+          const { alignment: _timing, ...identity } = receipt.candidate
+          receipt.candidate = { ...identity, path: audioProjectMediaPath(resolved.snapshot.catalog, asset) }
+          receipt.status = 'committed'
+          receipt.updatedAt = new Date(now()).toISOString()
+          delete receipt.errorCode
+        }
+        state.jobs[id] = reduceVoiceGenerationJob(state.jobs[id]!, { type: 'task', taskId: task.id, status: 'committed', takeId: cached.id, assetId: cached.assetId }, now())
+      })
       return
     }
     let record = (await options.store.read()).idempotency[task.idempotencyKey]
@@ -247,7 +286,7 @@ export function createVoiceGenerationRunner(options: VoiceGenerationRunnerOption
         return
       }
       try {
-        await register(id, task, record.candidate, resolved.input)
+        await register(id, task, record.candidate, resolved.input, record.status === 'committed')
       }
       catch {
         await change(id, task.id, 'failed', 'REGISTRATION_FAILED')
@@ -276,37 +315,46 @@ export function createVoiceGenerationRunner(options: VoiceGenerationRunnerOption
       await change(id, task.id, 'failed', 'INPUT_INVALID')
       return
     }
-    const claim = await options.store.mutate((state) => {
-      const next = state.jobs[id]!
-      const durableTask = next.tasks.find(item => item.id === task.id)!
-      const existing = state.idempotency[task.idempotencyKey]
-      if (next.cancelled || (existing && existing.status !== 'failed'))
-        return undefined
-      if (next.chargedCharacters + task.characterCount > next.budget.maxCharacters) {
-        state.jobs[id] = reduceVoiceGenerationJob(next, { type: 'task', taskId: task.id, status: 'blocked', errorCode: 'CHARACTER_BUDGET_EXCEEDED' }, now())
-        return undefined
-      }
-      if (next.budget.maxCost && (!task.estimatedCost || task.estimatedCost.currency !== next.budget.maxCost.currency || next.chargedCostMicros + task.estimatedCost.amountMicros > next.budget.maxCost.amountMicros)) {
-        state.jobs[id] = reduceVoiceGenerationJob(next, { type: 'task', taskId: task.id, status: 'blocked', errorCode: 'COST_BUDGET_EXCEEDED' }, now())
-        return undefined
-      }
-      if (!task.estimatedCost && !next.budget.allowUnknownCost) {
-        state.jobs[id] = reduceVoiceGenerationJob(next, { type: 'task', taskId: task.id, status: 'blocked', errorCode: 'UNKNOWN_COST_NOT_APPROVED' }, now())
-        return undefined
-      }
-      const dispatchId = createAudioId('job')
-      durableTask.attempts += 1
-      next.chargedCharacters += task.characterCount
-      next.chargedCostMicros += task.estimatedCost?.amountMicros ?? 0
-      state.jobs[id] = reduceVoiceGenerationJob(next, { type: 'task', taskId: task.id, status: 'running' }, now())
-      const time = new Date(now()).toISOString()
-      state.idempotency[task.idempotencyKey] = { key: task.idempotencyKey, accountId: next.accountId, projectId: next.projectId, inputFingerprint: task.inputFingerprint, ownerJobId: id, ownerTaskId: task.id, dispatchId, status: 'running', createdAt: existing?.createdAt ?? time, updatedAt: time, expiresAt: state.jobs[id]!.expiresAt }
-      return dispatchId
-    }).catch((error) => {
+    let claim: string | undefined
+    try {
+      await options.store.assertCapacity?.()
+      claim = await options.store.mutate((state) => {
+        const next = state.jobs[id]!
+        const durableTask = next.tasks.find(item => item.id === task.id)!
+        const existing = state.idempotency[task.idempotencyKey]
+        if (next.cancelled || (existing && existing.status !== 'failed'))
+          return undefined
+        if (next.chargedCharacters + task.characterCount > next.budget.maxCharacters) {
+          state.jobs[id] = reduceVoiceGenerationJob(next, { type: 'task', taskId: task.id, status: 'blocked', errorCode: 'CHARACTER_BUDGET_EXCEEDED' }, now())
+          return undefined
+        }
+        if (next.budget.maxCost && (!task.estimatedCost || task.estimatedCost.currency !== next.budget.maxCost.currency || next.chargedCostMicros + task.estimatedCost.amountMicros > next.budget.maxCost.amountMicros)) {
+          state.jobs[id] = reduceVoiceGenerationJob(next, { type: 'task', taskId: task.id, status: 'blocked', errorCode: 'COST_BUDGET_EXCEEDED' }, now())
+          return undefined
+        }
+        if (!task.estimatedCost && !next.budget.allowUnknownCost) {
+          state.jobs[id] = reduceVoiceGenerationJob(next, { type: 'task', taskId: task.id, status: 'blocked', errorCode: 'UNKNOWN_COST_NOT_APPROVED' }, now())
+          return undefined
+        }
+        const dispatchId = createAudioId('job')
+        durableTask.attempts += 1
+        next.chargedCharacters += task.characterCount
+        next.chargedCostMicros += task.estimatedCost?.amountMicros ?? 0
+        state.jobs[id] = reduceVoiceGenerationJob(next, { type: 'task', taskId: task.id, status: 'running' }, now())
+        const time = new Date(now()).toISOString()
+        state.idempotency[task.idempotencyKey] = { key: task.idempotencyKey, accountId: next.accountId, projectId: next.projectId, inputFingerprint: task.inputFingerprint, ownerJobId: id, ownerTaskId: task.id, dispatchId, status: 'running', createdAt: existing?.createdAt ?? time, updatedAt: time, expiresAt: state.jobs[id]!.expiresAt }
+        return dispatchId
+      })
+    }
+    catch (error) {
       release()
       controllers.delete(task.id)
+      if (error instanceof Error && error.message.startsWith('AUDIO_JOB_STORE_CAPACITY')) {
+        await change(id, task.id, 'blocked', 'STORE_CAPACITY_EXCEEDED')
+        return 'capacity-blocked' as const
+      }
       throw error
-    })
+    }
     if (!claim) {
       release()
       controllers.delete(task.id)
@@ -383,11 +431,12 @@ export function createVoiceGenerationRunner(options: VoiceGenerationRunnerOption
     }
   }
 
-  async function runBatch(id: string) {
+  async function runWindow(id: string, tasks?: VoiceGenerationTask[]) {
     const initial = await job(id)
     if (initial.cancelled)
       return initial
-    const queue = initial.tasks.filter(task => !['committed', 'cancelled', 'failed'].includes(task.status))
+    const targets = tasks ?? initial.tasks
+    const queue = targets.filter(task => !['committed', 'cancelled', 'failed'].includes(task.status))
     const active = new Map<Promise<void>, string>()
     const providerActive = new Map<string, number>()
     while (queue.length || active.size) {
@@ -403,7 +452,10 @@ export function createVoiceGenerationRunner(options: VoiceGenerationRunnerOption
         }
         queue.splice(index, 1)
         providerActive.set(task.providerId, (providerActive.get(task.providerId) ?? 0) + 1)
-        const operation = executeTask(id, task).finally(() => {
+        const operation = executeTask(id, task).then((outcome) => {
+          if (outcome === 'capacity-blocked')
+            queue.length = 0
+        }).finally(() => {
           active.delete(operation)
           providerActive.set(task.providerId, providerActive.get(task.providerId)! - 1)
         })
@@ -415,16 +467,35 @@ export function createVoiceGenerationRunner(options: VoiceGenerationRunnerOption
     // Tasks sharing a fingerprint may have observed another live dispatch.
     // Revisit only confirmed receipts, never dispatch an uncertain request again.
     const state = await options.store.read()
-    for (const task of state.jobs[id]!.tasks) {
+    const targetIds = new Set(targets.map(task => task.id))
+    for (const task of state.jobs[id]!.tasks.filter(task => targetIds.has(task.id))) {
       if (['unknown', 'blocked', 'queued'].includes(task.status) && ['generated', 'committed'].includes(state.idempotency[task.idempotencyKey]?.status ?? ''))
         await executeTask(id, task)
     }
     return await job(id)
   }
 
+  async function runBatch(id: string) {
+    if (options.batchSize === undefined)
+      return await runWindow(id)
+    let current = await job(id)
+    for (let offset = 0; offset < current.tasks.length; offset += options.batchSize) {
+      if (current.cancelled)
+        break
+      const window = current.tasks.slice(offset, offset + options.batchSize)
+      current = await runWindow(id, window)
+      // Unknown receipts, failures and cancellation need explicit recovery.
+      // A later window cannot spend more of this job's reviewed budget yet.
+      if (current.cancelled || current.tasks.slice(offset, offset + options.batchSize).some(task => task.status !== 'committed'))
+        break
+    }
+    return current
+  }
+
   return {
     async enqueue(plan: VoiceGenerationJob) {
       parseVoiceGenerationStore({ schemaVersion: 1, jobs: { [plan.id]: plan }, idempotency: {} })
+      await options.store.assertCapacity?.(plan)
       return await options.store.mutate((state) => {
         if (state.jobs[plan.id]) {
           if (JSON.stringify(state.jobs[plan.id]) !== JSON.stringify(plan))

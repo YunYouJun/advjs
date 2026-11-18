@@ -219,6 +219,7 @@ export function createAudioEngine(options: AudioEngineOptions): AudioEngine {
   }
 
   const engine: AudioEngine = {
+    voicePosition: () => voice?.playback?.currentTime?.(),
     async syncState(raw, syncOptions = {}) {
       if (disposed)
         return

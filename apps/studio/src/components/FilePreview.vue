@@ -14,6 +14,7 @@ const props = withDefaults(defineProps<{
   language?: string
   readonly?: boolean
   filename?: string
+  preserveSessionOnRename?: boolean
   collabText?: YText | null
   revealLine?: number
   revealColumn?: number
@@ -23,6 +24,7 @@ const props = withDefaults(defineProps<{
   language: 'plaintext',
   readonly: true,
   filename: '',
+  preserveSessionOnRename: false,
   collabText: null,
   revealLine: undefined,
   revealColumn: undefined,
@@ -150,6 +152,9 @@ async function initEditor() {
       scrollBeyondLastLine: false,
       fontSize: 13,
       lineNumbers: 'on',
+      // Short-lived previews can close while Monaco 0.55's delayed word
+      // highlighter is pending. Its cancellation otherwise rejects unhandled.
+      occurrencesHighlight: 'off',
       renderSideBySide: window.innerWidth >= 768,
       theme: editorTheme(),
     })
@@ -173,6 +178,7 @@ async function initEditor() {
       fontSize: isMobile ? 14 : 13,
       lineNumbers: 'on',
       wordWrap: 'on',
+      occurrencesHighlight: 'off',
       theme: editorTheme(),
     })
 
@@ -234,9 +240,25 @@ function recreateEditor() {
 }
 
 watch(
-  [() => props.originalContent, () => props.filename, () => props.readonly, () => props.collabText],
+  [() => props.originalContent, () => props.readonly, () => props.collabText],
   recreateEditor,
 )
+
+// A parsed ID can change the displayed filename while the author is typing.
+// Keep the same editing session, selection and undo history in that case.
+watch(() => props.filename, (filename) => {
+  if (!props.preserveSessionOnRename) {
+    recreateEditor()
+    return
+  }
+  if (!monaco)
+    return
+  const lang = detectEditorLanguage(filename, props.language)
+  for (const model of [editorModel, diffOriginalModel, diffModifiedModel]) {
+    if (model)
+      monaco.editor.setModelLanguage(model, lang)
+  }
+})
 
 watch(() => props.content, (value) => {
   if (props.collabText)

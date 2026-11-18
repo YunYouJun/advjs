@@ -199,7 +199,7 @@ adv play delete-save --session-id story1 --slot before-fork
 
 ADV.JS 使用 `.adv.md` 格式编写剧本，基于 Markdown 扩展语法：
 
-```markdown
+```adv
 ---
 plotSummary: 章节概要
 ---

@@ -42,7 +42,9 @@ describe('studio native VoiceProfile form', () => {
 
   it('saves the form profile through the real character YAML seam and rejects invalid profiles without writes', async () => {
     const writes = new Map<string, string>()
-    const fs = { exists: async (path: string) => writes.has(path), mkdir: async () => {}, writeFile: async (path: string, content: string) => writes.set(path, content) } as unknown as IFileSystem
+    const fs = { exists: async (path: string) => writes.has(path), readFile: async (path: string) => writes.get(path)!, collectAllFiles: async () => [...writes].map(([path, content]) => ({ path, content, lastModified: new Date() })), deleteFile: async (path: string) => {
+      writes.delete(path)
+    }, writeFile: async (path: string, content: string) => writes.set(path, content) } as unknown as IFileSystem
     const profile: CharacterVoiceProfile = { intent: { pace: 'slow', temperament: ['calm', 'thoughtful'] }, locales: { en: { providers: { reviewed: { voiceId: 'actual-voice', model: 'actual-model', source: 'system' } } } } }
     const character: AdvCharacter = { id: 'hero', name: 'Hero', voiceProfile: profile }
     const service = useContentSave()
@@ -50,7 +52,7 @@ describe('studio native VoiceProfile form', () => {
     const saved = writes.get('adv/characters/hero.character.md')!
     expect(parseCharacterMd(saved).voiceProfile).toEqual(profile)
     const invalid = { ...character, voiceProfile: { ...profile, apiKey: 'private' } }
-    expect(await service.saveContent(fs, 'character', 'edit', invalid, 'hero')).toMatchObject({ success: false })
+    expect(await service.saveContent(fs, 'character', 'edit', invalid, 'hero', { source: { fs, path: 'adv/characters/hero.character.md', content: saved } })).toMatchObject({ success: false })
     expect(writes.get('adv/characters/hero.character.md')).toBe(saved)
   })
 })

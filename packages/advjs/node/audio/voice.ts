@@ -1,10 +1,10 @@
-import type { AdvVoiceSynthesisResult, CharacterVoiceProfile, JsonObject, VoiceAuthoringEditPlan, VoiceAuthoringSnapshot, VoiceRights, VoiceTake, VoiceTakeSource } from '@advjs/types'
+import type { AdvVoiceSynthesisResult, CharacterVoiceProfile, JsonObject, VoiceAuthoringEditPlan, VoiceAuthoringSnapshot, VoiceRights, VoiceTake, VoiceTakeAlignmentInput, VoiceTakeSource } from '@advjs/types'
 import type { VoicePreviewOptions } from '../commands/voice'
 import { createHash, randomUUID } from 'node:crypto'
 import { mkdir, open, readFile, realpath, rename, rm, stat, writeFile } from 'node:fs/promises'
 import process from 'node:process'
 import { normalizeAdvAssetManifest } from '@advjs/assets'
-import { assertAudioId, AUDIO_PRONUNCIATION_PATH, AUDIO_VOICE_PROFILES_PATH, audioFingerprint, canonicalAudioJson, createAudioPronunciationDictionary, createAudioVoiceProfiles, createVoiceAuthoringService, createVoiceLedger, normalizeAudioLocale, parseAudioPronunciationDictionary, parseAudioVoiceProfiles, parseVoiceLedger, prepareVoiceSpokenText, serializeAudioPronunciationDictionary, serializeAudioVoiceProfiles, serializeVoiceLedger, validateVoiceRights, VOICE_DESIGN_LIBRARY_PATH, VOICE_LEDGER_PATH, voiceAuthoringRevision } from '@advjs/audio'
+import { assertAudioId, AUDIO_PRONUNCIATION_PATH, AUDIO_VOICE_PROFILES_PATH, audioFingerprint, canonicalAudioJson, createAudioPronunciationDictionary, createAudioVoiceProfiles, createVoiceAuthoringService, createVoiceLedger, normalizeAudioLocale, parseAudioPronunciationDictionary, parseAudioVoiceProfiles, parseVoiceAlignment, parseVoiceLedger, prepareVoiceSpokenText, serializeAudioPronunciationDictionary, serializeAudioVoiceProfiles, serializeVoiceLedger, validateVoiceRights, VOICE_DESIGN_LIBRARY_PATH, VOICE_LEDGER_PATH, voiceAuthoringRevision } from '@advjs/audio'
 import { dirname, isAbsolute, relative, resolve } from 'pathe'
 import { AdvCommandError } from '../commands/errors'
 import { resolveAuthoringVoiceContext, runVoicePreview } from '../commands/voice'
@@ -310,6 +310,47 @@ export async function createNodeVoiceAuthoringService(options: AudioVoiceOptions
   })
   return {
     ...service,
+    /** Add acoustic metadata without regenerating media or changing a selection. */
+    async alignTake(input: VoiceTakeAlignmentInput, signal?: AbortSignal) {
+      assertAudioId(input.lineId, 'line')
+      assertAudioId(input.takeId, 'take')
+      const locale = normalizeAudioLocale(input.locale)
+      const loaded = await readDocuments(root, manifestCoordinate)
+      if (loaded.snapshot.revision !== input.expectedRevision)
+        invalid('VOICE_CONFLICT: Reload the ledger before alignment')
+      const take = loaded.snapshot.ledger.lines[input.lineId]?.locales[locale]?.takes.find(value => value.id === input.takeId)
+      const asset = loaded.snapshot.catalog.assets.find(value => value.id === take?.assetId)
+      const profile = loaded.snapshot.catalog.profiles[loaded.snapshot.catalog.defaultProfile]
+      if (!take || !asset?.path || asset.type !== 'audio' || asset.kind !== 'voice' || asset.sha256 !== take.sha256 || asset.state === 'rejected' || profile?.provider !== 'project' || typeof asset.duration !== 'number')
+        invalid('VOICE_ALIGNMENT_MEDIA_UNAVAILABLE')
+      await service.verifyTake!({ ...input, locale })
+      const coordinate = relative(root, await projectPath(root, relative(root, resolve(root, profile.root ?? '.', asset.path))))
+      const context = await resolveAuthoringVoiceContext({ ...options, root, provider: take.providerId })
+      if (!('align' in context.provider) || !context.provider.align)
+        invalid('VOICE_ALIGNMENT_UNSUPPORTED: This provider has no prepared local aligner')
+      const align = context.provider.align
+      return withVoiceProviderPermit(context.provider.id, 1, signal ?? new AbortController().signal, async () => {
+        // A cleanup may have disabled this provider while this request queued.
+        await resolveAuthoringVoiceContext({ ...options, root, provider: take.providerId })
+        const alignment = parseVoiceAlignment(await align({ root, path: coordinate, text: take.spokenText, sha256: take.sha256, durationSeconds: asset.duration!, locale, signal }), { text: take.spokenText, sha256: take.sha256, durationSeconds: asset.duration })
+        return withProjectWriteLock(root, async () => {
+          signal?.throwIfAborted()
+          const current = await readDocuments(root, manifestCoordinate)
+          if (current.snapshot.revision !== input.expectedRevision)
+            invalid('VOICE_CONFLICT: Audio project changed during alignment')
+          await service.verifyTake!({ ...input, locale })
+          await hooks.verifyBeforeCommit?.()
+          for (const [path, original] of current.originals) {
+            if (await readOptional(path) !== original)
+              invalid('VOICE_CONFLICT: Audio project changed during alignment')
+          }
+          const target = current.snapshot.ledger.lines[input.lineId]!.locales[locale]!.takes.find(value => value.id === input.takeId)!
+          target.alignment = alignment
+          await writeAtomic(current.ledgerPath, serializeVoiceLedger(current.snapshot.ledger))
+          return (await readDocuments(root, manifestCoordinate)).snapshot
+        })
+      })
+    },
     async readPronunciation() {
       const snapshot = await service.read()
       return { dictionary: snapshot.pronunciation!, revision: snapshot.revision }

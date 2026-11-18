@@ -1,3 +1,5 @@
+import { materialFileIconSafelist } from '../client/utils/file-icons'
+
 export const vscodeFolderIcon = 'i-vscode-icons-default-folder'
 export const vscodeFolderOpenedIcon = 'i-vscode-icons-default-folder-opened'
 
@@ -5,10 +7,8 @@ export const vscodeFolderOpenedIcon = 'i-vscode-icons-default-folder-opened'
  * vscode file icons
  * `pnpm add -D @iconify-json/vscode-icons`
  */
-export const safelist: string[] = [
+const vscodeFileIcons = [
   'i-vscode-icons-default-file',
-  vscodeFolderIcon,
-  vscodeFolderOpenedIcon,
   'i-vscode-icons:file-type-image',
   'i-vscode-icons-file-type-video',
   'i-vscode-icons-file-type-audio',
@@ -30,13 +30,21 @@ export const safelist: string[] = [
   'i-vscode-icons-file-type-css',
   'i-vscode-icons-file-type-html',
   'i-vscode-icons-file-type-yaml',
+]
+
+export const safelist: string[] = [
+  ...vscodeFileIcons,
+  ...materialFileIconSafelist,
+  vscodeFolderIcon,
+  vscodeFolderOpenedIcon,
 
   // Project template icons (dynamically bound via :class)
   'i-ri-markdown-line',
   'i-ri-node-tree',
   'i-ri-file-add-line',
 
-  // Semantic project directory icons (resolved from paths at runtime).
+  // Shared semantic icons used by authoring controls.
+  'i-ri-folder-line',
   'i-ri-folders-line',
   'i-ri-book-open-line',
   'i-ri-folder-user-line',
@@ -45,4 +53,7 @@ export const safelist: string[] = [
   'i-ri-folder-music-line',
   'i-ri-folder-video-line',
   'i-ri-box-3-line',
+  'i-ri-user-line',
+  'i-ri-image-line',
+  'i-ri-film-line',
 ]

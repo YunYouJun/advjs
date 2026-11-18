@@ -147,12 +147,14 @@ async function handleConflictResolve(resolutions: Map<string, 'use-local' | 'use
   showConflictModal.value = false
   const { resolved, skipped } = await resolveConflicts(resolutions)
   const toast = await toastController.create({
-    message: skipped > 0
-      ? t('syncConflict.resolvedPartial', { resolved, skipped })
-      : t('syncConflict.resolvedAll', { resolved }),
+    message: syncStatus.value === 'failed'
+      ? t('sync.syncFailed')
+      : skipped > 0
+        ? t('syncConflict.resolvedPartial', { resolved, skipped })
+        : t('syncConflict.resolvedAll', { resolved }),
     duration: 2000,
     position: 'top',
-    color: skipped > 0 ? 'warning' : 'success',
+    color: syncStatus.value === 'failed' ? 'danger' : skipped > 0 ? 'warning' : 'success',
   })
   await toast.present()
 }
@@ -613,6 +615,11 @@ async function handleStandaloneExport() {
 
 <template>
   <div class="overview">
+    <RouterLink v-if="studioStore.currentProject" to="/tabs/workspace/creative-team" class="overview__team-entry">
+      <IonIcon :icon="peopleOutline" aria-hidden="true" />
+      <span><strong>{{ t('creativeTeam.entry') }}</strong><small>{{ t('creativeTeam.entryHint') }}</small></span>
+      <IonIcon :icon="chevronForwardOutline" aria-hidden="true" />
+    </RouterLink>
     <!-- Loading -->
     <div v-if="isLoading" class="overview__loading">
       {{ t("preview.loadingGame") }}
@@ -886,6 +893,31 @@ async function handleStandaloneExport() {
 </template>
 
 <style scoped>
+.overview__team-entry {
+  display: flex;
+  align-items: center;
+  gap: var(--adv-space-md);
+  padding: var(--adv-space-md);
+  margin-bottom: var(--adv-space-md);
+  border: 1px solid var(--adv-border-subtle);
+  border-radius: var(--adv-radius-md);
+  background: var(--adv-surface-card);
+  color: var(--adv-text-primary);
+  text-decoration: none;
+  min-height: 44px;
+}
+.overview__team-entry > span {
+  display: grid;
+  gap: var(--adv-space-xs);
+  flex: 1;
+}
+.overview__team-entry small {
+  color: var(--adv-text-secondary);
+  font-size: var(--adv-font-body-sm);
+}
+.overview__team-entry:focus-visible {
+  outline: 3px solid var(--adv-primary-soft);
+}
 /* ─── Accent Palette (data-accent tokens) ─── */
 .overview {
   --accent-indigo: 99, 102, 241;

@@ -9,7 +9,11 @@ export function useAudioAuthoring(synthesize?: VoiceAuthoringAdapter['synthesize
     const fs = project.getFs()
     if (!fs)
       throw new Error('ADV_AUDIO_PROJECT_REQUIRED')
-    return createStudioAudioService(fs, synthesize, { validateAccess })
+    return createStudioAudioService(fs, synthesize, { validateAccess() {
+      if (project.getFs() !== fs)
+        throw new Error('ADV_AUDIO_PROJECT_CHANGED')
+      validateAccess?.()
+    } })
   }
   return {
     forProject: service,
@@ -27,7 +31,10 @@ export function useAudioAuthoring(synthesize?: VoiceAuthoringAdapter['synthesize
       const fs = project.getFs()
       if (!fs)
         throw new Error('ADV_AUDIO_PROJECT_REQUIRED')
-      return initializeStudioAudioCatalog(fs, catalogId)
+      return initializeStudioAudioCatalog(fs, catalogId, { validateAccess() {
+        if (project.getFs() !== fs)
+          throw new Error('ADV_AUDIO_PROJECT_CHANGED')
+      } })
     },
     canSynthesize: Boolean(synthesize),
   }

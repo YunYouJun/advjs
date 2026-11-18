@@ -55,6 +55,7 @@ useEventListener(openDirectoryRef, 'drop', async (e) => {
 
 <style lang="scss">
 .agui-open-directory {
+  font-family: var(--agui-font-family-ui);
   .icon {
     will-change: filter;
     transition: filter 300ms;

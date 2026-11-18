@@ -9,6 +9,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      '@advjs/editor-sdk/node': fileURLToPath(new URL('./packages/editor-sdk/src/node.ts', import.meta.url)),
       '@advjs/editor-sdk': fileURLToPath(new URL('./packages/editor-sdk/src/index.ts', import.meta.url)),
       '@advjs/audio': fileURLToPath(new URL('./packages/audio/src/index.ts', import.meta.url)),
       '@advjs/parser': fileURLToPath(new URL('./packages/parser/src/index.ts', import.meta.url)),
@@ -28,8 +29,8 @@ export default defineConfig({
   },
   test: {
     name: 'advjs',
-    // Electron uses Playwright/node:test (including out/); Studio has its own Vite config.
-    exclude: [...defaultExclude, '**/e2e/**', 'apps/desktop/**', 'apps/studio/**'],
+    // Desktop and both Studio apps run their own suites. Skip nested checkouts.
+    exclude: [...defaultExclude, '.claude/worktrees/**', '**/e2e/**', 'apps/desktop/**', 'apps/studio/**', 'apps/studio-ios/**'],
     // Several launch tests build and package the same workspace artifacts.
     // Running test files concurrently races on dist/ and Nuxt's build lock.
     fileParallelism: false,

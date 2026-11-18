@@ -51,9 +51,10 @@ describe('launch package build order', () => {
       'packages/advjs',
       'packages/mcp-server',
       'packages/create-adv',
+      'packages/editor-sdk',
       'editor/core',
     ])
-    expect(new Set(builtPaths).size).toBe(PACKAGE_SPECS.filter(spec => spec.build).length)
+    expect(new Set(builtPaths).size).toBe(PACKAGE_SPECS.filter(spec => spec.build).length + 1)
 
     const manifest = await createPackageManifest({ pack: false, root })
     const editor = manifest.packages.find(pkg => pkg.name === '@advjs/editor')!

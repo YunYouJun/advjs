@@ -68,5 +68,8 @@ export const ENGINE_TOLERATED_GLOBAL_REFERENCES: ReadonlyArray<{ module: RegExp,
   },
 ]
 
-/** Upper bound for the minified engine; raise it only with a recorded reason. */
-export const ENGINE_SIZE_BUDGET_BYTES = 720 * 1024
+/**
+ * Upper bound for the minified engine; raise it only with a recorded reason.
+ * 720 KiB at P1; 768 KiB from P2 for the shared project templates (~40 KiB of starter text).
+ */
+export const ENGINE_SIZE_BUDGET_BYTES = 768 * 1024

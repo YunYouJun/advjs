@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { LocationFormData } from '@advjs/parser'
 import type { LocationInfo } from '../../composables/useProjectContent'
-import { parseLocationMd, stringifyLocationMd } from '@advjs/parser'
 import {
   IonButton,
   IonFab,
@@ -71,23 +70,7 @@ const locationEditor = useContentEditor<LocationFormData>('location', () => ({
   tags: [],
   linkedScenes: [],
   linkedCharacters: [],
-}))
-const locationMarkdown = ref('')
-
-function locationToMarkdown() {
-  locationMarkdown.value = stringifyLocationMd(locationEditor.formData.value)
-}
-
-function markdownToLocation(md: string) {
-  locationMarkdown.value = md
-  try {
-    const parsed = parseLocationMd(md)
-    locationEditor.formData.value = parsed
-  }
-  catch {
-    // keep formData unchanged on parse failure
-  }
-}
+}), { getFs })
 
 function handleViewLocation(location: LocationInfo) {
   trackAccess({ id: location.file, label: location.name, type: 'location', action: 'view' })
@@ -108,15 +91,14 @@ async function handleSaveLocation() {
     return
   }
 
-  const result = await saveContent(fs, 'location', locationEditor.mode.value, locationEditor.formData.value, locationEditor.originalId.value)
+  const result = await saveContent(fs, 'location', locationEditor.mode.value, locationEditor.formData.value, locationEditor.originalId.value, locationEditor.saveContext())
   if (result.success) {
-    await showToast(t('contentEditor.saveSuccess'))
-    locationEditor.onSaved()
-    locationEditor.close()
+    const complete = locationEditor.onSaved(result)
+    await showToast(t(complete ? 'contentEditor.saveSuccess' : 'contentEditor.savedWithNewerDraft'))
     await reload()
   }
   else {
-    await showToast(t('contentEditor.saveFailed', { error: result.error }), 'danger')
+    await showToast(result.conflict ? t('contentEditor.formSourceChanged') : t('contentEditor.saveFailed', { error: result.error }), 'danger')
   }
 }
 
@@ -224,16 +206,18 @@ async function handleDeleteLocation(location: LocationFormData) {
 
     <!-- Location Editor Modal -->
     <ContentEditorModal
+      v-model:active-tab="locationEditor.activeTab.value"
       :is-open="locationEditor.isOpen.value"
       :title="locationEditor.mode.value === 'create' ? t('locations.createLocation') : t('locations.editLocation')"
       :mode="locationEditor.mode.value"
       :is-saving="isSaving"
-      :markdown="locationMarkdown"
+      :markdown="locationEditor.markdown.value"
+      :markdown-error="locationEditor.markdownError.value"
       :monaco-filename="`${locationEditor.formData.value.id || 'location'}.md`"
       @update:is-open="(v: boolean) => { if (!v) locationEditor.close() }"
-      @update:markdown="locationMarkdown = $event"
-      @sync-to-markdown="locationToMarkdown()"
-      @sync-from-markdown="markdownToLocation($event)"
+      @update:markdown="locationEditor.updateMarkdown($event)"
+      @sync-to-markdown="locationEditor.syncToMarkdown()"
+      @sync-from-markdown="locationEditor.updateMarkdown($event)"
       @save="handleSaveLocation"
       @cancel="locationEditor.close()"
     >

@@ -5,6 +5,8 @@ import { resolve } from 'node:path'
 import process from 'node:process'
 import { createGenerator } from 'unocss'
 import { describe, expect, it, vi } from 'vitest'
+import { editorIcon } from '../../../editor/core/app/extensions/icons'
+import editorUnocssConfig from '../../../editor/core/uno.config'
 import setupUnocss from '../../../packages/advjs/node/setups/unocss'
 import { presetAdv } from '../../../packages/unocss/src'
 
@@ -15,6 +17,18 @@ function read(path: string) {
 }
 
 describe('@advjs/unocss preset', () => {
+  it('generates dynamic editor command, panel and fallback icons without template class literals', async () => {
+    const uno = await createGenerator(editorUnocssConfig)
+    const { css } = await uno.generate('<button class="agui-button"><span :class="icon"></span>Copy for AI</button>')
+
+    for (const id of ['ri:clipboard-line', 'ri:earth-line', 'unknown:icon']) {
+      const icon = editorIcon(id)
+      expect(css.includes(`.${icon}`), id).toBe(true)
+      expect(uno.config.safelist).toContain(icon)
+    }
+    expect(css).toContain('data:image/svg+xml')
+  })
+
   it('renders player and title icons when building outside the toolchain repository', async () => {
     const clientRoot = resolve(root, 'packages/client')
     const config = await setupUnocss({ clientRoot, roots: [resolve(root, 'themes/theme-default')] })

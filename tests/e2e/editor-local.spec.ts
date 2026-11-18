@@ -293,10 +293,10 @@ test('restores the project tab in navigation and previews assets in the main reg
   expect((await assetToolbar.boundingBox())!.height).toBeLessThanOrEqual(32)
   const assetBounds = await assets.locator('.project-asset').evaluateAll(elements => elements.map(element => ({ left: element.getBoundingClientRect().left, right: element.getBoundingClientRect().right })))
   expect(Math.round(assetBounds[1].left - assetBounds[0].right)).toBe(4)
-  for (const [name, icon] of [['assets', 'i-ri-folders-line'], ['chapters', 'i-ri-book-open-line'], ['characters', 'i-ri-folder-user-line'], ['scenes', 'i-ri-landscape-line']]) {
+  for (const [name, icon] of [['assets', 'i-material-icon-theme-folder-resource'], ['chapters', 'i-material-icon-theme-folder-markdown'], ['characters', 'i-material-icon-theme-folder-class'], ['scenes', 'i-material-icon-theme-folder-environment']]) {
     const folderIcon = navigation.getByRole('treeitem', { name, exact: true }).locator('.agui-tree-node').first().locator('.agui-tree-icon')
     await expect(folderIcon).toHaveClass(new RegExp(icon))
-    await expect.poll(() => folderIcon.evaluate(element => getComputedStyle(element).maskImage)).not.toBe('none')
+    await expect.poll(() => folderIcon.evaluate(element => getComputedStyle(element).backgroundImage)).not.toBe('none')
   }
   const rootToggle = assets.getByRole('button', { name: 'Collapse 全部素材', exact: true })
   expect((await rootToggle.boundingBox())!.width).toBe(24)

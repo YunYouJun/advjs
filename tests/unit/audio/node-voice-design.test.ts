@@ -48,6 +48,29 @@ async function fixture(overrides: Pick<NodeVoiceDesignOptions, 'withProviderPerm
 }
 
 describe('trusted native voice design host', () => {
+  it('discovers clone sources with the provider-declared reference mode and a transcript', async () => {
+    const source = await createVoiceDesignFixture()
+    const provider = source.provider
+    provider.capabilities.referenceModes = ['icl']
+    const build = provider.buildDesignPreset!
+    provider.buildDesignPreset = async (input) => {
+      if (input.definition.source === 'cloned' && (input.definition.reference?.mode !== 'icl' || !input.definition.reference.text))
+        throw new Error('This model requires audio and transcript')
+      return build(input)
+    }
+    const host = await createNodeVoiceDesignHost({ root: source.root, config: source.config, stateDirectory: join(source.storeDirectory, 'design') })
+    try {
+      expect((await host.read()).providers[0]).toMatchObject({ referenceModes: ['icl'], presets: [{ sources: ['system', 'designed', 'cloned'] }] })
+      expect(source.calls).toHaveLength(0)
+      provider.capabilities.referenceModes = ['unsupported' as never]
+      await expect(host.read()).rejects.toThrow('Invalid voice reference capabilities')
+    }
+    finally {
+      await host.close()
+      await rm(source.directory, { recursive: true, force: true })
+    }
+  })
+
   it('uses the explicitly applied character voice for dialogue and plays only its adopted take in an ordinary exported game', async () => {
     const source = await fixture()
     try {

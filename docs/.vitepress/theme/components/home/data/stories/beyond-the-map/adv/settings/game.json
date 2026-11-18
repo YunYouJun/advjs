@@ -1,0 +1,10 @@
+{
+  "title": "地图之外",
+  "entryChapterId": "ferry",
+  "variables": {
+    "pack": [
+      "铜币"
+    ],
+    "rope": false
+  }
+}

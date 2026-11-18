@@ -1,0 +1,86 @@
+// Animate content, never Reka's positioning wrapper. Explicit classes also
+// reach Portal nodes and components imported outside the editor.
+.agui-motion-popup {
+  --agui-motion-offset-x: 0px;
+  --agui-motion-offset-y: 0px;
+
+  &[data-side='top'] {
+    --agui-motion-offset-y: 3px;
+  }
+  &[data-side='bottom'] {
+    --agui-motion-offset-y: -3px;
+  }
+  &[data-side='left'] {
+    --agui-motion-offset-x: 3px;
+  }
+  &[data-side='right'] {
+    --agui-motion-offset-x: -3px;
+  }
+
+  &[data-state='open'] {
+    animation: agui-popup-in var(--agui-motion-popup-duration) var(--agui-motion-ease);
+  }
+  &[data-state='closed'] {
+    animation: agui-fade-out var(--agui-motion-exit-duration) var(--agui-motion-exit-ease);
+  }
+}
+
+.agui-dialog-overlay[data-state='open'] {
+  animation: agui-fade-in var(--agui-motion-dialog-duration) var(--agui-motion-ease);
+}
+.agui-dialog-content[data-state='open'] {
+  animation: agui-dialog-in var(--agui-motion-dialog-duration) var(--agui-motion-ease);
+}
+.agui-dialog-overlay[data-state='closed'],
+.agui-dialog-content[data-state='closed'] {
+  animation: agui-fade-out var(--agui-motion-exit-duration) var(--agui-motion-exit-ease);
+}
+
+:is(.agui-motion-popup, .agui-dialog-overlay, .agui-dialog-content)[data-state='closed'] {
+  pointer-events: none !important;
+}
+
+@keyframes agui-popup-in {
+  from {
+    opacity: 0;
+    translate: var(--agui-motion-offset-x) var(--agui-motion-offset-y);
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes agui-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes agui-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes agui-dialog-in {
+  from {
+    opacity: 0;
+    scale: 0.98;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agui-motion-popup[data-state],
+  .agui-dialog-overlay[data-state],
+  .agui-dialog-content[data-state] {
+    animation: none;
+  }
+}

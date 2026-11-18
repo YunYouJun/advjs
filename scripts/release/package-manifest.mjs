@@ -103,8 +103,12 @@ export async function buildLaunchPackages(root, options = {}) {
     ...buildSpecs.filter(spec => spec.name !== '@advjs/editor'),
     ...buildSpecs.filter(spec => spec.name === '@advjs/editor'),
   ]
-  for (const spec of orderedSpecs)
+  for (const spec of orderedSpecs) {
+    // The Editor loads the workspace SDK while evaluating its Nuxt config.
+    if (spec.name === '@advjs/editor')
+      await runner(root, ['-C', 'packages/editor-sdk', 'build'], { forwardOutput: true })
     await runner(root, ['-C', spec.path, 'build'], { forwardOutput: true })
+  }
 }
 
 export async function createPackageManifest(options = {}) {

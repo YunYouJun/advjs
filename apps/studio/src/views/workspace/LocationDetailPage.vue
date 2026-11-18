@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { LocationFormData } from '@advjs/parser'
 import type { LocationInfo, SceneInfo } from '../../composables/useProjectContent'
-import { stringifyLocationMd } from '@advjs/parser'
 import {
   IonButton,
   IonCard,
@@ -81,21 +80,21 @@ const locationEditor = useContentEditor<LocationFormData>('location', () => ({
   tags: [],
   linkedScenes: [],
   linkedCharacters: [],
-}))
+}), { getFs })
 
-function openEdit() {
+async function openEdit() {
   if (!location.value)
     return
-  const data: LocationFormData = {
-    id: location.value.id || location.value.name,
-    name: location.value.name,
-    type: location.value.type || 'other',
-    description: location.value.description,
-    tags: location.value.tags,
-    linkedScenes: location.value.linkedScenes,
-    linkedCharacters: location.value.linkedCharacters,
+  if (!getFs()) {
+    locationEditor.openEdit({ id: location.value.id || location.value.name, name: location.value.name, type: location.value.type || 'other', description: location.value.description, tags: location.value.tags, linkedScenes: location.value.linkedScenes, linkedCharacters: location.value.linkedCharacters })
+    return
   }
-  locationEditor.openEdit(data)
+  try {
+    await locationEditor.openFile(location.value.file)
+  }
+  catch (error) {
+    await showToast(t('contentEditor.saveFailed', { error: String(error) }), 'danger')
+  }
 }
 
 async function handleSave() {
@@ -109,15 +108,14 @@ async function handleSave() {
     await showToast(t('contentEditor.saveFailed', { error: 'No file system' }), 'danger')
     return
   }
-  const result = await saveContent(fs, 'location', locationEditor.mode.value, locationEditor.formData.value, locationEditor.originalId.value)
+  const result = await saveContent(fs, 'location', locationEditor.mode.value, locationEditor.formData.value, locationEditor.originalId.value, locationEditor.saveContext())
   if (result.success) {
-    await showToast(t('contentEditor.saveSuccess'))
-    locationEditor.onSaved()
-    locationEditor.close()
+    const complete = locationEditor.onSaved(result)
+    await showToast(t(complete ? 'contentEditor.saveSuccess' : 'contentEditor.savedWithNewerDraft'))
     await reload()
   }
   else {
-    await showToast(t('contentEditor.saveFailed', { error: result.error }), 'danger')
+    await showToast(result.conflict ? t('contentEditor.formSourceChanged') : t('contentEditor.saveFailed', { error: result.error }), 'danger')
   }
 }
 
@@ -133,7 +131,7 @@ function goToCharacter(characterId: string) {
 <template>
   <LayoutPage :title="location?.name || locationId" show-back-button default-href="/tabs/workspace/locations">
     <template #end>
-      <IonButton fill="clear" @click="openEdit">
+      <IonButton fill="clear" :aria-label="t('locations.editLocation')" @click="openEdit">
         <IonIcon :icon="createOutline" />
       </IonButton>
     </template>
@@ -230,12 +228,17 @@ function goToCharacter(characterId: string) {
 
     <!-- Editor Modal -->
     <ContentEditorModal
+      v-model:active-tab="locationEditor.activeTab.value"
       :is-open="locationEditor.isOpen.value"
       :title="t('locations.editLocation')"
       :mode="locationEditor.mode.value"
       :is-saving="isSaving"
-      :markdown="stringifyLocationMd(locationEditor.formData.value)"
+      :markdown="locationEditor.markdown.value"
+      :markdown-error="locationEditor.markdownError.value"
       :monaco-filename="`${locationEditor.formData.value.id || 'location'}.md`"
+      @update:markdown="locationEditor.updateMarkdown($event)"
+      @sync-to-markdown="locationEditor.syncToMarkdown()"
+      @sync-from-markdown="locationEditor.updateMarkdown($event)"
       @update:is-open="(v: boolean) => { if (!v) locationEditor.close() }"
       @save="handleSave"
       @cancel="locationEditor.close()"

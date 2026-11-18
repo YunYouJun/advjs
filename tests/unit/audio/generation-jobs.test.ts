@@ -5,13 +5,13 @@ import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
-import { createNodeVoiceGenerationStore } from '../../../packages/advjs/node/audio/job-store'
+import { assertVoiceGenerationStoreCapacity, createNodeVoiceGenerationStore, VOICE_GENERATION_STORE_MAX_BYTES } from '../../../packages/advjs/node/audio/job-store'
 import { createVoiceAuthoringService, voiceAuthoringRevision } from '../../../packages/audio/src/authoring'
-import { createMemoryVoiceGenerationStore, createVoiceGenerationRunner, parseVoiceGenerationStore, planVoiceGeneration, pruneVoiceGenerationStore, reduceVoiceGenerationJob, VoiceGenerationNotDispatchedError } from '../../../packages/audio/src/jobs'
+import { createMemoryVoiceGenerationStore, createVoiceGenerationRunner, parseVoiceGenerationStore, planVoiceGeneration, pruneVoiceGenerationStore, reduceVoiceGenerationJob, VoiceGenerationNotDispatchedError, voiceGenerationTargetMatches } from '../../../packages/audio/src/jobs'
 
 const now = Date.parse('2026-10-11T08:00:00.000Z')
 const profileRevision = 'a'.repeat(64)
-const lineIds = Array.from({ length: 8 }, (_, index) => `line_019d137e-7abc-7000-8000-${String(index + 1).padStart(12, '0')}`)
+const lineIds = Array.from({ length: 205 }, (_, index) => `line_019d137e-7abc-7000-8000-${String(index + 1).padStart(12, '0')}`)
 
 async function fixture() {
   const bytes = new Uint8Array(100).buffer
@@ -105,6 +105,173 @@ async function fixture() {
 }
 
 describe('reviewed durable generation jobs', () => {
+  it('admits a bounded 5000-task plan with recovery allowance and rejects concurrent plans that exhaust that allowance', async () => {
+    const project = await fixture()
+    const seed = await project.plan([project.input(0)])
+    const tasks = Array.from({ length: 5000 }, (_, index) => ({ ...seed.tasks[0]!, id: `job_019d137e-7abc-7000-8000-${String(index + 1).padStart(12, '0')}`, lineId: `line_019d137e-7abc-7000-8000-${String(index + 1).padStart(12, '0')}`, inputFingerprint: index.toString(16).padStart(64, '0'), idempotencyKey: index.toString(16).padStart(64, '0') }))
+    const plan = { ...seed, budget: { ...seed.budget, concurrency: 32, maxCharacters: 100000, maxCost: { currency: 'USD', amountMicros: 1_000_000 } }, summary: { lines: tasks.length, characters: tasks.reduce((sum, task) => sum + task.characterCount, 0), cacheHits: 0, newGenerations: tasks.length, estimatedCost: { currency: 'USD', amountMicros: 500000 } }, tasks }
+    const state = parseVoiceGenerationStore({ schemaVersion: 1, jobs: { [plan.id]: plan }, idempotency: {} })
+    expect(VOICE_GENERATION_STORE_MAX_BYTES).toBe(64 * 1024 * 1024)
+    expect(() => assertVoiceGenerationStoreCapacity(state)).not.toThrow()
+    const additionalId = 'job_019d137e-7abc-7000-8001-000000000001'
+    state.jobs[additionalId] = { ...structuredClone(plan), id: additionalId }
+    expect(() => assertVoiceGenerationStoreCapacity(state)).toThrow('AUDIO_JOB_STORE_CAPACITY')
+    expect(project.synthesize).not.toHaveBeenCalled()
+  })
+
+  it('rejects enqueue capacity before persisting a plan and blocks exhausted dispatches without billing', async () => {
+    for (const stage of ['enqueue', 'preflight', 'atomic-claim'] as const) {
+      const project = await fixture()
+      const plan = await project.plan([0, 1, 2].map(index => project.input(index)))
+      const store = {
+        ...project.store,
+        async assertCapacity(input?: unknown) {
+          if (stage === 'enqueue' || (!input && stage === 'preflight'))
+            throw new Error('AUDIO_JOB_STORE_CAPACITY')
+        },
+        async mutate<T>(mutation: Parameters<typeof project.store.mutate<T>>[0]) {
+          return await project.store.mutate((state) => {
+            const result = mutation(state)
+            if (stage === 'atomic-claim' && Object.values(state.idempotency).some(record => record.status === 'running'))
+              throw new Error('AUDIO_JOB_STORE_CAPACITY')
+            return result
+          })
+        },
+      }
+      const runner = createVoiceGenerationRunner({ ...project.options, store, batchSize: 2 })
+      if (stage === 'enqueue') {
+        await expect(runner.enqueue(plan)).rejects.toThrow('STORE_CAPACITY')
+        expect((await store.read()).jobs).toEqual({})
+      }
+      else {
+        await runner.enqueue(plan)
+        const stopped = await runner.run(plan.id)
+        expect(stopped.tasks[0]).toMatchObject({ status: 'blocked', errorCode: 'STORE_CAPACITY_EXCEEDED', attempts: 0 })
+        expect(stopped.tasks[2]!.status).toBe('queued')
+        expect(stopped.chargedCharacters).toBe(0)
+        expect((await store.read()).idempotency).toEqual({})
+      }
+      expect(project.synthesize).not.toHaveBeenCalled()
+    }
+  })
+
+  it('bounds oversized provider metadata while preserving an uncertain charged request without repeating it', async () => {
+    const project = await fixture()
+    const plan = await project.plan([project.input(0)])
+    project.handler(async (candidate) => {
+      candidate.id = 'x'.repeat(1024 * 1024)
+    })
+    await project.runner.enqueue(plan)
+    expect((await project.runner.run(plan.id)).tasks[0]!.status).toBe('unknown')
+    expect(Object.values((await project.store.read()).idempotency)[0]!.candidate).toBeUndefined()
+    await project.runner.run(plan.id)
+    expect(project.synthesize).toHaveBeenCalledTimes(1)
+  })
+
+  it('shares exact selected-take filtering between Editor and Studio', () => {
+    const selected = { inputFingerprint: 'current' }
+    expect(voiceGenerationTargetMatches('missing', undefined, 'current')).toBe(true)
+    expect(voiceGenerationTargetMatches('missing', selected, 'changed')).toBe(false)
+    expect(voiceGenerationTargetMatches('stale', undefined, 'current')).toBe(false)
+    expect(voiceGenerationTargetMatches('stale', selected, 'current')).toBe(false)
+    expect(voiceGenerationTargetMatches('stale', selected, 'changed')).toBe(true)
+    expect(voiceGenerationTargetMatches('all', selected, 'current')).toBe(true)
+  })
+
+  it('commits each window before starting another, sharing the total budget and duplicate receipts across windows', async () => {
+    const project = await fixture()
+    const lines = [0, 1, 2, 3, 4].map(index => project.input(index, index === 4 ? 'Line 1.' : undefined))
+    const plan = await project.plan(lines)
+    const runner = createVoiceGenerationRunner({ ...project.options, batchSize: 2 })
+    project.handler(async (candidate) => {
+      candidate.alignment = { schemaVersion: 1, text: candidate.text, audioSha256: candidate.sha256, durationSeconds: 1, engine: 'fixture', model: 'fixture', units: [{ start: 0, end: 1, startTime: 0.1, endTime: 0.5 }] }
+      const index = lines.findIndex(line => line.displayText === candidate.text)
+      const previous = Math.floor(index / 2) * 2
+      const tasks = (await project.store.read()).jobs[plan.id]!.tasks
+      expect(tasks.slice(0, previous).every(task => task.status === 'committed')).toBe(true)
+    })
+    await runner.enqueue(plan)
+    const result = await runner.run(plan.id)
+    expect(result.tasks.every(task => task.status === 'committed')).toBe(true)
+    expect(project.synthesize).toHaveBeenCalledTimes(4)
+    expect(result.chargedCharacters).toBe(plan.summary.characters)
+    expect(result.chargedCostMicros).toBe(plan.summary.estimatedCost!.amountMicros)
+    expect((await project.authoring.read()).ledger.lines[lineIds[4]!]!.locales.en!.selectedTake).toBeNull()
+    for (const line of lines)
+      expect((await project.authoring.read()).ledger.lines[line.lineId]!.locales.en!.takes[0]!.alignment).toMatchObject({ text: line.displayText, audioSha256: project.candidate(line).sha256 })
+    expect(Object.values((await project.store.read()).idempotency).every(record => record.candidate?.alignment === undefined)).toBe(true)
+  })
+
+  it('executes all 201 tasks in 200-task windows within a single persisted plan', async () => {
+    const project = await fixture()
+    const plan = await project.plan(Array.from({ length: 201 }, (_, index) => project.input(index)), { budget: { maxCharacters: 10000, concurrency: 4, allowUnknownCost: false, maxCost: { currency: 'USD', amountMicros: 100_000 } } })
+    const runner = createVoiceGenerationRunner({ ...project.options, batchSize: 200 })
+    project.handler(async (candidate) => {
+      if (candidate.text === 'Line 201.')
+        expect((await project.store.read()).jobs[plan.id]!.tasks.slice(0, 200).every(task => task.status === 'committed')).toBe(true)
+    })
+    await runner.enqueue(plan)
+    const finished = await runner.run(plan.id)
+    expect(finished.tasks).toHaveLength(201)
+    expect(finished.tasks.every(task => task.status === 'committed')).toBe(true)
+    expect(project.synthesize).toHaveBeenCalledTimes(201)
+    expect(finished.chargedCharacters).toBe(plan.summary.characters)
+    expect(finished.chargedCostMicros).toBe(20100)
+    expect(Object.keys((await project.store.read()).jobs)).toEqual([plan.id])
+  }, 30_000)
+
+  it('keeps later windows queued on a known failure and resumes from its stored receipt after explicit retry', async () => {
+    const project = await fixture()
+    const plan = await project.plan([0, 1, 2, 3].map(index => project.input(index)))
+    const runner = createVoiceGenerationRunner({ ...project.options, batchSize: 2 })
+    project.failCommit()
+    await runner.enqueue(plan)
+    const stopped = await runner.run(plan.id)
+    expect(stopped.tasks.slice(0, 2).some(task => task.status === 'failed')).toBe(true)
+    expect(stopped.tasks.slice(2).map(task => task.status)).toEqual(['queued', 'queued'])
+    expect(project.synthesize).toHaveBeenCalledTimes(2)
+    await runner.run(plan.id)
+    expect(project.synthesize).toHaveBeenCalledTimes(2)
+    await runner.retry(plan.id)
+    const finished = await runner.run(plan.id)
+    expect(finished.tasks.every(task => task.status === 'committed')).toBe(true)
+    expect(project.synthesize).toHaveBeenCalledTimes(4)
+  })
+
+  it('does not start later windows or recharge an uncertain provider result', async () => {
+    const project = await fixture()
+    const plan = await project.plan([0, 1, 2].map(index => project.input(index)))
+    const runner = createVoiceGenerationRunner({ ...project.options, batchSize: 2 })
+    project.handler(async (candidate) => {
+      if (candidate.text === 'Line 1.')
+        throw new Error('Uncertain supplier connection')
+    })
+    await runner.enqueue(plan)
+    const stopped = await runner.run(plan.id)
+    expect(stopped.tasks[0]!.status).toBe('unknown')
+    expect(stopped.tasks[2]!.status).toBe('queued')
+    await runner.run(plan.id)
+    expect(project.synthesize).toHaveBeenCalledTimes(2)
+    expect((await runner.read(plan.id)).chargedCharacters).toBe(stopped.chargedCharacters)
+  })
+
+  it('keeps all cancelled windows stopped until resume without reopening committed work', async () => {
+    const project = await fixture()
+    const plan = await project.plan([0, 1, 2, 3].map(index => project.input(index)))
+    const runner = createVoiceGenerationRunner({ ...project.options, batchSize: 2 })
+    await runner.enqueue(plan)
+    await runner.cancel(plan.id)
+    expect((await runner.run(plan.id)).tasks.every(task => task.status === 'cancelled')).toBe(true)
+    expect(project.synthesize).not.toHaveBeenCalled()
+    await runner.resume(plan.id)
+    expect((await runner.run(plan.id)).tasks.every(task => task.status === 'committed')).toBe(true)
+    await runner.cancel(plan.id)
+    await runner.resume(plan.id)
+    await runner.run(plan.id)
+    expect(project.synthesize).toHaveBeenCalledTimes(4)
+    expect(() => createVoiceGenerationRunner({ ...project.options, batchSize: 0 })).toThrow('BATCH_SIZE_INVALID')
+  })
+
   it('refunds only explicit host proof of no dispatch, retaining uncertain reservations when an atomic refund fails', async () => {
     for (const failure of ['none', 'refund', 'supplier', 'direct-supplier'] as const) {
       const project = await fixture()
@@ -201,6 +368,31 @@ describe('reviewed durable generation jobs', () => {
     await runner.enqueue(cached)
     await runner.run(cached.id)
     expect(project.synthesize).toHaveBeenCalledTimes(4)
+  })
+
+  it('keeps alignment timings without prose in durable receipts and restores exact text when registering', async () => {
+    const project = await fixture()
+    project.handler(async (candidate) => {
+      candidate.alignment = { schemaVersion: 1, text: candidate.text, audioSha256: candidate.sha256, durationSeconds: 1, engine: 'fixture', model: 'fixture', units: [{ start: 0, end: 1, startTime: 0.1, endTime: 0.5 }] }
+    })
+    const line = project.input(0, 'Private dialogue alignment.')
+    const plan = await project.plan([line])
+    await project.runner.enqueue(plan)
+    project.failCommit()
+    expect((await project.runner.run(plan.id)).tasks[0]!.status).toBe('failed')
+    const saved = await project.store.read()
+    expect(JSON.stringify(saved)).not.toContain('Private dialogue')
+    const receipt = Object.values(saved.idempotency)[0]!.candidate!
+    expect(receipt.alignment).toMatchObject({ audioSha256: receipt.sha256, units: [{ start: 0, end: 1, startTime: 0.1, endTime: 0.5 }] })
+    const malicious = structuredClone(saved)
+    Object.assign(Object.values(malicious.idempotency)[0]!.candidate!.alignment!, { text: 'Never persist prose' })
+    expect(() => parseVoiceGenerationStore(malicious)).toThrow('VOICE_ALIGNMENT_INVALID')
+    await project.runner.retry(plan.id)
+    expect((await project.runner.run(plan.id)).tasks[0]!.status).toBe('committed')
+    const take = (await project.authoring.read()).ledger.lines[line.lineId]!.locales.en!.takes[0]!
+    expect(take.alignment).toMatchObject({ text: line.displayText, audioSha256: receipt.sha256 })
+    expect(Object.values((await project.store.read()).idempotency)[0]!.candidate!.alignment).toBeUndefined()
+    expect(project.synthesize).toHaveBeenCalledTimes(1)
   })
 
   it('uses one paid result across duplicate fingerprints and future jobs while scoping reuse by account/project', async () => {

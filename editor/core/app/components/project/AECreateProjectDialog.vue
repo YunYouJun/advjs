@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
+import AGUIFormItem from '@advjs/gui/client/components/form/AGUIFormItem.vue'
 import { projectFolderError, projectNameError } from '../../utils/project-creation'
 
 const { draft, busy, error, cancel, browse, create } = useDesktopProjectCreation()
@@ -36,33 +38,34 @@ function submit() {
 
 <template>
   <AGUIDialog v-model:open="open" :title="zh ? '创建项目' : 'Create project'" :description="zh ? '确认名称与保存位置后进入编辑器。' : 'Choose a name and storage location before opening the editor.'" content-class="project-create-dialog">
-    <form v-if="draft" class="project-create-form" @submit.prevent="submit">
+    <AGUIForm v-if="draft" as="form" class="project-create-form" @submit.prevent="submit">
       <p class="project-create-template">
         {{ zh ? '模板' : 'Template' }}：{{ zh ? draft.template.name : draft.template.nameEn ?? draft.template.name }}
       </p>
-      <div class="project-create-field">
-        <label :for="`${ids}-name`">{{ zh ? '游戏名称' : 'Game name' }}</label>
+      <AGUIFormItem :for="`${ids}-name`" :label="zh ? '游戏名称' : 'Game name'" label-align="top">
         <AGUIInput :id="`${ids}-name`" v-model="draft.name" autofocus :disabled="busy" :aria-invalid="!!nameError" :aria-describedby="`${ids}-name-help`" maxlength="120" />
-        <p :id="`${ids}-name-help`" :class="{ 'field-error': nameError }">
-          {{ nameError || (zh ? '支持中文，显示在游戏中；之后可以修改。' : 'Chinese and other languages are supported. This name is shown in the game and can be changed later.') }}
-        </p>
-      </div>
-      <div class="project-create-field">
-        <label :for="`${ids}-folder`">{{ zh ? '文件夹名称' : 'Folder name' }}</label>
+        <template #description>
+          <p :id="`${ids}-name-help`" :class="{ 'field-error': nameError }">
+            {{ nameError || (zh ? '支持中文，显示在游戏中；之后可以修改。' : 'Chinese and other languages are supported. This name is shown in the game and can be changed later.') }}
+          </p>
+        </template>
+      </AGUIFormItem>
+      <AGUIFormItem :for="`${ids}-folder`" :label="zh ? '文件夹名称' : 'Folder name'" label-align="top">
         <AGUIInput :id="`${ids}-folder`" v-model="draft.folderName" :disabled="busy" :aria-invalid="!!folderError" :aria-describedby="`${ids}-folder-help`" maxlength="80" spellcheck="false" />
-        <p :id="`${ids}-folder-help`" :class="{ 'field-error': folderError }">
-          {{ folderError || (zh ? '推荐小写英文、数字和连字符，例如 rainy-letter；也支持中文。' : 'Lowercase letters, numbers and hyphens are recommended, e.g. rainy-letter. Chinese is also supported.') }}
-        </p>
-      </div>
-      <div class="project-create-field">
-        <label :for="`${ids}-location`">{{ zh ? '存储位置' : 'Storage location' }}</label>
+        <template #description>
+          <p :id="`${ids}-folder-help`" :class="{ 'field-error': folderError }">
+            {{ folderError || (zh ? '推荐小写英文、数字和连字符，例如 rainy-letter；也支持中文。' : 'Lowercase letters, numbers and hyphens are recommended, e.g. rainy-letter. Chinese is also supported.') }}
+          </p>
+        </template>
+      </AGUIFormItem>
+      <AGUIFormItem :for="`${ids}-location`" :label="zh ? '存储位置' : 'Storage location'" label-align="top">
         <div class="project-create-location">
           <AGUIInput :id="`${ids}-location`" :model-value="draft.directory" readonly :disabled="busy" :title="draft.directory" />
           <AGUIButton type="button" icon="i-ri-folder-open-line" :disabled="busy" @click="browse">
             {{ zh ? '更换…' : 'Browse…' }}
           </AGUIButton>
         </div>
-      </div>
+      </AGUIFormItem>
       <div class="project-create-destination">
         <span>{{ zh ? '项目路径' : 'Project path' }}</span>
         <output>{{ destination }}</output>
@@ -79,7 +82,7 @@ function submit() {
           {{ zh ? '创建并打开' : 'Create and open' }}
         </AGUIButton>
       </footer>
-    </form>
+    </AGUIForm>
   </AGUIDialog>
 </template>
 
@@ -91,23 +94,14 @@ function submit() {
 
 <style scoped>
 .project-create-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 12px;
+  padding: var(--agui-space-3);
 }
 .project-create-template {
   margin: 0;
   color: var(--agui-c-text-2);
   font-size: 12px;
 }
-.project-create-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-.project-create-field p,
+.project-create-form :deep(.agui-form-item__description) p,
 .project-create-destination p {
   margin: 0;
   color: var(--agui-c-text-2);
@@ -116,7 +110,7 @@ function submit() {
 }
 .project-create-location {
   display: flex;
-  gap: 8px;
+  gap: var(--agui-space-2);
 }
 .project-create-location input {
   flex: 1;
@@ -125,8 +119,8 @@ function submit() {
 .project-create-destination {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding-top: 8px;
+  gap: var(--agui-form-label-gap);
+  padding-top: var(--agui-space-2);
   border-top: 1px solid var(--agui-c-divider-light);
 }
 .project-create-destination output {
@@ -138,7 +132,7 @@ function submit() {
   display: flex;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--agui-space-2);
 }
 .project-create-form .field-error {
   margin: 0;

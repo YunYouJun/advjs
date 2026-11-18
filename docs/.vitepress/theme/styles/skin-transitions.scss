@@ -1,0 +1,261 @@
+// Switching skins plays as one scene change on the stages (`.h-stage`: the hero and the script
+// demo's stage). The old skin exits in its own way while `.adv-home[data-phase='exit']`
+// still carries its `data-skin`; then the new skin enters under `data-phase='enter'`.
+// `--skin-phase` is the current phase's length, set from `SKIN_TRANSITIONS` in skin-ids.ts.
+
+$out: cubic-bezier(0.2, 0.7, 0.2, 1);
+$in: cubic-bezier(0.6, 0, 0.8, 0.3);
+
+@mixin phase($phase, $skin) {
+  .adv-home[data-phase='#{$phase}'][data-skin='#{$skin}'] .h-stage {
+    @content;
+  }
+}
+
+// Every skin until it has its own: a dissolve out, a crossfade in.
+.adv-home[data-phase='exit'] .h-stage {
+  animation: skin-out var(--skin-phase) $in both;
+}
+
+.adv-home[data-phase='enter'] .h-stage {
+  animation: skin-in var(--skin-phase) $out both;
+}
+
+// The script pane follows along quietly.
+.adv-home[data-phase='enter'] .source .code {
+  animation: skin-in 0.4s ease both;
+}
+
+@keyframes skin-out {
+  to {
+    opacity: 0;
+    filter: blur(6px);
+  }
+}
+
+@keyframes skin-in {
+  from {
+    opacity: 0;
+  }
+}
+
+// 末班电车: the tram pulls out. The board announces the transfer, the city outside smears
+// into light, the hand straps swing, and the car wipes off to the left.
+
+@include phase('exit', 'tram') {
+  animation: tram-depart var(--skin-phase) $in both;
+
+  .marquee {
+    animation: none;
+    transform: none;
+  }
+
+  :is(.windows, .car-window) {
+    animation: tram-smear var(--skin-phase) $in both;
+  }
+
+  // Streaks of street light racing past the glass
+  :is(.windows, .car-window)::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background:
+      repeating-linear-gradient(180deg, transparent 0 14px, rgba(255, 196, 107, 0.55) 14px 15px, transparent 15px 37px),
+      repeating-linear-gradient(180deg, transparent 0 23px, rgba(170, 205, 255, 0.4) 23px 24px, transparent 24px 51px);
+    background-size:
+      180px 100%,
+      260px 100%;
+    mask: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent);
+    animation: tram-streak 0.22s linear infinite;
+  }
+
+  .strap {
+    animation: tram-brake var(--skin-phase) $in both;
+  }
+}
+
+@include phase('enter', 'tram') {
+  animation: tram-arrive var(--skin-phase) $out both;
+
+  .ui > * {
+    animation: tram-settle var(--skin-phase) $out both;
+  }
+
+  .h-led-board {
+    animation: tram-led-on var(--skin-phase) steps(1) both;
+  }
+}
+
+@keyframes tram-depart {
+  0%,
+  50% {
+    clip-path: inset(0 0 0 0 round 24px);
+  }
+  100% {
+    clip-path: inset(0 100% 0 0 round 24px);
+    transform: translateX(-4%);
+  }
+}
+
+@keyframes tram-smear {
+  to {
+    filter: blur(5px) brightness(1.4);
+    transform: scaleX(1.06);
+  }
+}
+
+@keyframes tram-streak {
+  to {
+    background-position:
+      -180px 0,
+      -260px 0;
+  }
+}
+
+@keyframes tram-brake {
+  30% {
+    transform: rotate(-16deg);
+  }
+  100% {
+    transform: rotate(-22deg);
+  }
+}
+
+// wipe-left: the new car slides in behind a wipe from the right
+@keyframes tram-arrive {
+  from {
+    clip-path: inset(0 0 0 100% round 24px);
+    transform: translateX(4%);
+  }
+  to {
+    clip-path: inset(0 0 0 0 round 24px);
+  }
+}
+
+@keyframes tram-settle {
+  0%,
+  35% {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+}
+
+// LEDs come on in two flickers
+@keyframes tram-led-on {
+  0%,
+  40% {
+    opacity: 0.15;
+  }
+  48% {
+    opacity: 1;
+  }
+  54% {
+    opacity: 0.3;
+  }
+  62%,
+  100% {
+    opacity: 1;
+  }
+}
+
+// 星海观测站: a CRT powering down to a bright line, then a dot; on the way in, the line
+// opens back up and the instruments boot one by one.
+
+@include phase('exit', 'scifi') {
+  transform-origin: 50% 50%;
+  animation: sf-power-off var(--skin-phase) $in both;
+}
+
+@include phase('enter', 'scifi') {
+  transform-origin: 50% 50%;
+  animation: sf-power-on var(--skin-phase) $out both;
+
+  :is(.hud, .chart, .menu, .log-box, .tele, .options) {
+    animation: sf-boot var(--skin-phase) steps(1) both;
+  }
+
+  .chart {
+    --boot: 0.5;
+  }
+
+  :is(.hud, .tele) {
+    --boot: 0.58;
+  }
+
+  :is(.menu, .options) {
+    --boot: 0.68;
+  }
+
+  .log-box {
+    --boot: 0.78;
+  }
+}
+
+@keyframes sf-power-off {
+  0% {
+    transform: none;
+    filter: none;
+  }
+  45% {
+    transform: scale(1, 0.006);
+    filter: brightness(2.6);
+  }
+  80% {
+    transform: scale(0.012, 0.006);
+    filter: brightness(4);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0, 0.006);
+    opacity: 0;
+  }
+}
+
+// fade: from black, through the line, to a full picture
+@keyframes sf-power-on {
+  0% {
+    transform: scale(0.012, 0.006);
+    filter: brightness(4);
+  }
+  22% {
+    transform: scale(1, 0.006);
+    filter: brightness(2.6);
+  }
+  45% {
+    transform: none;
+    filter: brightness(1.5);
+  }
+  100% {
+    transform: none;
+    filter: none;
+  }
+}
+
+// Each instrument stays dark until its share of the boot (`--boot`) has passed
+@keyframes sf-boot {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@include phase('enter', 'scifi') {
+  :is(.hud, .chart, .menu, .log-box, .tele, .options) {
+    animation-duration: calc(var(--skin-phase) * var(--boot, 0.6));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adv-home[data-phase] .h-stage,
+  .adv-home[data-phase] .h-stage *,
+  .adv-home[data-phase] .h-stage *::before {
+    animation: none !important;
+  }
+
+  .adv-home[data-phase='enter'] .h-stage {
+    animation: skin-in var(--skin-phase) ease both !important;
+  }
+}

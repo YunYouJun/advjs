@@ -1,0 +1,16 @@
+{
+  "id": "rain-night-station-v1",
+  "files": {
+    "adv.config.json": "{\"version\":\"1\",\"root\":\"adv\"}\n",
+    "adv/world.md": "# 雨夜车站\n封闭的末班车站。时钟停在 23:17，下一班车可能带走一段记忆。科技水平与当代相同，不存在超能力。\n",
+    "adv/outline.md": "# 创作目标\n两位主要人物，雨夜车站悬疑短篇。选择信任或离开，形成两个有因果差异的结局。\n",
+    "adv/characters/lin.character.md": "---\nid: lin\nname: 林舟\n---\n失物招领员，谨慎、短句，想归还一封未寄出的信。不能知道信封内未读的内容。\n",
+    "adv/characters/qiao.character.md": "---\nid: qiao\nname: 乔雨\n---\n末班车乘客，克制但好奇，想找到失联的姐姐。不随身携带手机。\n",
+    "adv/chapters/station.adv.md": "# 雨夜车站 {#arrival}\n\n林舟：「你在等谁？」\n\n乔雨：「一个还没回来的人。」\n\n- [留下线索](stay#ending-stay)\n- [登上末班车](leave#ending-leave)\n",
+    "adv/chapters/stay.adv.md": "# 留下 {#ending-stay}\n\n乔雨留下了姐姐的名字。\n",
+    "adv/chapters/leave.adv.md": "# 离开 {#ending-leave}\n\n车门合上，林舟还拿着那封信。\n"
+  },
+  "media": [],
+  "specifiedEndings": ["stay#ending-stay", "leave#ending-leave"],
+  "mediaPolicy": "Both modes receive identical author-supplied media. No supplier sampling is included. This source fixture has no real media; media playback requires a separately recorded acceptance input."
+}

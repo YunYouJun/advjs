@@ -21,6 +21,10 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/WorkspacePage.vue'),
       },
       {
+        path: 'workspace/creative-team',
+        component: () => import('@/views/workspace/CreativeTeamPage.vue'),
+      },
+      {
         path: 'workspace/chapters',
         component: () => import('@/views/workspace/ChaptersPage.vue'),
       },

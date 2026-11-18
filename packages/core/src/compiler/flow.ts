@@ -222,5 +222,7 @@ export async function compileFlowProgram(source: FlowProgramSource): Promise<Com
   return {
     program: allDiagnostics.some(item => item.severity === 'error') ? undefined : linked.program,
     diagnostics: allDiagnostics,
+    // Flow currently knows the file, not the JSON token location of each node.
+    sourceMap: Object.fromEntries(Object.entries(linked.sourceMap ?? {}).map(([address, location]) => [address, { file: location.file }])),
   }
 }

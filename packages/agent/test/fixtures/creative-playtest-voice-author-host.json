@@ -1,0 +1,179 @@
+{
+  "scope": "Captured from real Web author-host inspection and core execution of an explicitly seeded local project. Real imported macOS system speech matched its original SHA-256; this JSON contains text source and historical metadata only, never audio bytes or a server media certificate. Models, identity and service storage were explicit fixtures.",
+  "project": {
+    "id": "creative-media-flow-selected-playback",
+    "revision": "sha256:d9c4db4492f6326409237b6a463ec9919f950210c111ce1551a87a978e02203d",
+    "files": {
+      "adv/assets/audio.json": "{\n  \"schemaVersion\": 2,\n  \"assets\": [\n    {\n      \"id\": \"audio_01a181aa-03f7-7000-91aa-3844d56c9855\",\n      \"type\": \"audio\",\n      \"kind\": \"voice\",\n      \"path\": \"voice/creative/16634855-5364-40ca-a982-d5be4d581d82.wav\",\n      \"sha256\": \"538922a9bbfe31ecd95ab1f8457041d01bdcb0ae8e007fa0253a25bea1177c3e\",\n      \"bytes\": 125740,\n      \"mimeType\": \"audio/wav\",\n      \"duration\": 2.8494784580498864,\n      \"characterId\": \"lin\",\n      \"state\": \"candidate\",\n      \"source\": {\n        \"type\": \"generated\",\n        \"model\": \"macos-say\",\n        \"createdAt\": \"2026-10-28T08:39:25.431Z\"\n      }\n    }\n  ]\n}\n",
+      "adv/assets/other.json": "{\n  \"schemaVersion\": 2,\n  \"assets\": [\n    {\n      \"id\": \"character/lin/default\",\n      \"kind\": \"character\",\n      \"type\": \"image\",\n      \"path\": \"images/creative/0013ad9b2e00141cfc089e4bbb8a299f3dd26d6f81f0f159d04557682420d9e1.webp\",\n      \"sha256\": \"0013ad9b2e00141cfc089e4bbb8a299f3dd26d6f81f0f159d04557682420d9e1\",\n      \"bytes\": 39460,\n      \"mimeType\": \"image/webp\",\n      \"width\": 619,\n      \"height\": 619,\n      \"characterId\": \"lin\",\n      \"expression\": \"default\",\n      \"source\": {\n        \"type\": \"manual-import\",\n        \"createdAt\": \"2026-10-28T08:39:24.937Z\",\n        \"derivedFrom\": \"ADV.JS 既有小云 WebP，仅用于真实媒体事务验证，不代表角色美术质量。\"\n      },\n      \"labels\": [\n        \"creative-team\",\n        \"proposal:art-direction\"\n      ]\n    }\n  ]\n}\n",
+      "adv/assets.json": "{\n  \"schemaVersion\": 2,\n  \"id\": \"creative-media-flow-selected-playback\",\n  \"defaultProfile\": \"local\",\n  \"profiles\": {\n    \"local\": {\n      \"provider\": \"project\",\n      \"root\": \"adv/assets\"\n    }\n  },\n  \"includes\": [\n    \"assets/audio.json\",\n    \"assets/other.json\"\n  ]\n}\n",
+      "adv/audio/voice-ledger.json": "{\n  \"schemaVersion\": 1,\n  \"lines\": {\n    \"line_01900400-0000-7000-8000-000000000002\": {\n      \"speakerId\": \"lin\",\n      \"displayText\": \"列车还没有到，我们再等一会儿。\",\n      \"locales\": {\n        \"zh-CN\": {\n          \"selectedTake\": \"take_01a181aa-03f7-7001-bb47-9aebacb2b180\",\n          \"takes\": [\n            {\n              \"id\": \"take_01a181aa-03f7-7001-bb47-9aebacb2b180\",\n              \"assetId\": \"audio_01a181aa-03f7-7000-91aa-3844d56c9855\",\n              \"sha256\": \"538922a9bbfe31ecd95ab1f8457041d01bdcb0ae8e007fa0253a25bea1177c3e\",\n              \"providerId\": \"local-system\",\n              \"voiceId\": \"Tingting\",\n              \"model\": \"macos-say\",\n              \"voiceProfileRevision\": \"ac9b9393ed92accab47266844eb6d2ee1445a0ced6e12a1b1abafbe79f2216d6\",\n              \"inputFingerprint\": \"336d0f9ac7b910c08453d7a8be5fcf75076c06a62816090e7459eabd0988dc7b\",\n              \"spokenText\": \"列车还没有到，我们再等一会儿。\",\n              \"createdAt\": \"2026-10-28T08:39:25.431Z\",\n              \"source\": \"system\",\n              \"parameters\": {\n                \"attribution\": \"本机真实 Tingting 外部制作；用于中断恢复验证，未调用托管服务。\",\n                \"creativeArtifactId\": \"voice-direction\",\n                \"performanceInstruction\": \"按既有稳定身份回流，不猜测 JSON 行号\"\n              }\n            }\n          ],\n          \"displayText\": \"列车还没有到，我们再等一会儿。\"\n        }\n      }\n    }\n  }\n}\n",
+      "adv/chapters/intro.chapter.json": "{\n  \"schemaVersion\": 1,\n  \"id\": \"intro\",\n  \"title\": \"全部 Flow 配音\",\n  \"nodes\": [\n    {\n      \"id\": \"start\",\n      \"type\": \"dialogues\",\n      \"dialogues\": [\n        {\n          \"speakerId\": \"lin\",\n          \"text\": \"这是第一句，尚未配置配音。\",\n          \"lineId\": \"line_01900400-0000-7000-8000-000000000001\"\n        },\n        {\n          \"speakerId\": \"lin\",\n          \"text\": \"列车还没有到，我们再等一会儿。\",\n          \"lineId\": \"line_01900400-0000-7000-8000-000000000002\"\n        }\n      ]\n    },\n    {\n      \"id\": \"narration\",\n      \"type\": \"narration\",\n      \"text\": \"站台上的灯亮了。\",\n      \"lineId\": \"line_01900400-0000-7000-8000-000000000003\"\n    }\n  ]\n}\n",
+      "adv/characters/lin.character.md": "---\nid: lin\nname: 林\nvoiceProfile:\n  intent:\n    speakingStyle: 平静\n  locales:\n    zh-CN:\n      providers:\n        local-system:\n          voiceId: Tingting\n          model: macos-say\n          source: system\n---\n外部系统语音和既有小云图片的真实媒体回流验证，不表示人物美术或表演品质。",
+      "adv/settings/game.json": "{\n  \"entryChapterId\": \"intro\",\n  \"locale\": \"zh-CN\"\n}\n",
+      "adv.config.json": "{\n  \"schemaVersion\": 1,\n  \"id\": \"creative-media-flow-selected-playback\",\n  \"root\": \"adv\",\n  \"format\": \"flow\"\n}\n"
+    }
+  },
+  "report": {
+    "schemaVersion": 1,
+    "producer": "advjs-author-host",
+    "runnerVersion": "creative-headless-v1",
+    "projectId": "creative-media-flow-selected-playback",
+    "baselineRevision": "sha256:d9c4db4492f6326409237b6a463ec9919f950210c111ce1551a87a978e02203d",
+    "snapshotRevision": "sha256:d9c4db4492f6326409237b6a463ec9919f950210c111ce1551a87a978e02203d",
+    "scope": "saved",
+    "artifacts": [],
+    "program": {
+      "id": "creative-media-flow-selected-playback",
+      "hash": "2e2b86c259ed0fe82481412116442db486b2489af87b9e78f78a8942cca5cc50"
+    },
+    "startedAt": 1793176769064,
+    "finishedAt": 1793176769082,
+    "limits": {
+      "maxCommandsPerScenario": 256,
+      "maxTotalCommands": 512,
+      "maxEvidenceBytes": 196608
+    },
+    "diagnostics": [],
+    "diagnosticsOmitted": 0,
+    "executions": [
+      {
+        "scenario": {
+          "id": "path-1",
+          "choices": [],
+          "expectedEnding": "intro#start"
+        },
+        "status": "passed",
+        "code": "completed",
+        "reachedExpected": true,
+        "commands": 4,
+        "trace": [
+          {
+            "sequence": 1,
+            "command": "start",
+            "address": "intro#start",
+            "status": "playing",
+            "source": {
+              "path": "adv/chapters/intro.chapter.json"
+            },
+            "kind": "dialog",
+            "text": "这是第一句，尚未配置配音。",
+            "effects": [
+              "dialogue.voice"
+            ],
+            "variablesChanged": [],
+            "entered": [
+              "intro#start"
+            ]
+          },
+          {
+            "sequence": 2,
+            "command": "next",
+            "address": "intro#start.dialog-2",
+            "status": "playing",
+            "source": {
+              "path": "adv/chapters/intro.chapter.json"
+            },
+            "kind": "dialog",
+            "text": "列车还没有到，我们再等一会儿。",
+            "effects": [
+              "dialogue.voice"
+            ],
+            "variablesChanged": [],
+            "entered": [
+              "intro#start.dialog-2"
+            ]
+          },
+          {
+            "sequence": 3,
+            "command": "next",
+            "address": "intro#narration",
+            "status": "playing",
+            "source": {
+              "path": "adv/chapters/intro.chapter.json"
+            },
+            "kind": "narration",
+            "text": "站台上的灯亮了。",
+            "effects": [
+              "dialogue.voice"
+            ],
+            "variablesChanged": [],
+            "entered": [
+              "intro#narration"
+            ]
+          },
+          {
+            "sequence": 4,
+            "command": "next",
+            "address": "intro#narration",
+            "status": "ended",
+            "source": {
+              "path": "adv/chapters/intro.chapter.json"
+            },
+            "kind": "narration",
+            "text": "站台上的灯亮了。",
+            "effects": [],
+            "variablesChanged": [],
+            "entered": []
+          }
+        ],
+        "terminalAddress": "intro#narration",
+        "actualEnding": "intro#start"
+      }
+    ],
+    "voiceCoverage": {
+      "verification": "author-host-byte-check",
+      "snapshotRevision": "sha256:d9c4db4492f6326409237b6a463ec9919f950210c111ce1551a87a978e02203d",
+      "locale": "zh-CN",
+      "complete": true,
+      "rows": [
+        {
+          "address": "intro#start",
+          "lineId": "line_01900400-0000-7000-8000-000000000001",
+          "speakerId": "lin",
+          "status": "missing",
+          "takes": 0,
+          "profileMissing": false,
+          "source": {
+            "path": "adv/chapters/intro.chapter.json"
+          }
+        },
+        {
+          "address": "intro#narration",
+          "lineId": "line_01900400-0000-7000-8000-000000000003",
+          "speakerId": "narrator",
+          "status": "missing",
+          "takes": 0,
+          "profileMissing": true,
+          "source": {
+            "path": "adv/chapters/intro.chapter.json"
+          }
+        },
+        {
+          "address": "intro#start.dialog-2",
+          "lineId": "line_01900400-0000-7000-8000-000000000002",
+          "speakerId": "lin",
+          "status": "ready",
+          "takes": 1,
+          "profileMissing": false,
+          "source": {
+            "path": "adv/chapters/intro.chapter.json"
+          },
+          "selected": {
+            "takeId": "take_01a181aa-03f7-7001-bb47-9aebacb2b180",
+            "assetId": "audio_01a181aa-03f7-7000-91aa-3844d56c9855",
+            "sha256": "538922a9bbfe31ecd95ab1f8457041d01bdcb0ae8e007fa0253a25bea1177c3e"
+          }
+        }
+      ],
+      "rowsOmitted": 0
+    },
+    "unverified": [
+      "visual-rendering",
+      "audio-playback",
+      "host-activities",
+      "narrative-consistency",
+      "unspecified-paths"
+    ]
+  }
+}

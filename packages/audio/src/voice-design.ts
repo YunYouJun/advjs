@@ -1,6 +1,7 @@
 import type { AdvVoiceLibrary, AdvVoiceProfile, CharacterVoiceProfile, DesignedVoiceProfile, VoiceDesignDraft, VoiceDesignRecord, VoiceDesignSample } from '@advjs/types'
 import { canonicalAudioJson } from './fingerprint'
 import { normalizeAudioLocale } from './locale'
+import { parseVoiceAlignment } from './voice-alignment'
 import { validateCharacterVoiceProfile, validateVoiceRights } from './voice-ledger'
 
 export const VOICE_DESIGN_LIBRARY_PATH = 'authoring/voices/library.json'
@@ -113,7 +114,7 @@ export function parseVoiceDesignLibrary(value: unknown): AdvVoiceLibrary {
     parseVoiceDesignDraft({ id: voice.id, version: voice.version, characterId: voice.characterId, label: voice.label, intent: design.intent, locales: design.locales, ...(design.supersedes ? { supersedes: design.supersedes } : {}) })
     const samples = new Set<string>()
     for (const rawSample of design.samples) {
-      const sample = object(rawSample, ['assetId', 'sha256', 'bytes', 'locale', 'providerId', 'providerVoiceId', 'model', 'source', 'text', 'presetSha256', 'createdAt'])
+      const sample = object(rawSample, ['assetId', 'sha256', 'bytes', 'locale', 'providerId', 'providerVoiceId', 'model', 'source', 'text', 'presetSha256', 'createdAt', 'alignment'])
       text(sample.assetId, 256)
       if (samples.has(String(sample.assetId)) || !HASH.test(String(sample.sha256)) || !HASH.test(String(sample.presetSha256)) || !Number.isSafeInteger(sample.bytes) || Number(sample.bytes) <= 0 || normalizeAudioLocale(String(sample.locale)) !== sample.locale || !['system', 'designed', 'cloned'].includes(String(sample.source)))
         throw new Error('VOICE_DESIGN_SAMPLE_INVALID')
@@ -123,6 +124,8 @@ export function parseVoiceDesignLibrary(value: unknown): AdvVoiceLibrary {
       if (source[String(sample.locale)]?.providers[String(sample.providerId)]?.source !== sample.source)
         throw new Error('VOICE_DESIGN_SAMPLE_BINDING_INVALID')
       samples.add(String(sample.assetId))
+      if (sample.alignment !== undefined)
+        parseVoiceAlignment(sample.alignment, { text: String(sample.text), sha256: String(sample.sha256) })
     }
     for (const [locale, providers] of Object.entries(object(design.selectedSamples))) {
       normalizeAudioLocale(locale)

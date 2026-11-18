@@ -1,4 +1,4 @@
-import type { VoiceGenerationJob } from '@advjs/audio'
+import type { VoiceGenerationJob, VoiceGenerationSelectionMode } from '@advjs/audio'
 import type { EditorVoiceJobAction, EditorVoiceJobsPort, EditorVoiceJobsReviewedPlan, EditorVoiceJobsSnapshot } from '../../../../packages/advjs/shared/editor-audio'
 import { parseAudioVoiceProfiles } from '@advjs/audio'
 import { computed, onBeforeUnmount, shallowRef, watch } from 'vue'
@@ -8,6 +8,8 @@ import { useProjectStore } from '../stores/useProjectStore'
 export interface VoiceJobsDraft {
   providerId: string
   locale: string
+  chapterId: string
+  mode: VoiceGenerationSelectionMode
   lineIds: string[]
   maxCharacters: string
   concurrency: string
@@ -19,7 +21,7 @@ export function useVoiceJobs(visible: () => boolean) {
   const audio = useAudioStore()
   const snapshot = shallowRef<EditorVoiceJobsSnapshot>()
   const review = shallowRef<EditorVoiceJobsReviewedPlan>()
-  const draft = shallowRef<VoiceJobsDraft>({ providerId: '', locale: 'zh-CN', lineIds: [], maxCharacters: '10000', concurrency: '1', allowUnknownCost: false })
+  const draft = shallowRef<VoiceJobsDraft>({ providerId: '', locale: 'zh-CN', chapterId: 'all', mode: 'all', lineIds: [], maxCharacters: '10000', concurrency: '1', allowUnknownCost: false })
   const budgetReviewed = shallowRef(false)
   const pending = shallowRef(false)
   const loading = shallowRef(false)
@@ -32,10 +34,15 @@ export function useVoiceJobs(visible: () => boolean) {
   let timer: ReturnType<typeof setTimeout> | undefined
   let refreshing: Promise<void> | undefined
 
-  const sourceLines = computed(() => Object.values(project.project?.compilation.project.program?.chapters ?? {}).flatMap(chapter => Object.values(chapter.nodes)).filter(node => (node.kind === 'dialog' || node.kind === 'narration') && (!audio.workflowSpeakerId || String(node.data?.speakerId ?? 'narrator') === audio.workflowSpeakerId)))
+  const chapters = computed(() => Object.values(project.project?.compilation.project.program?.chapters ?? {}))
+  const chapterOptions = computed(() => [{ value: 'all', label: '全部章节' }, ...chapters.value.map(chapter => ({ value: chapter.id, label: chapter.title ?? chapter.id }))])
+  const sourceLines = computed(() => chapters.value.filter(chapter => draft.value.chapterId === 'all' || chapter.id === draft.value.chapterId).flatMap(chapter => chapter.order.map(id => chapter.nodes[id])).filter(node => node && (node.kind === 'dialog' || node.kind === 'narration') && (!audio.workflowSpeakerId || String(node.data?.speakerId ?? 'narrator') === audio.workflowSpeakerId)))
   const lines = computed(() => sourceLines.value.flatMap(node => typeof node.data?.lineId === 'string' ? [{ id: node.data.lineId, speakerId: String(node.data.speakerId ?? 'narrator'), text: String(node.data.text ?? '') }] : []))
+  const availableLineIds = computed(() => new Set(lines.value.map(line => line.id)))
   const unboundCount = computed(() => sourceLines.value.length - lines.value.length)
   const jobs = computed(() => snapshot.value?.jobs ?? [])
+  const maxLines = computed(() => snapshot.value?.maxLines ?? 200)
+  const batchSize = computed(() => snapshot.value?.batchSize)
   const available = computed(() => audio.supportedRoot && Boolean(snapshot.value?.configured))
   const hasTransport = computed(() => audio.supportedRoot && Boolean(audio.voiceJobs()))
   const narratorLocales = computed(() => {
@@ -55,16 +62,21 @@ export function useVoiceJobs(visible: () => boolean) {
     }
     catch { return undefined }
   })
-  const canPlan = computed(() => available.value && !pending.value && draft.value.lineIds.length > 0 && draft.value.lineIds.length <= 200 && Boolean(draft.value.providerId) && Number.isSafeInteger(Number(draft.value.maxCharacters)) && Number(draft.value.maxCharacters) > 0 && Number.isInteger(Number(draft.value.concurrency)) && Number(draft.value.concurrency) >= 1 && Number(draft.value.concurrency) <= 32)
+  const canPlan = computed(() => available.value && !pending.value && draft.value.lineIds.length > 0 && draft.value.lineIds.length <= maxLines.value && draft.value.lineIds.every(id => availableLineIds.value.has(id)) && Boolean(draft.value.providerId) && Number.isSafeInteger(Number(draft.value.maxCharacters)) && Number(draft.value.maxCharacters) > 0 && Number.isInteger(Number(draft.value.concurrency)) && Number(draft.value.concurrency) >= 1 && Number(draft.value.concurrency) <= 32)
 
   function showError(failure: unknown) {
     const code = failure instanceof Error ? failure.message.match(/^([A-Z][A-Z0-9_]{0,79})(?::|$)/u)?.[1] : undefined
     const explanations: Record<string, string> = {
+      AUDIO_JOB_STORE_CAPACITY: '恢复记录空间不足。请先完成或取消其他排队任务，或缩小生成范围；尚未调用模型。',
       ADV_AUDIO_JOB_PROVIDER_UNCONFIGURED: '本地宿主尚未配置合成插件与默认预设。请配置项目 authoring.voice 后重新连接。',
       ADV_AUDIO_JOB_PROFILE_REQUIRED: '角色需要所选语言、插件和模型的声音配置；录制声音请通过资源导入。',
       ADV_AUDIO_JOB_PROFILE_MISMATCH: '角色声音配置与插件预设的真实模型、声音或来源不一致，请先审核配置。',
       ADV_AUDIO_JOB_REVIEW_STALE: '台词、词典、声音配置或预设已经变化，请重新创建并审核计划。',
       ADV_AUDIO_JOB_REVIEW_REQUIRED: '计划已过期或未被宿主审核，请重新创建计划。',
+      ADV_AUDIO_JOB_NO_TARGETS: '当前范围没有符合筛选条件的台词。可切换为全部台词，或先检查已选配音。',
+      ADV_AUDIO_JOB_CHAPTER_CHANGED: '章节或台词归属已变化，请刷新范围后重新审核。',
+      AUDIO_JOB_CHARACTER_LIMIT: '整个计划的新生成字符超过总预算，请提高预算或缩小章节范围。',
+      AUDIO_JOB_BUDGET_INVALID: '预算参数无效。总字符预算须为正整数，并发须为 1–32 的整数，请修改后重新审核。',
       AUDIO_JOB_UNKNOWN_COST: '插件没有费用估算。需明确同意未知费用，才能创建新生成计划。',
       AUDIO_JOB_QUERY_REQUIRED: '调用结果未知，必须先查询供应商结果；当前插件未提供查询，不能重复生成。',
       ADV_AUDIO_VOICE_CONSENT_REQUIRED: '克隆声音需要有效许可和项目中实际存在的同意记录。',
@@ -79,7 +91,9 @@ export function useVoiceJobs(visible: () => boolean) {
   }
   function schedule() {
     stopPolling()
-    if (visible() && (running.size || jobs.value.some(job => job.tasks.some(task => task.status === 'running' || task.status === 'generated'))))
+    const active = snapshot.value?.activeJobIds
+    const shouldPoll = active !== undefined ? active.length > 0 : running.size > 0 || jobs.value.some(job => job.tasks.some(task => task.status === 'running' || task.status === 'generated'))
+    if (visible() && shouldPoll)
       timer = setTimeout(() => { void reload() }, 1000)
   }
   async function reload() {
@@ -105,10 +119,17 @@ export function useVoiceJobs(visible: () => boolean) {
           return
         const previous = jobs.value.flatMap(job => job.tasks.filter(task => task.status === 'committed').map(task => task.id)).join(',')
         snapshot.value = result
-        for (const id of running) {
-          const job = result.jobs.find(job => job.id === id)
-          if (!job || job.cancelled || job.tasks.every(task => ['committed', 'failed', 'unknown', 'blocked', 'cancelled'].includes(task.status)))
-            running.delete(id)
+        if (result.activeJobIds !== undefined) {
+          running.clear()
+          for (const id of result.activeJobIds)
+            running.add(id)
+        }
+        else {
+          for (const id of running) {
+            const job = result.jobs.find(job => job.id === id)
+            if (!job || job.cancelled || job.tasks.every(task => ['committed', 'failed', 'unknown', 'blocked', 'cancelled'].includes(task.status)))
+              running.delete(id)
+          }
         }
         if (!draft.value.providerId || !result.providers.some(provider => provider.id === draft.value.providerId))
           draft.value = { ...draft.value, providerId: result.providers.find(provider => requestedProfile.value?.locales?.[draft.value.locale]?.providers[provider.id])?.id ?? result.providers.find(provider => provider.default)?.id ?? result.providers[0]?.id ?? '' }
@@ -167,7 +188,7 @@ export function useVoiceJobs(visible: () => boolean) {
     budgetReviewed.value = false
     const input = structuredClone(draft.value)
     await action(async (port, signal) => {
-      const result = await port.plan({ lineIds: input.lineIds, locale: input.locale, providerId: input.providerId, budget: { maxCharacters: Number(input.maxCharacters), concurrency: Number(input.concurrency), allowUnknownCost: input.allowUnknownCost } }, signal)
+      const result = await port.plan({ lineIds: input.lineIds, locale: input.locale, providerId: input.providerId, mode: input.mode, ...(input.chapterId !== 'all' ? { chapterId: input.chapterId } : {}), budget: { maxCharacters: Number(input.maxCharacters), concurrency: Number(input.concurrency), allowUnknownCost: input.allowUnknownCost } }, signal)
       if (!signal.aborted)
         review.value = result
     })
@@ -206,8 +227,14 @@ export function useVoiceJobs(visible: () => boolean) {
     snapshot.value = review.value = undefined
     budgetReviewed.value = pending.value = loading.value = false
     error.value = status.value = ''
-    draft.value = { ...draft.value, lineIds: [], providerId: '' }
+    draft.value = { ...draft.value, chapterId: 'all', lineIds: [], providerId: '' }
   }
+  watch(() => draft.value.chapterId, () => {
+    const valid = new Set(lines.value.map(line => line.id))
+    const lineIds = draft.value.lineIds.filter(id => valid.has(id))
+    if (lineIds.length !== draft.value.lineIds.length)
+      draft.value = { ...draft.value, lineIds }
+  })
   watch(draft, () => {
     review.value = undefined
     budgetReviewed.value = false
@@ -234,5 +261,5 @@ export function useVoiceJobs(visible: () => boolean) {
     budgetReviewed.value = false
   })
   onBeforeUnmount(reset)
-  return { snapshot, review, draft, budgetReviewed, pending, loading, error, status, lines, unboundCount, jobs, available, hasTransport, localeOptions, providerOptions, canPlan, reload, plan, enqueue, command }
+  return { snapshot, review, draft, budgetReviewed, pending, loading, error, status, lines, chapterOptions, maxLines, batchSize, unboundCount, jobs, available, hasTransport, localeOptions, providerOptions, canPlan, reload, plan, enqueue, command }
 }

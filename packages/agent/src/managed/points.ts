@@ -6,6 +6,7 @@ export interface ManagedAgentPointsAccount {
   reservedMicroPoints: number
   chargedMicroPoints: number
   activeTask?: string
+  activeReservationCount?: number
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -29,6 +30,7 @@ export function parseManagedAgentPointsAccount(value: unknown): ManagedAgentPoin
     reservedMicroPoints: expectMicroPoints(value.reservedMicroPoints, 'reservedMicroPoints'),
     chargedMicroPoints: expectMicroPoints(value.chargedMicroPoints, 'chargedMicroPoints'),
     ...(activeTask ? { activeTask } : {}),
+    ...(value.activeReservationCount === undefined ? {} : { activeReservationCount: expectMicroPoints(value.activeReservationCount, 'activeReservationCount') }),
   }
 }
 

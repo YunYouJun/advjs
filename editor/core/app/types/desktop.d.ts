@@ -6,7 +6,7 @@ import type { ProjectCreationDefaults, ProjectCreationInput, ProjectCreationResu
 
 export type { DesktopFilePosition, DesktopWorkspaceState } from '../../../../apps/desktop/src/workspace-state'
 export interface DesktopProjects { opened: { id: string, name: string, path: string, current: boolean }[], recent: DesktopRecentProject[] }
-export interface DesktopStatus { connected: boolean, dirty: boolean, hasProject: boolean, task?: DesktopTask, preview?: PreviewPresentation }
+export interface DesktopStatus { workbench?: { id: string, title: string, root?: string, name?: string }, connected: boolean, dirty: boolean, hasProject: boolean, task?: DesktopTask, preview?: PreviewPresentation }
 export type DesktopEvent = { type: 'projects-changed' } | { type: 'error', notice: DesktopNotice } | { type: 'create-project', templateId: string } | { type: 'preview-in-editor' }
 
 export interface DesktopTask { id: string, kind: string, state: 'running' | 'succeeded' | 'failed' | 'cancelled', logs: string, output?: string, error?: string }

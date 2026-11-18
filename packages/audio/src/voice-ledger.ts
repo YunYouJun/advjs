@@ -3,6 +3,7 @@ import { canonicalAudioJson } from './fingerprint'
 import { assertAudioId } from './ids'
 import { normalizeAudioLocale } from './locale'
 import { normalizeSpokenText } from './spoken-text'
+import { parseVoiceAlignment } from './voice-alignment'
 
 export const VOICE_LEDGER_PATH = 'adv/audio/voice-ledger.json'
 const HASH = /^[a-f0-9]{64}$/u
@@ -46,7 +47,7 @@ export function validateVoiceRights(value: unknown): asserts value is VoiceRight
 
 function validateTake(value: unknown): asserts value is VoiceTake {
   const take = object(value, 'Voice take')
-  keys(take, ['id', 'assetId', 'sha256', 'providerId', 'voiceId', 'model', 'modelRevision', 'voiceProfileRevision', 'inputFingerprint', 'pronunciationRevision', 'spokenText', 'createdAt', 'source', 'rights', 'parameters', 'projectVoiceId', 'projectVoiceVersion'], 'Voice take')
+  keys(take, ['id', 'assetId', 'sha256', 'providerId', 'voiceId', 'model', 'modelRevision', 'voiceProfileRevision', 'inputFingerprint', 'pronunciationRevision', 'spokenText', 'createdAt', 'source', 'rights', 'parameters', 'projectVoiceId', 'projectVoiceVersion', 'alignment'], 'Voice take')
   assertAudioId(take.id, 'take')
   assertAudioId(take.assetId, 'audio')
   hash(take.sha256, 'Voice take asset hash')
@@ -69,6 +70,8 @@ function validateTake(value: unknown): asserts value is VoiceTake {
     throw new Error('Cloned voices require a consent record and rights metadata')
   if (take.parameters !== undefined)
     object(take.parameters, 'Voice take parameters')
+  if (take.alignment !== undefined)
+    parseVoiceAlignment(take.alignment, { text: take.spokenText as string, sha256: take.sha256 as string })
   for (const field of ['modelRevision', 'projectVoiceId', 'projectVoiceVersion']) {
     if (take[field] !== undefined)
       text(take[field], `Voice take ${field}`)

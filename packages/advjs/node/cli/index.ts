@@ -23,6 +23,7 @@ import { installMigrateAudioCommand } from './migrate-audio'
 import { configureCliOutput, createCliError, hasWrittenCliEnvelope, writeCliFailure } from './output'
 import { installPlayCommand } from './play'
 import { installSyncCommand } from './sync'
+import { installThemeCommand } from './theme'
 import { installVoiceCommand } from './voice'
 
 const { version } = pkg
@@ -72,12 +73,15 @@ installCheckCommand(cli)
 installContextCommand(cli)
 installDebugCommand(cli)
 installSyncCommand(cli)
+installThemeCommand(cli)
 
 function inferContractCommand() {
   if (rawArguments.includes('flow')) {
     const action = rawArguments[rawArguments.indexOf('flow') + 1]
     return action === 'plan' ? 'flow.plan' : 'flow.read'
   }
+  if (rawArguments[0] === 'theme')
+    return rawArguments.includes('init') ? 'theme.init' : 'theme.screenshot'
   if (rawArguments.includes('migrate-audio'))
     return 'migrate.audio'
   if (rawArguments.includes('voice')) {

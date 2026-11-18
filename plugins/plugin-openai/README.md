@@ -2,6 +2,29 @@
 
 ADV.JS 的可选 OpenAI 集成。作者 TTS 使用独立 Node 入口 `@advjs/plugin-openai/voice`，实现内置 `AdvVoiceSynthesisProvider`，可与 Qwen 或第三方 Provider 一起注册。当前仓库实现不代表 npm 发布已完成。
 
+## 源码接入
+
+使用同一源码版本的共享包、CLI、Editor 与适配器，把下列路径替换为实际目录：
+
+```bash
+cd /absolute/path/to/advjs
+pnpm install
+pnpm build:advjs
+pnpm editor:build
+pnpm --filter @advjs/plugin-openai build
+
+cd /absolute/path/to/game
+pnpm add -D "link:/absolute/path/to/advjs/plugins/plugin-openai"
+```
+
+将下方配置合入项目 `adv.config.ts`，准备 JSON 预设后，通过同一源码启动本地 Editor：
+
+```bash
+node /absolute/path/to/advjs/packages/advjs/bin/adv.mjs editor /absolute/path/to/game
+```
+
+Editor「插件 → 官方插件目录」显示能力和要求，并在点击「检查状态」时复用只读 `doctor`。诊断只确认宿主凭证配置，未验证远端服务、账号权限或额度，因此不显示为合成已就绪；不会为检查调用收费合成 API。
+
 ```ts
 import { createOpenAiTtsProvider } from '@advjs/plugin-openai/voice'
 import { defineAdvConfig } from 'advjs'

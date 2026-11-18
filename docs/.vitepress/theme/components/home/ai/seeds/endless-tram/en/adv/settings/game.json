@@ -1,0 +1,8 @@
+{
+  "title": "The Endless Tram",
+  "entryChapterId": "tram",
+  "variables": {
+    "stop": 0,
+    "memories": []
+  }
+}

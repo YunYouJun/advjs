@@ -4,10 +4,11 @@ import { ManagedAgentPointsClient, ManagedAgentRuntime } from '@advjs/agent'
 import { storeToRefs } from 'pinia'
 import { inject, onBeforeUnmount, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { createRuntimeAccessTokenGetter } from '../auth/cloudbase-session'
+import { createRuntimeAccessTokenGetter, parseAuthenticatedCloudbaseSession } from '../auth/cloudbase-session'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useManagedAgentStore } from '../stores/useManagedAgentStore'
 import { cloudbaseAuthInjectionKey } from './useCloudbase'
+import { useStudioIdentity } from './useStudioIdentity'
 
 export function resolveManagedAgentRuntimeUrl(value: unknown): string | undefined {
   if (typeof value !== 'string' || !value.trim())
@@ -45,12 +46,14 @@ export function useManagedAgentSession(): void {
   const authStore = useAuthStore()
   const managedStore = useManagedAgentStore()
   const router = useRouter()
+  const identity = useStudioIdentity()
   const { isLoggedIn } = storeToRefs(authStore)
   const baseUrl = resolveManagedAgentRuntimeUrl(import.meta.env.VITE_ADVJS_AI_RUNTIME_URL)
   const protocol = resolveManagedAgentProtocol(import.meta.env.VITE_ADVJS_AI_RUNTIME_PROTOCOL)
   const applicationId = protocol
     ? resolveManagedAgentApplicationId(import.meta.env.VITE_ADVJS_AI_RUNTIME_APPLICATION_ID, protocol)
     : undefined
+  let generation = 0
 
   async function expireSession(): Promise<void> {
     authStore.clearSession()
@@ -58,13 +61,27 @@ export function useManagedAgentSession(): void {
     await router.replace({ path: '/login', query: { reason: 'session_expired' } })
   }
 
-  watch(isLoggedIn, async (loggedIn) => {
+  watch([isLoggedIn, () => authStore.userId], async ([loggedIn, accountId]) => {
+    const epoch = ++generation
     managedStore.disconnect()
-    if (!loggedIn || !auth || !baseUrl || !protocol || (protocol === 'v2' && !applicationId))
+    if (!loggedIn || !accountId || !auth || !baseUrl || !protocol || (protocol === 'v2' && !applicationId))
       return
+    const sessionAuth = identity?.sessionAuth() ?? auth
 
-    const getAccessToken = createRuntimeAccessTokenGetter(auth, {
-      onSessionExpired: () => void expireSession(),
+    const isCurrent = () => epoch === generation && authStore.isLoggedIn && authStore.userId === accountId
+    const verifyActor = (value: unknown) => {
+      if (!isCurrent() || parseAuthenticatedCloudbaseSession(value)?.user.id !== accountId)
+        throw new Error('Managed AI session changed')
+      return value
+    }
+    const getAccessToken = createRuntimeAccessTokenGetter({
+      getSession: async () => verifyActor(await sessionAuth.getSession()),
+      refreshSession: async token => verifyActor(await sessionAuth.refreshSession(token)),
+    }, {
+      onSessionExpired: () => {
+        if (isCurrent())
+          void expireSession()
+      },
     })
     const options = { baseUrl, getAccessToken, protocol, ...(applicationId ? { applicationId } : {}) }
     managedStore.configure({
@@ -72,7 +89,7 @@ export function useManagedAgentSession(): void {
       points: new ManagedAgentPointsClient(options),
     })
     await managedStore.refreshPoints()
-  }, { immediate: true })
+  }, { immediate: true, flush: 'sync' })
 
   function recoverWhenOnline(): void {
     if (isLoggedIn.value)
@@ -91,6 +108,7 @@ export function useManagedAgentSession(): void {
   })
 
   onBeforeUnmount(() => {
+    generation += 1
     window.removeEventListener('online', recoverWhenOnline)
     window.removeEventListener('focus', recoverWhenOnline)
     document.removeEventListener('visibilitychange', recoverWhenVisible)

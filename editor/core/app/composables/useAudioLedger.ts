@@ -56,6 +56,8 @@ export function useAudioLedger() {
   }, { immediate: true })
   const binding = computed(() => snapshot.value?.ledger.lines[lineId.value]?.locales[locale.value])
   const take = computed(() => binding.value?.takes.find(item => item.id === takeId.value))
+  const previewTake = computed(() => binding.value?.takes.find(item => item.id === previewTakeId.value))
+  const canAlign = computed(() => writable.value && Boolean(project.workspace?.voiceAlignment) && Boolean(take.value) && !pending.value)
   const takeReview = computed(() => reviewRows.value.find(row => row.lineId === lineId.value && row.locale === locale.value)?.takes.find(item => item.id === takeId.value))
   const reviewRow = computed(() => reviewRows.value.find(row => row.lineId === lineId.value && row.locale === locale.value))
   const candidate = computed(() => synthesis.value?.candidates[0])
@@ -155,7 +157,10 @@ export function useAudioLedger() {
     if (!pending.value)
       void reload()
   })
-  watch([lineId, locale, binding, currentLine], () => {
+  // Project recompilation replaces objects even when the dialogue is unchanged.
+  // Cancel only on an actual line change, so our own saved metadata can finish.
+  const currentLineKey = computed(() => currentLine.value ? JSON.stringify([currentLine.value.id, currentLine.value.speakerId, currentLine.value.text]) : '')
+  watch([lineId, locale, binding, currentLineKey], () => {
     cancel()
     replaceSelected.value = false
     takeId.value = binding.value?.selectedTake ?? binding.value?.takes[0]?.id ?? ''
@@ -329,5 +334,29 @@ export function useAudioLedger() {
         pending.value = false
     }
   }
-  return { snapshot, lineId, locale, takeId, takeReview, reviewRow, reviewRows, reviewLoading, replaceSelected, staleReviewed, staleKept, loading, pending, error, previewSource, previewTakeId, previewLoading, currentLine, binding, take, lineOptions, localeOptions, takeOptions, canSelect, replacing, unboundCount, displayText, spokenText, candidate, profileRevision, candidateSource, license, subject, consentRecord, writable, canSynthesize: computed(() => audio.canSynthesize), reload, preview, clearPreview, select, confirmCurrent, synthesize, register }
+  async function alignTake() {
+    const workspace = project.workspace
+    if (!canAlign.value || !workspace?.voiceAlignment || !snapshot.value)
+      return
+    clearPreview()
+    const current = revision
+    controller?.abort()
+    controller = new AbortController()
+    pending.value = true
+    error.value = ''
+    try {
+      const result = await workspace.voiceAlignment.alignTake({ lineId: lineId.value, locale: locale.value, takeId: takeId.value, expectedRevision: snapshot.value.revision }, controller.signal)
+      if (current === revision && workspace === project.workspace)
+        snapshot.value = result
+    }
+    catch (failure) {
+      if (current === revision)
+        error.value = failure instanceof Error ? failure.message : 'VOICE_ALIGNMENT_FAILED'
+    }
+    finally {
+      if (current === revision)
+        pending.value = false
+    }
+  }
+  return { snapshot, lineId, locale, takeId, takeReview, reviewRow, reviewRows, reviewLoading, replaceSelected, staleReviewed, staleKept, loading, pending, error, previewSource, previewTakeId, previewTake, previewLoading, currentLine, binding, take, lineOptions, localeOptions, takeOptions, canSelect, replacing, unboundCount, displayText, spokenText, candidate, profileRevision, candidateSource, license, subject, consentRecord, writable, canAlign, alignTake, canSynthesize: computed(() => audio.canSynthesize), reload, preview, clearPreview, select, confirmCurrent, synthesize, register }
 }

@@ -24,6 +24,7 @@ const servers: ReturnType<typeof createServer>[] = []
 const preview = Buffer.from('lightweight preview')
 const original = Buffer.from('authoring original')
 const digest = (data: Buffer) => createHash('sha256').update(data).digest('hex')
+const lfsPointer = (data: Buffer, eol = '\n') => ['version https://git-lfs.github.com/spec/v1', `oid sha256:${digest(data)}`, `size ${data.length}`, ''].join(eol)
 
 async function project(split: boolean = false) {
   let requests = 0
@@ -128,6 +129,44 @@ describe('native asset downloads', () => {
     await expect(manageAdvAssetCache('pull', { root: fixture.root, allVariants: true })).rejects.toThrow('corrupt')
     expect(fixture.requests()).toBe(0)
     expect(await readFile(join(fixture.root, 'adv/assets/preview.webp'))).toEqual(Buffer.alloc(preview.length))
+  })
+
+  it('reports Git LFS pointers separately and asks for git lfs pull without touching them', async () => {
+    const fixture = await project()
+    const path = join(fixture.root, 'adv/assets/preview.webp')
+    const extension = `version https://git-lfs.github.com/spec/v1\next-0-foo sha256:${'1'.repeat(64)}\noid sha256:${digest(preview)}\nsize ${preview.length}\n`
+    for (const pointer of [lfsPointer(preview), lfsPointer(preview, '\r\n'), extension]) {
+      await writeFile(path, pointer)
+      const status = await manageAdvAssetCache('status', { root: fixture.root, allVariants: true })
+      expect(status).toMatchObject({ lfsPointer: 1, corrupt: 0, missing: 1 })
+      expect(status.items.find(item => item.variant === 'default')?.state).toBe('lfs-pointer')
+    }
+    await writeFile(path, lfsPointer(preview))
+    await expect(manageAdvAssetCache('verify', { root: fixture.root })).rejects.toMatchObject({
+      code: 'ADV_VALIDATION',
+      message: expect.stringContaining('run git lfs pull'),
+    })
+    await expect(manageAdvAssetCache('pull', { root: fixture.root, allVariants: true })).rejects.toThrow('Git LFS pointer')
+    expect(fixture.requests()).toBe(0)
+    expect(await readFile(path, 'utf8')).toBe(lfsPointer(preview))
+    // What `git lfs pull` leaves behind: the real content, which then verifies.
+    await writeFile(path, preview)
+    await expect(manageAdvAssetCache('verify', { root: fixture.root })).resolves.toMatchObject({ verified: 1, lfsPointer: 0 })
+  })
+
+  it('keeps pointer look-alikes and oversized stubs corrupt', async () => {
+    const fixture = await project()
+    const path = join(fixture.root, 'adv/assets/preview.webp')
+    const lookAlikes = [
+      'version https://git-lfs.github.com/spec/v1\n',
+      `version https://git-lfs.github.com/spec/v1\noid sha256:${digest(preview)}\n`,
+      `oid sha256:${digest(preview)}\nsize ${preview.length}\n`,
+      `${lfsPointer(preview)}${' '.repeat(1024)}`,
+    ]
+    for (const content of lookAlikes) {
+      await writeFile(path, content)
+      await expect(manageAdvAssetCache('status', { root: fixture.root })).resolves.toMatchObject({ corrupt: 1, lfsPointer: 0 })
+    }
   })
 
   it('rejects damaged responses and removes temporary files', async () => {
@@ -291,5 +330,10 @@ describe('native asset downloads', () => {
     expect(failure.code).toBe(1)
     expect(failure.stdout.trim().split('\n')).toHaveLength(1)
     expect(JSON.parse(failure.stdout)).toMatchObject({ command: 'assets', ok: false, errors: [{ code: 'ADV_VALIDATION' }] })
-  }, 20_000)
+    await writeFile(join(fixture.root, 'adv/assets/preview.webp'), lfsPointer(preview))
+    const pointerStatus = await run(['status'])
+    expect(pointerStatus.code, pointerStatus.stdout).toBe(0)
+    expect(JSON.parse(pointerStatus.stdout)).toMatchObject({ ok: true, data: { lfsPointer: 1, items: [{ state: 'lfs-pointer' }] } })
+    expect(validate(JSON.parse(pointerStatus.stdout)), ajv.errorsText(validate.errors)).toBe(true)
+  }, 30_000)
 })

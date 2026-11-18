@@ -93,6 +93,8 @@ function loaded(instance: MonacoEditor.IStandaloneCodeEditor) {
       editor.setPosition(position)
       editor.revealPositionInCenterIfOutsideViewport(position)
       editor.focus()
+      // Monaco emits no cursor event when navigating to the current position.
+      savePosition()
       return true
     },
   })

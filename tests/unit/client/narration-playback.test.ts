@@ -8,8 +8,9 @@ import PrintWords from '../../../packages/client/components/animation/PrintWords
 import { useAdvAuto } from '../../../packages/client/composables/useAdvAuto'
 
 const { next, notifyPrintDone } = vi.hoisted(() => ({ next: vi.fn(), notifyPrintDone: vi.fn() }))
+const voiceHighlight = shallowRef<{ lineId: string, text: string, unit?: { start: number, end: number } }>()
 vi.mock('@advjs/client', () => ({
-  useAdvContext: () => ({ $adv: { runtime: { next }, $auto: { notifyPrintDone } } }),
+  useAdvContext: () => ({ $adv: { runtime: { next }, $auto: { notifyPrintDone }, $audio: { voiceHighlight } } }),
   useSettingsStore: () => ({ storage: { text: { curFontSize: 'normal' } } }),
 }))
 
@@ -17,6 +18,7 @@ let wrapper: ReturnType<typeof mount>
 beforeEach(() => {
   vi.useFakeTimers()
   vi.clearAllMocks()
+  voiceHighlight.value = undefined
 })
 afterEach(() => {
   wrapper?.unmount()
@@ -24,13 +26,23 @@ afterEach(() => {
 })
 
 function node(text: string): RuntimeNode {
-  return { id: 'narration', kind: 'narration', data: { text } }
+  return { id: 'narration', kind: 'narration', data: { text, lineId: 'narration-line' } }
 }
 
 function render(text: string) {
   wrapper = mount(AdvBlack, { props: { node: node(text) }, global: { components: { PrintWords } } })
   return wrapper
 }
+
+it('maps real voice offsets across narration lines and reveals the spoken sentence', async () => {
+  render('你好\n世界')
+  voiceHighlight.value = { lineId: 'narration-line', text: '你好\n世界', unit: { start: 3, end: 4 } }
+  await nextTick()
+  expect(wrapper.find('[data-voice-active]').text()).toBe('世')
+  voiceHighlight.value = undefined
+  await nextTick()
+  expect(wrapper.findAll('[data-voice-active]')).toHaveLength(0)
+})
 
 it('waits for all staggered sentences, including empty lines, before notifying once', async () => {
   render('AB\n\nCDE')

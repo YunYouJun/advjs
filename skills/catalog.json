@@ -9,7 +9,8 @@
     ],
     "optional": [
       "adv-adapt",
-      "adv-story"
+      "adv-story",
+      "adv-theme"
     ],
     "repositoryOnly": [
       "adv-hamster-demo"
@@ -57,6 +58,12 @@
       "group": "optional",
       "revision": "0.1.2",
       "integrity": "1b6931e03c5641e763dd0f56c80842e56f95906b193b040d403b9aae562e0ba4"
+    },
+    {
+      "name": "adv-theme",
+      "group": "optional",
+      "revision": "0.1.2",
+      "integrity": "66667c1e56c30e7d8593f54b6a84ee093bd799a888154ff1993bc0d983209b81"
     }
   ]
 }

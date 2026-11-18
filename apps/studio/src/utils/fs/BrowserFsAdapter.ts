@@ -18,6 +18,15 @@ export class BrowserFsAdapter implements IFileSystem {
     return this.root
   }
 
+  /** A stable origin-wide name also coordinates aliases of the same physical directory. */
+  async withWriteLock<T>(operation: () => Promise<T>): Promise<T> {
+    if (typeof navigator === 'undefined' || typeof navigator.locks?.request !== 'function')
+      throw new Error('ADV_STUDIO_WORKSPACE_COORDINATION_UNAVAILABLE')
+    // Hold through validation, native I/O, journal confirmation and compensation.
+    // Never expire or steal a live operation's lock while its writes may continue.
+    return navigator.locks.request('advjs-studio-native-project-writes', { mode: 'exclusive' }, operation)
+  }
+
   // --- internal helpers ---
 
   private async resolveSubdir(
@@ -96,8 +105,10 @@ export class BrowserFsAdapter implements IFileSystem {
       await this.stat(path)
       return true
     }
-    catch {
-      return false
+    catch (error) {
+      if ((error as { name?: string })?.name === 'NotFoundError')
+        return false
+      throw error
     }
   }
 
@@ -119,7 +130,9 @@ export class BrowserFsAdapter implements IFileSystem {
       const file = await handle.getFile()
       return { name, type: 'file', size: file.size, mtime: file.lastModified, path }
     }
-    catch {
+    catch (error) {
+      if ((error as { name?: string })?.name !== 'TypeMismatchError')
+        throw error
       // Try as directory
       await parent.getDirectoryHandle(name)
       return { name, type: 'directory', size: 0, mtime: 0, path }
@@ -157,7 +170,7 @@ export class BrowserFsAdapter implements IFileSystem {
     await parent.removeEntry(file)
   }
 
-  async rmdir(path: string): Promise<void> {
+  async rmdir(path: string, options?: { recursive?: boolean }): Promise<void> {
     const parts = path.split('/').filter(Boolean)
     if (parts.length === 0)
       return
@@ -166,7 +179,7 @@ export class BrowserFsAdapter implements IFileSystem {
     const parent = parentParts.length > 0
       ? await this.resolveSubdir(this.root, parentParts)
       : this.root
-    await parent.removeEntry(name, { recursive: true })
+    await parent.removeEntry(name, { recursive: options?.recursive ?? true })
   }
 
   async listFiles(subdir: string, ext: string): Promise<string[]> {

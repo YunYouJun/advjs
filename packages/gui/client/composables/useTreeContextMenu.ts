@@ -4,7 +4,9 @@ import type { TreeNode } from '../components/tree/types'
 import type { AGUIAssetsExplorerState } from './useAssetsExplorer'
 import type { FileOperations } from './useFileOperations'
 import type { FileSelectionState } from './useFileSelection'
+import { nextTick } from 'vue'
 import { listFilesInDir } from './useAssetsExplorer'
+import { Toast } from './useToast'
 
 function separator(): AGUIContextMenuItemType {
   return { type: 'separator' }
@@ -24,6 +26,39 @@ export function getTreeNodeContextMenu(
 ): AGUIContextMenuItemType[] {
   const item = node as unknown as FSItem
   const isDirectory = item.kind === 'directory' || node.handle?.kind === 'directory'
+  const menuRoot = state.rootDir.value
+  const canRename = Boolean(menuRoot && item.handle && item.parent?.handle)
+
+  // The tree and listing contain different item instances. Show the actual
+  // parent and edit its freshly read item, retaining the host's rename writer.
+  async function renameInParent() {
+    const parent = item.parent
+    const root = menuRoot
+    const currentDir = state.curDir.value
+    if (!root || !parent?.handle || !item.handle || state.rootDir.value !== root)
+      return
+    try {
+      if (!await root.handle.resolve(parent.handle))
+        throw new Error('Item is outside the current project')
+      const list = await listFilesInDir(parent, { showFiles: true })
+      const current = list.find(candidate => candidate.name === item.name && candidate.kind === item.kind)
+      if (!current?.handle || !await current.handle.isSameEntry(item.handle))
+        throw new Error('The original item is no longer available')
+      if (state.rootDir.value !== root || state.curDir.value !== currentDir)
+        return
+      state.setCurDir(parent)
+      state.setCurFileList(list)
+      const opened = state.curDir.value
+      await nextTick()
+      if (state.rootDir.value !== root || state.curDir.value !== opened)
+        return
+      selection.select(current)
+      selection.startRenaming(current)
+    }
+    catch {
+      Toast({ title: 'Rename Unavailable', description: 'The item or project changed. Choose it again.', type: 'warning' })
+    }
+  }
 
   if (isDirectory) {
     return [
@@ -62,9 +97,8 @@ export function getTreeNodeContextMenu(
       separator(),
       {
         label: 'Rename',
-        onClick: () => {
-          selection.startRenaming(item)
-        },
+        disabled: !canRename,
+        onClick: renameInParent,
       },
       {
         label: 'Delete',
@@ -88,9 +122,8 @@ export function getTreeNodeContextMenu(
     separator(),
     {
       label: 'Rename',
-      onClick: () => {
-        selection.startRenaming(item)
-      },
+      disabled: !canRename,
+      onClick: renameInParent,
     },
     {
       label: 'Delete',

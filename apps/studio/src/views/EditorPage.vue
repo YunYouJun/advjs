@@ -15,11 +15,13 @@ import LayoutPage from '../components/common/LayoutPage.vue'
 import RuntimeAuthoringPanel from '../components/RuntimeAuthoringPanel.vue'
 import { useCloudSync } from '../composables/useCloudSync'
 import { useProjectContent } from '../composables/useProjectContent'
+import { useTextDocument } from '../composables/useTextDocument'
 import { useUndoHistory } from '../composables/useUndoHistory'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { downloadFromCloud } from '../utils/cloudSync'
 import { downloadAsFile } from '../utils/fs'
+import { isStudioContentConflict } from '../utils/projectContentMutation'
 import { loadStudioGameSettings } from '../utils/projectRuntimeFiles'
 
 const BLOCK_LEVEL_RE = /^(?:## |[-*] |> |---|【)/
@@ -30,6 +32,7 @@ const router = useRouter()
 const studioStore = useStudioStore()
 const settingsStore = useSettingsStore()
 const projectContent = useProjectContent()
+const textDocument = useTextDocument(projectContent.getFs, () => studioStore.currentProject?.projectId)
 const content = ref('')
 const isSaving = ref(false)
 const initialContent = ref('')
@@ -165,6 +168,7 @@ function isNotFoundError(err: unknown): boolean {
 let loadToken = 0
 async function loadFile(path: string) {
   const token = ++loadToken
+  textDocument.reset()
   if (!path)
     return
 
@@ -180,15 +184,18 @@ async function loadFile(path: string) {
   try {
     await nextTick()
     await projectContent.whenReady()
-    if (token !== loadToken)
+    if (token !== loadToken || project !== studioStore.currentProject)
       return
     if (project.source === 'cos') {
       content.value = await downloadFromCloud(settingsStore.cos, path)
     }
     else {
-      const fs = projectContent.getFs()
-      if (fs)
-        content.value = await fs.readFile(path)
+      const saved = await textDocument.read(path)
+      if (saved === null) {
+        fileNotFound.value = true
+        return
+      }
+      content.value = saved
     }
     if (token !== loadToken)
       return
@@ -246,7 +253,7 @@ watch(content, (newVal) => {
 })
 
 onUnmounted(() => {
-  // Clean up is handled by the composable's watchers
+  textDocument.reset()
 })
 
 /** Create an empty file and enter the editor */
@@ -296,7 +303,11 @@ watch(
 )
 
 async function save() {
+  if (isSaving.value)
+    return
   isSaving.value = true
+  const savedContent = content.value
+  const savedPath = filePath.value
 
   try {
     const project = studioStore.currentProject
@@ -317,14 +328,17 @@ async function save() {
       // Write back to file system
       const fs = projectContent.getFs()
       if (fs) {
-        await fs.writeFile(filePath.value, content.value)
+        await textDocument.save(savedPath, savedContent)
       }
-      initialContent.value = content.value
+      else {
+        throw new Error('ADV_STUDIO_CONTENT_SCOPE_CHANGED')
+      }
+      initialContent.value = savedContent
 
       // Also upload to COS if configured and autoSave is on
       if (isCosConfigured() && settingsStore.cos.autoSave) {
         const prefix = project.cosPrefix || `${project.name}/`
-        await cloudSaveNow(prefix + filePath.value, content.value)
+        await cloudSaveNow(prefix + savedPath, savedContent)
       }
 
       const toast = await toastController.create({
@@ -347,9 +361,9 @@ async function save() {
       await toast.present()
     }
   }
-  catch {
+  catch (error) {
     const toast = await toastController.create({
-      message: t('editor.saveFailed'),
+      message: t(isStudioContentConflict(error) ? 'editor.sourceChanged' : 'editor.saveFailed'),
       duration: 2000,
       position: 'top',
       color: 'danger',

@@ -9,6 +9,8 @@ export interface CompileSourceLocation {
   file?: string
   line?: number
   column?: number
+  endLine?: number
+  endColumn?: number
 }
 
 export interface CompileDiagnostic {
@@ -23,6 +25,8 @@ export interface CompileDiagnostic {
 export interface CompileResult<T> {
   program?: T
   diagnostics: CompileDiagnostic[]
+  /** Authoring metadata stays outside the executable program and its content hash. */
+  sourceMap?: Record<string, CompileSourceLocation>
 }
 
 export type RuntimeTargetInput = RuntimeAddress | string

@@ -5,8 +5,9 @@ import type { HostedVoicePreparedInput, HostedVoicePrepareInput } from '../../sh
 import { createHash } from 'node:crypto'
 import { readFile, realpath, stat } from 'node:fs/promises'
 import { homedir } from 'node:os'
-import { audioFingerprint, audioProjectMediaPath, createAudioId, createVoiceGenerationRunner, normalizeAudioLocale, parseVoiceDesignLibrary, planVoiceGeneration, resolveVoiceSpokenText, VOICE_DESIGN_LIBRARY_PATH, voiceDesignVersion, voiceGenerationInputFingerprint, VoiceGenerationNotDispatchedError } from '@advjs/audio'
+import { audioFingerprint, audioProjectMediaPath, createAudioId, createVoiceGenerationRunner, normalizeAudioLocale, parseVoiceDesignLibrary, planVoiceGeneration, resolveVoiceSpokenText, VOICE_DESIGN_LIBRARY_PATH, voiceDesignVersion, voiceGenerationInputFingerprint, VoiceGenerationNotDispatchedError, voiceGenerationTargetMatches } from '@advjs/audio'
 import { isAbsolute, relative, resolve } from 'pathe'
+import { EDITOR_VOICE_JOB_BATCH_SIZE, EDITOR_VOICE_JOB_MAX_LINES } from '../../shared/editor-audio'
 import { createNodeVoiceGenerationStore } from '../audio/job-store'
 import { withVoiceProviderPermit } from '../audio/provider-permit'
 import { createNodeVoiceAuthoringService } from '../audio/voice'
@@ -46,8 +47,10 @@ function fields(value: unknown, keys: string[]): value is Record<string, unknown
 }
 
 function validatePlanInput(input: EditorVoiceJobsPlanInput) {
-  if (!fields(input, ['lineIds', 'locale', 'providerId', 'budget']) || !Array.isArray(input.lineIds) || !input.lineIds.length || input.lineIds.length > 200
+  if (!fields(input, ['lineIds', 'locale', 'providerId', 'budget', 'chapterId', 'mode']) || !Array.isArray(input.lineIds) || !input.lineIds.length || input.lineIds.length > EDITOR_VOICE_JOB_MAX_LINES
     || new Set(input.lineIds).size !== input.lineIds.length || input.lineIds.some(id => typeof id !== 'string') || typeof input.locale !== 'string' || typeof input.providerId !== 'string'
+    || (input.chapterId !== undefined && (typeof input.chapterId !== 'string' || !input.chapterId || input.chapterId.length > 256))
+    || (input.mode !== undefined && !['all', 'missing', 'stale'].includes(input.mode))
     || !fields(input.budget, ['maxCharacters', 'maxCost', 'allowUnknownCost', 'concurrency']) || (input.budget.maxCost !== undefined && !fields(input.budget.maxCost, ['currency', 'amountMicros']))) {
     fail('ADV_AUDIO_JOB_INPUT_INVALID')
   }
@@ -62,9 +65,10 @@ export async function createEditorVoiceJobsHost(options: EditorVoiceJobsHostOpti
     fail('ADV_AUDIO_JOB_SCOPE_INVALID')
   const store = await createNodeVoiceGenerationStore({ projectRoot: root, directory: options.storeDirectory })
   const authoring = await createNodeVoiceAuthoringService({ root, config: options.config })
-  const reviews = new Map<string, { reviewed: EditorVoiceJobsReviewedPlan, expiresAt: number }>()
+  const reviews = new Map<string, { reviewed: EditorVoiceJobsReviewedPlan, expiresAt: number, chapterId?: string }>()
   const active = new Map<string, Promise<VoiceGenerationJob>>()
   const providerConcurrency: Record<string, number> = {}
+  const batchSize = options.scope ? undefined : EDITOR_VOICE_JOB_BATCH_SIZE
   let closed = false
 
   async function access() {
@@ -89,9 +93,10 @@ export async function createEditorVoiceJobsHost(options: EditorVoiceJobsHostOpti
       providerConcurrency[provider.id] = provider.backend === 'local' ? 1 : 3
     return { voice, providers }
   }
-  async function resolveInput(target: Pick<VoiceGenerationTask, 'lineId' | 'locale' | 'providerId' | 'id'>, snapshot: VoiceAuthoringSnapshot): Promise<VoiceGenerationResolvedInput> {
-    const project = await access()
-    const { voice, providers } = await configured()
+  interface PreparedContext { project: Awaited<ReturnType<typeof access>>, configuration: Awaited<ReturnType<typeof configured>> }
+  async function resolveInput(target: Pick<VoiceGenerationTask, 'lineId' | 'locale' | 'providerId' | 'id'>, snapshot: VoiceAuthoringSnapshot, prepared?: PreparedContext): Promise<VoiceGenerationResolvedInput> {
+    const project = prepared?.project ?? await access()
+    const { voice, providers } = prepared?.configuration ?? await configured()
     if (!providers.some(provider => provider.id === target.providerId))
       fail('ADV_AUDIO_JOB_PROVIDER_UNCONFIGURED')
     const nodes = Object.values(project.result.project.program?.chapters ?? {}).flatMap(chapter => Object.values(chapter.nodes)).filter(node => ['dialog', 'narration'].includes(node.kind) && node.data?.lineId === target.lineId)
@@ -157,10 +162,11 @@ export async function createEditorVoiceJobsHost(options: EditorVoiceJobsHostOpti
       parameters: { ...canonicalVoiceGenerationParameters(inspected, speakerId, presetHash), ...(implementation.projectVoiceId ? { projectVoiceId: implementation.projectVoiceId, projectVoiceVersion: implementation.projectVoiceVersion!, locale } : {}) },
     }
   }
-  async function verifyInput(input: VoiceGenerationResolvedInput, snapshot?: VoiceAuthoringSnapshot) {
-    await access()
+  async function verifyInput(input: VoiceGenerationResolvedInput, snapshot?: VoiceAuthoringSnapshot, prepared?: PreparedContext) {
+    if (!prepared)
+      await access()
     await options.verifyProvider?.(input.providerId)
-    const { voice } = await configured()
+    const { voice } = prepared?.configuration ?? await configured()
     const preset = input.parameters?.preset
     let coordinate = typeof preset === 'string' ? voice.presets[preset] : undefined
     if (typeof input.parameters?.projectVoiceId === 'string') {
@@ -232,6 +238,7 @@ export async function createEditorVoiceJobsHost(options: EditorVoiceJobsHostOpti
     resolve: resolveInput,
     verifyInput,
     providerConcurrency,
+    batchSize,
     async execute(input, context) {
       let dispatched = false
       let result: Awaited<ReturnType<typeof runVoicePreview>>
@@ -276,20 +283,40 @@ export async function createEditorVoiceJobsHost(options: EditorVoiceJobsHostOpti
         reviews.delete(id)
     }
   }
+  async function resolvePlanLines(targets: Array<Pick<VoiceGenerationTask, 'lineId' | 'locale' | 'providerId' | 'id'>>, snapshot: VoiceAuthoringSnapshot, chapterId?: string) {
+    const prepared = { project: await access(), configuration: await configured() }
+    if (chapterId) {
+      const chapter = prepared.project.result.project.program?.chapters[chapterId]
+      const lineIds = new Set(Object.values(chapter?.nodes ?? {}).map(node => node.data?.lineId))
+      if (!chapter || targets.some(target => !lineIds.has(target.lineId)))
+        fail('ADV_AUDIO_JOB_CHAPTER_CHANGED')
+    }
+    const lines: VoiceGenerationResolvedInput[] = []
+    // Reuse the compiled project, with bounded preset/media inspection, rather
+    // than recompiling a large game once for every selected dialogue.
+    for (let offset = 0; offset < targets.length; offset += 8) {
+      lines.push(...await Promise.all(targets.slice(offset, offset + 8).map(async (target) => {
+        const line = await resolveInput(target, snapshot, prepared)
+        await verifyInput(line, snapshot, prepared)
+        return line
+      })))
+    }
+    return lines
+  }
   async function validateEnqueue(input: { planId: string, planHash: string }) {
     if (!fields(input, ['planId', 'planHash']) || typeof input.planId !== 'string' || typeof input.planHash !== 'string')
       fail('ADV_AUDIO_JOB_REVIEW_REQUIRED')
     await access()
     pruneReviews()
-    const stored = reviews.get(input.planId)?.reviewed
+    const entry = reviews.get(input.planId)
+    const stored = entry?.reviewed
     if (!stored || stored.planHash !== input.planHash)
       fail('ADV_AUDIO_JOB_REVIEW_REQUIRED')
     if ((await authoring.read()).revision !== stored.snapshotRevision)
       fail('ADV_AUDIO_JOB_REVIEW_STALE')
     const snapshot = await authoring.read()
-    const lines = await Promise.all(stored.plan.tasks.map(async task => ({ ...await resolveInput(task, snapshot), estimatedCost: task.estimatedCost })))
-    for (const line of lines)
-      await verifyInput(line, snapshot)
+    const resolved = await resolvePlanLines(stored.plan.tasks, snapshot, entry?.chapterId)
+    const lines = resolved.map((line, index) => ({ ...line, estimatedCost: stored.plan.tasks[index]!.estimatedCost }))
     const checked = await planVoiceGeneration({ accountId, projectId, snapshot, lines, budget: stored.plan.budget })
     if (checked.tasks.some((task, index) => task.inputFingerprint !== stored.plan.tasks[index]?.inputFingerprint))
       fail('ADV_AUDIO_JOB_REVIEW_STALE')
@@ -325,12 +352,12 @@ export async function createEditorVoiceJobsHost(options: EditorVoiceJobsHostOpti
       const jobs = Object.values((await store.read()).jobs).filter(job => job.projectId === projectId && job.accountId === accountId).sort((left, right) => right.createdAt.localeCompare(left.createdAt))
       try {
         const { voice, providers } = await configured()
-        return { configured: true, defaultPreset: voice.defaultPreset, providers, jobs } satisfies EditorVoiceJobsSnapshot
+        return { configured: true, defaultPreset: voice.defaultPreset, maxLines: EDITOR_VOICE_JOB_MAX_LINES, ...(batchSize ? { batchSize, activeJobIds: [...active.keys()] } : {}), providers, jobs } satisfies EditorVoiceJobsSnapshot
       }
       catch (error) {
         if (editorVoiceJobsErrorCode(error) !== 'ADV_AUDIO_JOB_PROVIDER_UNCONFIGURED')
           throw error
-        return { configured: false, unavailableCode: 'ADV_AUDIO_JOB_PROVIDER_UNCONFIGURED', providers: [], jobs }
+        return { configured: false, unavailableCode: 'ADV_AUDIO_JOB_PROVIDER_UNCONFIGURED', ...(batchSize ? { activeJobIds: [...active.keys()] } : {}), providers: [], jobs }
       }
     },
     async plan(input) {
@@ -340,12 +367,20 @@ export async function createEditorVoiceJobsHost(options: EditorVoiceJobsHostOpti
       if (reviews.size >= 20)
         fail('ADV_AUDIO_JOB_REVIEW_LIMIT')
       const snapshot = await authoring.read()
-      const lines = await Promise.all(input.lineIds.map(async lineId => ({ ...await resolveInput({ id: createAudioId('job'), lineId, locale: input.locale, providerId: input.providerId }, snapshot), estimatedCost: null })))
-      for (const line of lines)
-        await verifyInput(line)
+      const resolved = await resolvePlanLines(input.lineIds.map(lineId => ({ id: createAudioId('job'), lineId, locale: input.locale, providerId: input.providerId })), snapshot, input.chapterId)
+      const lines = []
+      const locale = normalizeAudioLocale(input.locale)
+      for (const line of resolved) {
+        const binding = snapshot.ledger.lines[line.lineId]?.locales[locale]
+        const selected = binding?.takes.find(take => take.id === binding.selectedTake)
+        if (voiceGenerationTargetMatches(input.mode ?? 'all', selected, await voiceGenerationInputFingerprint(line)))
+          lines.push({ ...line, estimatedCost: null })
+      }
+      if (!lines.length)
+        fail('ADV_AUDIO_JOB_NO_TARGETS')
       const plan = await planVoiceGeneration({ accountId, projectId, snapshot, lines, budget: input.budget })
-      const reviewed = { plan, planHash: await audioFingerprint(plan), snapshotRevision: snapshot.revision }
-      reviews.set(plan.id, { reviewed: structuredClone(reviewed), expiresAt: Date.now() + 15 * 60_000 })
+      const reviewed = { plan, planHash: await audioFingerprint(plan), snapshotRevision: snapshot.revision, selection: { mode: input.mode ?? 'all', requestedLines: input.lineIds.length, skippedLines: input.lineIds.length - lines.length } }
+      reviews.set(plan.id, { reviewed: structuredClone(reviewed), expiresAt: Date.now() + 15 * 60_000, ...(input.chapterId ? { chapterId: input.chapterId } : {}) })
       return reviewed
     },
     async enqueue(input) {

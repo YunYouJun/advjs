@@ -13,7 +13,7 @@ import {
   IonToolbar,
 } from '@ionic/vue'
 import { closeOutline, cloudDoneOutline, cloudOfflineOutline, peopleOutline, saveOutline, settingsOutline } from 'ionicons/icons'
-import { computed, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useCollabRoom } from '../composables/useCollabRoom'
@@ -27,6 +27,7 @@ const props = defineProps<{
   isSaving?: boolean
   aiEnabled?: boolean
   markdown: string
+  markdownError?: string
   monacoFilename?: string
 }>()
 
@@ -40,12 +41,21 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const CreativeTeamModal = defineAsyncComponent(() => import('./creative-team/CreativeTeamModal.vue'))
 const router = useRouter()
 const authStore = useAuthStore()
 const collab = useCollabRoom()
-const activeTab = ref<'form' | 'markdown' | 'ai'>('form')
+const activeTab = defineModel<'form' | 'markdown' | 'ai'>('activeTab', { default: 'form' })
+const markdownOpened = ref(false)
 const localMarkdown = ref('')
 const isCollabToggling = ref(false)
+const showCreativeTeam = ref(false)
+const creativeTeamOpened = ref(false)
+
+function openCreativeTeam() {
+  creativeTeamOpened.value = true
+  showCreativeTeam.value = true
+}
 
 const collabFilename = computed(() => props.monacoFilename || 'content.md')
 const collabText = computed(() => {
@@ -71,11 +81,13 @@ watch(() => props.markdown, v => localMarkdown.value = v)
 
 watch(() => props.isOpen, (open) => {
   if (open) {
-    activeTab.value = 'form'
+    markdownOpened.value = activeTab.value === 'markdown'
     localMarkdown.value = props.markdown
   }
-  else if (collab.isInRoom.value) {
-    collab.leaveRoom()
+  else {
+    markdownOpened.value = false
+    if (collab.isInRoom.value)
+      collab.leaveRoom()
   }
 })
 
@@ -83,8 +95,10 @@ function handleTabChange(newTab: 'form' | 'markdown' | 'ai') {
   const oldTab = activeTab.value
   if (oldTab === 'markdown' && newTab !== 'markdown')
     emit('syncFromMarkdown', localMarkdown.value)
-  if (newTab === 'markdown' && oldTab !== 'markdown')
+  if (newTab === 'markdown' && oldTab !== 'markdown') {
+    markdownOpened.value = true
     emit('syncToMarkdown')
+  }
   activeTab.value = newTab
 }
 
@@ -119,9 +133,17 @@ function handleCancel() {
 }
 
 function handleSave() {
+  if (props.isSaving || props.markdownError)
+    return
   if (activeTab.value === 'markdown')
     emit('syncFromMarkdown', localMarkdown.value)
   emit('save')
+}
+
+function handleCreativeNavigate() {
+  showCreativeTeam.value = false
+  // The existing content editor keeps its local draft when closed.
+  handleCancel()
 }
 </script>
 
@@ -141,8 +163,11 @@ function handleSave() {
         <IonTitle>{{ title }}</IonTitle>
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonButtons slot="end">
+          <IonButton fill="clear" @click="openCreativeTeam">
+            {{ t('creativeTeam.title') }}
+          </IonButton>
           <IonButton
-            :disabled="isSaving"
+            :disabled="isSaving || Boolean(markdownError)"
             color="primary"
             fill="solid"
             size="small"
@@ -173,8 +198,12 @@ function handleSave() {
     </IonHeader>
 
     <IonContent>
+      <div v-if="markdownError" role="alert" class="cem-markdown-error">
+        <p>{{ t('contentEditor.markdownInvalid') }}</p>
+        <pre>{{ markdownError }}</pre>
+      </div>
       <!-- Form -->
-      <div v-show="activeTab === 'form'" class="cem-panel cem-panel--form ion-padding">
+      <div v-show="activeTab === 'form'" :inert="Boolean(markdownError)" class="cem-panel cem-panel--form ion-padding">
         <slot name="form" />
       </div>
 
@@ -208,9 +237,11 @@ function handleSave() {
           </IonButton>
         </div>
         <FilePreview
+          v-if="markdownOpened"
           :content="localMarkdown"
           :readonly="collab.myRole.value === 'viewer'"
           :filename="collabFilename"
+          preserve-session-on-rename
           :collab-text="collabText"
           @update:content="handleMarkdownUpdate"
           @save="handleSave"
@@ -223,9 +254,28 @@ function handleSave() {
       </div>
     </IonContent>
   </IonModal>
+  <!-- Keep the wrapper mounted through Ionic dismissal; modal content remains lazy. -->
+  <CreativeTeamModal v-if="creativeTeamOpened" :is-open="showCreativeTeam" :initial-partner="monacoFilename?.includes('character') ? 'character-designer' : 'writer'" @close="showCreativeTeam = false" @navigate="handleCreativeNavigate" />
 </template>
 
 <style scoped>
+.cem-markdown-error {
+  padding: var(--adv-space-sm) var(--adv-space-md);
+  color: var(--ion-color-danger);
+  background: var(--adv-surface-card);
+}
+
+.cem-markdown-error p {
+  margin: 0;
+}
+
+.cem-markdown-error pre {
+  margin-bottom: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: var(--adv-font-body-sm);
+}
+
 .cem-save-btn {
   --border-radius: var(--adv-radius-md, 8px);
   text-transform: none;

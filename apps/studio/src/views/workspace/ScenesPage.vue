@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { SceneFormData } from '@advjs/parser'
 import type { SceneInfo } from '../../composables/useProjectContent'
-import { parseSceneMd, stringifySceneMd } from '@advjs/parser'
 import {
   IonButton,
   IonFab,
@@ -65,39 +64,21 @@ const sceneEditor = useContentEditor<SceneFormData>('scene', () => ({
   imagePrompt: '',
   type: 'image' as const,
   tags: [],
-}))
-const sceneMarkdown = ref('')
+}), { getFs })
 
-function sceneToMarkdown() {
-  sceneMarkdown.value = stringifySceneMd(sceneEditor.formData.value)
-}
-
-function markdownToScene(md: string) {
-  sceneMarkdown.value = md
-  try {
-    const parsed = parseSceneMd(md)
-    sceneEditor.formData.value = parsed
-  }
-  catch {
-    // keep formData unchanged on parse failure
-  }
-}
-
-function handleEditScene(scene: SceneInfo) {
+async function handleEditScene(scene: SceneInfo) {
   trackAccess({ id: scene.file, label: scene.name, type: 'scene', action: 'edit' })
-  const sceneData: SceneFormData = {
-    id: scene.id || scene.name,
-    name: scene.name,
-    assetId: scene.assetId,
-    src: scene.src,
-    description: scene.description,
-    imagePrompt: scene.imagePrompt,
-    type: scene.type || 'image',
-    tags: scene.tags,
-    linkedLocation: scene.linkedLocation,
+  if (!getFs()) {
+    const data: SceneFormData = { id: scene.id || scene.name, name: scene.name, assetId: scene.assetId, src: scene.src, description: scene.description, imagePrompt: scene.imagePrompt, type: scene.type || 'image', tags: scene.tags, linkedLocation: scene.linkedLocation }
+    sceneEditor.openEdit(data)
+    return
   }
-  sceneEditor.openEdit(sceneData)
-  sceneMarkdown.value = stringifySceneMd(sceneData)
+  try {
+    await sceneEditor.openFile(scene.file)
+  }
+  catch (error) {
+    await showToast(t('contentEditor.saveFailed', { error: String(error) }), 'danger')
+  }
 }
 
 // --- Save ---
@@ -114,15 +95,14 @@ async function handleSaveScene() {
     return
   }
 
-  const result = await saveContent(fs, 'scene', sceneEditor.mode.value, sceneEditor.formData.value, sceneEditor.originalId.value)
+  const result = await saveContent(fs, 'scene', sceneEditor.mode.value, sceneEditor.formData.value, sceneEditor.originalId.value, sceneEditor.saveContext())
   if (result.success) {
-    await showToast(t('contentEditor.saveSuccess'))
-    sceneEditor.onSaved()
-    sceneEditor.close()
+    const complete = sceneEditor.onSaved(result)
+    await showToast(t(complete ? 'contentEditor.saveSuccess' : 'contentEditor.savedWithNewerDraft'))
     await reload()
   }
   else {
-    await showToast(t('contentEditor.saveFailed', { error: result.error }), 'danger')
+    await showToast(result.conflict ? t('contentEditor.formSourceChanged') : t('contentEditor.saveFailed', { error: result.error }), 'danger')
   }
 }
 
@@ -221,16 +201,18 @@ async function handlePublishScene(scene: SceneInfo) {
 
     <!-- Scene Editor Modal -->
     <ContentEditorModal
+      v-model:active-tab="sceneEditor.activeTab.value"
       :is-open="sceneEditor.isOpen.value"
       :title="sceneEditor.mode.value === 'create' ? t('contentEditor.createScene') : t('contentEditor.editScene')"
       :mode="sceneEditor.mode.value"
       :is-saving="isSaving"
-      :markdown="sceneMarkdown"
+      :markdown="sceneEditor.markdown.value"
+      :markdown-error="sceneEditor.markdownError.value"
       :monaco-filename="`${sceneEditor.formData.value.id || 'scene'}.md`"
       @update:is-open="(v: boolean) => { if (!v) sceneEditor.close() }"
-      @update:markdown="sceneMarkdown = $event"
-      @sync-to-markdown="sceneToMarkdown()"
-      @sync-from-markdown="markdownToScene($event)"
+      @update:markdown="sceneEditor.updateMarkdown($event)"
+      @sync-to-markdown="sceneEditor.syncToMarkdown()"
+      @sync-from-markdown="sceneEditor.updateMarkdown($event)"
       @save="handleSaveScene"
       @cancel="sceneEditor.close()"
     >

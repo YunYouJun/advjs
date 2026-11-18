@@ -1,41 +1,38 @@
 <script setup lang="ts">
 import type { AdvProjectDiagnostic } from '@advjs/types'
+import { AdvDiagnosticsPanel } from '@advjs/gui/authoring'
 import AGUIDetails from '@advjs/gui/components/AGUIDetails.vue'
 import AGUIButton from '@advjs/gui/components/button/AGUIButton.vue'
 import AGUIIconButton from '@advjs/gui/components/button/AGUIIconButton.vue'
-import { computed, shallowRef, watch } from 'vue'
 
-const props = defineProps<{ diagnostics: readonly AdvProjectDiagnostic[], zh: boolean, busy: boolean }>()
+defineProps<{ diagnostics: readonly AdvProjectDiagnostic[], zh: boolean, busy: boolean }>()
 const emit = defineEmits<{ open: [diagnostic: AdvProjectDiagnostic], toggle: [] }>()
-const page = shallowRef(0)
-const pageSize = 50
-const pageCount = computed(() => Math.ceil(props.diagnostics.length / pageSize))
-const visibleDiagnostics = computed(() => props.diagnostics.slice(page.value * pageSize, (page.value + 1) * pageSize))
-watch(() => props.diagnostics, () => {
-  page.value = 0
-})
 </script>
 
 <template>
   <AGUIDetails v-if="diagnostics.length" class="flow-diagnostics" :title="`${zh ? '项目诊断' : 'Project diagnostics'} · ${diagnostics.length}`" @toggle="emit('toggle')">
-    <div v-if="pageCount > 1" class="diagnostic-pagination" :aria-label="zh ? '诊断分页' : 'Diagnostic pages'">
-      <AGUIIconButton icon="i-ri-arrow-left-s-line" :title="zh ? '上一组诊断' : 'Previous diagnostics'" :disabled="!page" @click="page--" />
-      <span>{{ page + 1 }} / {{ pageCount }}</span>
-      <AGUIIconButton icon="i-ri-arrow-right-s-line" :title="zh ? '下一组诊断' : 'Next diagnostics'" :disabled="page + 1 >= pageCount" @click="page++" />
-    </div>
-    <ol class="diagnostic-list">
-      <li v-for="(item, index) in visibleDiagnostics" :key="`${item.code}:${page * pageSize + index}`" class="diagnostic" :data-severity="item.severity">
-        <div class="diagnostic-heading">
-          <span>{{ item.severity === 'error' ? (zh ? '错误' : 'Error') : (zh ? '警告' : 'Warning') }} · {{ item.code }}</span>
-          <AGUIButton v-if="item.path" variant="text" :disabled="busy" :data-flow-diagnostic="item.code" @click="emit('open', item)">
-            {{ item.path }}{{ item.line ? `:${item.line}` : '' }}
-          </AGUIButton>
+    <AdvDiagnosticsPanel :diagnostics="diagnostics" :page-size="50" :disabled="busy" @navigate="emit('open', $event)">
+      <template #pagination="{ page, pageCount, previous, next }">
+        <div class="diagnostic-pagination" :aria-label="zh ? '诊断分页' : 'Diagnostic pages'">
+          <AGUIIconButton icon="i-ri-arrow-left-s-line" :title="zh ? '上一组诊断' : 'Previous diagnostics'" :disabled="busy || !page" @click="previous" />
+          <span>{{ page + 1 }} / {{ pageCount }}</span>
+          <AGUIIconButton icon="i-ri-arrow-right-s-line" :title="zh ? '下一组诊断' : 'Next diagnostics'" :disabled="busy || page + 1 >= pageCount" @click="next" />
         </div>
-        <p class="diagnostic-message">
-          {{ item.message }}
-        </p>
-      </li>
-    </ol>
+      </template>
+      <template #diagnostic="{ diagnostic: item, navigate }">
+        <div class="diagnostic" :data-severity="item.severity">
+          <div class="diagnostic-heading">
+            <span>{{ item.severity === 'error' ? (zh ? '错误' : 'Error') : (zh ? '警告' : 'Warning') }} · {{ item.code }}</span>
+            <AGUIButton v-if="item.path" variant="text" :disabled="busy" :data-flow-diagnostic="item.code" @click="navigate">
+              {{ item.path }}{{ item.line ? `:${item.line}` : '' }}
+            </AGUIButton>
+          </div>
+          <p class="diagnostic-message">
+            {{ item.message }}
+          </p>
+        </div>
+      </template>
+    </AdvDiagnosticsPanel>
   </AGUIDetails>
 </template>
 
@@ -55,7 +52,7 @@ watch(() => props.diagnostics, () => {
 .flow-diagnostics > summary:focus-visible {
   outline: 2px solid var(--agui-c-focus);
 }
-.diagnostic-list {
+:deep(.diagnostic-list) {
   list-style: none;
   padding: 0;
   margin: 4px 0;

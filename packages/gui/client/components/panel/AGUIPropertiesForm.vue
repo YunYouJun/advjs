@@ -33,7 +33,7 @@ const uid = useId()
         :key="property.name"
         :label="property.name"
         :description="property.description"
-        :for="['slider', 'number-field', 'number-slider', 'input', 'number'].includes(property.type) ? `${uid}-${index}` : undefined"
+        :for="['slider', 'number-field', 'number-slider', 'input', 'number', 'checkbox', 'color'].includes(property.type) || 'options' in property ? `${uid}-${index}` : undefined"
       >
         <template v-if="property.showKey" #after-label>
           <span class="text-xs op-50">
@@ -43,11 +43,14 @@ const uid = useId()
 
         <AGUIColorPicker
           v-if="property.type === 'color'"
+          :id="`${uid}-${index}`"
           v-model="property.object[property.key]"
           :rgb-scale="property.rgbScale"
+          :disabled="property.disabled"
         />
         <AGUISelect
           v-else-if="'options' in property && Array.isArray(property.options)"
+          :id="`${uid}-${index}`"
           v-model="property.object[property.key]"
           :options="property.options"
           :label="property.name"
@@ -94,7 +97,9 @@ const uid = useId()
         />
         <AGUICheckbox
           v-else-if="property.type === 'checkbox'"
+          :id="`${uid}-${index}`"
           v-model:checked="property.object[property.key]"
+          :aria-label="property.name"
           :disabled="property.disabled"
         />
         <AGUIInputVector

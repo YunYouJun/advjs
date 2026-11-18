@@ -50,7 +50,8 @@ export const gameUiTokenNames = [
   '--adv-save-motion-duration',
 ] as const
 
-export type GameUiToken = typeof gameUiTokenNames[number] | `--adv-theme-${string}`
+export type GameUiTokenName = typeof gameUiTokenNames[number]
+export type GameUiToken = GameUiTokenName | `--adv-theme-${string}`
 export type GameUiTokens = Partial<Record<GameUiToken, string>>
 
 export interface GameUiTheme {

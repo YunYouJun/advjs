@@ -121,7 +121,8 @@ async function memoryProject(empty = false) {
     },
     async listFiles(subdir, extension) { return [...files.keys()].filter(path => path.startsWith(`${subdir}/`) && path.endsWith(extension)) },
     async listFilesByExts(subdir, extensions) { return [...files.keys()].filter(path => path.startsWith(`${subdir}/`) && extensions.some(extension => path.endsWith(extension))) },
-    async collectAllFiles() { return Object.entries(sourceFiles()).map(([path, content]) => ({ path, content, lastModified: new Date(0) })) },
+    // Native Studio adapters collect text sources; media bytes stay in readBlob.
+    async collectAllFiles() { return [...files].map(([path, content]) => ({ path, content, lastModified: new Date(0) })) },
     async readBlobUrl() { throw new Error('Audio metadata reads must not allocate preview URLs') },
   }
 

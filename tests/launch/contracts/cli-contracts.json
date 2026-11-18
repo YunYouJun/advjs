@@ -86,6 +86,14 @@
     "flow.plan": {
       "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/flowPlanSuccess",
       "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/flowPlanFailure"
+    },
+    "theme.init": {
+      "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/themeInitSuccess",
+      "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/themeInitFailure"
+    },
+    "theme.screenshot": {
+      "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/themeScreenshotSuccess",
+      "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/themeScreenshotFailure"
     }
   }
 }

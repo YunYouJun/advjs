@@ -119,7 +119,7 @@ test('shows desktop history, reopens by identity, and persists removals without 
     await ready(page)
     expect((await page.evaluate(() => window.advDesktop!.session())).root).toBe(other)
     await expect(game.locator('.preview-empty')).toHaveCount(0)
-    await expect(game.getByRole('button', { name: '从已保存项目启动游戏预览', exact: true })).toBeVisible()
+    await expect(game.getByRole('button', { name: '启动预览', exact: true })).toBeVisible()
     expect((await page.evaluate(() => window.advDesktop!.recentProjects())).map(item => item.path)).toEqual([other, root])
     await app!.close()
     app = undefined

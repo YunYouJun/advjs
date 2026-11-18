@@ -71,6 +71,17 @@ docs/api
 # mcp
 .playwright-mcp
 
+# Verification evidence stays out of source. These rules match dump directories,
+# Xcode result bundles, and the default macOS screen-recording filename only.
+# Product icons, brand SVGs, demo art, AppIcon.appiconset, and intentional
+# example clips (examples/ai-contest/*/assets/demo-recording.gif) stay tracked.
+# Keep other screenshots and recordings as test attachments or CI artifacts
+# and cite them by name in docs/reports/. Prefer an evidence/ directory for local dumps.
+evidence/
+*.xcresult
+Screen Recording *.mov
+屏幕录制 *.mov
+
 resources
 
 # temp

@@ -7,6 +7,16 @@ import ContextDocument from '../context/ContextDocument.vue'
 
 const { t, sections, hasProject, hasContext, projectName, stats } = useProjectContextPanel()
 const expanded = ref(['world', 'outline'])
+
+// Keep literal classes in the view so UnoCSS includes every section icon.
+const sectionIcons: Record<string, string> = {
+  world: 'i-ri-earth-line',
+  outline: 'i-ri-list-unordered',
+  chapters: 'i-ri-book-open-line',
+  characters: 'i-ri-user-line',
+  scenes: 'i-ri-landscape-line',
+  glossary: 'i-ri-book-2-line',
+}
 </script>
 
 <template>
@@ -27,7 +37,7 @@ const expanded = ref(['world', 'outline'])
     </header>
 
     <AGUIAccordion v-if="hasContext" v-model="expanded" type="multiple">
-      <AGUIAccordionItem v-for="section in sections" :key="section.value" :item="section">
+      <AGUIAccordionItem v-for="section in sections" :key="section.value" :item="{ ...section, icon: sectionIcons[section.value] }">
         <ContextDocument :content="section.content" />
       </AGUIAccordionItem>
     </AGUIAccordion>

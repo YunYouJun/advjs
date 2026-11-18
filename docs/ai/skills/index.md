@@ -37,6 +37,9 @@ skills/
 ├── adv-art/
 │   ├── SKILL.md          # 美术生产与发布清单
 │   └── scripts/          # 素材完整性审计
+├── adv-theme/
+│   ├── SKILL.md          # 按故事设计、校验并截图检查游戏 UI 主题
+│   └── references/       # 实现层与截图检查清单
 └── adv-hamster-demo/
     └── SKILL.md          # 仅限仓鼠旗舰 Demo 的组合约束
 ```
@@ -47,15 +50,16 @@ skills/
 
 ## 已有 Skills
 
-| Skill                                                                                               | 版本   | 描述                                                             |
-| --------------------------------------------------------------------------------------------------- | ------ | ---------------------------------------------------------------- |
-| [adv-story](./adv-story)                                                                            | v0.3.0 | 互动叙事播放器：多章节导航、存档槽位、回退                       |
-| [adv-create](./adv-create)                                                                          | v0.3.0 | 从概念创建项目：MCP 批量创建、imagePrompt                        |
-| [adv-debug](./adv-debug)                                                                            | v0.3.0 | 结构分析：分支图、覆盖率、自动补桩（确定性）                     |
-| [adv-review](./adv-review)                                                                          | v0.1.0 | AI 内容质量审查：口吻一致性、对话、节奏（判断）                  |
-| [`adv-adapt`](https://github.com/YunYouJun/advjs/blob/main/skills/adv-adapt/SKILL.md)               | —      | 既有作品改编：来源顺序、章节映射与确定性来源覆盖审计             |
-| [`adv-art`](https://github.com/YunYouJun/advjs/blob/main/skills/adv-art/SKILL.md)                   | —      | 立绘/表情/背景/CG 流水线、来源许可与不可变素材清单               |
-| [`adv-hamster-demo`](https://github.com/YunYouJun/advjs/blob/main/skills/adv-hamster-demo/SKILL.md) | —      | 仅限 `demo/hamster` 的无缝主线、回声演算、COS 路径与发布验收约束 |
+| Skill                                                                                               | 版本   | 描述                                                                 |
+| --------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------- |
+| [adv-story](./adv-story)                                                                            | v0.3.0 | 互动叙事播放器：多章节导航、存档槽位、回退                           |
+| [adv-create](./adv-create)                                                                          | v0.3.0 | 从概念创建项目：MCP 批量创建、imagePrompt                            |
+| [adv-debug](./adv-debug)                                                                            | v0.3.0 | 结构分析：分支图、覆盖率、自动补桩（确定性）                         |
+| [adv-review](./adv-review)                                                                          | v0.1.0 | AI 内容质量审查：口吻一致性、对话、节奏（判断）                      |
+| [`adv-adapt`](https://github.com/YunYouJun/advjs/blob/main/skills/adv-adapt/SKILL.md)               | —      | 既有作品改编：来源顺序、章节映射与确定性来源覆盖审计                 |
+| [`adv-art`](https://github.com/YunYouJun/advjs/blob/main/skills/adv-art/SKILL.md)                   | —      | 立绘/表情/背景/CG 流水线、来源许可与不可变素材清单                   |
+| [adv-theme](./adv-theme)                                                                            | —      | 按故事设计游戏 UI 主题：token 契约、预设、`adv check` 校验与截图迭代 |
+| [`adv-hamster-demo`](https://github.com/YunYouJun/advjs/blob/main/skills/adv-hamster-demo/SKILL.md) | —      | 仅限 `demo/hamster` 的无缝主线、回声演算、COS 路径与发布验收约束     |
 
 ## 创建新 Skill
 

@@ -46,6 +46,9 @@ export interface ProjectWorkspace {
   /** Durable local jobs; hosted workspaces must inject a configured service explicitly. */
   voiceJobs?: EditorVoiceJobsPort
   voiceDesign?: VoiceDesignPort
+  voiceMaintenance?: import('@advjs/types').VoiceProviderMaintenancePort
+  voiceProviderStatus?: import('@advjs/types').VoiceProviderStatusPort
+  voiceAlignment?: import('@advjs/types').VoiceAlignmentPort
   commit: (patches: readonly ProjectSourcePatch[]) => Promise<ProjectWorkspaceSnapshot>
   snapshot: () => Promise<ProjectWorkspaceSnapshot>
   /** Authoring reads must not replace or revoke live preview media URLs. */

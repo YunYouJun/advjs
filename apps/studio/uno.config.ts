@@ -45,6 +45,8 @@ export default defineConfig({
     filesystem: [
       '../../packages/client/**/*.{vue,ts}',
       '../../themes/theme-default/**/*.{vue,ts}',
+      '!../../packages/client/**/node_modules/**',
+      '!../../themes/theme-default/**/node_modules/**',
     ],
   },
   safelist: [

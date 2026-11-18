@@ -1,28 +1,15 @@
 <script setup lang="ts">
 import type { DbPlaySaveSlot } from '../utils/db'
 import {
-  IonButton,
   IonContent,
   IonIcon,
-  IonItem,
-  IonLabel,
-  IonList,
   IonModal,
-  IonPopover,
   toastController,
 } from '@ionic/vue'
 import {
   arrowUndoOutline,
   bookOutline,
-  expandOutline,
   folderOpenOutline,
-  gitNetworkOutline,
-  imageOutline,
-  refreshOutline,
-  saveOutline,
-  settingsOutline,
-  shareOutline,
-  statsChartOutline,
 } from 'ionicons/icons'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -33,6 +20,7 @@ import LayoutPage from '../components/common/LayoutPage.vue'
 import GamePlayer from '../components/GamePlayer.vue'
 import LoadSlotModal from '../components/LoadSlotModal.vue'
 import NodeSelector from '../components/NodeSelector.vue'
+import PlayToolbarActions from '../components/PlayToolbarActions.vue'
 import SaveSlotModal from '../components/SaveSlotModal.vue'
 import StoryStatsModal from '../components/StoryStatsModal.vue'
 import { useProjectContent } from '../composables/useProjectContent'
@@ -52,8 +40,6 @@ const gameChapterName = ref('')
 const gamePlayerRef = ref<InstanceType<typeof GamePlayer>>()
 const chapters = ref<string[]>([])
 const currentChapterFile = ref('')
-const settingsPopover = ref(false)
-const settingsPopoverEvent = ref<Event>()
 const showChapterPanel = ref(false)
 const saveModalOpen = ref(false)
 const loadModalOpen = ref(false)
@@ -202,19 +188,19 @@ function toggleFullscreen() {
     document.exitFullscreen?.()
 }
 
-function openSettings(ev: Event) {
-  settingsPopoverEvent.value = ev
-  settingsPopover.value = true
-}
-
-function handleMenuRestart() {
-  settingsPopover.value = false
-  gamePlayerRef.value?.restart()
-}
-
-function handleMenuGoSettings() {
-  settingsPopover.value = false
-  router.push('/tabs/me')
+function toolbarAction(action: 'save' | 'load' | 'gallery' | 'stats' | 'branches' | 'share' | 'fullscreen' | 'restart' | 'settings') {
+  const actions = {
+    save: () => saveModalOpen.value = true,
+    load: () => loadModalOpen.value = true,
+    gallery: () => cgModalOpen.value = true,
+    stats: () => statsModalOpen.value = true,
+    branches: () => branchModalOpen.value = true,
+    share: handleShare,
+    fullscreen: toggleFullscreen,
+    restart: () => gamePlayerRef.value?.restart(),
+    settings: () => router.push('/tabs/me'),
+  }
+  void actions[action]()
 }
 
 async function handleShare() {
@@ -262,38 +248,7 @@ async function handleShare() {
       />
     </template>
     <template v-if="studioStore.currentProject" #end>
-      <IonButton fill="clear" :aria-label="t('preview.save')" @click="saveModalOpen = true">
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonIcon slot="icon-only" :icon="saveOutline" />
-      </IonButton>
-      <IonButton fill="clear" :aria-label="t('preview.load')" @click="loadModalOpen = true">
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonIcon slot="icon-only" :icon="folderOpenOutline" />
-      </IonButton>
-      <IonButton fill="clear" :aria-label="t('preview.cgGallery')" @click="cgModalOpen = true">
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonIcon slot="icon-only" :icon="imageOutline" />
-      </IonButton>
-      <IonButton fill="clear" :aria-label="t('preview.stats')" @click="statsModalOpen = true">
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonIcon slot="icon-only" :icon="statsChartOutline" />
-      </IonButton>
-      <IonButton fill="clear" :aria-label="t('preview.branchGraph')" @click="branchModalOpen = true">
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonIcon slot="icon-only" :icon="gitNetworkOutline" />
-      </IonButton>
-      <IonButton fill="clear" :aria-label="t('preview.settings')" @click="openSettings">
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonIcon slot="icon-only" :icon="settingsOutline" />
-      </IonButton>
-      <IonButton fill="clear" :aria-label="t('preview.share')" @click="handleShare">
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonIcon slot="icon-only" :icon="shareOutline" />
-      </IonButton>
-      <IonButton fill="clear" aria-label="Fullscreen" @click="toggleFullscreen">
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonIcon slot="icon-only" :icon="expandOutline" />
-      </IonButton>
+      <PlayToolbarActions @action="toolbarAction" />
     </template>
 
     <template v-if="studioStore.currentProject">
@@ -375,29 +330,6 @@ async function handleShare() {
         {{ t('preview.emptyDescription') }}
       </p>
     </div>
-
-    <!-- Settings popover menu -->
-    <IonPopover
-      :is-open="settingsPopover"
-      :event="settingsPopoverEvent"
-      :translucent="true"
-      :dismiss-on-select="true"
-      class="adv-settings-popover"
-      @did-dismiss="settingsPopover = false"
-    >
-      <IonList lines="none" class="adv-popover-menu">
-        <IonItem button :detail="false" @click="handleMenuRestart">
-          <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-          <IonIcon slot="start" :icon="refreshOutline" />
-          <IonLabel>{{ t('preview.restart') }}</IonLabel>
-        </IonItem>
-        <IonItem button :detail="false" @click="handleMenuGoSettings">
-          <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-          <IonIcon slot="start" :icon="settingsOutline" />
-          <IonLabel>{{ t('preview.goSettings') }}</IonLabel>
-        </IonItem>
-      </IonList>
-    </IonPopover>
 
     <!-- Save / Load / CG / Stats modals (Phase 17a) -->
     <SaveSlotModal

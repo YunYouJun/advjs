@@ -25,6 +25,10 @@
       "types": "./dist/compiler.d.mts",
       "default": "./dist/compiler.mjs"
     },
+    "./authoring": {
+      "types": "./dist/authoring.d.mts",
+      "default": "./dist/authoring.mjs"
+    },
     "./project": {
       "types": "./dist/project.d.mts",
       "default": "./dist/project.mjs"

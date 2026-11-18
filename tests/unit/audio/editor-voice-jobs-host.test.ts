@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createLocalBridgeAdapter } from '../../../editor/core/app/adapters/local'
 import { createLocalProjectWorkspace } from '../../../editor/core/app/adapters/local/workspace'
-import { runVoiceGenerateTake, runVoiceLedger } from '../../../packages/advjs/node/audio/voice'
+import { runVoiceBindTake, runVoiceGenerateTake, runVoiceLedger } from '../../../packages/advjs/node/audio/voice'
 import { createEditorBridge } from '../../../packages/advjs/node/editor'
 import { createEditorVoiceJobsFixture, editorJobLineIds } from '../../fixtures/audio/editor-voice-jobs'
 
@@ -48,6 +48,50 @@ afterEach(async () => {
 })
 
 describe('authenticated native Editor voice jobs', () => {
+  it('filters an exact chapter by missing or stale selection using current inspected preset inputs', async () => {
+    const original = await runVoiceLedger({ root: fixture.root, config: fixture.config })
+    const generated = await runVoiceGenerateTake({ root: fixture.root, config: fixture.config, lineId: editorJobLineIds[0]!, locale: 'zh-CN', speakerId: 'hero', displayText: '你好，世界。', expectedRevision: original.revision })
+    const take = generated.ledger.lines[editorJobLineIds[0]!]!.locales['zh-CN']!.takes[0]!
+    await runVoiceBindTake({ root: fixture.root, config: fixture.config, lineId: editorJobLineIds[0]!, locale: 'zh-CN', takeId: take.id, expectedRevision: generated.revision })
+    const input = { lineIds: editorJobLineIds, chapterId: 'intro', locale: 'zh-CN', providerId: 'fixture-tts', budget }
+    const missingResponse = await request('/plan', { ...input, mode: 'missing' })
+    expect(missingResponse.status).toBe(200)
+    const missing = await missingResponse.json() as EditorVoiceJobsReviewedPlan
+    expect(missing.plan.tasks.map(task => task.lineId)).toEqual([editorJobLineIds[1]])
+    expect(missing.selection).toEqual({ mode: 'missing', requestedLines: 2, skippedLines: 1 })
+    expect(await (await request('/plan', { ...input, mode: 'stale' })).json()).toEqual({ error: 'ADV_AUDIO_JOB_NO_TARGETS' })
+    await writeFile(join(fixture.root, 'preset.json'), JSON.stringify({ model: 'fixture-model', voiceId: 'system:fixture', revision: 'changed-inspection' }))
+    const staleResponse = await request('/plan', { ...input, mode: 'stale' })
+    expect(staleResponse.status).toBe(200)
+    const stale = await staleResponse.json() as EditorVoiceJobsReviewedPlan
+    expect(stale.plan.tasks.map(task => task.lineId)).toEqual([editorJobLineIds[0]])
+    expect(stale.selection).toEqual({ mode: 'stale', requestedLines: 2, skippedLines: 1 })
+    expect(fixture.calls).toHaveLength(1)
+    expect(await (await request('/plan', { ...input, chapterId: 'absent' })).json()).toEqual({ error: 'ADV_AUDIO_JOB_CHAPTER_CHANGED' })
+    expect(await (await request('/plan', { ...input, mode: 'unknown' })).json()).toEqual({ error: 'ADV_AUDIO_JOB_INPUT_INVALID' })
+  })
+
+  it('reviews more than 200 dialogues as one durable job under one total budget, without truncation or synthesis', async () => {
+    const ids = Array.from({ length: 201 }, (_, index) => `line_019d137e-7abc-7000-8001-${String(index + 1).padStart(12, '0')}`)
+    await writeFile(join(fixture.root, 'adv/chapters/bulk.adv.md'), ids.map((id, index) => `（这是第${index + 1}句。） {#${id}}`).join('\n\n'))
+    const input = { lineIds: ids, chapterId: 'bulk', mode: 'all', locale: 'zh-CN', providerId: 'fixture-tts', budget: { ...budget, maxCharacters: 10000 } }
+    const response = await request('/plan', input)
+    expect(response.status).toBe(200)
+    const reviewed = await response.json() as EditorVoiceJobsReviewedPlan
+    expect(reviewed.plan.tasks.map(task => task.lineId)).toEqual(ids)
+    expect(reviewed.plan.summary.lines).toBe(201)
+    expect(reviewed.plan.budget.maxCharacters).toBe(10000)
+    expect((await snapshot()).batchSize).toBe(200)
+    expect((await snapshot()).maxLines).toBe(5000)
+    expect(await (await request('/plan', { ...input, budget: { ...budget, maxCharacters: reviewed.plan.summary.characters - 1 } })).json()).toEqual({ error: 'AUDIO_JOB_CHARACTER_LIMIT' })
+    await enqueue(reviewed)
+    expect((await snapshot()).jobs).toHaveLength(1)
+    expect((await snapshot()).jobs[0]!.tasks).toHaveLength(201)
+    expect(fixture.calls).toHaveLength(0)
+    expect(await (await request('/plan', { ...input, lineIds: [...ids, editorJobLineIds[0]] })).json()).toEqual({ error: 'ADV_AUDIO_JOB_CHAPTER_CHANGED' })
+    expect(await (await request('/plan', { ...input, lineIds: Array.from({ length: 5001 }, (_, index) => `line-${index}`) })).json()).toEqual({ error: 'ADV_AUDIO_JOB_INPUT_INVALID' })
+  }, 30_000)
+
   it('runs through the actual local workspace and registry, preserves narrator identity and registers unselected immutable takes', async () => {
     const adapter = createLocalBridgeAdapter({ origin, token: bridge.token })
     const workspace = createLocalProjectWorkspace(adapter)

@@ -24,6 +24,7 @@
     "@shikijs/vitepress-twoslash": "catalog:",
     "@yunyoujun/docs": "catalog:",
     "mermaid": "catalog:",
+    "shiki": "catalog:",
     "typedoc-plugin-markdown": "catalog:",
     "typedoc-plugin-merge-modules": "catalog:docs",
     "typedoc-vitepress-theme": "catalog:",

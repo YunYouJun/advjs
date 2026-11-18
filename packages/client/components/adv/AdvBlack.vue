@@ -13,6 +13,7 @@ const fontSizeClass = computed(() => `text-${settings.storage.text.curFontSize}`
 
 interface Sentence {
   text: string
+  start: number
   started: boolean
   run: number
 }
@@ -24,6 +25,19 @@ let run = 0
 const printed = shallowRef(false)
 const typeInterval = 50
 const timers = new Set<ReturnType<typeof setTimeout>>()
+
+function sentenceHighlight(sentence: Sentence) {
+  const highlight = $adv.$audio?.voiceHighlight?.value
+  if (!highlight || highlight.lineId !== props.node.data?.lineId || highlight.text !== props.node.data?.text)
+    return undefined
+  const unit = highlight.unit
+  return { text: sentence.text, ...(unit && unit.start >= sentence.start && unit.end <= sentence.start + sentence.text.length ? { unit: { start: unit.start - sentence.start, end: unit.end - sentence.start } } : {}) }
+}
+
+watch(() => $adv.$audio?.voiceHighlight?.value, (highlight) => {
+  if (highlight?.lineId === props.node.data?.lineId && highlight?.text === props.node.data?.text && highlight?.unit)
+    displaySentences.value = displaySentences.value.map(sentence => sentence.start < highlight.unit!.end ? { ...sentence, started: true } : sentence)
+})
 
 function sentences(): string[] {
   const text = props.node.data?.text
@@ -53,7 +67,12 @@ function playSentencesAnimation() {
   printed.value = false
   revealAll.value = false
   const values = sentences()
-  displaySentences.value = values.map(text => ({ text, started: false, run }))
+  let offset = 0
+  displaySentences.value = values.map((text) => {
+    const sentence = { text, start: offset, started: false, run }
+    offset += text.length + 1
+    return sentence
+  })
   if (!values.length) {
     printed.value = true
     $adv.$auto.notifyPrintDone()
@@ -108,6 +127,7 @@ watch(() => props.node, playSentencesAnimation)
           :type-interval="typeInterval"
           m="2"
           :words="item.text"
+          :highlight="sentenceHighlight(item)"
           @end="finishSentence(index, item.run)"
         />
         <div v-else class="print-words" m="2" />

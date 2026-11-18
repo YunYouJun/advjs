@@ -1,6 +1,6 @@
 import type { AudioBackend, AudioEngine } from '@advjs/audio'
-import type { AdvGameConfig, AudioUserSettings, RuntimeEffect, RuntimeState } from '@advjs/types'
-import { createAudioEngine, normalizeAudioLocale, parseAudioUserSettings, resolveVoiceTake } from '@advjs/audio'
+import type { AdvGameConfig, AudioUserSettings, RuntimeEffect, RuntimeState, VoiceAlignment, VoiceAlignmentUnit } from '@advjs/types'
+import { createAudioEngine, normalizeAudioLocale, parseAudioUserSettings, parseVoiceAlignment, resolveVoiceTake, voiceAlignmentUnitAt } from '@advjs/audio'
 import { readonly, shallowRef } from 'vue'
 import { createBrowserAudioBackend, getBrowserAudioCapabilities, resolveBrowserAudioAsset } from '../audio'
 
@@ -18,6 +18,27 @@ export function useAdvAudio(options: {
   let voiceGeneration = 0
   let effectGeneration = 0
   const voicePlaying = shallowRef(false)
+  const voiceHighlight = shallowRef<{ lineId: string, text: string, unit?: VoiceAlignmentUnit }>()
+  let highlightFrame: number | undefined
+  function clearHighlight() {
+    if (highlightFrame !== undefined)
+      cancelAnimationFrame(highlightFrame)
+    highlightFrame = undefined
+    voiceHighlight.value = undefined
+  }
+  function followVoice(alignment: VoiceAlignment, lineId: string, generation: number) {
+    clearHighlight()
+    const tick = () => {
+      if (disposed || generation !== voiceGeneration || !engine?.inspect().voice) {
+        clearHighlight()
+        return
+      }
+      const seconds = engine.voicePosition?.()
+      voiceHighlight.value = { lineId, text: alignment.text, unit: seconds === undefined ? undefined : voiceAlignmentUnitAt(alignment, seconds) }
+      highlightFrame = requestAnimationFrame(tick)
+    }
+    tick()
+  }
   const isMuted = shallowRef(false)
   const musicMuted = shallowRef(false)
   const locale = shallowRef<string>()
@@ -77,6 +98,7 @@ export function useAdvAudio(options: {
       })
       engine.onVoiceEnded(() => {
         voicePlaying.value = false
+        clearHighlight()
       })
       isMuted.value = engine.inspect().buses.master.muted
       musicMuted.value = engine.inspect().buses.music.muted
@@ -85,6 +107,7 @@ export function useAdvAudio(options: {
   }
 
   function stopVoice() {
+    clearHighlight()
     cancelPrefetch()
     voiceGeneration += 1
     voicePlaying.value = false
@@ -166,6 +189,14 @@ export function useAdvAudio(options: {
         options.onDiagnostic?.('ADV_AUDIO_VOICE_STALE', warning.message)
       voicePlaying.value = true
       await audio.playVoice({ assetId: resolution.take.assetId, lineId: dialogue.lineId, locale: language })
+      if (generation === voiceGeneration && resolution.take.alignment && resolution.take.alignment.text === dialogue.text) {
+        try {
+          followVoice(parseVoiceAlignment(resolution.take.alignment, { text: dialogue.text, sha256: resolution.take.sha256 }), dialogue.lineId, generation)
+        }
+        catch {
+          options.onDiagnostic?.('ADV_AUDIO_ALIGNMENT_INVALID', 'Voice timing does not match the current dialogue and audio')
+        }
+      }
       if (generation === voiceGeneration && !audio.inspect().voice)
         voicePlaying.value = false
     }
@@ -176,6 +207,7 @@ export function useAdvAudio(options: {
 
   return {
     voicePlaying: readonly(voicePlaying),
+    voiceHighlight: readonly(voiceHighlight),
     isMuted: readonly(isMuted),
     musicMuted: readonly(musicMuted),
     locale: readonly(locale),

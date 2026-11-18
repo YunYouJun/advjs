@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ThemeSourceId } from '../../utils/theme-authoring'
+import AGUIFormItem from '@advjs/gui/client/components/form/AGUIFormItem.vue'
 import { useThemeAuthoring } from '../../composables/useThemeAuthoring'
 
 const open = defineModel<boolean>('open', { default: false })
@@ -25,8 +26,9 @@ watch(open, () => authoring.error.value = '')
         {{ authoring.source.value.exists ? (zh ? '编辑代码' : 'Edit code') : (zh ? '创建覆盖并编辑' : 'Create override and edit') }}
       </AGUIButton>
       <div class="theme-ai-context">
-        <label for="theme-edit-request">{{ zh ? '给 AI 的修改需求' : 'Changes to request from AI' }}</label>
-        <AGUITextarea id="theme-edit-request" v-model="authoring.request.value" :rows="3" :placeholder="zh ? '例如：把菜单移到左侧，使用暖金色，并保留窄屏布局。' : 'For example: move the menu left, use warm gold, and preserve narrow layouts.'" />
+        <AGUIFormItem for="theme-edit-request" :label="zh ? '给 AI 的修改需求' : 'Changes to request from AI'" label-align="top">
+          <AGUITextarea id="theme-edit-request" v-model="authoring.request.value" :rows="3" :placeholder="zh ? '例如：把菜单移到左侧，使用暖金色，并保留窄屏布局。' : 'For example: move the menu left, use warm gold, and preserve narrow layouts.'" />
+        </AGUIFormItem>
         <AGUIButton @click="authoring.copyForAi">
           {{ authoring.copied.value ? (zh ? '已复制' : 'Copied') : (zh ? '复制主题上下文给 AI' : 'Copy theme context for AI') }}
         </AGUIButton>

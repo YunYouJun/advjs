@@ -55,19 +55,20 @@ The MCP Server runs in your project directory and exposes your game content (wor
 
 Resources are read-only data the AI can access:
 
-| URI                      | Description                                                  |
-| ------------------------ | ------------------------------------------------------------ |
-| `adv://project/overview` | Combined world.md + outline.md summary                       |
-| `adv://world`            | World bible (world.md)                                       |
-| `adv://outline`          | Story outline (outline.md)                                   |
-| `adv://glossary`         | Terminology glossary (glossary.md)                           |
-| `adv://characters`       | Characters overview (characters/README.md)                   |
-| `adv://characters/{id}`  | Individual character card (e.g. `adv://characters/aria`)     |
-| `adv://chapters`         | Chapters overview (chapters/README.md)                       |
-| `adv://chapters/{id}`    | Individual chapter script (e.g. `adv://chapters/chapter_01`) |
-| `adv://scenes`           | Scenes overview (scenes/README.md)                           |
-| `adv://branches/{id}`    | Branch graph (nodes + edges) for a chapter, as JSON          |
-| `adv://coverage/{id}`    | Branch coverage report for a chapter, as JSON                |
+| URI                      | Description                                                                             |
+| ------------------------ | --------------------------------------------------------------------------------------- |
+| `adv://project/overview` | Combined world.md + outline.md summary                                                  |
+| `adv://world`            | World bible (world.md)                                                                  |
+| `adv://outline`          | Story outline (outline.md)                                                              |
+| `adv://glossary`         | Terminology glossary (glossary.md)                                                      |
+| `adv://characters`       | Characters overview (characters/README.md)                                              |
+| `adv://characters/{id}`  | Individual character card (e.g. `adv://characters/aria`)                                |
+| `adv://chapters`         | Chapters overview (chapters/README.md)                                                  |
+| `adv://chapters/{id}`    | Individual chapter script (e.g. `adv://chapters/chapter_01`)                            |
+| `adv://scenes`           | Scenes overview (scenes/README.md)                                                      |
+| `adv://branches/{id}`    | Branch graph (nodes + edges) for a chapter, as JSON                                     |
+| `adv://coverage/{id}`    | Branch coverage report for a chapter, as JSON                                           |
+| `adv://theme`            | Game UI token contract, contrast pairs, presets and this project's theme state, as JSON |
 
 ### Reading a Character
 
@@ -94,6 +95,19 @@ Validates the project: checks script syntax, character reference consistency, an
 Use the structured MCP result as the source of truth. For CLI automation, run
 `adv check --json`; its success and failure envelopes are validated against the
 frozen [CLI Output v1 Schema](https://github.com/YunYouJun/advjs/blob/dev/tests/launch/contracts/cli-output.schema.json).
+
+Theme problems in `theme.config.*` appear as `ADV_THEME_*` diagnostics (unknown tokens, missing units, WCAG contrast).
+
+### `adv_theme_screenshot`
+
+Renders the title screen, a dialogue line, the first choice menu, the backlog, the save screen and long-text stress frames at desktop (1280×720) and narrow (390×844) viewports, writes PNGs to `.adv/theme-screenshots/`, and returns JPEG previews so the agent can review the theme. Requires Playwright with Chromium in the project.
+
+**Parameters:**
+
+- `url` (optional): Screenshot a running game instead of starting a preview server
+- `viewports` (optional): Such as `["desktop=1280x720", "390x844"]`
+- `colorScheme` (optional): Host preference to emulate, `light` or `dark`
+- `images` (default `true`): Return image previews in the result
 
 ## Prompts
 

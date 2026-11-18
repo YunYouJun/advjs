@@ -51,21 +51,24 @@ const classes = computed(() => {
   --button-pressed: var(--agui-c-control-pressed);
   --button-text: var(--agui-c-text-1);
   --button-border: var(--agui-c-button-border);
-  --border-radius: 2px;
+  --button-focus: var(--agui-c-focus);
+  --border-radius: var(--agui-radius-sm);
 
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: var(--agui-control-gap);
   flex-shrink: 0;
   min-height: var(--agui-control-height);
   min-width: var(--agui-control-height);
-  padding: 2px 6px;
-  font-family: inherit;
-  font-size: 12px;
+  max-width: 100%;
+  padding: 2px var(--agui-control-padding-x);
+  font-family: var(--agui-font-family-ui);
+  font-size: var(--agui-font-size-body);
   font-weight: 400;
-  line-height: 16px;
+  line-height: var(--agui-control-line-height);
+  overflow-wrap: anywhere;
   appearance: none;
   background: var(--button-bg);
   color: var(--button-text);
@@ -73,11 +76,13 @@ const classes = computed(() => {
   border: 1px solid var(--button-border);
   border-radius: var(--border-radius);
   transition:
-    background-color 150ms ease,
-    border-color 150ms ease;
+    background-color var(--agui-motion-duration) var(--agui-motion-ease),
+    border-color var(--agui-motion-duration) var(--agui-motion-ease);
 
   .agui-button-icon {
     flex-shrink: 0;
+    width: var(--agui-icon-size);
+    height: var(--agui-icon-size);
   }
 
   &[data-location='LEFT'] {
@@ -96,15 +101,14 @@ const classes = computed(() => {
     background: var(--button-pressed);
   }
   &:focus-visible {
-    outline: 2px solid var(--agui-c-focus);
-    outline-offset: -2px;
+    outline: var(--agui-focus-width) solid var(--button-focus);
+    outline-offset: var(--agui-focus-offset);
   }
   &.mini {
     font-size: 11px;
   }
   &.large {
-    min-height: 28px;
-    padding-inline: 8px;
+    min-height: var(--agui-control-height-lg);
   }
 
   &.theme-primary {
@@ -113,6 +117,7 @@ const classes = computed(() => {
     --button-pressed: var(--agui-c-primary-pressed);
     --button-text: var(--agui-c-on-accent);
     --button-border: var(--agui-c-primary);
+    --button-focus: var(--agui-c-on-accent);
   }
   &.theme-danger {
     --button-bg: var(--agui-c-danger);
@@ -120,16 +125,19 @@ const classes = computed(() => {
     --button-pressed: var(--agui-c-danger-pressed);
     --button-text: var(--agui-c-on-accent);
     --button-border: var(--agui-c-danger);
+    --button-focus: var(--agui-c-on-accent);
   }
   &.variant-outline,
   &.variant-text {
+    --button-focus: var(--agui-c-focus);
+
     background: transparent;
     color: var(--agui-c-text-1);
     &:hover:not(:disabled) {
-      background: var(--agui-c-bg-hover);
+      background: var(--agui-c-icon-hover);
     }
     &:active:not(:disabled) {
-      background: var(--agui-c-control-pressed);
+      background: var(--agui-c-icon-pressed);
     }
     &.theme-primary {
       color: var(--agui-c-link);

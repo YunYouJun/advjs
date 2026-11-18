@@ -2,7 +2,7 @@
   "name": "@advjs/ai",
   "type": "module",
   "version": "0.1.1",
-  "description": "AI module for AdvJS",
+  "description": "AI for ADV.JS: a browser-safe chat client and story session, plus Node workflows under @advjs/ai/node",
   "author": {
     "name": "YunYouJun"
   },
@@ -15,7 +15,14 @@
     "hunyuan"
   ],
   "exports": {
-    ".": "./dist/index.mjs",
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    },
+    "./node": {
+      "types": "./dist/node.d.mts",
+      "default": "./dist/node.mjs"
+    },
     "./package.json": "./package.json"
   },
   "main": "./dist/index.mjs",

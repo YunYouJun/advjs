@@ -142,22 +142,24 @@ const vNumberDrag = numberDrag({
 
 <style lang="scss">
 .agui-numeric-control {
+  font-family: var(--agui-font-family-ui);
   position: relative;
   box-sizing: border-box;
   min-width: 0;
   height: var(--agui-control-height);
   color: var(--agui-c-text-1);
   background: var(--agui-c-field);
-  border: 1px solid var(--agui-c-control-border);
-  border-radius: 2px;
+  border: 1px solid var(--agui-c-field-border);
+  border-radius: var(--agui-radius-sm);
   font-size: 12px;
   font-variant-numeric: tabular-nums;
+  transition: border-color var(--agui-motion-duration) var(--agui-motion-ease);
   &:hover:not(.is-disabled) {
-    border-color: var(--agui-c-text-2);
+    border-color: var(--agui-c-field-border-hover);
   }
   &:focus-within {
-    outline: 2px solid var(--agui-c-focus);
-    outline-offset: -2px;
+    outline: var(--agui-focus-width) solid var(--agui-c-focus);
+    outline-offset: var(--agui-focus-offset);
   }
   &.is-disabled {
     opacity: 0.5;
@@ -193,7 +195,7 @@ const vNumberDrag = numberDrag({
     }
   }
   &.is-slider .agui-numeric-input {
-    padding: 0 6px;
+    padding: 0 var(--agui-control-padding-x);
     text-align: right;
   }
   &.focused .agui-numeric-input {
@@ -218,7 +220,7 @@ const vNumberDrag = numberDrag({
   .agui-numeric-title {
     position: absolute;
     inset-block: 0;
-    left: 6px;
+    left: var(--agui-control-padding-x);
     display: flex;
     align-items: center;
     max-width: 55%;
@@ -232,7 +234,7 @@ const vNumberDrag = numberDrag({
     width: 24px;
     padding: 0;
     border: 0;
-    border-radius: 2px;
+    border-radius: var(--agui-radius-sm);
     background: transparent;
     color: inherit;
     font: inherit;

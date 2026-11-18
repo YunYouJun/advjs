@@ -1,0 +1,70 @@
+// Docs pages share the home page's two type voices, kept quiet enough for reading.
+
+::selection {
+  background: rgba(37, 149, 233, 0.24);
+}
+
+// Site title in the engine voice
+.VPNavBarTitle .title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+// Page and section titles in the story voice.
+.vp-doc h1,
+.vp-doc h2 {
+  font-family: var(--adv-font-story);
+  letter-spacing: 0.02em;
+}
+
+.vp-doc h1 {
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1.3;
+}
+
+// Section rule starts in brand blue, like the top line of a dialogue box.
+.vp-doc h2 {
+  position: relative;
+  padding-top: 28px;
+  border-top: 0;
+  font-size: 25px;
+  font-weight: 700;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, var(--vp-c-brand-3), var(--vp-c-divider) 18%);
+  }
+}
+
+// Custom containers: a coloured edge instead of a flat tint
+.vp-doc .custom-block {
+  border-width: 0 0 0 3px;
+  border-radius: 4px 12px 12px 4px;
+}
+
+.vp-doc .custom-block.tip {
+  border-color: var(--vp-c-brand-3);
+}
+
+.vp-doc .custom-block.warning {
+  border-color: var(--vp-c-warning-3);
+}
+
+.vp-doc .custom-block.danger {
+  border-color: var(--vp-c-danger-3);
+}
+
+.vp-doc .custom-block.info {
+  border-color: var(--vp-c-default-3);
+}
+
+.vp-doc .custom-block-title {
+  letter-spacing: 0.04em;
+}

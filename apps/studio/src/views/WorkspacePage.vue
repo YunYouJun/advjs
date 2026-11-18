@@ -6,6 +6,7 @@ import {
   actionSheetController,
   alertController,
   IonButton,
+  IonButtons,
   IonContent,
   IonHeader,
   IonIcon,
@@ -22,27 +23,32 @@ import {
   IonToolbar,
   toastController,
 } from '@ionic/vue'
-import { addOutline, cloudDownloadOutline, cloudUploadOutline, downloadOutline, folderOpenOutline, libraryOutline, linkOutline, rocketOutline, saveOutline, storefrontOutline, trashOutline } from 'ionicons/icons'
+import { addOutline, cloudDownloadOutline, cloudUploadOutline, downloadOutline, folderOpenOutline, libraryOutline, linkOutline, rocketOutline, storefrontOutline, trashOutline } from 'ionicons/icons'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import LayoutPage from '../components/common/LayoutPage.vue'
 import CreateProjectModal from '../components/CreateProjectModal.vue'
-import FilePreview from '../components/FilePreview.vue'
 import MobileFileTree from '../components/MobileFileTree.vue'
 import ProjectOverview from '../components/ProjectOverview.vue'
 import ProjectSwitcher from '../components/ProjectSwitcher.vue'
+import WorkspaceFileRecovery from '../components/workspace/WorkspaceFileRecovery.vue'
+import WorkspaceTextPreview from '../components/workspace/WorkspaceTextPreview.vue'
 import WorkspaceReconnect from '../components/WorkspaceReconnect.vue'
 import { useContestDemos } from '../composables/useContestDemos'
-import { useFileChanges } from '../composables/useFileChanges'
+import { useProjectContent } from '../composables/useProjectContent'
 import { importProject } from '../composables/useProjectExport'
 import { useResponsive } from '../composables/useResponsive'
+import { useWorkspaceFileMutations } from '../composables/useWorkspaceFileMutations'
+import { useWorkspaceFileTransfers } from '../composables/useWorkspaceFileTransfers'
+import { useWorkspaceTextEditor } from '../composables/useWorkspaceTextEditor'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { listCloudFiles, uploadProjectToCloud } from '../utils/cloudSync'
 import { restoreAndVerifyHandle } from '../utils/dirHandleStore'
 import { createFileSystem, detectAdvProject, openProjectDirectory, supportsFileSystemAccess } from '../utils/fs'
 import { BrowserFsAdapter } from '../utils/fs/BrowserFsAdapter'
+import { isStudioContentConflict } from '../utils/projectContentMutation'
 import { createProjectFromTemplate, quickStartTemplate } from '../utils/projectTemplate'
 import { toSlug } from '../utils/slug'
 
@@ -52,7 +58,39 @@ const { t } = useI18n()
 const router = useRouter()
 const studioStore = useStudioStore()
 const settingsStore = useSettingsStore()
-const { hasChange, getChange } = useFileChanges()
+const projectContent = useProjectContent()
+function getFileScope() {
+  const project = studioStore.currentProject
+  const fs = projectContent.getFs()
+  return project?.dirHandle && fs instanceof BrowserFsAdapter && fs.dirHandle === project.dirHandle
+    ? { projectId: project.projectId, root: project.dirHandle, fs }
+    : null
+}
+const fileEditor = useWorkspaceTextEditor(getFileScope)
+const fileMutations = useWorkspaceFileMutations(getFileScope, fileEditor, projectContent.reload, refreshWorkspaceFiles)
+const transferFiles = useWorkspaceFileTransfers({
+  getScope: getFileScope,
+  draftPaths: fileEditor.draftPaths,
+  prepareRelocation: fileEditor.prepareRelocation,
+  async onFailure(error) {
+    const message = error instanceof Error ? error.message : String(error)
+    const recovery = message.startsWith('ADV_STUDIO_TRANSFER_RECOVERY_REQUIRED: ')
+    const toast = await toastController.create({
+      message: t(recovery ? 'workspace.fileTransferRecovery' : /CONFLICT|SCOPE_CHANGED|OVERLAP/.test(message) ? 'workspace.fileTransferConflict' : 'workspace.fileTransferFailed', { paths: recovery ? message.slice('ADV_STUDIO_TRANSFER_RECOVERY_REQUIRED: '.length) : '' }),
+      duration: recovery ? 10000 : 5000,
+      position: 'top',
+      color: 'warning',
+    })
+    await toast.present()
+  },
+})
+const fileError = computed(() => {
+  const error = fileEditor.error.value
+  if (!error)
+    return ''
+  return t(/^ADV_STUDIO_CONTENT_(?:PATH_INVALID|NOT_TEXT)$/.test(error) ? 'workspace.textFilesOnly' : isStudioContentConflict(new Error(error)) ? 'workspace.sourceChanged' : 'workspace.fileOperationFailed')
+})
+let fileOpenEpoch = 0
 const { isDesktop } = useResponsive()
 const TRAILING_SLASH_RE = /\/$/
 
@@ -63,20 +101,22 @@ const workspaceSegment = ref<'files' | 'overview'>('overview')
 
 // Workspace state
 const selectedFile = ref<FSFileItem | null>(null)
-const fileContent = ref('')
-const fileOriginalContent = ref<string | undefined>(undefined)
 const isMobilePreviewOpen = ref(false)
 
 // AGUI Explorer state
 const rootDir = ref<FSDirItem>()
 const curDir = ref<FSDirItem>()
 
+function refreshWorkspaceFiles() {
+  const project = studioStore.currentProject
+  if (project?.dirHandle) {
+    curDir.value = undefined
+    rootDir.value = getDirItemFromHandle(project.dirHandle)
+  }
+}
+
 // Responsive — use composable instead of manual resize listener
 const isMobile = computed(() => !isDesktop.value)
-
-// Edit state
-const isDirty = ref(false)
-const editedContent = ref('')
 
 // QuickStart inline state
 const isQuickStarting = ref(false)
@@ -210,40 +250,40 @@ onMounted(async () => {
   }
 })
 
-// Initialize rootDir from current project's dirHandle
+// Use the same loaded adapter, mutation notifications and write queue as authoring tools.
 watch(() => studioStore.currentProject, async (project) => {
-  // Reset file preview when project changes
+  const token = ++fileOpenEpoch
+  fileEditor.reset()
   selectedFile.value = null
-  fileContent.value = ''
-  fileOriginalContent.value = undefined
-
-  if (project?.dirHandle) {
-    rootDir.value = getDirItemFromHandle(project.dirHandle)
-
-    // Auto-load README.md as default preview
-    const fs = await createFileSystem({ dirHandle: project.dirHandle })
-    await autoLoadReadme(fs)
-  }
-  else {
-    rootDir.value = undefined
-    curDir.value = undefined
-  }
-}, { immediate: true })
-
-/** Try to load README.md (or world.md) as default preview content */
-async function autoLoadReadme(fs: import('../utils/fs').IFileSystem) {
-  const candidates = ['README.md', 'readme.md', 'adv/world.md']
-  for (const name of candidates) {
+  isMobilePreviewOpen.value = false
+  curDir.value = undefined
+  rootDir.value = project?.dirHandle ? getDirItemFromHandle(project.dirHandle) : undefined
+  if (!project?.dirHandle)
+    return
+  await projectContent.whenReady()
+  if (token !== fileOpenEpoch || studioStore.currentProject !== project)
+    return
+  const fs = projectContent.getFs()
+  if (!fs)
+    return
+  for (const path of ['README.md', 'readme.md', 'adv/world.md']) {
     try {
-      fileContent.value = await fs.readFile(name)
-      selectedFile.value = { name, kind: 'file' } as FSFileItem
+      const exists = await fs.exists(path)
+      if (token !== fileOpenEpoch)
+        return
+      if (!exists)
+        continue
+      if (await fileEditor.open(path) && token === fileOpenEpoch)
+        selectedFile.value = { name: path, kind: 'file' }
       return
     }
     catch {
-      // file not found, try next
+      // An unknown read must not open an empty editable document.
+      return
     }
   }
-}
+}, { immediate: true })
+
 const hasProject = computed(() => !!studioStore.currentProject || studioStore.isRestoring)
 
 function normalizeCosPrefix(projectRoot: string, projectName: string): string {
@@ -660,112 +700,68 @@ async function handleReconnectDir() {
   }
 }
 
-// Workspace file handling
-async function handleFileDblClick(item: FSFileItem) {
-  selectedFile.value = item
-  fileOriginalContent.value = undefined
-  isDirty.value = false
-  editedContent.value = ''
-
+// Native handles identify a path; all reads and writes go through the shared adapter.
+async function openWorkspaceFile(item: FSFileItem, mobile = false) {
+  const token = ++fileOpenEpoch
   const project = studioStore.currentProject
   if (!project?.dirHandle || !item.handle)
     return
-
   try {
-    const file = await item.handle.getFile()
-    const content = await file.text()
-    fileContent.value = content
-    editedContent.value = content
-
-    // Check for changes (from AI chat modifications)
-    const filePath = item.name
-    if (hasChange(filePath)) {
-      const change = getChange(filePath)
-      if (change)
-        fileOriginalContent.value = change.originalContent
-    }
-
-    // On mobile, open modal
-    if (window.innerWidth < 768)
-      isMobilePreviewOpen.value = true
+    const parts = await project.dirHandle.resolve(item.handle)
+    if (token !== fileOpenEpoch || studioStore.currentProject !== project)
+      return
+    if (!parts?.length)
+      throw new Error('ADV_STUDIO_CONTENT_PATH_INVALID')
+    await projectContent.whenReady()
+    if (token !== fileOpenEpoch || studioStore.currentProject !== project)
+      return
+    selectedFile.value = item
+    isMobilePreviewOpen.value = mobile || window.innerWidth < 768
+    await fileEditor.open(parts.join('/'))
   }
   catch {
-    fileContent.value = ''
-    const toast = await toastController.create({
-      message: t('preview.readError'),
-      duration: 2000,
-      position: 'top',
-      color: 'danger',
-    })
+    if (token !== fileOpenEpoch)
+      return
+    const toast = await toastController.create({ message: t('preview.readError'), duration: 2000, position: 'top', color: 'danger' })
     await toast.present()
   }
 }
-
-/** Handle file selection from MobileFileTree (single click opens file) */
-async function handleMobileFileSelect(item: FSFileItem) {
-  selectedFile.value = item
-  fileOriginalContent.value = undefined
-  isDirty.value = false
-  editedContent.value = ''
-
-  if (!item.handle)
-    return
-
-  try {
-    const file = await item.handle.getFile()
-    const content = await file.text()
-    fileContent.value = content
-    editedContent.value = content
-    isMobilePreviewOpen.value = true
-  }
-  catch {
-    fileContent.value = ''
-    const toast = await toastController.create({
-      message: t('preview.readError'),
-      duration: 2000,
-      position: 'top',
-      color: 'danger',
-    })
-    await toast.present()
-  }
+function handleFileDblClick(item: FSFileItem) {
+  return openWorkspaceFile(item)
 }
-
-/** Track content changes from editor */
-function handleContentUpdate(value: string) {
-  editedContent.value = value
-  isDirty.value = value !== fileContent.value
+function handleMobileFileSelect(item: FSFileItem) {
+  return openWorkspaceFile(item, true)
 }
-
-/** Save edited file content back to disk via File System Access API */
 async function handleSaveFile() {
-  if (!selectedFile.value?.handle || !isDirty.value)
+  if (!fileEditor.isDirty.value || fileEditor.isSaving.value)
     return
-
-  try {
-    const handle = selectedFile.value.handle as FileSystemFileHandle
-    const writable = await (handle as any).createWritable()
-    await writable.write(editedContent.value)
-    await writable.close()
-
-    // Update baseline content
-    fileContent.value = editedContent.value
-    isDirty.value = false
-
-    const toast = await toastController.create({
-      message: t('workspace.saved'),
-      duration: 1500,
-      position: 'top',
-      color: 'success',
+  const project = studioStore.currentProject
+  const path = fileEditor.path.value
+  const result = await fileEditor.save()
+  if (studioStore.currentProject !== project || fileEditor.path.value !== path)
+    return
+  const toast = await toastController.create({
+    message: t(result.success ? result.newerDraft ? 'workspace.savedWithNewerDraft' : 'workspace.saved' : result.conflict ? 'workspace.sourceChanged' : 'workspace.saveFailed'),
+    duration: result.success ? 1500 : 3000,
+    position: 'top',
+    color: result.success ? 'success' : 'danger',
+  })
+  await toast.present()
+}
+async function handleReloadFile() {
+  const ticket = fileEditor.captureReload()
+  if (fileEditor.isDirty.value) {
+    const alert = await alertController.create({
+      header: t('workspace.reloadSaved'),
+      message: t('workspace.reloadDiscardDraft'),
+      buttons: [{ text: t('common.cancel'), role: 'cancel' }, { text: t('workspace.reloadSaved'), role: 'destructive' }],
     })
-    await toast.present()
+    await alert.present()
+    if ((await alert.onDidDismiss()).role !== 'destructive')
+      return
   }
-  catch {
-    const toast = await toastController.create({
-      message: t('workspace.saveFailed'),
-      duration: 2000,
-      position: 'top',
-      color: 'danger',
-    })
+  if (!await fileEditor.reload(ticket)) {
+    const toast = await toastController.create({ message: t('workspace.reloadScopeChanged'), duration: 2500, color: 'warning', position: 'top' })
     await toast.present()
   }
 }
@@ -917,6 +913,12 @@ function getFileIconClass(name: string): string {
         </IonSegment>
       </div>
 
+      <WorkspaceFileRecovery
+        :records="fileMutations.records.value" :busy="fileMutations.busy.value" :error="fileMutations.error.value"
+        @restore="fileMutations.recover($event, 'restore')" @keep="fileMutations.recover($event, 'keep')"
+        @download="fileMutations.download" @retry="fileMutations.retry"
+      />
+
       <!-- Overview view -->
       <ProjectOverview v-if="workspaceSegment === 'overview'" />
 
@@ -942,26 +944,25 @@ function getFileIconClass(name: string): string {
               v-model:root-dir="rootDir"
               v-model:cur-dir="curDir"
               :on-file-dbl-click="handleFileDblClick"
+              :on-transfer="transferFiles"
+              :on-mutation="fileMutations.perform"
             />
             <!-- No dirHandle: URL/COS project or handle lost -->
             <WorkspaceReconnect v-else @reconnect="handleReconnectDir" />
           </div>
           <div class="workspace-preview">
-            <div v-if="isDirty" class="workspace-preview__toolbar">
-              <span class="workspace-preview__dirty">{{ t('workspace.modified') }}</span>
-              <IonButton size="small" fill="clear" @click="handleSaveFile">
-                <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-                <IonIcon slot="start" :icon="saveOutline" />
-                {{ t('workspace.save') }}
-              </IonButton>
-            </div>
-            <FilePreview
-              :content="fileContent"
-              :original-content="fileOriginalContent"
-              :filename="selectedFile?.name || ''"
-              :readonly="false"
-              @update:content="handleContentUpdate"
+            <WorkspaceTextPreview
+              :path="fileEditor.path.value"
+              :content="fileEditor.content.value"
+              :ready="fileEditor.isReady.value"
+              :dirty="fileEditor.isDirty.value"
+              :saving="fileEditor.isSaving.value"
+              :loading="fileEditor.isLoading.value"
+              :error="fileError"
+              :retryable="!/^ADV_STUDIO_CONTENT_(?:PATH_INVALID|NOT_TEXT)$/.test(fileEditor.error.value)"
+              @update:content="fileEditor.update($event)"
               @save="handleSaveFile"
+              @reload="handleReloadFile"
             />
           </div>
         </div>
@@ -973,32 +974,33 @@ function getFileIconClass(name: string): string {
         >
           <IonHeader>
             <IonToolbar>
-              <IonTitle>
+              <IonTitle class="modal-preview-title">
                 <span v-if="selectedFile" class="modal-title-with-icon">
                   <span class="modal-file-icon" :class="getFileIconClass(selectedFile.name)" />
-                  {{ selectedFile.name }}
+                  <span class="modal-file-name" :title="selectedFile.name">{{ selectedFile.name }}</span>
                 </span>
               </IonTitle>
               <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-              <div slot="end" class="modal-toolbar-actions">
-                <IonButton v-if="isDirty" fill="clear" size="small" @click="handleSaveFile">
-                  <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-                  <IonIcon slot="icon-only" :icon="saveOutline" />
-                </IonButton>
+              <IonButtons slot="end" class="modal-toolbar-actions">
                 <IonButton fill="clear" @click="isMobilePreviewOpen = false">
                   {{ t('common.ok') }}
                 </IonButton>
-              </div>
+              </IonButtons>
             </IonToolbar>
           </IonHeader>
           <IonContent>
-            <FilePreview
-              :content="fileContent"
-              :original-content="fileOriginalContent"
-              :filename="selectedFile?.name || ''"
-              :readonly="false"
-              @update:content="handleContentUpdate"
+            <WorkspaceTextPreview
+              :path="fileEditor.path.value"
+              :content="fileEditor.content.value"
+              :ready="fileEditor.isReady.value"
+              :dirty="fileEditor.isDirty.value"
+              :saving="fileEditor.isSaving.value"
+              :loading="fileEditor.isLoading.value"
+              :error="fileError"
+              :retryable="!/^ADV_STUDIO_CONTENT_(?:PATH_INVALID|NOT_TEXT)$/.test(fileEditor.error.value)"
+              @update:content="fileEditor.update($event)"
               @save="handleSaveFile"
+              @reload="handleReloadFile"
             />
           </IonContent>
         </IonModal>
@@ -1269,21 +1271,6 @@ function getFileIconClass(name: string): string {
   flex-direction: column;
 }
 
-.workspace-preview__toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--adv-space-sm);
-  padding: 4px var(--adv-space-sm);
-  border-bottom: 1px solid var(--adv-border-subtle);
-}
-
-.workspace-preview__dirty {
-  font-size: var(--adv-font-caption);
-  color: var(--ion-color-warning);
-  font-weight: 500;
-}
-
 .modal-toolbar-actions {
   display: flex;
   align-items: center;
@@ -1291,10 +1278,25 @@ function getFileIconClass(name: string): string {
 
 /* No mobile CSS hacks needed — isMobile ref controls which component renders */
 
+.modal-preview-title {
+  position: static;
+  width: auto;
+  min-width: 0;
+}
+
 .modal-title-with-icon {
-  display: inline-flex;
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
   align-items: center;
   gap: 6px;
+}
+
+.modal-file-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .modal-file-icon {

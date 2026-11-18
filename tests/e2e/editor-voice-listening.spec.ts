@@ -40,7 +40,7 @@ test('daily A/B and lazy advanced review use verified native audio, private port
   await panel.getByTestId('compare-play-a').click()
   const daily = panel.locator('audio')
   await expect(daily).toHaveCount(1)
-  await daily.click({ position: { x: 18, y: 16 } })
+  await panel.getByRole('button', { name: '播放对白配音试听', exact: true }).click()
   await expect.poll(() => daily.evaluate(audio => !(audio as HTMLAudioElement).paused)).toBe(true)
   await panel.getByTestId('compare-play-b').click()
   await expect(daily).toHaveCount(1)

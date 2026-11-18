@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "purpose": "Independent authored defect and false-positive corpus for source-grounded author review; model output and author decisions are explicit fixtures, not model-quality evidence",
+  "cases": [
+    {
+      "id": "world-rule",
+      "basisPath": "adv/world.md",
+      "basisLine": 2,
+      "basisText": "科技水平与当代相同，不存在超能力。",
+      "statement": "林舟没有借助设备，瞬移穿过封闭的站台。",
+      "expected": "人物不能在这个世界使用超能力。",
+      "actual": "正文直接描写林舟瞬移，未给出梦境或误认条件。",
+      "decision": "confirmed",
+      "reason": "这段是客观叙述，与明确世界规则冲突。"
+    },
+    {
+      "id": "unread-letter",
+      "basisPath": "adv/characters/lin.character.md",
+      "basisLine": 5,
+      "basisText": "失物招领员，谨慎、短句，想归还一封未寄出的信。不能知道信封内未读的内容。",
+      "statement": "林舟从未拆开那封信，却准确背出了信里的每一句话。",
+      "expected": "林舟不能知道未读信件的完整内容。",
+      "actual": "正文明确未拆信，却使他准确复述全部内容。",
+      "decision": "confirmed",
+      "reason": "当前稿没有其他获知渠道，需要编剧补因果或改写。"
+    },
+    {
+      "id": "borrowed-phone",
+      "basisPath": "adv/characters/qiao.character.md",
+      "basisLine": 5,
+      "basisText": "末班车乘客，克制但好奇，想找到失联的姐姐。不随身携带手机。",
+      "statement": "乔雨借用站务员的手机，拨通姐姐的号码。",
+      "expected": "乔雨没有随身携带手机。",
+      "actual": "正文出现乔雨拨电话，可能与人物设定相冲突。",
+      "decision": "dismissed",
+      "reason": "正文明确是借来的手机，不违背没有随身携带的设定。"
+    },
+    {
+      "id": "intentional-suspense",
+      "basisPath": "adv/characters/lin.character.md",
+      "basisLine": 5,
+      "basisText": "失物招领员，谨慎、短句，想归还一封未寄出的信。不能知道信封内未读的内容。",
+      "statement": "林舟看着收件人的姓氏，猜这封信也许与乔雨有关。",
+      "expected": "林舟尚未知道信封内文。",
+      "actual": "林舟推测信与乔雨有关，可能提前泄露人物知识。",
+      "decision": "dismissed",
+      "reason": "他只根据信封猜测，没有断言内文；保留这处悬念。"
+    }
+  ]
+}

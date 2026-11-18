@@ -1,0 +1,487 @@
+{
+  "title": "地图之外",
+  "variables": {
+    "pack": [
+      "铜币"
+    ],
+    "rope": false
+  },
+  "chapters": [
+    {
+      "id": "far-bank",
+      "sources": [
+        "adv/chapters/far-bank/01-crossing.adv.md"
+      ]
+    },
+    {
+      "id": "ferry",
+      "sources": [
+        "adv/chapters/ferry/01-jetty.adv.md",
+        "adv/chapters/ferry/02-reeds.adv.md"
+      ]
+    }
+  ],
+  "files": [
+    "adv.config.json",
+    "adv/chapters/far-bank/01-crossing.adv.md",
+    "adv/chapters/ferry/01-jetty.adv.md",
+    "adv/chapters/ferry/02-reeds.adv.md",
+    "adv/characters/ferryman.character.md",
+    "adv/settings/game.json",
+    "adv/world.md"
+  ],
+  "nodes": {
+    "far-bank#cross": {
+      "file": "adv/chapters/far-bank/01-crossing.adv.md",
+      "lines": [
+        1
+      ]
+    },
+    "far-bank#node-1": {
+      "file": "adv/chapters/far-bank/01-crossing.adv.md",
+      "lines": [
+        3,
+        4
+      ]
+    },
+    "far-bank#node-2": {
+      "file": "adv/chapters/far-bank/01-crossing.adv.md",
+      "lines": [
+        6,
+        7,
+        8
+      ]
+    },
+    "far-bank#around": {
+      "file": "adv/chapters/far-bank/01-crossing.adv.md",
+      "lines": [
+        10
+      ]
+    },
+    "far-bank#node-4": {
+      "file": "adv/chapters/far-bank/01-crossing.adv.md",
+      "lines": [
+        12
+      ]
+    },
+    "far-bank#node-5": {
+      "file": "adv/chapters/far-bank/01-crossing.adv.md",
+      "lines": [
+        14,
+        15,
+        16
+      ]
+    },
+    "ferry#start": {
+      "file": "adv/chapters/ferry/01-jetty.adv.md",
+      "lines": [
+        1
+      ]
+    },
+    "ferry#node-1": {
+      "file": "adv/chapters/ferry/01-jetty.adv.md",
+      "lines": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    "ferry#node-2": {
+      "file": "adv/chapters/ferry/01-jetty.adv.md",
+      "lines": [
+        14
+      ]
+    },
+    "ferry#node-3": {
+      "file": "adv/chapters/ferry/01-jetty.adv.md",
+      "lines": [
+        16,
+        17
+      ]
+    },
+    "ferry#shore": {
+      "file": "adv/chapters/ferry/01-jetty.adv.md",
+      "lines": [
+        19
+      ]
+    },
+    "ferry#node-5": {
+      "file": "adv/chapters/ferry/01-jetty.adv.md",
+      "lines": [
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35
+      ]
+    },
+    "ferry#reeds": {
+      "file": "adv/chapters/ferry/02-reeds.adv.md",
+      "lines": [
+        1
+      ]
+    },
+    "ferry#node-7": {
+      "file": "adv/chapters/ferry/02-reeds.adv.md",
+      "lines": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    "ferry#node-8": {
+      "file": "adv/chapters/ferry/02-reeds.adv.md",
+      "lines": [
+        14
+      ]
+    },
+    "ferry#node-9": {
+      "file": "adv/chapters/ferry/02-reeds.adv.md",
+      "lines": [
+        16
+      ]
+    }
+  },
+  "program": {
+    "schemaVersion": 2,
+    "id": "beyond-the-map",
+    "entry": {
+      "chapterId": "ferry",
+      "nodeId": "start"
+    },
+    "chapters": {
+      "ferry": {
+        "id": "ferry",
+        "title": "ferry",
+        "entry": "start",
+        "nodes": {
+          "start": {
+            "id": "start",
+            "kind": "scene",
+            "data": {
+              "place": "渡口",
+              "time": "黄昏",
+              "inOrOut": "外景"
+            },
+            "next": {
+              "chapterId": "ferry",
+              "nodeId": "node-1"
+            }
+          },
+          "node-1": {
+            "id": "node-1",
+            "kind": "actions",
+            "actions": [
+              {
+                "type": "variables/set",
+                "args": {
+                  "key": "pack",
+                  "value": [
+                    "铜币"
+                  ]
+                }
+              },
+              {
+                "type": "variables/set",
+                "args": {
+                  "key": "rope",
+                  "value": false
+                }
+              }
+            ],
+            "next": {
+              "chapterId": "ferry",
+              "nodeId": "node-2"
+            }
+          },
+          "node-2": {
+            "id": "node-2",
+            "kind": "narration",
+            "data": {
+              "text": "河很宽。地图画到这里，就断了。",
+              "speakerId": "narrator"
+            },
+            "next": {
+              "chapterId": "ferry",
+              "nodeId": "node-3"
+            }
+          },
+          "node-3": {
+            "id": "node-3",
+            "kind": "dialog",
+            "data": {
+              "character": "摆渡人",
+              "speakerId": "摆渡人",
+              "status": "",
+              "text": "旅者，过了这条河，就不在地图上了。"
+            },
+            "next": {
+              "chapterId": "ferry",
+              "nodeId": "shore"
+            }
+          },
+          "shore": {
+            "id": "shore",
+            "kind": "anchor",
+            "data": {
+              "depth": 2,
+              "text": "岸边"
+            },
+            "next": {
+              "chapterId": "ferry",
+              "nodeId": "node-5"
+            }
+          },
+          "node-5": {
+            "id": "node-5",
+            "kind": "choices",
+            "data": {
+              "options": [
+                {
+                  "id": "choice-1",
+                  "label": "在芦苇丛里翻找",
+                  "target": {
+                    "chapterId": "ferry",
+                    "nodeId": "reeds"
+                  }
+                },
+                {
+                  "id": "choice-2",
+                  "label": "付一枚铜币过河",
+                  "target": {
+                    "chapterId": "far-bank",
+                    "nodeId": "cross"
+                  },
+                  "actions": [
+                    {
+                      "type": "variables/remove",
+                      "args": {
+                        "key": "pack",
+                        "value": "铜币"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "choice-3",
+                  "label": "系上绳索，沿河绕行",
+                  "target": {
+                    "chapterId": "far-bank",
+                    "nodeId": "around"
+                  },
+                  "when": {
+                    "type": "variable",
+                    "path": [
+                      "rope"
+                    ]
+                  }
+                }
+              ]
+            },
+            "next": {
+              "chapterId": "ferry",
+              "nodeId": "reeds"
+            }
+          },
+          "reeds": {
+            "id": "reeds",
+            "kind": "anchor",
+            "data": {
+              "depth": 2,
+              "text": "芦苇丛"
+            },
+            "next": {
+              "chapterId": "ferry",
+              "nodeId": "node-7"
+            }
+          },
+          "node-7": {
+            "id": "node-7",
+            "kind": "actions",
+            "actions": [
+              {
+                "type": "variables/push-unique",
+                "args": {
+                  "key": "pack",
+                  "value": "绳索"
+                }
+              },
+              {
+                "type": "variables/set",
+                "args": {
+                  "key": "rope",
+                  "value": true
+                }
+              }
+            ],
+            "next": {
+              "chapterId": "ferry",
+              "nodeId": "node-8"
+            }
+          },
+          "node-8": {
+            "id": "node-8",
+            "kind": "narration",
+            "data": {
+              "text": "芦苇深处，有人留下了一卷旧绳索。",
+              "speakerId": "narrator"
+            },
+            "next": {
+              "chapterId": "ferry",
+              "nodeId": "node-9"
+            }
+          },
+          "node-9": {
+            "id": "node-9",
+            "kind": "choices",
+            "data": {
+              "options": [
+                {
+                  "id": "choice-1",
+                  "label": "回到岸边",
+                  "target": {
+                    "chapterId": "ferry",
+                    "nodeId": "shore"
+                  }
+                }
+              ]
+            },
+            "next": {
+              "chapterId": "ferry",
+              "nodeId": "end"
+            }
+          },
+          "end": {
+            "id": "end",
+            "kind": "end"
+          }
+        },
+        "order": [
+          "start",
+          "node-1",
+          "node-2",
+          "node-3",
+          "shore",
+          "node-5",
+          "reeds",
+          "node-7",
+          "node-8",
+          "node-9",
+          "end"
+        ]
+      },
+      "far-bank": {
+        "id": "far-bank",
+        "title": "far-bank",
+        "entry": "cross",
+        "nodes": {
+          "cross": {
+            "id": "cross",
+            "kind": "anchor",
+            "data": {
+              "depth": 2,
+              "text": "渡河"
+            },
+            "next": {
+              "chapterId": "far-bank",
+              "nodeId": "node-1"
+            }
+          },
+          "node-1": {
+            "id": "node-1",
+            "kind": "dialog",
+            "data": {
+              "character": "摆渡人",
+              "speakerId": "摆渡人",
+              "status": "",
+              "text": "铜币收下了。船到对岸之前，别回头。"
+            },
+            "next": {
+              "chapterId": "far-bank",
+              "nodeId": "node-2"
+            }
+          },
+          "node-2": {
+            "id": "node-2",
+            "kind": "end",
+            "next": {
+              "chapterId": "far-bank",
+              "nodeId": "around"
+            }
+          },
+          "around": {
+            "id": "around",
+            "kind": "anchor",
+            "data": {
+              "depth": 2,
+              "text": "绕行"
+            },
+            "next": {
+              "chapterId": "far-bank",
+              "nodeId": "node-4"
+            }
+          },
+          "node-4": {
+            "id": "node-4",
+            "kind": "narration",
+            "data": {
+              "text": "你沿着河岸走了一夜，走到了地图的背面。",
+              "speakerId": "narrator"
+            },
+            "next": {
+              "chapterId": "far-bank",
+              "nodeId": "node-5"
+            }
+          },
+          "node-5": {
+            "id": "node-5",
+            "kind": "end",
+            "next": {
+              "chapterId": "far-bank",
+              "nodeId": "end"
+            }
+          },
+          "end": {
+            "id": "end",
+            "kind": "end"
+          }
+        },
+        "order": [
+          "cross",
+          "node-1",
+          "node-2",
+          "around",
+          "node-4",
+          "node-5",
+          "end"
+        ]
+      }
+    },
+    "requiredPlugins": {},
+    "hash": "1319c92e07e96eb2559d1673e6c201db2b5aa87de557aadb25e2a5a4d8905802"
+  }
+}

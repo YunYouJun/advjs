@@ -24,6 +24,8 @@ export const ADV_CLI_COMMANDS = [
   'migrate.audio',
   'flow.read',
   'flow.plan',
+  'theme.init',
+  'theme.screenshot',
 ] as const
 
 export type AdvCliCommand = typeof ADV_CLI_COMMANDS[number]
@@ -253,7 +255,7 @@ export const ADV_LAUNCH_SUPPORT = {
   },
   skills: {
     default: ['adv-create', 'adv-debug', 'adv-review', 'adv-art'],
-    optional: ['adv-story', 'adv-adapt'],
+    optional: ['adv-story', 'adv-adapt', 'adv-theme'],
     repositoryOnly: ['adv-hamster-demo'],
   },
   agentClients: ['codex', 'claude-code', 'cursor'],

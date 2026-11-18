@@ -10,6 +10,7 @@ import { colors } from 'consola/utils'
 import { resolve } from 'pathe'
 import { t } from '../cli/i18n'
 import { loadAdvConfig } from '../config'
+import { checkProjectGameUiTheme } from '../game-ui/check'
 import { loadProject } from '../project'
 import { compileRuntimeChapterFiles, discoverRuntimeChapterFiles, resolveConfiguredRuntimeChapterFiles } from '../runtime'
 import { checkLocalResources } from './check-resources'
@@ -32,7 +33,7 @@ export interface CheckOptions {
 
 export interface CheckIssue {
   type: 'error' | 'warning'
-  category: 'syntax' | 'runtime' | 'character' | 'scene' | 'scene-frontmatter' | 'location' | 'resource'
+  category: 'syntax' | 'runtime' | 'character' | 'scene' | 'scene-frontmatter' | 'location' | 'resource' | 'theme'
   file: string
   message: string
   code?: string
@@ -455,6 +456,7 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
       .filter(([path]) => path.endsWith('.json') && path.includes('assets'))
       .map(([path, content]) => ({ file: resolve(cwd, path), content })),
   }))
+  issues.push(...await checkProjectGameUiTheme(cwd, loadedProject))
 
   for (const issue of issues) {
     if (!issue.line && ['character', 'scene', 'location'].includes(issue.category) && existsSync(resolve(cwd, issue.file))) {
@@ -646,7 +648,7 @@ export async function advCheck(options: CheckOptions) {
     }
   }
 
-  for (const issue of result.issues.filter(issue => issue.category === 'resource')) {
+  for (const issue of result.issues.filter(issue => issue.category === 'resource' || issue.category === 'theme')) {
     const format = issue.type === 'error' ? colors.red : colors.yellow
     log(format(`  ${issue.type === 'error' ? '✗' : '⚠'} ${issue.file}:${issue.line}:${issue.column} ${issue.code}: ${issue.message} [${issue.certainty}]`))
     log(colors.dim(`    Fix: ${issue.suggestion}`))

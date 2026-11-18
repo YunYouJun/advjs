@@ -15,6 +15,23 @@ import { readAuthenticatedCloudbaseSession } from './cloudbase-session'
 
 const RETURN_PATH_KEY = 'advjs-studio:sso:return-path'
 const RETURN_PATH_TTL_MS = 10 * 60_000
+const AUTHORIZATION_READ_TIMEOUT_MS = 15_000
+
+/** Bound read-only host/exchange waits; an SDK session write must still settle before another starts. */
+async function readAuthorization<T>(read: () => Promise<T>): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  try {
+    return await Promise.race([
+      read(),
+      new Promise<never>((_resolve, reject) => {
+        timer = setTimeout(() => reject(new Error('SSO authorization request timed out')), AUTHORIZATION_READ_TIMEOUT_MS)
+      }),
+    ])
+  }
+  finally {
+    clearTimeout(timer)
+  }
+}
 
 interface StoredReturnPath {
   createdAt: number
@@ -60,10 +77,19 @@ async function adoptStudioSsoCode(
   authorization: SsoAuthorizationResult,
   config: StudioSsoConfig,
   sdk: StudioSsoSdk,
+  assertCurrent?: () => void,
 ): Promise<boolean> {
+  assertCurrent?.()
   return sdk.adoptSsoCode({
     signInWithCustomTicket: async (getTicket) => {
-      const result = await auth.signInWithCustomTicket(getTicket)
+      assertCurrent?.()
+      const result = await auth.signInWithCustomTicket(async () => {
+        assertCurrent?.()
+        const ticket = await readAuthorization(getTicket)
+        assertCurrent?.()
+        return ticket
+      })
+      assertCurrent?.()
       if (hasCloudbaseAuthError(result))
         throw new Error('CloudBase custom-ticket sign-in failed')
       return result
@@ -128,16 +154,18 @@ export async function beginStudioSso(
   auth: StudioSsoAuth,
   config: StudioSsoConfig,
   returnPath: string,
-  options: { browser?: StudioSsoBrowser, sdk?: StudioSsoSdk } = {},
+  options: { browser?: StudioSsoBrowser, sdk?: StudioSsoSdk, assertCurrent?: () => void } = {},
 ): Promise<StudioSsoStartResult> {
   const browser = options.browser ?? defaultBrowser()
   const sdk = options.sdk ?? defaultSdk
+  options.assertCurrent?.()
   if (browser.getOrigin() !== config.origin)
     throw new Error('This origin is not registered for ADV.JS Studio SSO.')
   storeReturnPath(browser, returnPath)
 
   try {
-    if (await adoptStudioSsoFromHost(auth, config, { sdk, prompt: 'consent' })) {
+    if (await adoptStudioSsoFromHost(auth, config, { sdk, prompt: 'consent', assertCurrent: options.assertCurrent })) {
+      options.assertCurrent?.()
       return {
         status: 'authenticated',
         returnPath: consumeReturnPath(browser),
@@ -145,6 +173,7 @@ export async function beginStudioSso(
     }
   }
   catch (error) {
+    options.assertCurrent?.()
     if (isHostAuthorizationDenied(error)) {
       browser.storage.removeItem(RETURN_PATH_KEY)
       throw error
@@ -154,15 +183,18 @@ export async function beginStudioSso(
   }
 
   try {
+    options.assertCurrent?.()
     await sdk.startSsoRedirect({
       clientId: config.clientId,
       scope: config.scope,
       redirectUri: config.redirectUri,
       ssoOrigin: config.ssoOrigin,
     })
+    options.assertCurrent?.()
     return { status: 'redirecting' }
   }
   catch (error) {
+    options.assertCurrent?.()
     browser.storage.removeItem(RETURN_PATH_KEY)
     throw error
   }
@@ -174,23 +206,29 @@ export async function adoptStudioSsoFromHost(
   options: {
     prompt?: 'consent' | 'select_account'
     sdk?: StudioSsoSdk
+    assertCurrent?: () => void
   } = {},
 ): Promise<boolean> {
   const sdk = options.sdk ?? defaultSdk
-  const authorization = await sdk.requestHostSsoAuthorization({
+  options.assertCurrent?.()
+  const authorization = await readAuthorization(() => sdk.requestHostSsoAuthorization({
     clientId: config.clientId,
     scope: config.scope,
     redirectUri: config.redirectUri,
     ssoOrigin: config.ssoOrigin,
     ...(options.prompt ? { prompt: options.prompt } : {}),
-  })
+  }))
+  options.assertCurrent?.()
   if (!authorization)
     return false
   if (!matchesConfig(authorization, config))
     throw new SsoIdentityAdoptionError('Host authorization does not match the registered Studio client')
 
-  const adopted = await adoptStudioSsoCode(auth, authorization, config, sdk)
-  if (!adopted || !await readAuthenticatedCloudbaseSession(auth))
+  const adopted = await adoptStudioSsoCode(auth, authorization, config, sdk, options.assertCurrent)
+  options.assertCurrent?.()
+  const session = adopted ? await readAuthenticatedCloudbaseSession(auth) : undefined
+  options.assertCurrent?.()
+  if (!adopted || !session)
     throw new SsoIdentityAdoptionError('Host authorization did not establish a Studio session')
   return true
 }
@@ -198,10 +236,11 @@ export async function adoptStudioSsoFromHost(
 export async function consumeStudioSsoCallback(
   auth: StudioSsoAuth,
   config: StudioSsoConfig,
-  options: { browser?: StudioSsoBrowser, sdk?: StudioSsoSdk } = {},
+  options: { browser?: StudioSsoBrowser, sdk?: StudioSsoSdk, assertCurrent?: () => void } = {},
 ): Promise<StudioSsoCallbackResult> {
   const browser = options.browser ?? defaultBrowser()
   const sdk = options.sdk ?? defaultSdk
+  options.assertCurrent?.()
   const hasCallback = sdk.hasSsoRedirectResult(browser.getHash())
   if (!hasCallback)
     return { status: 'none' }
@@ -217,14 +256,18 @@ export async function consumeStudioSsoCallback(
     return { status: 'rejected', reason: 'client_binding_invalid' }
 
   try {
-    const adopted = await adoptStudioSsoCode(auth, authorization, config, sdk)
+    const adopted = await adoptStudioSsoCode(auth, authorization, config, sdk, options.assertCurrent)
+    options.assertCurrent?.()
     if (!adopted)
       return { status: 'rejected', reason: 'authorization_adoption_failed' }
-    if (!await readAuthenticatedCloudbaseSession(auth))
+    const session = await readAuthenticatedCloudbaseSession(auth)
+    options.assertCurrent?.()
+    if (!session)
       return { status: 'rejected', reason: 'anonymous_or_missing_session' }
     return { status: 'authenticated', returnPath: consumeReturnPath(browser) }
   }
   catch {
+    options.assertCurrent?.()
     return { status: 'rejected', reason: 'authorization_exchange_failed' }
   }
 }

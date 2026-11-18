@@ -1,8 +1,10 @@
 import { useProjectDrafts } from '~/stores/useProjectDrafts'
 import { useDesktopStore } from '../stores/useDesktopStore'
+import { useExtensionDocuments } from '../stores/useExtensionDocuments'
 
 export function useDesktopHost(options: { resetLayout: () => void, manageExtensions: () => void, captureState: () => Promise<boolean>, selectGame: () => void, execute: (key: string) => Promise<boolean> }) {
   const drafts = useProjectDrafts()
+  const documents = useExtensionDocuments()
   const fileStore = useFileStore()
   const consoleStore = useConsoleStore()
   const desktop = useDesktopStore()
@@ -20,7 +22,7 @@ export function useDesktopHost(options: { resetLayout: () => void, manageExtensi
   const creation = useDesktopProjectCreation()
   const preview = useDesktopPreview()
   const app = useAppStore()
-  const dirty = computed(() => drafts.dirty || fileStore.isDirty)
+  const dirty = computed(() => documents.dirty || drafts.dirty || fileStore.isDirty)
   watch(dirty, (value) => {
     void window.advDesktop?.setDirty(value).catch(error => consoleStore.warn('Desktop dirty state unavailable', { error }))
   })
@@ -39,7 +41,12 @@ export function useDesktopHost(options: { resetLayout: () => void, manageExtensi
           case 'reconnect':
             return await useProjectStore().connectLocalBridgeFromLaunch()
           case 'save':
-            return await drafts.saveAll()
+            if (!await documents.saveAll() || !await drafts.saveAll()) {
+              consoleStore.error('保存失败，草稿已保留；请检查工作台校验与文件冲突。')
+              return false
+            }
+            await host.setDirty(dirty.value)
+            return !dirty.value
           case 'preferences':
             dialogs.openStates.preferences = true
             break
@@ -64,6 +71,8 @@ export function useDesktopHost(options: { resetLayout: () => void, manageExtensi
             await router.push('/')
             break
           case 'welcome':
+            if (dirty.value && !await host.prepareToLeave())
+              return false
             app.showEmptyWorkspace = false
             await router.push('/')
             break

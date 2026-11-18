@@ -4,6 +4,7 @@ export default defineBuildConfig({
   declaration: 'node16',
   entries: [
     'src/index',
+    { input: 'src/authoring', name: 'authoring' },
     { input: 'src/runtime/headless', name: 'runtime' },
     { input: 'src/compiler/index', name: 'compiler' },
     { input: 'src/project/index', name: 'project' },

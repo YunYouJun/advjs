@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AdvCharacterRelationship } from '@advjs/types'
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
 import { computed, onBeforeUnmount, reactive, ref, useId, watch } from 'vue'
 import { useProjectDrafts } from '../../stores/useProjectDrafts'
 import '../../styles/resource-panel.scss'
@@ -71,7 +72,7 @@ async function removeRelationship(index: number) {
     <p v-else class="ae-resource-empty">
       {{ $t('characters.relationship.empty') }}
     </p>
-    <form class="ae-resource-form" @submit.prevent="addRelationship">
+    <AGUIForm as="form" class="ae-resource-form" @submit.prevent="addRelationship">
       <AGUIProperty :for="`${fieldId}-target`" :label="$t('characters.relationship.target')">
         <AGUIInput :id="`${fieldId}-target`" v-model="newRel.targetId" />
       </AGUIProperty>
@@ -86,6 +87,6 @@ async function removeRelationship(index: number) {
           {{ $t('characters.relationship.add') }}
         </AGUIButton>
       </div>
-    </form>
+    </AGUIForm>
   </AGUIDetails>
 </template>

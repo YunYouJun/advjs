@@ -32,7 +32,7 @@ watch([leftId, rightId], () => emit('stop'))
     </p>
     <template v-else>
       <p class="ae-resource-caption">
-        {{ group?.candidates[0]?.spokenText }} · 共 {{ candidates.length }} 份同文配音
+        共 {{ candidates.length }} 份同文配音，分别试听后选择审核对象。
       </p>
       <div v-for="slot in ['A', 'B']" :key="slot" class="ae-compare-slot">
         <AGUIProperty :label="`候选 ${slot}`">
@@ -59,18 +59,18 @@ watch([leftId, rightId], () => emit('stop'))
 .ae-voice-compare {
   min-width: 0;
   border-block: 1px solid var(--agui-c-divider);
-  padding-block: 6px;
+  padding-block: var(--agui-space-2);
 }
 .ae-compare-heading {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--agui-font-size-body);
   font-weight: 500;
 }
 .ae-compare-slot {
   min-width: 0;
-  margin-block: 6px;
+  margin-block: var(--agui-space-2);
 }
 .ae-compare-slot .ae-resource-actions {
-  margin-top: 4px;
+  margin-top: var(--agui-space-1);
 }
 </style>

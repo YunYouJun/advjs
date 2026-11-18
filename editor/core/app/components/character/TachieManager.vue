@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AdvCharacter, AdvTachie } from '@advjs/types'
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
 import { computed, onBeforeUnmount, ref, useId, watch } from 'vue'
 import { useProjectAssets } from '../../stores/useProjectAssets'
 import { useProjectDrafts } from '../../stores/useProjectDrafts'
@@ -142,7 +143,7 @@ async function removeTachie(key: string) {
     <p v-else class="ae-resource-empty">
       {{ $t('characters.tachie.empty') }}
     </p>
-    <form class="ae-resource-form" @submit.prevent="addTachie">
+    <AGUIForm as="form" class="ae-resource-form" @submit.prevent="addTachie">
       <AGUIProperty :for="`${fieldId}-name`" :label="$t('characters.tachie.name')">
         <AGUIInput :id="`${fieldId}-name`" v-model="newTachieName" :aria-invalid="duplicate || undefined" :aria-describedby="duplicate ? `${fieldId}-error` : undefined" placeholder="normal, angry, smile" />
       </AGUIProperty>
@@ -157,6 +158,6 @@ async function removeTachie(key: string) {
           {{ $t('characters.tachie.add') }}
         </AGUIButton>
       </div>
-    </form>
+    </AGUIForm>
   </AGUIDetails>
 </template>

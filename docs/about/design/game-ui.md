@@ -70,7 +70,7 @@ export default defineThemeConfig<MyThemeConfig>({
 })
 ```
 
-共享接口保留 `unknown` 扩展字段，具体主题声明所需类型；`defineThemeConfig` 是 TypeScript 辅助函数，不是任意外部配置的运行时 schema 校验器。运行时样式映射会忽略非字符串值、未知 token 和其他体系的属性。
+共享接口保留 `unknown` 扩展字段，具体主题声明所需类型；`defineThemeConfig` 是 TypeScript 辅助函数，不是任意外部配置的运行时 schema 校验器。运行时样式映射会忽略非字符串值、未知 token 和其他体系的属性。`adv check` 会把这些被忽略的写法报告为 `ADV_THEME_*` 诊断，并检查缺少单位的长度与时长，以及对话、选项、焦点等声明配对的 WCAG 2.2 AA 对比度；`adv context --theme` 与 MCP `adv://theme` 输出完整的 token 契约。`adv theme screenshot` 截取标题、对话、选项、回看、存档与长文本画面，供人工或 AI 检查主题。
 
 ## 默认首页
 

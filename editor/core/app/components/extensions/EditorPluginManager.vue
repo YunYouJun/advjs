@@ -3,7 +3,9 @@ import { computed } from 'vue'
 import { useEditorExtensionHost } from '../../extensions/registry'
 import EditorCommandBar from './EditorCommandBar.vue'
 import EditorPluginRow from './EditorPluginRow.vue'
+import OfficialPluginCatalog from './OfficialPluginCatalog.vue'
 
+withDefaults(defineProps<{ visible?: boolean }>(), { visible: true })
 const host = useEditorExtensionHost()
 const nativeMenu = import.meta.client && window.advDesktop?.nativeMenu === true
 const zh = computed(() => host.services.locale.value === 'zh-CN')
@@ -25,11 +27,17 @@ const active = computed(() => host.entries.filter(entry => entry.status === 'act
     <ul class="editor-plugin-list">
       <EditorPluginRow v-for="entry in host.entries" :key="entry.plugin.id" :entry="entry" />
     </ul>
+    <OfficialPluginCatalog :locale="host.services.locale.value" :port="host.services.voiceProviderStatus?.()" :visible="visible" />
   </section>
 </template>
 
 <style scoped>
 .editor-plugin-manager {
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-y: auto;
   padding: 8px 12px;
   font-size: 13px;
   line-height: 1.5;

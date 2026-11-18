@@ -1,6 +1,7 @@
 import type { AdvAssetEntry } from '../config/assets'
-import type { AdvVoiceCandidate, AdvVoiceLibrary, AdvVoiceProfile } from '../config/voice'
+import type { AdvVoiceCandidate, AdvVoiceLibrary, AdvVoiceProfile, AdvVoiceReferenceMode } from '../config/voice'
 import type { CharacterVoiceProfile, VoiceRights } from './voice'
+import type { VoiceAlignment } from './voice-alignment'
 
 export type VoiceDesignSource = 'system' | 'designed' | 'cloned'
 
@@ -37,6 +38,7 @@ export interface VoiceDesignSample {
   text: string
   presetSha256: string
   createdAt: string
+  alignment?: VoiceAlignment
 }
 
 export interface VoiceDesignRecord {
@@ -52,6 +54,7 @@ export interface VoiceDesignProviderInfo {
   id: string
   backend: 'local' | 'cloud'
   sources: VoiceDesignSource[]
+  referenceModes?: AdvVoiceReferenceMode[]
   builtInVoices: Array<{ id: string, label: string }>
   presets: Array<{ id: string, model: string, sources: VoiceDesignSource[] }>
 }

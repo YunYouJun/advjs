@@ -1,5 +1,6 @@
 import gameMessages from 'virtual:advjs-game-locales'
 import { createI18n } from 'vue-i18n'
+import { creativeTeamMessages } from './locales/creativeTeam'
 import en from './locales/en.json'
 import zhCN from './locales/zh-CN.json'
 
@@ -30,5 +31,7 @@ i18n.global.mergeLocaleMessage('en', gameMessages.en)
 i18n.global.mergeLocaleMessage('zh-CN', gameMessages['zh-CN'])
 i18n.global.mergeLocaleMessage('en', en)
 i18n.global.mergeLocaleMessage('zh-CN', zhCN)
+for (const [locale, creativeTeam] of Object.entries(creativeTeamMessages))
+  i18n.global.mergeLocaleMessage(locale, { creativeTeam })
 
 export default i18n

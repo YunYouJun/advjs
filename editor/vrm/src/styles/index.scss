@@ -1,2 +1,7 @@
+@use '../../../../packages/gui/client/styles/css-vars.scss';
 @use '../../../../themes/theme-default/styles/adv/scrollbar.scss';
 @use '../../../../themes/theme-default/styles/adv/slider.scss';
+
+#app {
+  font-family: var(--agui-font-family-ui);
+}

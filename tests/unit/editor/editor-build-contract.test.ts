@@ -27,6 +27,6 @@ describe('editor build contract', () => {
     expect(packageJson.scripts['start:generate']).toContain(editorBuildContract.publicDirectory)
     expect(nuxtConfig).toContain('import { editorBuildContract } from \'./build-contract\'')
     expect(nuxtConfig).toContain('preset: editorBuildContract.preset')
-    expect(nuxtConfig).toContain('publicDir: editorBuildContract.publicDirectory')
+    expect(nuxtConfig).toMatch(/publicDir: process\.env\.ADVJS_EDITOR_OUTPUT_DIR \? resolve\(process\.env\.ADVJS_EDITOR_OUTPUT_DIR, 'public'\) : editorBuildContract\.publicDirectory/u)
   })
 })

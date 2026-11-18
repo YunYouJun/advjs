@@ -6,7 +6,7 @@ ADV.JS 会先把 Markdown 或 Flow 编译成纯数据 `RuntimeProgram`，再由�
 
 可被链接的标题或场景使用 `{#node-id}` 声明稳定 ID：
 
-```text
+```adv
 【天文台，夜，内景】 {#observatory}
 
 ## 比对结果 {#compare-result}
@@ -14,7 +14,7 @@ ADV.JS 会先把 Markdown 或 Flow 编译成纯数据 `RuntimeProgram`，再由�
 
 选择使用普通 Markdown 链接：
 
-```text
+```adv
 - 留在当前场景
 - [观察星图](#observatory)
 - [进入第二章](chapter-2)

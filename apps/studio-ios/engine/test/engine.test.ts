@@ -1,8 +1,10 @@
 import type { GoldenCase } from '../golden/cases'
 import { readFile } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { relative, resolve, sep } from 'node:path'
 import * as yaml from 'js-yaml'
 import { beforeAll, describe, expect, it } from 'vitest'
+import capturedMedia from '../../../../packages/agent/test/fixtures/creative-media-author-host.json'
+import { affectsNativeStudio } from '../../../../scripts/ci/studio-changes.mjs'
 import { buildEngine, findForbiddenGlobals } from '../build'
 import { createGoldenCases, runGoldenCases } from '../golden/cases'
 import { loadEngineSandbox } from '../golden/sandbox'
@@ -17,13 +19,18 @@ const EXPECTED_OPERATIONS = [
   'content.stringify',
   'engine.info',
   'host.selfTest',
+  'package.inspect',
+  'package.plan',
   'project.applyPatches',
   'project.authoringProgram',
   'project.compile',
   'project.fixReferences',
+  'project.fromTemplate',
   'project.index',
   'project.legacyChapters',
   'project.playerConfig',
+  'project.slug',
+  'project.templates',
   'project.validate',
 ]
 
@@ -46,6 +53,78 @@ beforeAll(async () => {
   expected = await runGoldenCases(call, cases)
 })
 
+describe('creative team project handoff', () => {
+  function result(name: string) {
+    const response = JSON.parse(expected[name])
+    expect(response.ok, name).toBe(true)
+    return response.result
+  }
+
+  it('compiles all five captured project states and keeps the frozen two-ending entry', () => {
+    for (const name of ['creative-baseline', 'creative-art', 'creative-voice-registered', 'creative-voice-selected', 'creative-flow-voice'])
+      expect(result(`compile:${name}`).diagnostics.filter((item: { severity: string }) => item.severity === 'error'), name).toEqual([])
+    const program = result('compile:creative-baseline').project.program
+    expect(program.entry).toEqual({ chapterId: 'station', nodeId: 'arrival' })
+    const options = Object.values(program.chapters.station.nodes).flatMap((node: any) => node.kind === 'choices' ? node.data.options : [])
+    expect(options.map((option: any) => option.target)).toEqual([
+      { chapterId: 'stay', nodeId: 'ending-stay' },
+      { chapterId: 'leave', nodeId: 'ending-leave' },
+    ])
+  })
+
+  it('preserves adopted image catalog metadata without certifying native image display', () => {
+    const catalog = result('compile:creative-art').project.assets
+    expect(catalog.assets).toContainEqual(expect.objectContaining({
+      id: 'character/xiaoyun/default',
+      characterId: 'xiaoyun',
+      expression: 'default',
+      sha256: '0013ad9b2e00141cfc089e4bbb8a299f3dd26d6f81f0f159d04557682420d9e1',
+      bytes: 39460,
+      width: 619,
+      height: 619,
+      mimeType: 'image/webp',
+    }))
+    expect(catalog.profiles.local).toEqual({ provider: 'project', root: 'adv/assets' })
+  })
+
+  it('keeps unselected audio out of playback and resolves selected Markdown/Flow takes by stable line ID', () => {
+    const registered = result('player:creative-voice-registered').gameConfig.audio
+    expect(registered.assets).toEqual({})
+    expect(registered.voiceLedger.lines).toEqual({})
+    for (const [name, lineId] of [
+      ['creative-voice-selected', 'line_01900400-0000-7000-8000-000000000001'],
+      ['creative-flow-voice', 'line_01900400-0000-7000-8000-000000000002'],
+    ]) {
+      const config = result(`player:${name}`).gameConfig
+      const audio = config.audio
+      expect(Object.keys(audio.voiceLedger.lines)).toEqual([lineId])
+      const binding = audio.voiceLedger.lines[lineId].locales['zh-CN']
+      expect(binding.takes).toHaveLength(1)
+      expect(binding.selectedTake).toBe(binding.takes[0].id)
+      expect(audio.assets[binding.takes[0].assetId]).toMatchObject({
+        src: expect.stringMatching(/^advjs-player:\/\/project\/adv\/assets\/voice\/creative\/.+\.wav$/u),
+        sha256: '538922a9bbfe31ecd95ab1f8457041d01bdcb0ae8e007fa0253a25bea1177c3e',
+        bytes: 125740,
+        mime: 'audio/wav',
+      })
+      expect(config.characters[0].voiceProfile).toBeUndefined()
+    }
+  })
+
+  it('retains author voice settings on character edits and reports old audio after dialogue changes', () => {
+    const source = capturedMedia.voice.adopted['adv/characters/lin.character.md']
+    expect(result('character:creative-voice-unchanged')).toBe(source)
+    const edited = result('character:creative-voice-edit')
+    expect(edited).toContain('林舟（作者修改）')
+    expect(edited).toContain('voiceId: Tingting')
+    expect(edited).toContain('speakingStyle: 平静')
+    expect(edited).toContain('本机系统语音外部制作示例。')
+    const stale = result('player:creative-voice-stale')
+    expect(stale.diagnostics).toContainEqual(expect.objectContaining({ code: 'VOICE_STALE', severity: 'warning', file: 'adv/audio/voice-ledger.json' }))
+    expect(stale.gameConfig.audio.voiceLedger.lines[capturedMedia.voice.lineId].locales['zh-CN'].selectedTake).toBe(capturedMedia.voice.takeId)
+  })
+})
+
 describe('engine bundle', () => {
   it('keeps Node, DOM and missing JavaScriptCore globals out of the closure', async () => {
     const debug = await buildEngine({ minify: false })
@@ -56,6 +135,15 @@ describe('engine bundle', () => {
   it('stays within the size budget', async () => {
     const engine = await buildEngine()
     expect(engine.bytes).toBeLessThanOrEqual(ENGINE_SIZE_BUDGET_BYTES)
+  })
+
+  it('runs the native Studio CI job for every workspace source it bundles', async () => {
+    const { metafile } = await buildEngine()
+    const sources = Object.keys(metafile.inputs)
+      .filter(path => !path.includes('node_modules/'))
+      .map(path => relative(repoRoot, resolve(path)).split(sep).join('/'))
+    expect(sources.length).toBeGreaterThan(0)
+    expect(sources.filter(path => !affectsNativeStudio(path))).toEqual([])
   })
 
   it('returns byte-identical responses in a JavaScriptCore-like sandbox', async () => {
@@ -104,6 +192,9 @@ describe('engine contract', () => {
       'error:yaml-invalid': 'ENGINE_CONTENT_INVALID',
       'error:project-format': 'ENGINE_PROJECT_INVALID',
       'error:game-settings': 'ENGINE_PROJECT_INVALID',
+      'error:package-manifest-missing': 'ENGINE_CONTENT_INVALID',
+      'error:package-manifest-json': 'ENGINE_CONTENT_INVALID',
+      'error:package-manifest-fields': 'ENGINE_CONTENT_INVALID',
     })
   })
 })
@@ -182,5 +273,39 @@ describe('project operations', () => {
     expect(legacy.chapters.length).toBeGreaterThan(0)
     expect(Object.keys(legacy.files)).toContain('adv/settings/game.json')
     expect(JSON.parse(expected['compile:hamster-public-md']).ok).toBe(true)
+  })
+
+  it('creates projects from the shared templates', () => {
+    const templates = JSON.parse(expected.templates).result
+    expect(templates.templates).toEqual(['visual-novel-starter', 'school-romance', 'mystery-detective', 'fantasy-adventure', 'modern-urban'])
+    for (const id of [...templates.templates, templates.quickStart]) {
+      const files = JSON.parse(expected[`template:${id}`]).result.files
+      expect(Object.keys(files)).toContain('README.md')
+      expect(files['README.md']).toContain('# 星海 Story 1')
+      expect(Object.keys(files).some(path => path.endsWith('.adv.md'))).toBe(true)
+    }
+    expect(expected['template:unknown-template']).toBe(expected['template:visual-novel-starter'])
+  })
+
+  it('derives slugs like Web Studio', () => {
+    expect(JSON.parse(expected['slug:mixed']).result).toEqual({ slug: 'my-星海-story', valid: true })
+    expect(JSON.parse(expected['slug:symbols']).result).toEqual({ slug: '', valid: false })
+  })
+
+  it('plans portable packages with the Web manifest and safe paths only', () => {
+    const plan = JSON.parse(expected['package:round-trip']).result
+    expect(plan.manifest).toEqual({
+      name: '往返样例',
+      version: '1.0.0',
+      exportedAt: '2026-10-21T00:00:00.000Z',
+      stats: { characters: 2, chapters: 2, scenes: 2, audios: 1, knowledge: 0 },
+    })
+    const paths = plan.entries.map((entry: { path: string }) => entry.path)
+    expect(paths).toContain('adv.config.json')
+    expect(paths).toContain('adv/assets/characters.json')
+    expect(paths).toContain('adv/assets/bgm/theme.m4a')
+    expect(paths.every((path: string) => path === 'adv.config.json' || path.startsWith('adv/'))).toBe(true)
+    const inspected = JSON.parse(expected['package-inspect:valid']).result
+    expect(inspected.unsafePaths).toEqual(['../escape.md', '/absolute.md', 'adv/.git/config', 'adv\\windows.md', 'C:/drive.md', 'adv//empty.md'])
   })
 })

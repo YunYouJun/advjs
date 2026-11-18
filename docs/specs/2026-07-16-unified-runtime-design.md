@@ -174,7 +174,7 @@ const stop = runtime.subscribe((state, effects) => {
 
 Markdown 选择使用普通链接表达目标，以下用星图节点作为示例：
 
-```text
+```adv
 - 留在当前场景
 - [观察星图](#star-map)
 - [进入第二章](chapter-2)

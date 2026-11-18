@@ -9,6 +9,7 @@ import type {
 } from '@advjs/types'
 import type {
   CompileDiagnostic,
+  CompileResult,
   CompileSourceLocation,
   RuntimeChoiceInput,
   RuntimeNodeInput,
@@ -61,10 +62,7 @@ function choicesFromData(data: JsonObject | undefined): RuntimeChoiceInput[] | u
   })
 }
 
-export async function linkRuntimeProgram(input: RuntimeProgramInput): Promise<{
-  program?: RuntimeProgram
-  diagnostics: CompileDiagnostic[]
-}> {
+export async function linkRuntimeProgram(input: RuntimeProgramInput): Promise<CompileResult<RuntimeProgram>> {
   const diagnostics: CompileDiagnostic[] = input.staticAnalysis ? analyzeRuntimeProgram(input) : []
   let dynamicTarget = false
   const chapters = Object.create(null) as Record<string, RuntimeChapter>
@@ -319,5 +317,6 @@ export async function linkRuntimeProgram(input: RuntimeProgramInput): Promise<{
   return {
     program: { ...withoutHash, hash },
     diagnostics,
+    sourceMap: Object.fromEntries([...nodeInputs].flatMap(([chapterId, nodes]) => [...nodes].flatMap(([nodeId, node]) => node.source ? [[`${chapterId}#${nodeId}`, structuredClone(node.source)]] : []))),
   }
 }

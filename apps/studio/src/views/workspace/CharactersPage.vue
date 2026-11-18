@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { AdvCharacter } from '@advjs/types'
-import { parseCharacterMd, stringifyCharacterMd } from '@advjs/parser'
 import {
   actionSheetController,
   IonButton,
@@ -74,28 +73,20 @@ const characterEditor = useContentEditor<AdvCharacter>('character', () => ({
   concept: '',
   speechStyle: '',
   relationships: [],
-}))
-const characterMarkdown = ref('')
+}), { getFs })
 
-function characterToMarkdown() {
-  characterMarkdown.value = stringifyCharacterMd(characterEditor.formData.value)
-}
-
-function markdownToCharacter(md: string) {
-  characterMarkdown.value = md
-  try {
-    const parsed = parseCharacterMd(md)
-    characterEditor.formData.value = parsed
-  }
-  catch {
-    // If md is invalid, keep formData unchanged
-  }
-}
-
-function handleEditCharacter(character: AdvCharacter) {
+async function handleEditCharacter(character: AdvCharacter) {
   trackAccess({ id: character.id, label: character.name, type: 'character', action: 'edit', avatar: character.avatar })
-  characterEditor.openEdit(character)
-  characterMarkdown.value = stringifyCharacterMd(character)
+  if (!getFs()) {
+    characterEditor.openEdit(character)
+    return
+  }
+  try {
+    await characterEditor.openFile(`adv/characters/${character.id}.character.md`)
+  }
+  catch (error) {
+    await showToast(t('contentEditor.saveFailed', { error: String(error) }), 'danger')
+  }
 }
 
 function goToChat(character: AdvCharacter) {
@@ -145,16 +136,15 @@ async function handleSaveCharacter() {
     return false
   }
 
-  const result = await saveContent(fs, 'character', characterEditor.mode.value, characterEditor.formData.value, characterEditor.originalId.value)
+  const result = await saveContent(fs, 'character', characterEditor.mode.value, characterEditor.formData.value, characterEditor.originalId.value, characterEditor.saveContext())
   if (result.success) {
-    await showToast(t('contentEditor.saveSuccess'))
-    characterEditor.onSaved()
-    characterEditor.close()
+    const complete = characterEditor.onSaved(result)
+    await showToast(t(complete ? 'contentEditor.saveSuccess' : 'contentEditor.savedWithNewerDraft'))
     await reload()
-    return true
+    return complete
   }
   else {
-    await showToast(t('contentEditor.saveFailed', { error: result.error }), 'danger')
+    await showToast(result.conflict ? t('contentEditor.formSourceChanged') : t('contentEditor.saveFailed', { error: result.error }), 'danger')
     return false
   }
 }
@@ -286,16 +276,18 @@ async function handleExportCSV() {
 
     <!-- Character Editor Modal -->
     <ContentEditorModal
+      v-model:active-tab="characterEditor.activeTab.value"
       :is-open="characterEditor.isOpen.value"
       :title="characterEditor.mode.value === 'create' ? t('contentEditor.createCharacter') : t('contentEditor.editCharacter')"
       :mode="characterEditor.mode.value"
       :is-saving="isSaving"
-      :markdown="characterMarkdown"
+      :markdown="characterEditor.markdown.value"
+      :markdown-error="characterEditor.markdownError.value"
       :monaco-filename="`${characterEditor.formData.value.id || 'character'}.character.md`"
       @update:is-open="(v: boolean) => { if (!v) characterEditor.close() }"
-      @update:markdown="characterMarkdown = $event"
-      @sync-to-markdown="characterToMarkdown()"
-      @sync-from-markdown="markdownToCharacter($event)"
+      @update:markdown="characterEditor.updateMarkdown($event)"
+      @sync-to-markdown="characterEditor.syncToMarkdown()"
+      @sync-from-markdown="characterEditor.updateMarkdown($event)"
       @save="handleSaveCharacter"
       @cancel="characterEditor.close()"
     >

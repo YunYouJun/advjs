@@ -222,7 +222,7 @@ test('shows task errors in global toasts above the status bar with a copyable re
     const toast = page.locator('.ToastRoot').filter({ hasText: '构建失败' })
     await expect(toast).toBeVisible({ timeout: 60000 })
     await expect(toast).toContainText('Missing project resource')
-    await expect(page.locator('.status-task')).toHaveText('预览 · 失败')
+    await expect(page.locator('.status-task')).toHaveText('构建预览 · 失败')
     await toast.getByRole('button', { name: '复制信息给 AI', exact: true }).click()
     const report = await app.evaluate(({ clipboard }) => clipboard.readText())
     expect(report).toContain('Missing project resource')

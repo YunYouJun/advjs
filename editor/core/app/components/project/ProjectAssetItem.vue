@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, shallowRef, watch } from 'vue'
-import { projectFileKind } from '../../utils/project-files'
+import { projectFileAppearance, projectFileKind } from '../../utils/project-files'
 
 const props = defineProps<{ path: string, selected: boolean, visible: boolean, mode: 'grid' | 'list', showPath?: boolean, tabIndex: number, previewHint?: string }>()
 const emit = defineEmits<{ select: [path: string], open: [path: string] }>()
@@ -9,7 +9,7 @@ const thumbnail = shallowRef('')
 const failed = shallowRef(false)
 const kind = computed(() => projectFileKind(props.path))
 const name = computed(() => props.path.split('/').at(-1))
-const icon = computed(() => ({ image: 'i-ri-image-line', audio: 'i-ri-music-line', video: 'i-ri-film-line', model: 'i-ri-box-3-line', text: 'i-ri-file-text-line', unsupported: 'i-ri-file-line' })[kind.value])
+const appearance = computed(() => projectFileAppearance(props.path))
 function open() {
   emit('select', props.path)
   emit('open', props.path)
@@ -48,7 +48,7 @@ watch(() => [props.path, props.visible, project.workspace, project.resourceRevis
     @dragstart="$event.dataTransfer?.setData('text/plain', path)"
   >
     <img v-if="thumbnail && !failed" class="asset-thumbnail" :src="thumbnail" alt="" loading="lazy" @error="failed = true">
-    <span v-else class="asset-thumbnail asset-placeholder" aria-hidden="true"><span :class="icon" /></span>
+    <span v-else class="asset-thumbnail asset-placeholder" aria-hidden="true"><span :class="appearance.icon" /></span>
     <span class="asset-label">
       <span class="asset-name">{{ name }}</span>
       <span v-if="showPath" class="asset-path">{{ path }}</span>
