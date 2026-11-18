@@ -1,3 +1,4 @@
+import type { AdvGameConfig } from '@advjs/types'
 import { useAdvContext, useAdvStartActions } from '@advjs/client'
 import { ref } from 'vue'
 
@@ -17,6 +18,10 @@ export interface GameMenuItem {
   do: () => void
 }
 
+function hasExtras(game: AdvGameConfig) {
+  return Boolean(game.endings?.items.length || game.achievements?.items.length || game.replays?.length || game.musicRoom)
+}
+
 /**
  * 开始菜单
  */
@@ -25,6 +30,7 @@ export function useStartMenu() {
 
   const actions = useAdvStartActions()
   const t = $adv.$t
+  const game = $adv.gameConfig.value
 
   const menuItems = ref<GameMenuItem[]>([
     {
@@ -45,6 +51,14 @@ export function useStartMenu() {
       title: t('menu.flow_chart'),
       do: actions.openFlowChart,
     },
+    ...(hasExtras(game)
+      ? [{
+          id: 'extras',
+          icon: 'i-ri-medal-line',
+          title: t('menu.extras'),
+          do: actions.openExtras,
+        }]
+      : []),
     {
       id: 'settings',
       icon: 'i-ri-settings-2-line',

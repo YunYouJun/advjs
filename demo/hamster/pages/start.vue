@@ -98,6 +98,9 @@ function startEchoSimulation() {
         <RouterLink to="/gallery">
           CG 回廊
         </RouterLink>
+        <RouterLink to="/extras">
+          观测附录
+        </RouterLink>
         <RouterLink to="/credits">
           关于
         </RouterLink>

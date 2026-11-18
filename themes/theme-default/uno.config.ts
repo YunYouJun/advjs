@@ -4,6 +4,7 @@ const safelist = [
   'i-ri-play-large-line',
   'i-ri-folder-upload-line',
   'i-ri-flow-chart',
+  'i-ri-medal-line',
   'i-ri-settings-2-line',
   'i-ri-question-line',
 ]

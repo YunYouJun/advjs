@@ -3,25 +3,26 @@ import { beforeEach, expect, it, vi } from 'vitest'
 import GamePage from '../../../packages/client/pages/game.vue'
 import SavedCard from '../../../themes/theme-default/components/save/SavedCard.vue'
 
-const { app, game, route, router, snapshot, restore, init, start } = vi.hoisted(() => ({
+const { app, game, route, router, snapshot, restore, init, start, screenshot } = vi.hoisted(() => ({
   app: { showLoadMenu: true, toggleShowLoadMenu() { this.showLoadMenu = !this.showLoadMenu } },
-  game: { read: vi.fn(), pendingRestore: undefined as unknown },
+  game: { read: vi.fn(), save: vi.fn(), updateMeta: vi.fn(), previewMode: false, pendingRestore: undefined as unknown },
   route: { path: '/play', query: {} },
   router: { push: vi.fn() },
   snapshot: { state: { cursor: { chapterId: 'chapter-1', nodeId: 'line-1' } } },
   restore: vi.fn(),
   init: vi.fn(),
   start: vi.fn(),
+  screenshot: vi.fn(),
 }))
 
 vi.mock('../../../packages/client/pages/game.vue?vue&type=route&index=0&lang.yaml', () => ({ default: () => {} }))
 vi.mock('@advjs/client', () => ({
   injectionAdvPlayer: '$advjs-player',
   createManualSaveSlot: (index: number) => ({ kind: 'manual', index }),
-  screenshotGameThumb: vi.fn(),
+  screenshotGameThumb: screenshot,
   useAppStore: () => app,
   useGameStore: () => game,
-  useAdvContext: () => ({ $adv: { init, runtime: { restore, start }, store: {} } }),
+  useAdvContext: () => ({ $adv: { init, runtime: { restore, start, snapshot: () => snapshot }, store: {} } }),
 }))
 vi.mock('@advjs/theme-default', () => ({ assets: { images: { defaultBgUrl: '' } } }))
 vi.mock('vue-router', () => ({ useRoute: () => route, useRouter: () => router }))
@@ -30,9 +31,30 @@ vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }))
 beforeEach(() => {
   vi.resetAllMocks()
   app.showLoadMenu = true
+  game.previewMode = false
   game.pendingRestore = undefined
   route.path = '/play'
   game.read.mockResolvedValue({ snapshot, meta: {}, updatedAt: 1 })
+})
+
+it('discards a replay thumbnail completed after returning to real saves', async () => {
+  game.previewMode = true
+  game.save.mockResolvedValue({ snapshot, meta: {}, updatedAt: 1 })
+  let finishThumbnail!: (data: string) => void
+  screenshot.mockReturnValueOnce(new Promise<string>((resolve) => {
+    finishThumbnail = resolve
+  }))
+  const wrapper = mount(SavedCard, { props: { type: 'save' } })
+  await flushPromises()
+  await wrapper.get('button[aria-label="save.save_to_slot"]').trigger('click')
+  await flushPromises()
+  expect(screenshot).toHaveBeenCalledOnce()
+
+  wrapper.unmount()
+  game.previewMode = false
+  finishThumbnail('data:image/png;base64,')
+  await flushPromises()
+  expect(game.updateMeta).not.toHaveBeenCalled()
 })
 
 it.each(['/play', '/'])('loads in the embedded player at %s without leaving its host', async (path) => {

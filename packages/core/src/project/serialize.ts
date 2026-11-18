@@ -2,6 +2,7 @@ import type { AdvProjectFileMap, JsonValue } from '@advjs/types'
 
 const ADV_CONFIG_FIELDS = new Set(['entryChapterId', 'format', 'id', 'plugins', 'root', 'runtimePlugins', 'theme'])
 const GAME_CONFIG_FIELDS = new Set([
+  'achievements',
   'assets',
   'audio',
   'bgm',
@@ -9,12 +10,15 @@ const GAME_CONFIG_FIELDS = new Set([
   'characters',
   'cover',
   'description',
+  'endings',
   'entryChapterId',
   'favicon',
   'gallery',
   'locale',
   'id',
+  'musicRoom',
   'progression',
+  'replays',
   'requiredPlugins',
   'scenes',
   'title',

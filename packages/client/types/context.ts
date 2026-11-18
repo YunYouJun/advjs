@@ -1,5 +1,5 @@
 import type { CompileDiagnostic } from '@advjs/core'
-import type { AdvConfig, AdvGameConfig } from '@advjs/types'
+import type { AdvConfig, AdvGameConfig, AdvGameExtraItem, JsonObject, RuntimeProgram } from '@advjs/types'
 
 import type { ComputedRef, ShallowRef } from 'vue'
 import type { useAdvAudio, useAdvAuto, useAdvTachies } from '../composables'
@@ -7,6 +7,7 @@ import type { useAdvCharacters } from '../composables/useAdvCharacters'
 import type { AdvRuntimeHost } from '../composables/useAdvRuntime'
 import type { AdvTranslation } from '../modules/i18n'
 import type { PixiGame } from '../pixi/game'
+import type { RuntimeExtrasController } from '../runtime/extras'
 import type { RuntimeGalleryController } from '../runtime/gallery'
 import type { RuntimeProgressionController } from '../runtime/progression'
 import type { AdvStore } from '../stores'
@@ -30,7 +31,14 @@ export interface AdvContext {
   $auto: ReturnType<typeof useAdvAuto>
 
   /** A host may cancel a pending preview without installing an obsolete program. */
-  init: (options?: { isCurrent?: () => boolean, persistence?: boolean }) => Promise<void>
+  /**
+   * `persistence: false` detaches browser progression, gallery and extras (draft previews).
+   * `isolated: true` keeps them readable but uses memory saves and writes none of them
+   * (scene replay). `variables` override the configured initial variables.
+   */
+  init: (options?: { isCurrent?: () => boolean, persistence?: boolean, isolated?: boolean, variables?: JsonObject }) => Promise<void>
+  /** The installed program, or a compiled one without starting a session (extras screens). */
+  loadProgram: () => Promise<RuntimeProgram | undefined>
   /**
    * 运行时变量
    */
@@ -45,6 +53,10 @@ export interface AdvContext {
   progression?: RuntimeProgressionController
   /** Optional host-owned CG unlock collection. */
   gallery?: RuntimeGalleryController
+  /** Optional host-owned record behind endings, achievements, replays, music room and route chart. */
+  extras?: RuntimeExtrasController
+  /** Achievements unlocked during this page session, waiting for the toast. */
+  extrasNotices: ShallowRef<AdvGameExtraItem[]>
   pixiGame?: PixiGame
 }
 

@@ -1,4 +1,4 @@
-import type { AdvConfig, AdvGameConfig, RuntimeSnapshot } from '@advjs/types'
+import type { AdvConfig, AdvGameConfig } from '@advjs/types'
 import { createPinia, setActivePinia } from 'pinia'
 import { describe, expect, it } from 'vitest'
 import { computed } from 'vue'
@@ -183,7 +183,20 @@ describe('browser runtime meta progression', () => {
       fetcher: async () => ({
         ok: true,
         status: 200,
-        text: async () => '# Entry {#entry}\n\nThe story begins.\n',
+        text: async () => `# Entry {#entry}
+
+The story begins.
+
+\`\`\`yaml
+type: actions
+actions:
+  - type: variables/push-unique
+    key: unlockedEndings
+    value: endless-wheel
+\`\`\`
+
+The story continues.
+`,
       }),
     })
 
@@ -196,9 +209,8 @@ describe('browser runtime meta progression', () => {
       unlockedEndings: ['still-gazing'],
     })
 
-    const snapshot = context.runtime.snapshot() as RuntimeSnapshot
-    snapshot.state.variables.unlockedEndings = ['still-gazing', 'endless-wheel']
-    context.runtime.restore(snapshot)
+    await context.runtime.start()
+    await context.runtime.next()
     expect(createBrowserRuntimeProgression(progressionConfig, { storage }).restore({})).toEqual({
       canonicalCompleted: true,
       unlockedEndings: ['still-gazing', 'endless-wheel'],

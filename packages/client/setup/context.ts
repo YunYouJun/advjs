@@ -1,8 +1,9 @@
 import type { CompileDiagnostic, MarkdownResourceCatalog } from '@advjs/core'
-import type { AdvGameConfig, RuntimeProgram } from '@advjs/types'
+import type { AdvGameConfig, AdvGameExtraItem, RuntimeProgram } from '@advjs/types'
 import type { Pinia } from 'pinia'
 import type { CompileClientRuntimeProgramOptions } from '../runtime'
 import type { AdvClientRuntimePlugin, AdvContext } from '../types'
+import { createRuntimeRouteGraph, extrasUnlockKey } from '@advjs/core'
 import { shallowRef, watch } from 'vue'
 import { followingVoiceLineIds } from '../audio/prefetch'
 import { useAdvAudio, useAdvAuto, useAdvTachies } from '../composables'
@@ -14,8 +15,10 @@ import {
   applyRuntimePresentationEffects,
   compileClientRuntimeProgram,
   createActivityRendererRegistry,
+  createBrowserExtrasController,
   createBrowserGalleryController,
   createBrowserRuntimeProgression,
+  extrasNamespace,
   shouldCreateAutoSave,
   syncRuntimePresentation,
   validateSpritesheetDeclarations,
@@ -71,6 +74,15 @@ function markdownResources(gameConfig: AdvGameConfig): MarkdownResourceCatalog {
   }
 }
 
+function progressionController(gameConfig: AdvGameConfig, storage: Storage) {
+  if (!gameConfig.progression)
+    return undefined
+  const unlockKeys = (['endings', 'achievements'] as const).flatMap(kind =>
+    gameConfig[kind] ? [extrasUnlockKey(gameConfig[kind], kind)] : [],
+  )
+  return createBrowserRuntimeProgression(gameConfig.progression, { storage, unlockKeys })
+}
+
 export function setupAdvContext(ctx: {
   config: AdvContext['config']
   gameConfig: AdvContext['gameConfig']
@@ -80,6 +92,7 @@ export function setupAdvContext(ctx: {
   runtimePlugins?: unknown
   progressionStorage?: Storage | false
   galleryStorage?: Storage | false
+  extrasStorage?: Storage | false
 }) {
   const store = useAdvStore(ctx.pinia)
   const game = useGameStore(ctx.pinia)
@@ -92,6 +105,15 @@ export function setupAdvContext(ctx: {
   const galleryStorage = ctx.galleryStorage === false
     ? undefined
     : ctx.galleryStorage ?? (typeof localStorage === 'undefined' ? undefined : localStorage)
+  const extrasStorage = ctx.extrasStorage === false
+    ? undefined
+    : ctx.extrasStorage ?? (typeof localStorage === 'undefined' ? undefined : localStorage)
+  const extrasNotices = shallowRef<AdvGameExtraItem[]>([])
+  let routeNodes: { hash: string, ids: ReadonlySet<string> } | undefined
+  /** Install-time captures seed the record silently; only live unlocks raise toasts. */
+  let installing = false
+  /** Isolated sessions (scene replay) read but never write host-owned records. */
+  let recording = true
   let initializationGeneration = 0
   let advContext: AdvContext
   const audio = useAudioStore(ctx.pinia)
@@ -100,16 +122,27 @@ export function setupAdvContext(ctx: {
   const runtime = createAdvRuntimeHost({
     program: BOOTSTRAP_PROGRAM,
     plugins,
-    onState(state, current, program) {
+    onState(state, current, program, effects) {
+      const previous = store.state.variables
       store.$syncRuntime(state, current, program)
       syncRuntimePresentation(state, ctx.gameConfig.value, ADV_RUNTIME)
-      if (advContext?.progression) {
+      const historical = effects.some(effect => effect.type === 'runtime.restore' || effect.type === 'runtime.back' || effect.type === 'runtime.forward')
+      if (recording && !historical && advContext?.progression) {
         try {
-          advContext.progression.capture(state.variables)
+          advContext.progression.capture(state.variables, installing ? undefined : previous)
         }
         catch (error) {
           console.warn('[advjs] Failed to persist meta progression', error)
         }
+      }
+      if (recording && advContext?.extras && program) {
+        if (routeNodes?.hash !== program.hash)
+          routeNodes = { hash: program.hash, ids: new Set(createRuntimeRouteGraph(program).nodes.map(node => node.id)) }
+        const captured = advContext.extras.capture(state, routeNodes.ids)
+        const items = ctx.gameConfig.value.achievements?.items ?? []
+        const unlocked = items.filter(item => captured.achievements.includes(item.id))
+        if (!installing && !historical && unlocked.length)
+          extrasNotices.value = [...extrasNotices.value, ...unlocked]
       }
     },
     onEffects(effects, state) {
@@ -126,11 +159,23 @@ export function setupAdvContext(ctx: {
           state,
           ADV_RUNTIME,
           ctx.gameConfig.value,
-          advContext.gallery,
+          recording ? advContext.gallery : undefined,
         )
       }
     },
   })
+
+  function compileProgram(gameConfig: AdvGameConfig) {
+    return compileClientRuntimeProgram({
+      id: `adv-browser:${gameConfig.title || 'game'}`,
+      chapters: gameConfig.chapters,
+      entryChapterId: gameConfig.entryChapterId,
+      fetcher: ctx.fetcher,
+      requiredPlugins: gameConfig.requiredPlugins,
+      resources: markdownResources(gameConfig),
+    })
+  }
+  let compiledProgram: { config: AdvGameConfig, program: Promise<RuntimeProgram | undefined> } | undefined
 
   advContext = {
     store,
@@ -142,12 +187,12 @@ export function setupAdvContext(ctx: {
     compileDiagnostics,
     activityRenderers,
     resources: ADV_RUNTIME,
-    progression: ctx.gameConfig.value.progression && progressionStorage
-      ? createBrowserRuntimeProgression(ctx.gameConfig.value.progression, { storage: progressionStorage })
-      : undefined,
+    progression: progressionStorage ? progressionController(ctx.gameConfig.value, progressionStorage) : undefined,
     gallery: ctx.gameConfig.value.gallery && galleryStorage
       ? createBrowserGalleryController(ctx.gameConfig.value.gallery, { storage: galleryStorage })
       : undefined,
+    extras: extrasStorage ? createBrowserExtrasController(ctx.gameConfig.value, { storage: extrasStorage }) : undefined,
+    extrasNotices,
 
     async init(options = {}) {
       const generation = ++initializationGeneration
@@ -163,14 +208,7 @@ export function setupAdvContext(ctx: {
       if (!isCurrent())
         return
       const gameConfig = ctx.gameConfig.value
-      const result = await compileClientRuntimeProgram({
-        id: `adv-browser:${gameConfig.title || 'game'}`,
-        chapters: gameConfig.chapters,
-        entryChapterId: gameConfig.entryChapterId,
-        fetcher: ctx.fetcher,
-        requiredPlugins: gameConfig.requiredPlugins,
-        resources: markdownResources(gameConfig),
-      })
+      const result = await compileProgram(gameConfig)
       if (!isCurrent())
         return
       const spritesheetDiagnostics = [
@@ -186,17 +224,10 @@ export function setupAdvContext(ctx: {
         throw compilerError(errors.length > 0 ? errors : result.diagnostics)
 
       const persistence = options.persistence !== false
-      game.setPreviewMode(!persistence)
-      const progressionConfig = ctx.gameConfig.value.progression
-      if (persistence && progressionConfig && progressionStorage) {
-        const expectedKey = `advjs:progression:${encodeURIComponent(progressionConfig.id)}:v${progressionConfig.version ?? 1}`
-        if (advContext.progression?.storageKey !== expectedKey)
-          advContext.progression = createBrowserRuntimeProgression(progressionConfig, { storage: progressionStorage })
-      }
-      else {
-        advContext.progression = undefined
-      }
-      const galleryConfig = ctx.gameConfig.value.gallery
+      game.setPreviewMode(!persistence || options.isolated === true)
+      recording = options.isolated !== true
+      advContext.progression = persistence && progressionStorage ? progressionController(gameConfig, progressionStorage) : undefined
+      const galleryConfig = gameConfig.gallery
       if (persistence && galleryConfig && galleryStorage) {
         const expectedKey = `advjs:gallery:${encodeURIComponent(galleryConfig.id)}:v${galleryConfig.version ?? 1}`
         if (advContext.gallery?.storageKey !== expectedKey)
@@ -205,16 +236,46 @@ export function setupAdvContext(ctx: {
       else {
         advContext.gallery = undefined
       }
-      const initialVariables = advContext.progression
-        ? advContext.progression.restore(ctx.gameConfig.value.variables ?? {})
-        : ctx.gameConfig.value.variables
-      runtime.install(result.program, {
-        initialVariables,
-      })
+      if (persistence && extrasStorage) {
+        const expectedKey = `advjs:extras:${encodeURIComponent(extrasNamespace(ctx.gameConfig.value))}:v1`
+        if (advContext.extras?.storageKey !== expectedKey)
+          advContext.extras = createBrowserExtrasController(ctx.gameConfig.value, { storage: extrasStorage })
+      }
+      else {
+        advContext.extras = undefined
+      }
+      const configuredVariables = { ...ctx.gameConfig.value.variables, ...options.variables }
+      const initialVariables = advContext.progression && recording
+        ? advContext.progression.restore(configuredVariables)
+        : configuredVariables
+      installing = true
+      extrasNotices.value = []
+      try {
+        runtime.install(result.program, {
+          initialVariables,
+        })
+      }
+      finally {
+        installing = false
+      }
       syncAudioSettings()
       const pixiGame = await initPixi(advContext)
       if (isCurrent())
         advContext.pixiGame = pixiGame
+    },
+
+    loadProgram() {
+      const installed = runtime.program.value as RuntimeProgram | undefined
+      if (installed && installed.id !== BOOTSTRAP_PROGRAM.id)
+        return Promise.resolve(installed)
+      const config = ctx.gameConfig.value
+      if (compiledProgram?.config !== config) {
+        compiledProgram = {
+          config,
+          program: compileProgram(config).then(result => result.program).catch(() => undefined),
+        }
+      }
+      return compiledProgram.program
     },
 
     $t,
@@ -236,7 +297,7 @@ export function setupAdvContext(ctx: {
   advContext.$auto = useAdvAuto(advContext)
 
   runtime.subscribeTrace((entry) => {
-    if (!shouldCreateAutoSave(entry))
+    if (!recording || !shouldCreateAutoSave(entry))
       return
     void game.autoSave(runtime.snapshot()).catch((error) => {
       console.warn('[advjs] Automatic save failed', error)
