@@ -49,11 +49,14 @@ async function start(page: Page) {
   await expect.poll(async () => (await session(page)).state.status).toBe('playing')
 }
 
-async function advanceStory(page: Page) {
+async function advanceStory(page: Page, previouslyChosen = false) {
   const dialog = page.locator('.adv-dialog-box')
+  const startChoice = page.getByRole('button', {
+    name: previouslyChosen ? /^直接开始\s*（已选过）$/ : /^直接开始$/,
+  })
   await advanceTo(page.locator('.adv-black'), dialog.filter({ hasText: '欢迎来到 ADV.JS' }))
-  await advanceTo(dialog, page.getByRole('button', { name: '直接开始', exact: true }))
-  await page.getByRole('button', { name: '直接开始', exact: true }).click()
+  await advanceTo(dialog, startChoice)
+  await startChoice.click()
   await expect(dialog).toContainText('最小项目已经跑通')
   await expect.poll(async () => (await session(page)).state.variables.greeted).toBe(true)
 }
@@ -78,7 +81,7 @@ test('new game repeatedly resets the advanced story and history while preserving
   await start(page)
   const opening = await session(page)
   for (let iteration = 0; iteration < 2; iteration++) {
-    await advanceStory(page)
+    await advanceStory(page, iteration > 0)
     expect((await session(page)).checkpoints).toBeGreaterThan(0)
     await returnHome(page)
     // Dismissing Load must not queue a restore or change the next New Game.
