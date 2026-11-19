@@ -1,3 +1,7 @@
+<script setup>
+import XiaoyunVoicePreview from '../.vitepress/theme/components/XiaoyunVoicePreview.vue'
+</script>
+
 # 作者语音模块
 
 ADV.JS 内置通用作者协议、CLI、逐句配音账本与两端音色设计、配音审核界面，供应商按需安装。Qwen MLX 与 OpenAI TTS 复用同一个供应商注册入口；Editor、Studio 与 CLI 使用相同的 take、资源与版本检查协议。当前支持版本化音色设计、未登记候选试听、显式角色应用、单句和整章任务、缺失／过期筛选及显式对白绑定；Studio 认证服务与原生同步、后台转码和 COS SDK 发布已接入，真实云环境须独立验收。完整音乐、环境音、音效与配音管理的状态见[音频创作与 AI 配音](/guide/audio)。
@@ -67,6 +71,10 @@ export default defineAdvConfig({
 在 Editor 创建「你好，ADV.JS」示例项目，打开「游戏」面板，推进到向导小云（`guide`）的第一句对白。[创建示例项目](/guide/editor/desktop)
 
 > 哈喽，我是小云！今天的冒险，你想从哪儿开始呀？
+
+<XiaoyunVoicePreview src="https://yunlefun-assets-prod-1325586649.cos.ap-shanghai.myqcloud.com/docs/advjs/examples/xiaoyun-opening.b6364e7c3d051737e0bd37126116b2049980046bf8804c68fd7cc31083aa0fd5.mp3" />
+
+由 BreezeBlue 的 Breeze TTS 2 合成，供本文档非商业试听。[模型许可](https://huggingface.co/BreezeBlue/Breeze-TTS-2/blob/main/LICENSE)
 
 项目自带 `authoring/voices/breeze-xiaoyun.json`。预设的合成文本以 `[清嗓子]` 开头，使用 `seed: 45` 和 `cfgScale: 3`。名字后的 0.45 秒是表演指令，也是选定试听经过剪辑后的实测停顿。重新生成时以实际音频为准。[小云预设源码](https://github.com/YunYouJun/advjs/blob/dev/demo/starter/authoring/voices/breeze-xiaoyun.json)
 
