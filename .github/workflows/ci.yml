@@ -194,9 +194,13 @@ jobs:
         run: node apps/studio-ios/scripts/simulator-destinations.mjs --only iphone --shutdown
       - name: Boot the iPad and wait for readiness
         run: node apps/studio-ios/scripts/simulator-destinations.mjs --only ipad --boot
-      - name: UI tests on iPad
+      # Run the hardware-keyboard layout test before the chapter suite changes focus.
+      - name: Layout UI tests on iPad
         working-directory: apps/studio-ios
-        run: xcodebuild test-without-building -parallel-testing-enabled NO -project StudioApp.xcodeproj -scheme StudioApp $(node scripts/simulator-destinations.mjs --only ipad) -derivedDataPath build/DerivedData -only-testing:StudioAppUITests/IPadLayoutUITests -only-testing:StudioAppUITests/ChapterPlaytestUITests -resultBundlePath build/UITests-iPad.xcresult
+        run: xcodebuild test-without-building -parallel-testing-enabled NO -project StudioApp.xcodeproj -scheme StudioApp $(node scripts/simulator-destinations.mjs --only ipad) -derivedDataPath build/DerivedData -only-testing:StudioAppUITests/IPadLayoutUITests -resultBundlePath build/UITests-iPad.xcresult
+      - name: Chapter playtest UI tests on iPad
+        working-directory: apps/studio-ios
+        run: xcodebuild test-without-building -parallel-testing-enabled NO -project StudioApp.xcodeproj -scheme StudioApp $(node scripts/simulator-destinations.mjs --only ipad) -derivedDataPath build/DerivedData -only-testing:StudioAppUITests/ChapterPlaytestUITests -resultBundlePath build/ChapterPlaytest-iPad.xcresult
       - uses: actions/upload-artifact@v7
         if: always()
         with:

@@ -15,8 +15,7 @@ struct StudioApp: App {
                 .preferredColorScheme(model.appearance.colorScheme)
         }
         .commands {
-            StudioLibraryCommands()
-            StudioEditorCommands()
+            StudioCommands(model: model)
         }
 
         // iPad: one more window per project, opened from a project's context menu.
@@ -30,7 +29,7 @@ struct StudioApp: App {
             }
         }
         .commands {
-            StudioEditorCommands()
+            StudioCommands(model: model)
         }
     }
 }

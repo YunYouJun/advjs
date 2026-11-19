@@ -172,12 +172,13 @@ describe('github Actions launch baseline', () => {
     const commands = runCommands(native)
     expect(commands.some(command => command.includes('pnpm ') || command.includes('swift test'))).toBe(false)
     const xcodeTests = commands.filter(command => command.startsWith('xcodebuild test'))
-    expect(xcodeTests).toHaveLength(4)
+    expect(xcodeTests).toHaveLength(5)
     expect(xcodeTests).toEqual(expect.arrayContaining([
       expect.stringMatching(/-scheme StudioKit .*--only iphone/u),
       expect.stringMatching(/--only iphone.* -only-testing:StudioAppTests /u),
       expect.stringMatching(/--only iphone.* -only-testing:StudioAppUITests /u),
       expect.stringMatching(/--only ipad.* -only-testing:StudioAppUITests\/IPadLayoutUITests /u),
+      expect.stringMatching(/--only ipad.* -only-testing:StudioAppUITests\/ChapterPlaytestUITests /u),
     ]))
     for (const command of xcodeTests) {
       expect(command).toContain('-parallel-testing-enabled NO')
@@ -211,11 +212,13 @@ describe('github Actions launch baseline', () => {
     const phoneShutdown = 'node apps/studio-ios/scripts/simulator-destinations.mjs --only iphone --shutdown'
     const padBoot = 'node apps/studio-ios/scripts/simulator-destinations.mjs --only ipad --boot'
     const phoneUI = commands.find(command => command.includes('-only-testing:StudioAppUITests '))!
-    const padUI = commands.find(command => command.includes('-only-testing:StudioAppUITests/IPadLayoutUITests '))!
+    const padLayout = commands.find(command => command.includes('-only-testing:StudioAppUITests/IPadLayoutUITests '))!
+    const padPlaytest = commands.find(command => command.includes('-only-testing:StudioAppUITests/ChapterPlaytestUITests '))!
     expectCommandBefore(native, phoneBoot, phoneUI)
     expectCommandBefore(native, phoneUI, phoneShutdown)
     expectCommandBefore(native, phoneShutdown, padBoot)
-    expectCommandBefore(native, padBoot, padUI)
+    expectCommandBefore(native, padBoot, padLayout)
+    expectCommandBefore(native, padLayout, padPlaytest)
     expect(commands).not.toContain('node apps/studio-ios/scripts/simulator-destinations.mjs --boot')
   })
 
