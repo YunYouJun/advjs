@@ -7,7 +7,7 @@ SwiftUI 原生 Studio 的工作目录。目标、范围与验收见[实施计划
 | 目录                 | 用途                                                                                                                                          |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `engine/`            | JavaScriptCore 引擎：版本化 JSON 接口（`src/`）、打包与闭包检查（`build.ts`）、golden 用例（`golden/`、`fixtures/`）与 Node 测试（`test/`）。 |
-| `player/`            | 正式离线播放器的 Vue 入口与版本化的 WebKit 消息桥。 |
+| `player/`            | 正式离线播放器的 Vue 入口与版本化的 WebKit 消息桥。                                                                                           |
 | `Packages/StudioKit` | 无界面 Swift 包：`EngineBridge`（每个项目独立的 `JSVirtualMachine`）、诊断工具；Swift Testing 在 macOS 与 iOS 模拟器上跑 golden 一致性。      |
 | `scripts/`           | CI 与本机辅助脚本，例如为 `xcodebuild` 选出一台 iPhone 与一台 iPad 模拟器。                                                                   |
 | `sso/`               | 云乐坊 SSO 原生客户端 `advjs-studio-ios` 的声明与生产 Registry 候选快照（经 `www.yunle.fun` 审批流程发布）。                                  |

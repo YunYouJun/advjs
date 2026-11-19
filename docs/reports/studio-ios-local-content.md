@@ -24,14 +24,14 @@ StudioKit 覆盖源文件名与显示名不同、重命名后的连线、共享�
 
 ## 验证记录
 
-| 检查 | 结果 |
-| --- | --- |
-| `pnpm -C apps/studio-ios build:engine` | 约 727 KiB，低于 768 KiB 预算 |
-| `pnpm -C apps/studio-ios test:engine --hookTimeout 120000 --maxWorkers 2` | 25 项通过 |
-| `pnpm -C apps/studio-ios golden` 与 StudioKit | 386 个用例的 Node／JavaScriptCore 字节对比通过，StudioKit 共 36 项通过 |
-| Web Studio 回归与类型检查 | 107 个文件，897 项通过，`vue-tsc --noEmit` 通过 |
-| 共享模拟器锁脚本 | 26 项通过 |
-| `xcodebuild build-for-testing` | StudioApp 与测试目标编译通过 |
+| 检查                                                                      | 结果                                                                   |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `pnpm -C apps/studio-ios build:engine`                                    | 约 727 KiB，低于 768 KiB 预算                                          |
+| `pnpm -C apps/studio-ios test:engine --hookTimeout 120000 --maxWorkers 2` | 25 项通过                                                              |
+| `pnpm -C apps/studio-ios golden` 与 StudioKit                             | 386 个用例的 Node／JavaScriptCore 字节对比通过，StudioKit 共 36 项通过 |
+| Web Studio 回归与类型检查                                                 | 107 个文件，897 项通过，`vue-tsc --noEmit` 通过                        |
+| 共享模拟器锁脚本                                                          | 26 项通过                                                              |
+| `xcodebuild build-for-testing`                                            | StudioApp 与测试目标编译通过                                           |
 
 模拟器复用 iOS 27.0（24A434）的 iPhone 18 Pro 与 iPad Pro 11-inch（M5），通过 `apps/studio-ios/scripts/simulator-session.mjs` 串行测试。两台设备均通过 `testRenameCharacterKeepsFileAndOpensAfterRelaunch`。测试在项目里加入额外 YAML 和 Markdown，改名后检查实际文件，再退出 App 并重开列表。首轮 iPad 恢复到竖屏时，脚本找不到新建项目按钮。改用项目已有的横屏测试设置后通过。
 
