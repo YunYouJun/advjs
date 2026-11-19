@@ -79,6 +79,9 @@ const total = capabilities.length
               <span v-if="item.external" class="item-source">{{ t.capabilities.source }}</span>
               <span class="item-arrow i-ri-arrow-right-up-line" aria-hidden="true" />
             </a>
+            <a v-if="item.exampleHref && item.example" class="item-example" :href="item.exampleHref">
+              {{ item.example }}
+            </a>
           </li>
         </ul>
       </section>
@@ -195,12 +198,15 @@ const total = capabilities.length
   list-style: none;
 }
 
+.items > li {
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
 .item {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 2px 10px;
   padding: 11px 2px;
-  border-bottom: 1px solid var(--vp-c-divider);
   color: var(--vp-c-text-1);
   text-decoration: none;
   transition: background-color 0.2s;
@@ -208,6 +214,18 @@ const total = capabilities.length
 
 .item:hover {
   background: var(--vp-c-default-soft);
+}
+
+.item-example {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  margin-bottom: 8px;
+  padding: 0 2px;
+  color: var(--vp-c-brand-1);
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .item-name {

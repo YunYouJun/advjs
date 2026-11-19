@@ -18,7 +18,13 @@ pnpm dev
 
 Editor 的「你好，ADV.JS」入门模板直接复用本示例的全部剧本、人物数据与本地图片，只转换为标准 Markdown 项目目录。章节顺序和 `hello` 入口均显式保留，避免单独维护另一套入门故事。
 
-两条试玩路线：
+## 小云试音
+
+Starter 和 Editor 入门模板都附带[小云的 Breeze 音色预设](./authoring/voices/breeze-xiaoyun.json)，对应向导 `guide`。音色把小云的元气、好奇和俏皮吐槽融入向导的欢迎语气，开场沿用自我介绍中的问候方式。[角色设定](https://github.com/YunYouJun/yun/blob/a722d889a98d98c8b3b7a26dfebfd8aed975bee8/set.md#人物设定) · [自我介绍](https://github.com/YunYouJun/yun/blob/a722d889a98d98c8b3b7a26dfebfd8aed975bee8/videos/intro/README.md)
+
+开场对白写在 `public/md/chapters/hello.adv.md`。Breeze 的朗读文本带有 `[清嗓子]`，玩家看到的是剧本对白。预设配置与本地生成命令见[小云开场配音](https://advjs.org/guide/authoring-voice#xiaoyun-opening-voice)。
+
+## 试玩路线
 
 - 检查邮戳 → 记住日期 → 沿着邮戳理解来信 → 把光寄回明天，到达结局一。
 - 先读淡字 → 重新整理思路 → 先把来信收好，到达结局二。

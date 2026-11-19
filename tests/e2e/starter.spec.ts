@@ -40,7 +40,9 @@ test.describe('Demo Starter', () => {
     const narration = page.locator('.adv-black')
     const dialog = page.locator('.adv-dialog-box')
     await expect(narration).toContainText('这段旁白直接来自一个')
-    await advanceTo(narration, dialog.filter({ hasText: '欢迎来到 ADV.JS' }))
+    await advanceTo(narration, dialog.filter({ hasText: '哈喽，我是小云！' }))
+    await expect(dialog).not.toContainText('[清嗓子]')
+    await advanceTo(dialog, dialog.filter({ hasText: '欢迎来到 ADV.JS' }))
 
     const syntaxChoice = page.getByRole('button', { name: '看看语法' })
     await advanceTo(dialog, syntaxChoice)

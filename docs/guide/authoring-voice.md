@@ -62,6 +62,23 @@ export default defineAdvConfig({
 
 完整配置、界面操作、候选记录与限制见[插件说明](https://github.com/YunYouJun/advjs/blob/main/plugins/plugin-breeze-tts/README.md)。模型注册修订不被当作实际加载权重的修订。真实 Editor 验收通过独立的 `tests/fixtures/audio/editor-real-breeze.playwright.config.ts` 显式运行，普通测试不调用模型。
 
+### 小云开场配音 {#xiaoyun-opening-voice}
+
+在 Editor 创建「你好，ADV.JS」示例项目，打开「游戏」面板，推进到向导小云（`guide`）的第一句对白。[创建示例项目](/guide/editor/desktop)
+
+> 哈喽，我是小云！今天的冒险，你想从哪儿开始呀？
+
+项目自带 `authoring/voices/breeze-xiaoyun.json`。预设的合成文本以 `[清嗓子]` 开头，使用 `seed: 45` 和 `cfgScale: 3`。名字后的 0.45 秒是表演指令，也是选定试听经过剪辑后的实测停顿。重新生成时以实际音频为准。[小云预设源码](https://github.com/YunYouJun/advjs/blob/dev/demo/starter/authoring/voices/breeze-xiaoyun.json)
+
+按上文接入 Breeze 并在本机 Xinference 加载 `breeze-bf16`。在项目的 `adv.config.ts` 中，将 `authoring.voice.presets` 的 `breeze-xiaoyun` 指向 `authoring/voices/breeze-xiaoyun.json`，在 `presetProviders` 中将 `breeze-xiaoyun` 映射到 `breeze-tts`。首次配置时将 `defaultPreset` 设为 `breeze-xiaoyun`。在项目根目录运行以下命令，先核对台词和预设，再生成本地试听。
+
+```bash
+adv voice preview --provider breeze-tts --preset breeze-xiaoyun --character guide --list
+adv voice preview --provider breeze-tts --preset breeze-xiaoyun --character guide
+```
+
+开场对白已有稳定 `lineId`。想把生成的声音带回游戏，可以在 Editor 为这句生成并选用一个 take，清嗓标记放在朗读文本里，屏幕显示剧本对白。[对白配音绑定](/guide/audio#对白配音绑定)
+
 ### 逐字高亮与已有配音
 
 供应商可声明 `alignment` 能力并提供 `align`，返回绑定准确文本、音频 SHA-256 和时长的 `VoiceAlignment`。中文按字、英文可按词；索引采用 JavaScript UTF-16，时间以音频秒数表示。时间轴随候选登记到音色样本或对白 take，原有音频无需重新合成。

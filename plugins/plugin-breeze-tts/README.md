@@ -62,6 +62,8 @@ adv editor .
 
 设计来源支持 `designed` 和 `cloned`，设计入口支持 `zh` 语言区域。音色情绪、音高和语速都转换为自然语言 `instruct`，实际表现由模型决定；不把它们当作数值声学保证。API 的固定 `voice: S0` 是 Breeze 的说话人标签，不是项目音色身份。
 
+中文试听文本可插入 `[清嗓子]`、`[笑]`、`[叹气]`、`[咳嗽]`，例如 `[清嗓子]哈喽，我是小云！`。插件原样传给 Breeze；生成正式对白时通过 `--spoken-text` 提交这些标记，屏幕上的对白使用剧本文本。[Breeze 表演标记](https://github.com/breezeblue-ai/breeze-tts#-highlights)
+
 预设的 `seed` 默认为 `42`，`cfgScale` 默认为 `4`；通用 CLI 的显式 seed 优先。字符上限为每句 500 字。`instruct` 可提供公共方向，各角色的 `description` 附加其后；两者合计最多 4096 字符。CFG 和 seed 保存在可信 JSON 预设中，现有面板负责音色与情绪描述。流式输出关闭，API `speed` 固定为 `1`，定性语速通过指令传递。
 
 ## 克隆参考声音

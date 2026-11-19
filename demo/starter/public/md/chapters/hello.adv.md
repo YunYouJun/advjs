@@ -11,6 +11,9 @@ url: /img/room.svg
 
 > 这段旁白直接来自一个 `.adv.md` 文件。
 
+@guide
+哈喽，我是小云！今天的冒险，你想从哪儿开始呀？ {#line_01a1f41a-a3a3-7000-87f8-9649aba0da16}
+
 @向导
 欢迎来到 ADV.JS[^advjs]。对话、选择和状态都可以用 Markdown 描述。
 

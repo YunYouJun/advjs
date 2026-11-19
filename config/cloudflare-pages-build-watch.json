@@ -68,6 +68,7 @@
         "apps/desktop/src/project-names.ts",
         "apps/desktop/src/workspace-state.ts",
         "demo/starter/adv/scenes/demo-room.md",
+        "demo/starter/authoring/voices/breeze-xiaoyun.json",
         "demo/starter/game.config.json",
         "demo/starter/public/img/characters/xiaoyun.webp",
         "demo/starter/public/img/room.svg",
