@@ -14,7 +14,16 @@ import { ENGINE_SIZE_BUDGET_BYTES, repoRoot } from '../workspace'
 const EXPECTED_OPERATIONS = [
   'assets.normalizeManifest',
   'assets.readManifest',
+  'authoring.characterCSV',
+  'authoring.characterSummary',
+  'authoring.create',
+  'authoring.import',
+  'authoring.list',
+  'authoring.read',
+  'authoring.update',
+  'authoring.voiceBinding',
   'chapter.parseAst',
+  'chapter.path',
   'content.parse',
   'content.stringify',
   'engine.info',
@@ -26,9 +35,12 @@ const EXPECTED_OPERATIONS = [
   'project.compile',
   'project.fixReferences',
   'project.fromTemplate',
+  'project.imagePath',
   'project.index',
   'project.legacyChapters',
   'project.playerConfig',
+  'project.readCover',
+  'project.setCover',
   'project.slug',
   'project.templates',
   'project.validate',
@@ -273,6 +285,26 @@ describe('project operations', () => {
     expect(legacy.chapters.length).toBeGreaterThan(0)
     expect(Object.keys(legacy.files)).toContain('adv/settings/game.json')
     expect(JSON.parse(expected['compile:hamster-public-md']).ok).toBe(true)
+  })
+
+  it('prepares every native starter template for offline compilation', async () => {
+    const { result } = JSON.parse(await call('project.templates', '{}'))
+    for (const templateId of [...result.templates, result.quickStart]) {
+      const { result: { files } } = JSON.parse(await call('project.fromTemplate', JSON.stringify({
+        templateId,
+        name: '本机试玩',
+        playable: true,
+      })))
+      const player = JSON.parse(await call('project.playerConfig', JSON.stringify({
+        files,
+        baseUrl: 'advjs-player://project/',
+        native: true,
+      })))
+      expect(player.ok, templateId).toBe(true)
+      expect(player.result.diagnostics.filter((item: { severity: string }) => item.severity === 'error'), templateId).toEqual([])
+      expect(player.result.program.entry.chapterId, templateId).toBe('01')
+      expect(Object.keys(player.result.sourceMap.nodes).length, templateId).toBeGreaterThan(0)
+    }
   })
 
   it('creates projects from the shared templates', () => {

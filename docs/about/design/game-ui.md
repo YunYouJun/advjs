@@ -94,13 +94,13 @@ export default defineThemeConfig<MyThemeConfig>({
 | 操作栏   | `--adv-control-color`、`--adv-control-hover-bg`、`--adv-control-hover-border`、`--adv-control-active-bg`、`--adv-control-active-color`、`--adv-control-radius`                                                                             | 顶部图标、底部文字和快速存读档 |
 | 操作提示 | `--adv-tooltip-bg`、`--adv-tooltip-border`                                                                                                                                                                                                 | `GameControlHint`              |
 | 对话     | `--adv-dialog-bg`、`--adv-dialog-color`、`--adv-dialog-name-color`、`--adv-dialog-text-shadow`                                                                                                                                             | `AdvDialogBox`                 |
-| 选项     | `--adv-choice-bg`、`--adv-choice-hover-bg`、`--adv-choice-color`、`--adv-choice-border`、`--adv-choice-radius`                                                                                                                             | `AdvChoice`                    |
+| 选项     | `--adv-choice-bg`、`--adv-choice-hover-bg`、`--adv-choice-color`、`--adv-choice-border`、`--adv-choice-radius`、`--adv-choice-read-color`                                                                                                  | `AdvChoice`                    |
 | 结束画面 | `--adv-end-bg`、`--adv-end-color`、`--adv-end-font-family`、`--adv-end-font-size`、`--adv-end-font-weight`、`--adv-end-letter-spacing`、`--adv-end-text-shadow`、`--adv-end-padding`、`--adv-end-align-items`、`--adv-end-justify-content` | `AdvEnd`                       |
 | 弹层     | `--adv-modal-opacity`、`--adv-modal-bg-color`、`--adv-modal-motion-duration`                                                                                                                                                               | `AdvModal`                     |
 | 存档     | `--adv-save-border-color`、`--adv-save-card-bg`、`--adv-save-card-radius`、`--adv-save-card-shadow`、`--adv-save-card-shadow-hover`、`--adv-save-control-radius`、`--adv-save-motion-duration`                                             | 默认主题存档控件               |
 | 主题扩展 | `--adv-theme-*`                                                                                                                                                                                                                            | 主题自己提供消费样式           |
 
-默认对话和选项的回退值保持原有外观。新增公共 token 时，必须同时提供真实消费点和文档，不能只扩大配置表。主题扩展变量无内置视觉效果，需由主题组件引用。
+选过的选项显示勾选标记，保留原有文字对比度，并提供 `.adv-option-read` 类和 `data-read` 属性。主题可用 `--adv-choice-read-color` 调整这类选项的静态文字颜色。默认对话和选项的回退值保持原有外观。新增公共 token 时，必须同时提供真实消费点和文档，不能只扩大配置表。主题扩展变量无内置视觉效果，需由主题组件引用。
 
 操作栏默认文字继承所在控件颜色，顶部图标为白色；文字按钮悬停底色为白色 10% 透明度，按下为白色 18%，顶部图标则用深灰 48%／65% 底面，以保持明亮插画上的对比。悬停边线均为当前文字颜色 20%，开启底色为主色 14%。开启文字沿用主色，并带短下划线；圆角为 4px，按舞台缩放补偿。`--adv-control-active-bg` 同时覆盖按下与开启底色。操作提示底色沿用 `--adv-c-bg-alt`，边线为 `--adv-c-text` 的 16%；标题沿用 `--adv-c-text`，说明沿用 `--adv-c-text-2`。两处共用颜色 token，作品可以只配置操作栏与提示的局部 token。
 

@@ -28,6 +28,7 @@ export const gameUiTokenNames = [
   '--adv-choice-color',
   '--adv-choice-border',
   '--adv-choice-radius',
+  '--adv-choice-read-color',
   '--adv-end-bg',
   '--adv-end-color',
   '--adv-end-font-family',

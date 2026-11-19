@@ -25,6 +25,7 @@ const currentTab = shallowRef<(typeof tabs)[number]>('dialogue')
           <TextPlayPreview />
           <HorizontalDivider />
           <DialogBarSettings />
+          <SkipModeSettings />
         </div>
       </TabsContent>
       <TabsContent class="adv-settings-content" value="display">

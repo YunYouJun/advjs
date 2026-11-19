@@ -237,6 +237,13 @@ export const gameUiTokenContract: Record<GameUiTokenName, GameUiTokenSpec> = {
     consumers: ['AdvChoice'],
     default: 'inherit',
   },
+  '--adv-choice-read-color': {
+    kind: 'color',
+    group: 'choice',
+    description: 'Text colour for a previously chosen option. Defaults to the choice text colour.',
+    consumers: ['AdvChoice'],
+    default: 'var(--adv-choice-color, inherit)',
+  },
   '--adv-choice-border': {
     kind: 'color',
     group: 'choice',

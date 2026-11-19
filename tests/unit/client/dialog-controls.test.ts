@@ -13,7 +13,7 @@ import { useSettingsStore } from '../../../packages/client/stores/settings'
 let app: ReturnType<typeof useAppStore>
 const enabled = shallowRef(false)
 const skipEnabled = shallowRef(false)
-const runtime = { snapshot: vi.fn(() => ({ cursor: 'opening' })), restore: vi.fn(), next: vi.fn() }
+const runtime = { program: shallowRef({ id: 'fixture' }), snapshot: vi.fn(() => ({ cursor: 'opening' })), restore: vi.fn(), next: vi.fn(), back: vi.fn() }
 const game = { save: vi.fn(async () => undefined), read: vi.fn(async () => undefined) }
 const fullscreen = {
   isSupported: shallowRef(true),
@@ -22,9 +22,14 @@ const fullscreen = {
 }
 const adv = {
   runtime,
+  store: { current: { id: 'opening', kind: 'text' }, state: { status: 'playing' } },
   $auto: {
     enabled,
     skipEnabled,
+    stop: () => {
+      enabled.value = false
+      skipEnabled.value = false
+    },
     toggle: () => { enabled.value = !enabled.value },
     toggleSkip: () => { skipEnabled.value = !skipEnabled.value },
   },

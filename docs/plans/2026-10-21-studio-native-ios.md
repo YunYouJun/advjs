@@ -127,6 +127,8 @@ SwiftUI 界面（全部作者界面）
 
 ### P3：内容创作
 
+首个离线闭环跟踪 [#93](https://github.com/YunYouJun/advjs/issues/93)、[#94](https://github.com/YunYouJun/advjs/issues/94)、[#98](https://github.com/YunYouJun/advjs/issues/98)、[#99](https://github.com/YunYouJun/advjs/issues/99)。快照优先级、光标映射和失败语义见[设计规格](../specs/2026-10-21-studio-native-ios-design.md#本地章节与试玩)，实测进度见[验收报告](../reports/studio-native-ios-acceptance.md#p3-与-p4-本地章节与试玩)。
+
 - [ ] 角色、场景、地点、音频，以及 P0 清单中的其他内容类型：原生列表（滑动操作、上下文菜单、搜索、排序、拖放）和原生表单；保存失败保留草稿，不显示成功。
 - [ ] 图片：相册选择器、拍照（如清单需要）、从「文件」或其他 App 拖入；导入时复制到项目资源目录并写相对路径，重名、替换、缺失资源给出明确结果，并处理 HEIC 与尺寸。项目封面（W07，自 P2 移入）走同一路径写入项目内。
 - [ ] 音频：导入、元数据编辑、试听／暂停／拖动进度；配置音频会话类别，离页、切后台和切换项目时停止播放。
@@ -240,7 +242,7 @@ pnpm -C apps/studio-ios golden
 swift test --package-path apps/studio-ios/Packages/StudioKit
 ```
 
-iOS 模拟器上的 JavaScriptCore 一致性测试在 `apps/studio-ios/Packages/StudioKit` 中运行 `xcodebuild test -scheme StudioKit`，目标设备由 `node apps/studio-ios/scripts/simulator-destinations.mjs` 选出。`build:player` 与 App 的单测、UI 测试、性能测试入口由 P2、P4 补齐，名称以实现为准。
+iOS 模拟器上的 JavaScriptCore 一致性测试在 `apps/studio-ios/Packages/StudioKit` 中运行 `xcodebuild test -scheme StudioKit`，目标设备由 `node apps/studio-ios/scripts/simulator-destinations.mjs` 选出。正式 App 的 `build:player`、样例构建和 UI 测试命令见 [Studio iOS README](https://github.com/YunYouJun/advjs/blob/dev/apps/studio-ios/README.md)。
 
 验收报告写入 `docs/reports/studio-native-ios-acceptance.md`，逐项记录：环境（Xcode、系统版本、模拟器型号）、构建类型、fixture、命令与结果、截图／录屏／Instruments 文件、N1–N16 状态、已知问题和对应提交。
 

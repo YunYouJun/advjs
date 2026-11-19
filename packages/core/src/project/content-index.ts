@@ -133,6 +133,15 @@ export function discoverProjectChapterFiles(paths: readonly string[], format: Pr
   return []
 }
 
+/** Resolve a user-entered Markdown chapter filename using the shared authoring convention. */
+export function projectMarkdownChapterPath(filename: string, currentPath?: string): string {
+  const stem = filename.replace(/\.adv\.md$/u, '')
+  if (!/^[\w-]+$/u.test(stem))
+    throw new Error('ADV_STUDIO_CONTENT_PATH_INVALID')
+  const directory = currentPath === undefined ? 'adv/chapters/' : currentPath.slice(0, currentPath.lastIndexOf('/') + 1)
+  return `${directory}${stem}.adv.md`
+}
+
 /** Display name of a chapter file. */
 export function projectChapterName(file: string): string {
   return basename(file).replace(CHAPTER_NAME_RE, '') || file
@@ -239,6 +248,23 @@ function directChildren(paths: readonly string[], directory: string, accept: (pa
     .sort()
 }
 
+export const PROJECT_CONTENT_LOCATIONS = {
+  character: ['adv/characters', '.character.md'],
+  scene: ['adv/scenes', '.md'],
+  location: ['adv/locations', '.md'],
+  knowledge: ['adv/knowledge', '.md'],
+} as const
+
+export type ProjectContentKind = keyof typeof PROJECT_CONTENT_LOCATIONS
+
+export function discoverProjectContentFiles(paths: readonly string[], kind: ProjectContentKind): string[] {
+  const [directory, extension] = PROJECT_CONTENT_LOCATIONS[kind]
+  const accept = (path: string) => path.endsWith(extension)
+  if (kind === 'knowledge')
+    return paths.filter(path => under(path, directory) && accept(path)).sort()
+  return directChildren(paths, directory, accept)
+}
+
 export interface IndexProjectContentInput {
   /** Text files keyed by project-relative path. */
   files: Readonly<Record<string, string>>
@@ -281,7 +307,7 @@ export function indexProjectContent(input: IndexProjectContentInput): ProjectCon
   })
 
   const characters: AdvCharacter[] = []
-  for (const file of directChildren(paths, 'adv/characters', path => path.endsWith('.character.md'))) {
+  for (const file of discoverProjectContentFiles(paths, 'character')) {
     try {
       characters.push(parseCharacterMd(files[file] ?? ''))
     }
@@ -290,7 +316,7 @@ export function indexProjectContent(input: IndexProjectContentInput): ProjectCon
     }
   }
 
-  const scenes = directChildren(paths, 'adv/scenes', path => path.endsWith('.md')).map((file) => {
+  const scenes = discoverProjectContentFiles(paths, 'scene').map((file) => {
     try {
       return projectSceneEntry(file, files[file] ?? '')
     }
@@ -300,7 +326,7 @@ export function indexProjectContent(input: IndexProjectContentInput): ProjectCon
     }
   })
 
-  const locations = directChildren(paths, 'adv/locations', path => path.endsWith('.md')).map((file) => {
+  const locations = discoverProjectContentFiles(paths, 'location').map((file) => {
     try {
       return projectLocationEntry(file, files[file] ?? '')
     }

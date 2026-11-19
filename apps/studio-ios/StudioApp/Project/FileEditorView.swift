@@ -183,9 +183,10 @@ struct ProjectHealthView: View {
                 if !group.isEmpty {
                     Section {
                         ForEach(group, id: \.self) { issue in
-                            NavigationLink(value: ProjectRoute.file(issue.file)) {
+                            NavigationLink(value: issue.file.hasSuffix(".adv.md") ? ProjectRoute.source(SourceLocation(path: issue.file, line: issue.line, column: issue.column)) : ProjectRoute.file(issue.file)) {
                                 IssueRow(isError: issue.type == .error, message: message(issue), location: location(issue))
                             }
+                            .accessibilityIdentifier("project-issue-\(issue.code ?? issue.category)")
                             .swipeActions {
                                 if issue.isFixable {
                                     Button("Fix") { fix([issue]) }
@@ -217,6 +218,14 @@ struct ProjectHealthView: View {
             }
         }
         .navigationTitle("Project Health")
+        .toolbar {
+            ToolbarItem(placement: .secondaryAction) {
+                NavigationLink(value: ProjectRoute.analysis) {
+                    Label("Diagnostics and Program", systemImage: "list.bullet.rectangle")
+                }
+                .accessibilityIdentifier("health-analysis")
+            }
+        }
         .refreshable { await session.reload() }
         .alert(fixedMessage ?? "", isPresented: Binding(get: { fixedMessage != nil }, set: { if !$0 { fixedMessage = nil } })) {
             Button("OK", role: .cancel) {}
@@ -237,7 +246,7 @@ struct ProjectHealthView: View {
 
     private func location(_ issue: EngineValidation.Issue) -> String {
         guard let line = issue.line else { return issue.file }
-        return "\(issue.file):\(line)"
+        return SourceLocation(path: issue.file, line: line, column: issue.column).display
     }
 
     private func fix(_ issues: [EngineValidation.Issue]) {

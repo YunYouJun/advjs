@@ -34,6 +34,8 @@ export type {
   BrowserRuntimeProgressionOptions,
   RuntimeProgressionController,
 } from './progression'
+export { createBrowserReadLog } from './read-log'
+export type { BrowserReadLogOptions, RuntimeReadLogController } from './read-log'
 export {
   validateSpritesheetDeclarations,
   validateSpritesheetImages,

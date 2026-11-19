@@ -125,9 +125,9 @@ jobs:
       - name: Test the native Studio engine on Node
         run: pnpm -C apps/studio-ios test:engine
 
-      - name: Generate native golden cases and sample packages
+      - name: Build native player, golden cases and sample packages
         if: needs.studio-changes.outputs.native == 'true'
-        run: pnpm -C apps/studio-ios golden && pnpm -C apps/studio-ios build:samples
+        run: pnpm -C apps/studio-ios golden && pnpm -C apps/studio-ios build:samples && pnpm -C apps/studio-ios build:player
       # Only portable JS/JSON/sample inputs cross runners, never node_modules.
       # The shared path root is apps/studio-ios, restored at the same location.
       - uses: actions/upload-artifact@v7
@@ -140,6 +140,8 @@ jobs:
             apps/studio-ios/Packages/StudioKit/Sources/StudioKit/EngineBundle/
             apps/studio-ios/Packages/StudioKit/Tests/StudioKitTests/Golden/
             apps/studio-ios/StudioApp/Samples/
+            apps/studio-ios/StudioApp/OfflinePlayer.bundle/
+            apps/studio-ios/StudioAppUITests/OfflineFixture.bundle/
           if-no-files-found: error
           retention-days: 7
 
@@ -192,9 +194,13 @@ jobs:
         run: node apps/studio-ios/scripts/simulator-destinations.mjs --only iphone --shutdown
       - name: Boot the iPad and wait for readiness
         run: node apps/studio-ios/scripts/simulator-destinations.mjs --only ipad --boot
-      - name: UI tests on iPad
+      # Run the hardware-keyboard layout test before the chapter suite changes focus.
+      - name: Layout UI tests on iPad
         working-directory: apps/studio-ios
         run: xcodebuild test-without-building -parallel-testing-enabled NO -project StudioApp.xcodeproj -scheme StudioApp $(node scripts/simulator-destinations.mjs --only ipad) -derivedDataPath build/DerivedData -only-testing:StudioAppUITests/IPadLayoutUITests -resultBundlePath build/UITests-iPad.xcresult
+      - name: Chapter playtest UI tests on iPad
+        working-directory: apps/studio-ios
+        run: xcodebuild test-without-building -parallel-testing-enabled NO -project StudioApp.xcodeproj -scheme StudioApp $(node scripts/simulator-destinations.mjs --only ipad) -derivedDataPath build/DerivedData -only-testing:StudioAppUITests/ChapterPlaytestUITests -resultBundlePath build/ChapterPlaytest-iPad.xcresult
       - uses: actions/upload-artifact@v7
         if: always()
         with:

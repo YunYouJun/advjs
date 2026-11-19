@@ -6,14 +6,14 @@ import { injectionAdvPlayer } from '../../../packages/client/constants'
 
 const app = reactive({ showUi: true, menus: { settings: false }, showGlossary: false, showHistory: false, showSaveMenu: false, showLoadMenu: false })
 const adv = {
-  $auto: { paused: shallowRef(false), stop: vi.fn() },
+  $auto: { paused: shallowRef(false), skipEnabled: shallowRef(false), stop: vi.fn() },
   $audio: { reset: vi.fn(async () => {}) },
   config: shallowRef({}),
   themeConfig: shallowRef({}),
   store: { current: undefined, state: { status: 'idle', stage: {} } },
   resources: { tachiesMapRef: shallowRef({}) },
 }
-vi.mock('@advjs/client', () => ({ useAppStore: () => app }))
+vi.mock('@advjs/client', () => ({ useAppStore: () => app, useGameStore: () => ({}) }))
 vi.mock('../../../packages/client/composables', () => ({ useBeforeUnload: vi.fn() }))
 vi.mock('../../../packages/client/composables/useAdvContext', () => ({ useAdvContext: () => ({ $adv: adv }) }))
 vi.mock('../../../packages/client/composables/useAdvMotionPreference', () => ({ useAdvMotionPreference: () => shallowRef('none') }))

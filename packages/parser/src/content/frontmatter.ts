@@ -83,7 +83,7 @@ export function readFrontmatterSource(source: string): FrontmatterSource | undef
 
 /** Render frontmatter followed by an already formatted raw body. */
 export function writeFrontmatterSource(data: Record<string, unknown>, bodyRaw: string): string {
-  return `---\n${dumpYamlFrontmatter(data)}\n---${bodyRaw.startsWith('\n') || !bodyRaw ? bodyRaw : `\n${bodyRaw}`}`
+  return `---\n${dumpYamlFrontmatter(data)}\n---${/^\r?\n/u.test(bodyRaw) || !bodyRaw ? bodyRaw : `\n${bodyRaw}`}`
 }
 
 /** Replace a body while keeping one blank line after the frontmatter, like the serializers. */

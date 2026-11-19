@@ -7,6 +7,7 @@ extension FocusedValues {
     @Entry var libraryActions: LibraryActions?
     /// Saves the focused editor's draft.
     @Entry var saveFile: SaveAction?
+    @Entry var runPlaytest: RunPlaytestAction?
     /// Focuses the focused window's project search.
     @Entry var findProjects: FindAction?
 }
@@ -31,11 +32,16 @@ struct SaveAction: Equatable {
     }
 }
 
+struct RunPlaytestAction {
+    let perform: () -> Void
+}
+
 /// Menu bar and hardware-keyboard commands (iPad).
 struct StudioCommands: Commands {
     let model: AppModel
     @FocusedValue(\.libraryActions) private var libraryActions
     @FocusedValue(\.saveFile) private var saveFile
+    @FocusedValue(\.runPlaytest) private var runPlaytest
     @FocusedValue(\.selectedProject) private var selectedProject
     @FocusedValue(\.findProjects) private var findProjects
     @Environment(\.openWindow) private var openWindow
@@ -64,6 +70,11 @@ struct StudioCommands: Commands {
             Button("Find Projects") { findProjects?.perform() }
                 .keyboardShortcut("f", modifiers: .command)
                 .disabled(findProjects == nil)
+        }
+        CommandGroup(after: .saveItem) {
+            Button("Run Playtest") { runPlaytest?.perform() }
+                .keyboardShortcut("r", modifiers: .command)
+                .disabled(runPlaytest == nil)
         }
         CommandGroup(replacing: .saveItem) {
             Button("Save") { saveFile?.perform() }

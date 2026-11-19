@@ -4,6 +4,7 @@ import type { IFileSystem } from '../utils/fs'
 import type { StudioNativeMedia } from '../utils/nativeProjectMutation'
 import type { StudioContentSource } from '../utils/projectContentMutation'
 import type { ContentType, EditorMode } from './useContentEditor'
+import { projectMarkdownChapterPath } from '@advjs/core/project'
 import { ref } from 'vue'
 import { parseContentFormMarkdown, stringifyContentFormMarkdown } from '../utils/contentFormMarkdown'
 import { commitStudioProjectFiles } from '../utils/nativeProjectMutation'
@@ -33,14 +34,15 @@ const DATA_URI_RE = /^data:(image\/([a-z0-9.+-]+));base64,/i
 const ID_RE = /^[\w-]+$/
 
 function targetPath(type: ContentType, id: string) {
-  const name = type === 'chapter' ? id.replace(/\.adv\.md$/, '') : id
+  if (type === 'chapter')
+    return projectMarkdownChapterPath(id)
+  const name = id
   if (!ID_RE.test(name))
     throw new Error('ADV_STUDIO_CONTENT_PATH_INVALID')
   switch (type) {
     case 'character': return `adv/characters/${name}.character.md`
     case 'scene': return `adv/scenes/${name}.md`
     case 'location': return `adv/locations/${name}.md`
-    case 'chapter': return `adv/chapters/${name}.adv.md`
     default: throw new Error('ADV_STUDIO_CONTENT_TYPE_INVALID')
   }
 }

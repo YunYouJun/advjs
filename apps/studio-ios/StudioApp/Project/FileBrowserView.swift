@@ -149,10 +149,21 @@ struct FolderListing: Equatable {
 struct FileRow: View {
     let session: ProjectSession
     let path: String
+    var title: String?
 
     var body: some View {
         HStack {
-            Label((path as NSString).lastPathComponent, systemImage: FileKind(path: path).systemImage)
+            let filename = (path as NSString).lastPathComponent
+            Label {
+                VStack(alignment: .leading) {
+                    Text(title ?? filename)
+                    if let title, title != filename {
+                        Text(filename).font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+            } icon: {
+                Image(systemName: FileKind(path: path).systemImage)
+            }
             Spacer()
             if session.conflicts.contains(where: { $0.path == path }) {
                 Image(systemName: "exclamationmark.arrow.triangle.2.circlepath")
@@ -205,8 +216,18 @@ enum FileKind {
 struct FileDetailView: View {
     let session: ProjectSession
     let path: String
+    var location: SourceLocation?
 
     var body: some View {
+        if path.hasSuffix(".adv.md") {
+            ChapterEditorView(session: session, path: path, location: location ?? SourceLocation(path: path))
+        }
+        else {
+            fileContent
+        }
+    }
+
+    @ViewBuilder private var fileContent: some View {
         switch FileKind(path: path) {
         case .text:
             FileEditorView(session: session, path: path)

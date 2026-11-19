@@ -94,7 +94,7 @@ public actor ProjectStore {
         try await engine.start()
         let template = try await engine.call(
             "project.fromTemplate",
-            input: EngineTemplateInput(templateId: templateID, name: displayName),
+            input: EngineTemplateInput(templateId: templateID, name: displayName, playable: true),
             as: EngineTemplateFiles.self
         )
         return try install(named: displayName) { folder in

@@ -36,12 +36,16 @@ public final class ProjectSession: Identifiable {
     public static let debounce: Duration = .milliseconds(400)
 
     private let store: ProjectStore
-    private let engine: EngineBridge
+    let engine: EngineBridge
     private let draftStore: DraftStore
     typealias SnapshotReader = @Sendable (URL, ProjectWatcher?) async throws -> ProjectSnapshot
     private let readSnapshot: SnapshotReader
     private var access: ProjectFolderAccess?
-    private var watcher: ProjectWatcher?
+    private(set) var watcher: ProjectWatcher?
+    private var pendingDraftWrite: Task<Void, Never>?
+    private var stagedDrafts: Set<String> = []
+    public private(set) var draftWriteFailed = false
+    @ObservationIgnored public var sourcePositions: [String: SourceLocation] = [:]
     private var pendingReload: Task<Void, Never>?
     /// Async disk/engine work may finish out of order on this reentrant actor.
     private var loadGeneration = 0
@@ -93,6 +97,7 @@ public final class ProjectSession: Identifiable {
     }
 
     public func close() async {
+        try? flushDrafts()
         state = .closed
         invalidateLoads()
         pendingReload?.cancel()
@@ -105,6 +110,10 @@ public final class ProjectSession: Identifiable {
         index = nil
         validation = nil
         await engine.shutdown()
+    }
+
+    public func reloadSavedVersion() async throws {
+        guard try await load(source: .requested) else { throw ProjectLibraryError.unavailable }
     }
 
     public func reload() async {
@@ -136,39 +145,91 @@ public final class ProjectSession: Identifiable {
 
     /// Text of `path` as the author should see it: the draft if there is one.
     public func text(at path: String) -> String? {
-        draftStore.draft(for: path)?.text ?? snapshot?.files[path]
+        drafts.first(where: { $0.path == path })?.text ?? snapshot?.files[path]
     }
 
     public func hasDraft(_ path: String) -> Bool {
         drafts.contains { $0.path == path }
     }
 
-    /// Keep an unsaved edit on this device.
+    /// Queue an App-local draft immediately, with debounced disk recovery.
+    public func stageDraft(_ text: String, for path: String, basedOn original: String?) {
+        let existing = drafts.first { $0.path == path }
+        guard existing?.text != text else { return }
+        if existing == nil, original == text { return }
+        let base = existing == nil ? original.map(DraftStore.sha256) : existing?.baseSHA256
+        if text == snapshot?.files[path] {
+            discardDraft(path)
+            return
+        }
+        drafts.removeAll { $0.path == path }
+        drafts.append(FileDraft(path: path, text: text, baseSHA256: base, updatedAt: .now))
+        stagedDrafts.insert(path)
+        if let conflict = conflicts.first(where: { $0.path == path }) {
+            conflicts.removeAll { $0.path == path }
+            conflicts.append(FileConflict(path: path, mine: text, theirs: conflict.theirs))
+        }
+        else if original != snapshot?.files[path], text != snapshot?.files[path] {
+            conflicts.append(FileConflict(path: path, mine: text, theirs: snapshot?.files[path]))
+        }
+        pendingDraftWrite?.cancel()
+        pendingDraftWrite = Task { [weak self] in
+            try? await Task.sleep(for: Self.debounce)
+            guard !Task.isCancelled else { return }
+            try? self?.flushDrafts()
+        }
+    }
+
+    public func flushDrafts() throws {
+        pendingDraftWrite?.cancel()
+        pendingDraftWrite = nil
+        do {
+            for draft in drafts where stagedDrafts.contains(draft.path) {
+                try draftStore.write(draft)
+                stagedDrafts.remove(draft.path)
+            }
+            draftWriteFailed = false
+        }
+        catch {
+            draftWriteFailed = true
+            throw error
+        }
+    }
+
+    /// Keep an unsaved edit on this device before returning.
     public func updateDraft(_ text: String, for path: String) {
-        if text == snapshot?.files[path], draftStore.draft(for: path)?.baseSHA256 == snapshot?.files[path].map(DraftStore.sha256) {
-            draftStore.discard(path)
-        }
-        else {
-            try? draftStore.save(text, for: path, base: snapshot?.files[path])
-        }
-        refreshDrafts()
+        stageDraft(text, for: path, basedOn: snapshot?.files[path])
+        try? flushDrafts()
     }
 
     public func discardDraft(_ path: String) {
+        stagedDrafts.remove(path)
         draftStore.discard(path)
-        refreshDrafts()
+        drafts.removeAll { $0.path == path }
+        conflicts.removeAll { $0.path == path }
     }
 
-    /// Write `text` to `path` atomically and drop its draft.
+    /// Write an edit only if the coordinated source still matches its baseline.
     public func save(_ text: String, to path: String) async throws {
         let url = try fileURL(path)
-        try CoordinatedFiles.write(Data(text.utf8), to: url, filePresenter: watcher)
-        draftStore.discard(path)
+        let baseline = snapshot?.files[path]
+        let draft = drafts.first { $0.path == path }
+        let base = draft == nil ? baseline.map(DraftStore.sha256) : draft?.baseSHA256
+        stageDraft(text, for: path, basedOn: baseline)
+        try flushDrafts()
+        do {
+            try CoordinatedFiles.write(Data(text.utf8), to: url, matching: base, filePresenter: watcher)
+        }
+        catch CoordinatedFiles.WriteError.sourceChanged {
+            try await load()
+            throw CoordinatedFiles.WriteError.sourceChanged
+        }
+        discardDraft(path)
         try await load()
     }
 
     public func saveDraft(_ path: String) async throws {
-        guard let draft = draftStore.draft(for: path) else { return }
+        guard let draft = drafts.first(where: { $0.path == path }) else { return }
         try await save(draft.text, to: path)
     }
 
@@ -177,7 +238,12 @@ public final class ProjectSession: Identifiable {
         guard !ProjectFolderName.isTaken(url.lastPathComponent, in: url.deletingLastPathComponent()) else {
             throw ProjectLibraryError.nameTaken(url.lastPathComponent)
         }
-        try CoordinatedFiles.write(Data(contents.utf8), to: url, filePresenter: watcher)
+        do {
+            try CoordinatedFiles.write(Data(contents.utf8), to: url, matching: nil, filePresenter: watcher)
+        }
+        catch CoordinatedFiles.WriteError.sourceChanged {
+            throw ProjectLibraryError.nameTaken(url.lastPathComponent)
+        }
         try await load()
     }
 
@@ -189,11 +255,20 @@ public final class ProjectSession: Identifiable {
         guard !ProjectFolderName.isTaken(destination.lastPathComponent, in: destination.deletingLastPathComponent(), except: sameFolder ? source.lastPathComponent : nil) else {
             throw ProjectLibraryError.nameTaken(destination.lastPathComponent)
         }
-        try CoordinatedFiles.rename(source, to: destination, filePresenter: watcher)
-        if let draft = draftStore.draft(for: path) {
-            try? draftStore.save(draft.text, for: newPath, base: snapshot?.files[path])
-            draftStore.discard(path)
+        try flushDrafts()
+        let draft = drafts.first { $0.path == path }
+        guard !hasDraft(newPath) else { throw ProjectLibraryError.nameTaken(destination.lastPathComponent) }
+        if let draft {
+            try draftStore.write(FileDraft(path: newPath, text: draft.text, baseSHA256: draft.baseSHA256, updatedAt: draft.updatedAt))
         }
+        do {
+            try CoordinatedFiles.rename(source, to: destination, filePresenter: watcher)
+        }
+        catch {
+            if draft != nil { draftStore.discard(newPath) }
+            throw error
+        }
+        discardDraft(path)
         try await load()
     }
 
@@ -213,14 +288,23 @@ public final class ProjectSession: Identifiable {
 
     public func deleteFile(_ path: String) async throws {
         try CoordinatedFiles.delete(try fileURL(path), filePresenter: watcher)
-        draftStore.discard(path)
+        discardDraft(path)
         try await load()
     }
 
     public func resolve(_ conflict: FileConflict, with resolution: ConflictResolution) async throws {
         switch resolution {
         case .keepMine:
-            try await save(conflict.mine, to: conflict.path)
+            try flushDrafts()
+            do {
+                try CoordinatedFiles.write(Data(conflict.mine.utf8), to: try fileURL(conflict.path), matching: conflict.theirs.map(DraftStore.sha256), filePresenter: watcher)
+            }
+            catch CoordinatedFiles.WriteError.sourceChanged {
+                try await load()
+                throw CoordinatedFiles.WriteError.sourceChanged
+            }
+            discardDraft(conflict.path)
+            try await load()
         case .keepTheirs:
             discardDraft(conflict.path)
             try await load()
@@ -231,7 +315,7 @@ public final class ProjectSession: Identifiable {
             let ext = url.pathExtension
             let name = ProjectFolderName.unique(ext.isEmpty ? "\(stem) (mine)" : "\(stem) (mine).\(ext)", in: directory)
             try CoordinatedFiles.write(Data(conflict.mine.utf8), to: directory.appending(path: name), filePresenter: watcher)
-            draftStore.discard(conflict.path)
+            discardDraft(conflict.path)
             try await load()
         }
     }
@@ -355,8 +439,9 @@ public final class ProjectSession: Identifiable {
     }
 
     private func refreshDrafts() {
-        drafts = draftStore.all()
-        conflicts = draftStore.conflicts(with: snapshot?.files ?? [:])
+        drafts = draftStore.all().filter { !stagedDrafts.contains($0.path) }
+            + drafts.filter { stagedDrafts.contains($0.path) }
+        conflicts = DraftStore.conflicts(for: drafts, with: snapshot?.files ?? [:])
     }
 
     nonisolated static func readSnapshot(_ root: URL, presenter: ProjectWatcher?) async throws -> ProjectSnapshot {

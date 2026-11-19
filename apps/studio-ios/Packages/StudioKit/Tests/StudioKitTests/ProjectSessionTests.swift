@@ -368,6 +368,101 @@ struct ProjectSessionTests {
         #expect(session.index == nil)
     }
 
+    @Test("Rename moves the chapter's draft and delete clears the renamed path")
+    func chapterRenameAndDelete() async throws {
+        let studio = try TemporaryStudio()
+        defer { studio.remove() }
+        let (session, root) = try await openSession(studio)
+        let original = try await session.chapterPath(filename: "original")
+        let renamed = try await session.chapterPath(filename: "renamed.adv.md", currentPath: original)
+        try await session.createFile(original, contents: "> Saved.\n")
+        session.stageDraft("> Draft.\n", for: original, basedOn: "> Saved.\n")
+        try await session.renameFile(original, to: renamed)
+
+        #expect(session.text(at: original) == nil)
+        #expect(session.text(at: renamed) == "> Draft.\n")
+        #expect(try String(contentsOf: root.appending(path: renamed), encoding: .utf8) == "> Saved.\n")
+        await session.close()
+        await session.open()
+        #expect(session.text(at: renamed) == "> Draft.\n")
+        try await session.deleteFile(renamed)
+        #expect(session.text(at: renamed) == nil)
+        #expect(session.index?.chapters.contains(where: { $0.file == renamed }) == false)
+        await session.close()
+    }
+
+    @Test("UTF-16 source coordinates preserve columns after Chinese and emoji in CRLF files")
+    func unicodeSourcePosition() {
+        let text = "第一行\r\n猫😀!\n尾" as NSString
+        let location = SourceLocation(path: "adv/chapters/one.adv.md", line: 2, column: 4)
+        let offset = location.insertionOffset(in: text)
+        #expect(text.character(at: offset) == 33)
+        #expect(SourceLocation(path: location.path, offset: offset, in: text) == location)
+        #expect(SourceLocation(path: location.path, line: 2, column: 3).insertionOffset(in: text) == offset - 2)
+    }
+
+    @Test("Chapter forms preserve unknown metadata and the exact untouched body")
+    func chapterRoundTrip() async throws {
+        let studio = try TemporaryStudio()
+        defer { studio.remove() }
+        let (session, _) = try await openSession(studio)
+        let path = try await session.chapterPath(filename: "night")
+        #expect(path == "adv/chapters/night.adv.md")
+        let original = "---\ntitle: 原题\ndescription: 旧梗概\ncustom: 保留\n---\r\n\r\n> 中文 😀  \r\n"
+        let form = try await session.chapterForm(path: path, source: original)
+        var edit = form
+        edit.title = "夜航"
+        edit.plotSummary = ""
+        let source = try await session.chapterSource(path: path, form: edit, source: original, initialBody: form.body)
+        #expect(source.contains("custom: 保留"))
+        #expect(source.hasSuffix("---\r\n\r\n> 中文 😀  \r\n"))
+        let reopened = try await session.chapterForm(path: path, source: source)
+        #expect(reopened == edit)
+        await session.close()
+    }
+
+    @Test("A staged draft compiles independently and survives a stale-disk save")
+    func chapterDraftCompileAndSaveConflict() async throws {
+        let studio = try TemporaryStudio()
+        defer { studio.remove() }
+        let (session, root) = try await openSession(studio)
+        let path = try await session.chapterPath(filename: "night")
+        let disk = "> Saved lighthouse.\n"
+        let draft = "---\ntitle: 夜航\n---\n\n> Draft lighthouse 😀.\n"
+        try await session.createFile(path, contents: disk)
+        session.stageDraft(draft, for: path, basedOn: disk)
+        let savedInput = try session.sourceInput(.saved)
+        let draftInput = try session.sourceInput(.draft)
+        let base = try #require(URL(string: "advjs-player://project/"))
+        let savedPlayer = try await session.buildPlayer(savedInput, baseURL: base)
+        let draftPlayer = try await session.buildPlayer(draftInput, baseURL: base)
+        #expect(savedPlayer.sourceMap.nodes?["night#node-0"]?.line == 1)
+        #expect(draftPlayer.sourceMap.nodes?["night#node-0"]?.line == 5)
+        #expect(draftPlayer.startAddress(chapterPath: path, location: SourceLocation(path: path, line: 4)) == RuntimeAddress(chapterId: "night", nodeId: "node-0"))
+        #expect(try Data(contentsOf: root.appending(path: path)) == Data(disk.utf8))
+
+        let external = "> External revision.\n"
+        try Data(external.utf8).write(to: root.appending(path: path), options: .atomic)
+        await #expect(throws: CoordinatedFiles.WriteError.sourceChanged) {
+            try await session.saveDraft(path)
+        }
+        #expect(try Data(contentsOf: root.appending(path: path)) == Data(external.utf8))
+        #expect(session.conflicts.first?.mine == draft)
+        await session.close()
+        await session.open()
+        #expect(session.text(at: path) == draft)
+
+        let invalid = "\n> 中文 😀\n\n- [不存在](#missing)\n"
+        session.stageDraft(invalid, for: path, basedOn: external)
+        let compilation = try await session.compile(session.sourceInput(.draft))
+        let diagnostic = try #require(compilation.diagnostics.first { $0.file == path && $0.code == "ADV_RUNTIME_UNKNOWN_TARGET" })
+        #expect(diagnostic.line == 4)
+        let location = try #require(diagnostic.location)
+        let text = invalid as NSString
+        #expect(SourceLocation(path: path, offset: location.insertionOffset(in: text), in: text).line == 4)
+        await session.close()
+    }
+
     @Test("Writes the game description through the shared patch rules")
     func gameDescription() async throws {
         let studio = try TemporaryStudio()

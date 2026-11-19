@@ -37,4 +37,28 @@ struct StudioAppTests {
         #expect(FileKind(path: "adv/assets/bgm.m4a") == .audio)
         #expect(FileKind(path: "adv/assets/model.vrm") == .other)
     }
+    @Test("Player resources stream byte ranges and restrict filesystem traversal")
+    func offlineResources() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let project = root.appending(path: "project")
+        try FileManager.default.createDirectory(at: project, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let outside = root.appending(path: "outside.m4a")
+        try Data("outside".utf8).write(to: outside)
+        let inside = project.appending(path: "theme.m4a")
+        try Data("0123456789".utf8).write(to: inside)
+        try FileManager.default.createSymbolicLink(at: project.appending(path: "link.m4a"), withDestinationURL: outside)
+
+        let response = PlayerSchemeHandler.read(root: project, path: ["theme.m4a"], range: "bytes=3-5", head: false)
+        #expect(response.status == 206)
+        #expect(response.headers["Content-Type"] == "audio/mp4")
+        #expect(response.headers["Content-Range"] == "bytes 3-5/10")
+        #expect(response.data == Data("345".utf8))
+        #expect(PlayerSchemeHandler.read(root: project, path: ["link.m4a"], range: nil, head: false).status == 404)
+        #expect(PlayerSchemeHandler.read(root: project, path: ["theme.m4a"], range: "bytes=12-", head: false).status == 416)
+
+        for value in ["advjs-player://project/%2E%2E/outside.m4a", "advjs-player://project/adv%2Ftheme.m4a", "advjs-player://other/theme.m4a", "file:///theme.m4a"] {
+            #expect(PlayerSchemeHandler.segments(of: try #require(URL(string: value))) == nil)
+        }
+    }
 }

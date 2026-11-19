@@ -1,9 +1,31 @@
 # Studio iPhone／iPad 原生 App 验收报告
 
 - 日期：2026-10-21 创建，随各阶段更新。
-- 状态：P1 完成（共享层下沉、引擎接口 v1、Node 与 JavaScriptCore 双端 golden、Studio 单测进 CI）。P0 三项可行性已在模拟器完成，功能清单已确认并锁定，登录配置已上线、待用户在模拟器中本人登录。用户决定以 iOS 模拟器验收，不要求实机。N3、N14、N15 部分有证据，其余未开始；N12 不适用。
+- 状态：P2 已合入，P3 与 P4 本地章节和试玩切片见下方。P0 至 P2 的记录保留当时的环境与结果。
 - 范围：[实施计划](../plans/2026-10-21-studio-native-ios)的验收证据；设计与决策见[设计规格](../specs/2026-10-21-studio-native-ios-design)。
 - 边界：本报告只记录实际运行结果。验收以 iOS 模拟器为准（用户 2026-10-21 决定），实机差异列为风险。
+
+## P3 与 P4 本地章节与试玩
+
+2026-11-18 在 `origin/dev@c35c5045` 上开始，工作分支为 `codex/studio-ios-authoring`。Xcode 27.1，iOS 27.0（24A434），使用共享的 iPhone 18 Pro 与 iPad Pro 11-inch（M5），通过 `simulator-session.mjs` 串行执行。
+
+| 检查                | 结果                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 共享引擎            | Node 23 项通过。386 个 golden 用例在 Node 与隔离沙箱一致。六种原生模板均可生成可执行程序。                                                                                                                                                                                                                                                                                                                                                                     |
+| StudioKit           | macOS JavaScriptCore 34 项通过。检查中文、emoji 与 CRLF 正文保留，草稿和磁盘源码映射，写入冲突及重开恢复。                                                                                                                                                                                                                                                                                                                                                     |
+| Web Studio 和工具链 | Web Studio 897 项，解析与 CI 合同 32 项，模拟器会话 26 项通过。                                                                                                                                                                                                                                                                                                                                                                                                |
+| 正式 App 构建       | iOS Simulator 的 Debug 与 Release `build-for-testing` 通过。App 内含 `OfflinePlayer.bundle`，UI 测试目标含独立保存项目夹具。                                                                                                                                                                                                                                                                                                                                   |
+| 独立 WebKit 渲染    | 用与正式 App 相同的播放器包和保存项目夹具验证对白、选择支、`star-map` 与 `civilization`，观察到背景与立绘读取，以及 BGM 的两条 Range 请求。测试只允许本机夹具服务的请求，观察到 0 条外网请求。                                                                                                                                                                                                                                                                 |
+| iPhone 原生界面     | 创建章节后，确认表单标题和源码正文落在同一文件。健康页诊断准确跳到第 3 行、第 1 列。早期试玩遇到 WebContent 停在 PID 0 并触发超时。Release 复测通过取消、草稿试玩和保存并试玩，前两条路径的原文件字节保持一致，两次从播放器返回均保留原光标位置。Release 保存夹具通过项目入口展示对白、选择支和星图。附件 `saved-chapter-source`、`chapter-diagnostic-source-location`、`draft-playtest`、`saved-offline-fixture-dialogue`、`saved-offline-fixture-star-map`。 |
+| iPad 原生界面       | 横屏完成章节保存和健康诊断定位。模拟键盘在源码编辑器聚焦时按 ⌘R，从光标所在行进入草稿试玩，显示新对白，原文件字节保持一致。选择保存并试玩后，文件包含新正文，两次关闭播放器均回到原光标位置。保存夹具从项目入口进入并走完选择支到星图。附件 `draft-playtest`、`saved-offline-fixture-dialogue`、`saved-offline-fixture-star-map`。                                                                                                                             |
+
+首节点耗时从发起 WKWebView 页面加载计到播放器报告首个渲染节点。试玩快照在计时前构建。iPad 的 Debug XCTest 在同一 App 进程依次草稿试玩和保存并试玩，分别为 11.9 秒和 7.1 秒。iPhone 18 Pro 的 Release XCTest 在已启动的 iOS 27.0 模拟器上测得首次草稿试玩 2.95 秒，随后保存并试玩 2.78 秒，在另一个新 App 进程首次播放保存夹具 3.07 秒。三次 Release 测量均超过 2 秒首帧预算，原始时间戳见 `iphone-release-authoring-startup.log` 和 `iphone-release-fixture-startup.log`。
+
+iPad 保存夹具的一次后续运行触发 `PLAYER_TIMEOUT`。当次系统日志中，从发起 WKWebView 加载到允许页面导航耗时约 39.5 秒。单独复测通过，结果和截图见 `ipad-fixture-recheck`。最终构建的章节保存、⌘R 试玩和诊断定位也分次通过，记录见 `ipad-authoring-verified.log` 和 `ipad-diagnostic-fixture-final.log`。
+
+macOS WKWebView 使用正式 App 的自定义 scheme 处理器完成 `ready → loaded`，到达保存夹具的 `start#node-4`。同一 Swift 资源处理器验证了 206 Range 响应、416 越界响应，以及拒绝符号链接和非法路径。
+
+系统层断网、双窗口快捷键路由、外接键盘、媒体生命周期、50 章项目的编辑性能和关闭播放器后的内存预算仍需设备证据。日志与截图暂存在 `apps/studio-ios/evidence/authoring-2026-11-18/`。部分 XCTest 运行在用例通过后卡在结果包导出，保留了控制台用例结果与命名的截图附件。
 
 ## 环境
 

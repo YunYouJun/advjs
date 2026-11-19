@@ -41,7 +41,11 @@ public struct DraftStore: Sendable {
     }
 
     public static func sha256(_ text: String) -> String {
-        SHA256.hash(data: Data(text.utf8)).map { String(format: "%02x", $0) }.joined()
+        sha256(Data(text.utf8))
+    }
+
+    static func sha256(_ data: Data) -> String {
+        SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
     }
 
     public func all() -> [FileDraft] {
@@ -62,11 +66,15 @@ public struct DraftStore: Sendable {
         let draft = FileDraft(
             path: path,
             text: text,
-            baseSHA256: existing?.baseSHA256 ?? base.map(Self.sha256),
+            baseSHA256: existing == nil ? base.map(Self.sha256) : existing?.baseSHA256,
             updatedAt: now
         )
+        try write(draft)
+    }
+
+    func write(_ draft: FileDraft) throws {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        try JSONEncoder().encode(draft).write(to: url(for: path), options: .atomic)
+        try JSONEncoder().encode(draft).write(to: url(for: draft.path), options: .atomic)
     }
 
     public func discard(_ path: String) {
@@ -75,7 +83,11 @@ public struct DraftStore: Sendable {
 
     /// Drafts whose file no longer matches the version editing started from.
     public func conflicts(with files: [String: String]) -> [FileConflict] {
-        all().compactMap { draft in
+        Self.conflicts(for: all(), with: files)
+    }
+
+    static func conflicts(for drafts: [FileDraft], with files: [String: String]) -> [FileConflict] {
+        drafts.compactMap { draft in
             let current = files[draft.path]
             let currentHash = current.map(Self.sha256)
             guard currentHash != draft.baseSHA256, current != draft.text else { return nil }
