@@ -36,18 +36,14 @@ struct RunPlaytestAction {
     let perform: () -> Void
 }
 
-/// Menu bar and hardware-keyboard commands (iPad).
-struct StudioCommands: Commands {
-    let model: AppModel
+/// Commands for the main window, which owns the project library.
+struct StudioLibraryCommands: Commands {
     @FocusedValue(\.libraryActions) private var libraryActions
-    @FocusedValue(\.saveFile) private var saveFile
-    @FocusedValue(\.runPlaytest) private var runPlaytest
     @FocusedValue(\.selectedProject) private var selectedProject
     @FocusedValue(\.findProjects) private var findProjects
     @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
-        SidebarCommands()
         CommandGroup(replacing: .newItem) {
             Button("New Project") { libraryActions?.isCreating = true }
                 .keyboardShortcut("n", modifiers: .command)
@@ -71,15 +67,23 @@ struct StudioCommands: Commands {
                 .keyboardShortcut("f", modifiers: .command)
                 .disabled(findProjects == nil)
         }
-        CommandGroup(after: .saveItem) {
-            Button("Run Playtest") { runPlaytest?.perform() }
-                .keyboardShortcut("r", modifiers: .command)
-                .disabled(runPlaytest == nil)
-        }
+    }
+}
+
+/// Commands available in either window, routed to the focused editor.
+struct StudioEditorCommands: Commands {
+    @FocusedValue(\.saveFile) private var saveFile
+    @FocusedValue(\.runPlaytest) private var runPlaytest
+
+    var body: some Commands {
+        SidebarCommands()
         CommandGroup(replacing: .saveItem) {
             Button("Save") { saveFile?.perform() }
                 .keyboardShortcut("s", modifiers: .command)
                 .disabled(saveFile == nil)
+            Button("Run Playtest") { runPlaytest?.perform() }
+                .keyboardShortcut("r", modifiers: .command)
+                .disabled(runPlaytest == nil)
         }
     }
 }
