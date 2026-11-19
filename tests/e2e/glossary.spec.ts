@@ -1,25 +1,30 @@
+import type { Locator } from '@playwright/test'
 import process from 'node:process'
 import { expect, test } from '@playwright/test'
 
 const gameUrl = process.env.ADV_TEST_GAME_URL || 'http://localhost:3333'
 test.use({ locale: 'zh-CN' })
 
+async function advanceTo(current: Locator, next: Locator) {
+  await current.click()
+  try {
+    await next.waitFor({ state: 'visible', timeout: 500 })
+    return
+  }
+  catch {}
+  await current.click()
+  await expect(next).toBeVisible()
+}
+
 test('opens glossary with the keyboard, restores focus and preserves dialogue on repeated dismissal', async ({ page }, testInfo) => {
   await page.goto(`${gameUrl}/#/start`)
   await page.getByRole('button', { name: '开始游戏', exact: true }).click()
-  // The starter begins with a narration before the first referenced dialogue.
   const narration = page.locator('.adv-black')
   await expect(narration).toBeVisible()
-  await narration.click()
-  try {
-    await narration.waitFor({ state: 'hidden', timeout: 500 })
-  }
-  catch {
-    await narration.click()
-  }
   const box = page.locator('.adv-dialog-box')
+  await advanceTo(narration, box.filter({ hasText: '哈喽，我是小云！' }))
   const reference = box.getByRole('button', { name: '[advjs]', exact: true })
-  await expect(reference).toBeVisible()
+  await advanceTo(box, reference)
   await expect(reference).toHaveAttribute('tabindex', '0')
   const before = await box.textContent()
   for (const [index, key] of ['Enter', 'Space'].entries()) {
