@@ -52,6 +52,23 @@ final class ChapterPlaytestUITests: XCTestCase {
         tile.tap()
     }
 
+    @discardableResult
+    private func waitForDialogue(_ expected: String, in app: XCUIApplication) -> XCUIElement {
+        let texts = app.webViews.firstMatch.staticTexts
+        let line = texts.containing(NSPredicate(format: "label CONTAINS %@", expected)).firstMatch
+        let firstGlyph = texts.matching(NSPredicate(format: "label == %@", String(expected.prefix(1)))).firstMatch
+        let content = expected.filter { !$0.isWhitespace }
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            if line.exists { return true }
+            guard firstGlyph.exists else { return false }
+            // Some WebKit versions expose each animated glyph as a separate static text.
+            let rendered = texts.allElementsBoundByIndex.map(\.label).joined()
+            return rendered.filter { !$0.isWhitespace }.contains(content)
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 40), .completed, app.debugDescription)
+        return line.exists ? line : firstGlyph
+    }
+
     private func writeChapterDraft(_ app: XCUIApplication, project name: String) {
         openNewProject(app, name: name)
         openChapters(app)
@@ -139,8 +156,7 @@ final class ChapterPlaytestUITests: XCTestCase {
         }
         draft.tap()
         XCTAssertTrue(close.waitForExistence(timeout: 20), app.debugDescription)
-        let dialogue = app.webViews.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Draft lighthouse")).firstMatch
-        XCTAssertTrue(dialogue.waitForExistence(timeout: 40), app.debugDescription)
+        waitForDialogue("Draft lighthouse", in: app)
         attachScreenshot(app, "draft-playtest")
         XCTAssertEqual(try Data(contentsOf: url), saved)
 
@@ -150,7 +166,7 @@ final class ChapterPlaytestUITests: XCTestCase {
         play.tap()
         app.buttons["play-chapter-start"].tap()
         app.buttons["Save and Playtest"].firstMatch.tap()
-        XCTAssertTrue(dialogue.waitForExistence(timeout: 40), app.debugDescription)
+        waitForDialogue("Draft lighthouse", in: app)
         XCTAssertTrue(try String(contentsOf: url, encoding: .utf8).contains("Draft lighthouse"))
         close.tap()
         XCTAssertTrue(editor.waitForExistence(timeout: 10))
@@ -224,8 +240,7 @@ final class ChapterPlaytestUITests: XCTestCase {
         play.tap()
 
         let web = app.webViews.firstMatch
-        let opening = web.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "断网也能试玩吗")).firstMatch
-        XCTAssertTrue(opening.waitForExistence(timeout: 40), app.debugDescription)
+        let opening = waitForDialogue("断网也能试玩吗", in: app)
         attachScreenshot(app, "saved-offline-fixture-dialogue")
         let choice = web.buttons.containing(NSPredicate(format: "label CONTAINS %@", "先看星图")).firstMatch
         for _ in 0..<3 where !choice.exists { opening.tap() }
