@@ -72,13 +72,14 @@ describe('breeze native authoring provider', () => {
     expect(inspected.characters[0]!.generation!.parameters!.instruct).toContain('不要添加背景音乐。\n成熟女声')
   })
 
-  it('sends Xinference serialized kwargs, writes native WAV candidates and preserves exact dialogue text', async () => {
+  it('sends Xinference serialized kwargs, writes native WAV candidates and preserves dialogue text with vocal events', async () => {
     const config: Partial<AdvConfig> = { authoring: { voice: { providers: [provider()], presets: { breeze: 'preset.json' }, defaultPreset: 'breeze' } } }
-    const result = await runVoicePreview({ root, config, character: 'hero', text: '  新的台词。 ', seed: 7, offline: true })
+    const text = '  [清嗓子]新的台词。 '
+    const result = await runVoicePreview({ root, config, character: 'hero', text, seed: 7, offline: true })
     if (!('candidates' in result))
       throw new Error('Expected modern provider result')
     const candidate = result.candidates![0]!
-    expect(candidate).toMatchObject({ provider: 'breeze-tts', characterId: 'hero', text: '  新的台词。 ', model: source.model, mimeType: 'audio/wav', durationSeconds: 0.1, sampleRate: 24_000 })
+    expect(candidate).toMatchObject({ provider: 'breeze-tts', characterId: 'hero', text, model: source.model, mimeType: 'audio/wav', durationSeconds: 0.1, sampleRate: 24_000 })
     expect(candidate.providerVoiceId).toMatch(/^design:[a-f0-9]{64}$/u)
     expect(candidate.inputFingerprint).toMatch(/^[a-f0-9]{64}$/u)
     expect(candidate.revision).toBeUndefined()
@@ -89,7 +90,7 @@ describe('breeze native authoring provider', () => {
     expect(url).toBe('http://127.0.0.1:9997/v1/audio/speech')
     expect(init!.redirect).toBe('error')
     const body = JSON.parse(init!.body as string)
-    expect(body).toEqual({ model: 'breeze-bf16', input: '  新的台词。 ', voice: 'S0', response_format: 'wav', speed: 1, stream: false, kwargs: JSON.stringify({ instruct: source.characters[0]!.description, seed: 7, cfg_scale: 4 }) })
+    expect(body).toEqual({ model: 'breeze-bf16', input: text, voice: 'S0', response_format: 'wav', speed: 1, stream: false, kwargs: JSON.stringify({ instruct: source.characters[0]!.description, seed: 7, cfg_scale: 4 }) })
     expect(result.manifest).toMatchObject({ state: 'candidate', seed: 7, cfgScale: 4 })
     expect(JSON.stringify(result.manifest)).not.toContain(info.model_revision)
     expect(await readdir(root)).not.toContain('assets.json')

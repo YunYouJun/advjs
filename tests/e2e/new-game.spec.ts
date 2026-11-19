@@ -54,7 +54,8 @@ async function advanceStory(page: Page, previouslyChosen = false) {
   const startChoice = page.getByRole('button', {
     name: previouslyChosen ? /^直接开始\s*（已选过）$/ : /^直接开始$/,
   })
-  await advanceTo(page.locator('.adv-black'), dialog.filter({ hasText: '欢迎来到 ADV.JS' }))
+  await advanceTo(page.locator('.adv-black'), dialog.filter({ hasText: '哈喽，我是小云！' }))
+  await advanceTo(dialog, dialog.filter({ hasText: '欢迎来到 ADV.JS' }))
   await advanceTo(dialog, startChoice)
   await startChoice.click()
   await expect(dialog).toContainText('最小项目已经跑通')

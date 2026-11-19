@@ -15,6 +15,7 @@ export interface Capability {
   id: string
   status: CapabilityStatus
   href: string
+  exampleHref?: string
   /** Id in `feature-status.ts` when the feature isn't finished. */
   feature?: string
 }
@@ -38,7 +39,7 @@ export const capabilities: Capability[] = [
   { id: 'tachie', status: 'engine', href: '/guide/runtime/presentation#立绘调度与逐帧动画' },
   { id: 'cg', status: 'engine', href: '/guide/runtime/presentation#cg-与跨周目画廊' },
   { id: 'audio', status: 'engine', href: '/guide/audio#mixer' },
-  { id: 'voice', status: 'engine', href: '/guide/audio#对白配音绑定' },
+  { id: 'voice', status: 'engine', href: '/guide/audio#对白配音绑定', exampleHref: '/guide/authoring-voice#xiaoyun-opening-voice' },
   { id: 'saveSlots', status: 'engine', href: '/guide/runtime/navigation-and-saves#浏览器存档槽位' },
   { id: 'progression', status: 'engine', href: '/guide/runtime/meta-progression' },
   { id: 'glossary', status: 'engine', href: '/guide/advscript/glossary' },

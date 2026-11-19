@@ -64,6 +64,16 @@ describe('desktop project creation', () => {
         expect(project.compilation.project.characters[0]!.avatar).toBe('/img/characters/xiaoyun.webp')
         expect(project.compilation.project.scenes).toHaveLength(1)
         expect(await readFile(resolve(root, 'public/img/characters/xiaoyun.webp'))).toEqual(await readFile(resolve(import.meta.dirname, '../../../demo/starter/public/img/characters/xiaoyun.webp')))
+        const voicePresetPath = 'authoring/voices/breeze-xiaoyun.json'
+        expect(files[voicePresetPath]).toBe(await readFile(resolve(import.meta.dirname, `../../../demo/starter/${voicePresetPath}`), 'utf8'))
+        const [voice] = JSON.parse(files[voicePresetPath]!).characters
+        expect(voice.id).toBe(project.compilation.project.characters[0]!.id)
+        const opening = Object.values(project.compilation.project.program!.chapters.hello!.nodes).find(node => node.kind === 'dialog')
+        expect(opening?.data).toMatchObject({
+          lineId: expect.stringMatching(/^line_/u),
+          speakerId: voice.id,
+          text: voice.text.replace(/^\[清嗓子\]/u, ''),
+        })
         expect(project.compilation.project.chapters.map(chapter => chapter.id).sort()).toEqual(['ending', 'hello', 'letter'])
         for (const chapterId of ['hello', 'letter', 'ending']) {
           expect(files[`adv/chapters/${chapterId}.adv.md`]).toBe(await readFile(resolve(import.meta.dirname, `../../../demo/starter/public/md/chapters/${chapterId}.adv.md`), 'utf8'))
