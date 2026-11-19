@@ -241,7 +241,7 @@ export function useAdvKeys($adv: AdvContext, options: AdvKeysOptions = {}) {
   }, { passive: true })
 
   function activeDialog(root: HTMLElement) {
-    return [...root.querySelectorAll<HTMLElement>(DIALOG)]
+    return Array.from(root.querySelectorAll<HTMLElement>(DIALOG))
       .findLast(dialog => !dialog.closest(INACTIVE) && (dialog.checkVisibility?.() ?? true))
   }
 
@@ -253,7 +253,7 @@ export function useAdvKeys($adv: AdvContext, options: AdvKeysOptions = {}) {
     const dialog = activeDialog(root)
     const choices = $adv.store.state?.status === 'waiting-choice' ? root.querySelector('.adv-options-container') : null
     const container = dialog ?? choices ?? root
-    const items = [...container.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(canFocus)
+    const items = Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(canFocus)
     if (!items.length)
       return
     const index = items.indexOf(document.activeElement as HTMLElement)

@@ -242,7 +242,7 @@ pnpm -C apps/studio-ios golden
 swift test --package-path apps/studio-ios/Packages/StudioKit
 ```
 
-iOS 模拟器上的 JavaScriptCore 一致性测试在 `apps/studio-ios/Packages/StudioKit` 中运行 `xcodebuild test -scheme StudioKit`，目标设备由 `node apps/studio-ios/scripts/simulator-destinations.mjs` 选出。正式 App 的 `build:player`、样例构建和 UI 测试命令见 [Studio iOS README](../../apps/studio-ios/README.md)。
+iOS 模拟器上的 JavaScriptCore 一致性测试在 `apps/studio-ios/Packages/StudioKit` 中运行 `xcodebuild test -scheme StudioKit`，目标设备由 `node apps/studio-ios/scripts/simulator-destinations.mjs` 选出。正式 App 的 `build:player`、样例构建和 UI 测试命令见 [Studio iOS README](https://github.com/YunYouJun/advjs/blob/dev/apps/studio-ios/README.md)。
 
 验收报告写入 `docs/reports/studio-native-ios-acceptance.md`，逐项记录：环境（Xcode、系统版本、模拟器型号）、构建类型、fixture、命令与结果、截图／录屏／Instruments 文件、N1–N16 状态、已知问题和对应提交。
 
