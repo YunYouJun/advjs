@@ -242,12 +242,26 @@ final class ChapterPlaytestUITests: XCTestCase {
         let web = app.webViews.firstMatch
         let opening = waitForDialogue("断网也能试玩吗", in: app)
         attachScreenshot(app, "saved-offline-fixture-dialogue")
+        let close = app.buttons["close-player"].firstMatch
+        XCTAssertTrue(close.waitForExistence(timeout: 10), app.debugDescription)
+        let appFrame = app.frame
+        let closeFrame = close.frame
+        XCTAssertFalse(closeFrame.isEmpty)
+        XCTAssertTrue(appFrame.contains(closeFrame))
+        // Resolve the native hit target before the WebKit activity opens its modal.
+        // Resolving the button again inside that modal can stall the iPad AX query.
+        let closeLocation = app.coordinate(withNormalizedOffset: CGVector(
+            dx: (closeFrame.midX - appFrame.minX) / appFrame.width,
+            dy: (closeFrame.midY - appFrame.minY) / appFrame.height
+        ))
         let choice = web.buttons.containing(NSPredicate(format: "label CONTAINS %@", "先看星图")).firstMatch
         for _ in 0..<3 where !choice.exists { opening.tap() }
         XCTAssertTrue(choice.waitForExistence(timeout: 10), app.debugDescription)
         choice.tap()
         XCTAssertTrue(web.buttons["重置星图"].waitForExistence(timeout: 10), app.debugDescription)
         attachScreenshot(app, "saved-offline-fixture-star-map")
-        app.buttons["close-player"].tap()
+        closeLocation.tap()
+        XCTAssertTrue(play.waitForExistence(timeout: 15), app.debugDescription)
+        XCTAssertTrue(web.waitForNonExistence(timeout: 10), app.debugDescription)
     }
 }
