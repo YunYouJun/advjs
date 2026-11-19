@@ -54,7 +54,8 @@ struct ChapterEditorView: View {
         .disabled(isWorking)
         .safeAreaInset(edge: .top, spacing: 0) {
             VStack(spacing: 0) {
-                Picker("Chapter Editor", selection: Binding(get: { mode }, set: switchMode)) {
+                // Swift 6.3 crashes when lowering the actor-isolated method reference.
+                Picker("Chapter Editor", selection: Binding(get: { mode }, set: { switchMode($0) })) {
                     Text("Form").tag(Mode.form)
                     Text("Source File").tag(Mode.source)
                 }
