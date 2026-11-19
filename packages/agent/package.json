@@ -36,8 +36,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@advjs/core": "workspace:0.1.4",
-    "@advjs/types": "workspace:0.1.4",
+    "@advjs/core": "workspace:0.1.5",
+    "@advjs/types": "workspace:0.1.5",
     "js-yaml": "catalog:utils"
   },
   "devDependencies": {

@@ -1,7 +1,7 @@
 {
   "name": "@advjs/editor",
   "type": "module",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "ADV.JS Editor",
   "repository": {
     "type": "git",
@@ -46,7 +46,7 @@
     "start:generate": "npx serve .output/public"
   },
   "dependencies": {
-    "@advjs/audio": "workspace:0.1.4"
+    "@advjs/audio": "workspace:0.1.5"
   },
   "devDependencies": {
     "@advjs/assets": "workspace:*",

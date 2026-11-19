@@ -1,7 +1,7 @@
 {
   "name": "@advjs/audio",
   "type": "module",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Shared audio runtime and authoring protocols for ADV.JS.",
   "license": "MPL-2.0",
   "repository": { "type": "git", "url": "git+https://github.com/YunYouJun/advjs.git", "directory": "packages/audio" },
@@ -17,6 +17,6 @@
   "files": ["dist"],
   "engines": { "node": ">=24.15.0" },
   "scripts": { "build": "unbuild", "dev": "unbuild --stub", "prepublishOnly": "pnpm run build" },
-  "dependencies": { "@advjs/assets": "workspace:0.1.4", "@advjs/types": "workspace:0.1.4" },
+  "dependencies": { "@advjs/assets": "workspace:0.1.5", "@advjs/types": "workspace:0.1.5" },
   "devDependencies": { "unbuild": "catalog:build" }
 }

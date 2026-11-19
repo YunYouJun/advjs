@@ -1,7 +1,7 @@
 {
   "name": "@advjs/devtools",
   "type": "module",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Devtools for ADV.JS",
   "repository": {
     "type": "git",
@@ -39,7 +39,7 @@
     "vite": "*"
   },
   "dependencies": {
-    "@advjs/types": "workspace:0.1.4",
+    "@advjs/types": "workspace:0.1.5",
     "@devframes/service-shiki": "catalog:",
     "@devframes/vite": "catalog:",
     "consola": "catalog:cli",
@@ -49,7 +49,7 @@
     "shiki": "catalog:"
   },
   "devDependencies": {
-    "@advjs/gui": "workspace:0.1.4",
+    "@advjs/gui": "workspace:0.1.5",
     "@vitejs/plugin-vue": "catalog:build",
     "sass": "catalog:build",
     "typescript": "catalog:dev",
