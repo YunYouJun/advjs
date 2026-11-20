@@ -1,12 +1,18 @@
 .interaction-activity {
-  --interaction-ink: var(--adv-activity-ink, #f3eee4);
-  --interaction-muted: var(--adv-activity-muted, #aeb8ce);
-  --interaction-cyan: var(--adv-activity-accent, #75ddeb);
-  --interaction-amber: var(--adv-activity-secondary, #f6c96b);
+  --interaction-ink: var(--adv-theme-activity-ink, var(--adv-activity-ink, #f3eee4));
+  --interaction-muted: var(--adv-theme-activity-muted, var(--adv-activity-muted, #aeb8ce));
+  --interaction-cyan: var(--adv-theme-activity-accent, var(--adv-activity-accent, #75ddeb));
+  --interaction-amber: var(--adv-theme-activity-secondary, var(--adv-activity-secondary, #f6c96b));
+  --interaction-on-accent: var(--adv-theme-activity-action-ink, #081826);
+  --interaction-control-radius: var(--adv-theme-activity-control-radius, 0.625rem);
+  --interaction-control-edge: color-mix(in srgb, var(--interaction-cyan) 32%, transparent);
+  --interaction-control-target: calc(44px / var(--adv-screen-scale, 1));
+  container: interaction-panel / inline-size;
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
   color: var(--interaction-ink);
+  font-family: var(--adv-font-family, system-ui), sans-serif;
 }
 
 .interaction-activity__header {
@@ -28,7 +34,21 @@
   margin: 0;
 }
 .interaction-activity__title {
-  font: 600 1.8rem/1.2 serif;
+  font: 600 1.8rem/1.2 var(--adv-font-serif, serif);
+  overflow-wrap: anywhere;
+}
+
+.interaction-activity:lang(zh) .interaction-activity__title {
+  font-family: inherit;
+  line-height: 1.35;
+}
+
+.interaction-activity:lang(zh) :is(.interaction-activity__eyebrow, .civilization-activity__preview > span) {
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.05em;
 }
 .interaction-activity__description {
   color: var(--interaction-muted);
@@ -42,11 +62,13 @@
   align-items: center;
 }
 
-.interaction-activity input,
+.interaction-activity input:not([type='range']),
 .interaction-activity select {
+  box-sizing: border-box;
   min-width: 0;
-  border: 1px solid rgb(117 221 235 / 30%);
-  border-radius: 0.25rem;
+  min-height: var(--interaction-control-target);
+  border: 1px solid var(--interaction-control-edge);
+  border-radius: var(--interaction-control-radius);
   background: rgb(2 6 23 / 72%);
   padding: 0.65rem;
   color: inherit;
@@ -55,24 +77,49 @@
 .interaction-activity__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 0.5rem;
   justify-content: flex-end;
 }
 
 .interaction-activity button {
-  border: 1px solid rgb(117 221 235 / 58%);
-  border-radius: 0.25rem;
-  background: linear-gradient(110deg, rgb(14 116 144 / 80%), rgb(17 50 84 / 85%));
-  padding: 0.72rem 1.1rem;
-  color: inherit;
+  min-height: var(--interaction-control-target);
+  border: 1px solid transparent;
+  border-radius: var(--interaction-control-radius);
+  background: var(--interaction-cyan);
+  padding: 0.5rem 0.875rem;
+  color: var(--interaction-on-accent);
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  cursor: pointer;
 }
 
 .interaction-activity button.secondary {
-  background: rgb(7 12 24 / 70%);
+  border-color: var(--interaction-control-edge);
+  background: color-mix(in srgb, var(--interaction-cyan) 8%, #0b1323);
+  color: var(--interaction-ink);
 }
 .interaction-activity button:disabled {
-  opacity: 0.38;
+  border-color: color-mix(in srgb, var(--interaction-muted) 24%, transparent);
+  background: color-mix(in srgb, var(--interaction-muted) 12%, #0b1323);
+  color: var(--interaction-muted);
   cursor: not-allowed;
+}
+
+.interaction-activity button:enabled:active {
+  filter: brightness(0.85);
+}
+
+.interaction-activity :is(button, input, .star-map):focus-visible {
+  outline: 2px solid var(--interaction-cyan);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .interaction-activity button:enabled:hover {
+    border-color: var(--interaction-cyan);
+    filter: brightness(1.16);
+  }
 }
 
 .star-map-activity > header output {
@@ -87,7 +134,8 @@
   position: relative;
   overflow: hidden;
   aspect-ratio: 16 / 8;
-  border: 1px solid rgb(117 221 235 / 28%);
+  border: 1px solid var(--interaction-control-edge);
+  border-radius: var(--interaction-control-radius);
   background:
     radial-gradient(circle at 25% 30%, rgb(31 97 145 / 25%), transparent 24%),
     radial-gradient(circle at 78% 66%, rgb(91 57 129 / 22%), transparent 26%), rgb(3 7 18 / 88%);
@@ -112,44 +160,110 @@
 }
 .star-map__reference circle {
   fill: transparent;
-  stroke: rgb(246 201 107 / 70%);
+  stroke: color-mix(in srgb, var(--interaction-amber) 70%, transparent);
   stroke-width: 0.25;
 }
 .star-map__reference polyline {
-  stroke: rgb(246 201 107 / 24%);
+  stroke: color-mix(in srgb, var(--interaction-amber) 24%, transparent);
   stroke-dasharray: 1 1.4;
 }
 .star-map__candidate {
   transition: transform 80ms linear;
 }
 .star-map__candidate circle {
-  fill: #75ddeb;
-  filter: drop-shadow(0 0 1.2px #75ddeb);
+  fill: var(--interaction-cyan);
+  filter: drop-shadow(0 0 1.2px var(--interaction-cyan));
 }
 .star-map__candidate polyline {
-  stroke: rgb(117 221 235 / 52%);
+  stroke: color-mix(in srgb, var(--interaction-cyan) 52%, transparent);
 }
 .star-map__reticle {
   position: absolute;
   inset: 50%;
   width: 0.5rem;
   height: 0.5rem;
-  border: 1px solid rgb(246 201 107 / 70%);
+  border: 1px solid color-mix(in srgb, var(--interaction-amber) 70%, transparent);
   border-radius: 50%;
   transform: translate(-50%, -50%);
 }
 
 .star-map__fine-controls {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.25rem 1rem;
 }
 .star-map__fine-controls label {
   display: grid;
-  grid-template-columns: 3rem 1fr 3rem;
+  grid-template-columns: 4.25em minmax(0, 1fr) 3rem;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.75rem;
   color: var(--interaction-muted);
+  overflow-wrap: anywhere;
+}
+
+.star-map__fine-controls output {
+  color: var(--interaction-ink);
+  font: 500 0.875rem/1.25 monospace;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+.star-map__fine-controls input {
+  --interaction-range-track: color-mix(in srgb, var(--interaction-cyan) 24%, #101a2b);
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: var(--interaction-control-target);
+  margin: 0;
+  padding: 0;
+  border-radius: var(--interaction-control-radius);
+  background: transparent;
+  cursor: pointer;
+}
+
+.star-map__fine-controls input::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 4px;
+  background: linear-gradient(
+    to right,
+    var(--interaction-cyan) var(--interaction-range-fill),
+    var(--interaction-range-track) var(--interaction-range-fill)
+  );
+}
+
+.star-map__fine-controls input::-webkit-slider-thumb {
+  appearance: none;
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  border: 2px solid var(--interaction-cyan);
+  border-radius: 50%;
+  background: #102238;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--interaction-cyan) 14%, transparent);
+}
+
+.star-map__fine-controls input::-moz-range-track {
+  height: 4px;
+  border-radius: 4px;
+  background: var(--interaction-range-track);
+}
+
+.star-map__fine-controls input::-moz-range-progress {
+  height: 4px;
+  border-radius: 4px;
+  background: var(--interaction-cyan);
+}
+
+.star-map__fine-controls input::-moz-range-thumb {
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--interaction-cyan);
+  border-radius: 50%;
+  background: #102238;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--interaction-cyan) 14%, transparent);
 }
 
 .civilization-activity__level {
@@ -186,15 +300,14 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  border-color: var(--interaction-control-edge);
   background: rgb(5 11 24 / 80%);
+  color: var(--interaction-ink);
   text-align: left;
 }
 .civilization-activity__principles button.active {
   border-color: var(--interaction-amber);
   background: rgb(69 55 31 / 55%);
-}
-.civilization-activity__principles small {
-  color: var(--interaction-muted);
 }
 .civilization-activity__preview {
   display: flex;
@@ -231,6 +344,9 @@
   .interaction-activity {
     gap: 0.85rem;
   }
+}
+
+@container interaction-panel (width <= 520px) {
   .interaction-activity__field,
   .civilization-activity__body {
     grid-template-columns: 1fr;
@@ -257,12 +373,8 @@
     margin-top: 0.55rem;
   }
   .interaction-activity__actions {
-    position: sticky;
-    z-index: 1;
-    bottom: -1px;
-    margin-top: 0;
-    background: linear-gradient(0deg, rgb(7 10 18 / 100%) 70%, transparent);
-    padding-top: 0.85rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 8em), 1fr));
   }
 }
 

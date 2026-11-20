@@ -1,5 +1,13 @@
+@use './control-button.scss' as control;
+
+// The settings pane may occupy a single half of a larger game viewport.
+[data-adv-ui='game'] .modal-body:has(> .adv-settings-panel) {
+  container: adv-settings / inline-size;
+}
+
 // Settings geometry uses one screen-compensated font; child spacing uses em.
 [data-adv-ui='game'] .adv-settings-panel {
+  --adv-settings-control-height: 2.25em;
   box-sizing: border-box;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 12em;
@@ -65,6 +73,22 @@
     font-weight: 600;
   }
 
+  .adv-text-button[aria-pressed] {
+    @include control.feedback($selection-marker: false);
+
+    min-height: var(--adv-settings-control-height);
+    white-space: normal;
+    overflow-wrap: anywhere;
+
+    &[aria-pressed='true'] {
+      @include control.text-underline;
+    }
+  }
+
+  .adv-slider-control :is(.adv-slider, .adv-slider-input) {
+    min-height: var(--adv-settings-control-height);
+  }
+
   .adv-settings-tools {
     display: flex;
     flex-direction: column;
@@ -78,11 +102,19 @@
   }
 
   .adv-settings-action {
+    @include control.feedback;
+
     display: flex;
     align-items: center;
     justify-content: flex-start;
     gap: 0.625em;
     width: 100%;
+    min-height: 2.75em;
+    padding: 0.5em 0.875em;
+    color: var(--adv-c-text);
+    font: inherit;
+    font-weight: 500;
+    line-height: 1.4;
     white-space: normal;
     text-align: left;
     overflow-wrap: anywhere;
@@ -94,16 +126,34 @@
   }
 
   .adv-settings-utilities {
+    --adv-control-color: var(--adv-c-text);
+    --adv-toolbar-target: 2.75em;
+    --adv-toolbar-icon: 1.375em;
     display: flex;
     align-items: center;
     gap: 0.5em;
     flex: none;
     margin-left: auto;
+
+    .game-icon-button {
+      font: inherit;
+    }
+
+    .game-icon {
+      filter: none;
+    }
   }
 }
 
-@container adv-viewport (max-width: 600px) {
+@media (any-pointer: coarse) {
   [data-adv-ui='game'] .adv-settings-panel {
+    --adv-settings-control-height: 2.75em;
+  }
+}
+
+@container adv-settings (max-width: 600px) {
+  [data-adv-ui='game'] .adv-settings-panel {
+    --adv-settings-control-height: 2.75em;
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr) auto;
     gap: 0.5em;
@@ -130,7 +180,6 @@
     .adv-settings-utilities {
       grid-row: 1;
       justify-self: end;
-      min-height: 3.25em;
       margin-right: 2.75em;
     }
 
@@ -146,7 +195,7 @@
   }
 }
 
-@container adv-viewport (max-width: 440px) {
+@container adv-settings (max-width: 440px) {
   [data-adv-ui='game'] .adv-settings-panel .adv-settings-fields {
     grid-template-columns: minmax(0, 1fr);
     gap: 0.25em;

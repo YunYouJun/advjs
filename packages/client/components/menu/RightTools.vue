@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import type { MenuButtonItem } from '../../types/menu'
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { routerKey } from 'vue-router'
 import { useAdvContext } from '../../composables/useAdvContext'
 import { useAppStore, useSettingsStore } from '../../stores'
 
@@ -10,9 +10,9 @@ const { t } = useI18n()
 
 const app = useAppStore()
 const settings = useSettingsStore()
-const router = useRouter()
+const router = inject(routerKey, undefined)
 const { $adv } = useAdvContext()
-const hasPage = (path: string) => router.getRoutes().some(route => route.path === path)
+const hasPage = (path: string) => router?.getRoutes().some(route => route.path === path)
 
 const menuItems = computed<MenuButtonItem[]>(() => {
   const items
@@ -43,7 +43,7 @@ const menuItems = computed<MenuButtonItem[]>(() => {
         icon: 'i-ri-home-4-line',
         do: () => {
           app.menus.settings = false
-          router.push('/start')
+          router?.push('/start')
         },
       }]
     : []), {
@@ -58,7 +58,7 @@ const menuItems = computed<MenuButtonItem[]>(() => {
         icon: 'i-ri-question-line',
         do: () => {
           app.menus.settings = false
-          router.push('/help')
+          router?.push('/help')
         },
       }]
     : [])]

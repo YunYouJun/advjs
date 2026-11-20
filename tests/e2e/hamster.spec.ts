@@ -210,9 +210,9 @@ test.describe('Hamster flagship demo', () => {
     await starMap.press('ArrowRight')
     await page.getByTestId('rotation').fill('0')
     await page.getByTestId('scale').fill('1')
-    await expect(page.getByRole('button', { name: '确认轨迹' })).toBeEnabled()
+    await expect(page.getByRole('button', { name: '确认比对' })).toBeEnabled()
     await attachScreenshot(page, testInfo, 'star-map-desktop')
-    await page.getByRole('button', { name: '确认轨迹' }).click()
+    await page.getByRole('button', { name: '确认比对' }).click()
 
     const firstCgAfterComparison = await advanceUntil(page, 'cg')
     expect(firstCgAfterComparison.cg).toBe('old-world-collapse')
@@ -357,7 +357,7 @@ test.describe('Hamster flagship demo', () => {
     await page.getByTestId('rotation').fill('0')
     await page.getByTestId('scale').fill('1')
     await attachScreenshot(page, testInfo, 'star-map-mobile')
-    await page.getByRole('button', { name: '确认轨迹' }).click()
+    await page.getByRole('button', { name: '确认比对' }).click()
 
     const cgPause = await advanceUntil(page, 'cg')
     expect(cgPause.cg).toBe('old-world-collapse')
