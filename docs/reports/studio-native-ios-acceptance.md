@@ -5,6 +5,65 @@
 - 范围：[实施计划](../plans/2026-10-21-studio-native-ios)的验收证据；设计与决策见[设计规格](../specs/2026-10-21-studio-native-ios-design)。
 - 边界：本报告只记录实际运行结果。验收以 iOS 模拟器为准（用户 2026-10-21 决定），实机差异列为风险。
 
+## 正式播放器与草稿试玩复测
+
+2026-11-20 从 `dev@3dc4af9e` 的独立检出复测。PR #109 已在 `db80235d` 合入，其[原生 CI](https://github.com/YunYouJun/advjs/actions/runs/44476769550/job/135400790189)通过。采用星图关闭坐标回退的 #110 原生回归也[通过](https://github.com/YunYouJun/advjs/actions/runs/44581648417/job/135765857846)。本轮播放器改动为 `56fa9fca`、`0ac052ea` 和 `1b2bb422`，诊断回跳修复为 `eaddac0d`，iPad 窗口快捷键修复为 `09e15bab`，双分支夹具与 UI 用例见 `6688a350`、`4331ccd6` 和 `49f4e8a8`。文档提交 `3dc4af9e` 的 [CI](https://github.com/YunYouJun/advjs/actions/runs/44595125414) 按路径跳过原生任务。本轮使用 Xcode 27.1 和共享 iPhone 18 Pro、iPad Pro 11-inch（M5）的 iOS 27.0，通过 `simulator-session.mjs` 串行执行 Release XCTest。
+
+### 用例与证据
+
+| 用例                                             | 结果                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 章节表单与源码、健康诊断跳转（#93、#94）         | #109 已有章节保存及中文、emoji 后的行列定位证据，见下节。本轮 StudioKit 41 项通过，包括正文与未知字段保留、UTF-16 位置、草稿及已保存快照、冲突和重开。iPhone Release 的章节保存与健康诊断回跳通过，用时 52.8 秒和 28.8 秒。iPad 基线的 `testChapterSavePreservesFormAndSource` 在新建章节弹窗提交后停住，随后 XCTest 读取辅助功能快照挂起。留存 `baseline-ipad-chapter-ui.png` 和 `baseline-ipad-xcode.log`。                                                                                |
+| 双分支保存夹具、章节切换、后退及重开（#98、#99） | iPhone 和 iPad Release 的最终双分支用例均通过。对白、立绘、BGM 206、切章、后退、重开、`civilization` 初始化、`star-map` 及关闭均有证据。见 `final-release-fixture-iphone.xcresult`、`final-release-fixture-ipad.xcresult`，截图 `saved-offline-fixture-dialogue`、`saved-offline-fixture-chapter-back`、`saved-offline-fixture-civilization`、`saved-offline-fixture-star-map`。独立 WebKit 浏览器和共享 Runtime 亦通过两支及变量验证，见 `player-webkit-smoke.log`、`fixture-runtime.log`。 |
+| 取消、以草稿试玩、保存并试玩，关闭后定位（#99）  | iPhone Release 从模板创建并写章。取消保持文件字节，草稿显示新对白、可以选择灯塔分支，关闭回到原光标且磁盘仍是原字节。保存并试玩写入新正文和两个选项，随后播放器在 WebKit 导航前超时。见 `final-release-draft-iphone-xcode.log`、`final-release-saved-chapter.log`、剪辑 `draft-to-branch-demo.mp4`（从新建到草稿分支后返回），原始录像 `final-release-draft-iphone.mov`，截图名 `draft-playtest`、`draft-playtest-choice`。                                                                  |
+| 冲突、编译失败与诊断回跳（#99）                  | iPhone Release 捕获缺少 `PlaytestCoordinator` 的崩溃（`playtest-diagnostic-crash.log`）。`eaddac0d` 注入当前窗口的协调器后，`testPlaytestRejectsConflictAndInvalidDraft` 通过。保存冲突保留外部文件，错误草稿没有启动播放器，点诊断跳到该草稿的准确行列。见 `final-release-diagnostic-iphone.xcresult`，截图 `playtest-save-conflict` 和 `playtest-invalid-draft-source`。                                                                                                                   |
+| iPad 键盘与当前窗口（#94、#99）                  | 两窗口分别打开 Harbor 和 Moonlit。首次 ⌘R 没有发起试玩。将快捷键绑定到窗口内概览的试玩入口并让测试明确聚焦 Moonlit 后，Release 复测通过。日志只有一次试玩请求，首句来自 Moonlit，关闭后仍在该项目。见 `window-recheck-ipad.xcresult` 与截图 `ipad-focused-project-playtest`。测试用的是 XCTest 的模拟硬件按键。                                                                                                                                                                              |
+| 播放器边界（#98）                                | iPhone 正式 App 的 5 项 Release 单测通过，含路径解析、越界符号链接、206 和 416，见 `recovery-release-app-tests-iphone.xcresult`。候选版只放行应用包入口的主框架导航，资源加载仍通过只读 scheme、内容规则和 CSP。独立编译验证要求未内置插件时不会生成可播放配置，见 `fixture-runtime.log`。                                                                                                                                                                                                   |
+| 自动化回归                                       | Node 引擎 26 项、StudioKit 41 项（含 386 个 JavaScriptCore golden 用例）、Web Studio 898 项、模拟器会话 mock 26 项通过。                                                                                                                                                                                                                                                                                                                                                                     |
+
+### 首帧与资源取样
+
+保持原报告的首帧口径，从发起 WKWebView 导航到 Runtime 完成首节点的渲染回报。桥就绪之前单独计为 WebKit 启动和页面加载；桥就绪到首节点计为配置注入、Runtime 初始化与渲染。快照准备和编译在导航前单列。内存使用 StudioApp 自身的物理 footprint，记录 WebView 创建前、首节点、关闭两秒后，并通过弱引用判断实例是否仍可达。WebKit 子进程预算需要另行采样。
+
+| 构建与场景                                                |                导航至桥就绪 | 桥就绪至首节点 | 首帧合计 |
+| --------------------------------------------------------- | --------------------------: | -------------: | -------: |
+| 基线 `3dc4af9e`，iPad Release 保存夹具首开                |                      4.28 s |         2.87 s |   7.16 s |
+| iPad Release 候选首轮，保存夹具有额外分支与章节，开启录屏 |                     21.76 s |         0.88 s |  22.64 s |
+| iPad Release `6688a350`，保存夹具首开，未录屏             |                     40.43 s |         0.99 s |  41.41 s |
+| iPhone Release `6688a350`，保存夹具首开                   |                     13.73 s |         1.02 s |  14.76 s |
+| iPhone Release `6688a350`，草稿首开                       |        等待导航许可 56.60 s |              — |     超时 |
+| iPhone Release `49f4e8a8`，草稿首开，开启录屏             |                     40.81 s |         1.53 s |  42.33 s |
+| iPhone Release `49f4e8a8`，同进程保存后重开，开启录屏     | 等待导航许可 32.07 s 时超时 |              — |     超时 |
+| iPad Release `49f4e8a8`，保存夹具首开，未录屏             |                     28.56 s |         0.92 s |  29.48 s |
+| iPad Release `09e15bab`，双窗口用概览 ⌘R 首开             |                      4.32 s |         0.63 s |   4.95 s |
+| iPhone Release `09e15bab`，保存夹具首开，未录屏           |                     25.75 s |         1.02 s |  26.77 s |
+
+两次 iPad 首开从发起导航到策略回调分别等待 1.49 s 与 19.12 s。候选首轮快照编译 0.04 s，从准备快照到发起导航 0.71 s。首节点过后收到媒体 206 响应，按 Home 后 WebKit 完成媒体挂起。此轮在检查 XCUIApplication 前台状态时中断，附件与录屏覆盖启动与媒体挂起。StudioApp footprint 从 106,678,912 bytes 升至 118,803,168 bytes，尚无该轮的关闭后样本。采用 `release-fixture-ipad.mov`、`release-fixture-ipad-xcode.log` 及两轮各自的 OSLog。
+
+旧 iPad 超时日志记录发起导航至策略回调约 39.5 秒。本轮的未录屏复测重现 `PLAYER_TIMEOUT`，导航后 14.00 秒进入策略回调、15.74 秒进入文档资源处理、39.68 秒才提交页面。SwiftUI 显示超时后收到迟到的首节点，原 XCTest 等待窗口已用完。快照编译为 0.038 秒。见 `release-fixture-recheck-ipad.xcresult`、同轮 OSLog 和 `ipad-timeout-webkit.log`。
+
+首帧均超过 2 秒。WebKit 在本地文档请求之前和之后均出现等待，单轮结果会受宿主负载影响。`56fa9fca` 在 WebView 挂载后发起导航，把音频解锁移出首帧等待路径，并在超时或 WebContent 进程终止时提供同一窗口的「重试」。重试使用同一次编译结果和新的受限 WebView。`0ac052ea` 直接返回随包的小型入口 HTML，记录应答状态，并在导航许可、页面提交、桥就绪时重置启动超时钟，因此测试时分别判定启动中断与首帧预算。`1b2bb422` 撤回未取得改善的延后导航实验，沿用初始化后立即请求页面的入口。iPhone 候选版保存夹具首节点后也收到 206，按 Home 与再激活分别收到挂起和恢复回报。原生菜单动作首次复测因 UIKit 的可访问性元素类型与标识不一致而中断，`49f4e8a8` 按标识或可见标签查询。
+
+最终 iPhone 草稿首开编译 0.096 秒，随包入口 HTML 回应 200 后又等待 24.14 秒才提交页面。分阶段超时让仍在推进的首开完成。紧接着保存后重开的编译用时 0.057 秒，等待导航许可时再次超时。首开前 footprint 为 148,359,904 bytes，首节点为 150,178,600 bytes，关闭后约 2.67 秒为 149,506,856 bytes，较基线增加 1.15 MB。该时点 WebView 弱引用已为空。此值只覆盖 StudioApp 进程。以上取自 `final-release-draft-4502D5E9-9630-4AF0-9050-3C9109139FD0.log`。该 XCTest 在重开后超出运行时间限制，落盘另从测试容器核实。
+
+最终 iPad 保存夹具的快照编译为 0.046 秒，等待策略回调 26.21 秒，入口 HTML 200 后 0.024 秒提交页面。首帧到达后观察到 206、按 Home 后媒体挂起、回到播放器后解除挂起。StudioApp 的物理 footprint 从 106,777,216 bytes 升至 119,474,912 bytes，关闭约 2.08 秒后为 123,587,344 bytes，较基线增加 16.81 MB。WebView 弱引用已为空。原始数据见 `final-release-fixture-7B3387F5-93E8-4CDF-AD40-579437A7D719.log`。
+
+双窗口用例的快照编译耗时 0.032 秒，关闭约 2.14 秒后 StudioApp 为基线 +4.85 MB，WebView 弱引用已为空。见 `window-recheck-7B3387F5-93E8-4CDF-AD40-579437A7D719.log`。
+
+最终 iPhone 保存夹具编译耗时 0.039 秒，入口 HTML 200 至提交仍有 15.23 秒。媒体分段读取、挂起及恢复均收到原生回报。关闭约 2.12 秒后 StudioApp 的物理 footprint 为 124,275,472 bytes，较 WebView 创建前的 109,775,464 bytes 增加 14.50 MB。WebView 弱引用已为空。见 `final-release-fixture-4502D5E9-9630-4AF0-9050-3C9109139FD0.log`。
+
+### Issue 勾选
+
+- **#99** 第二条的落盘和失败反馈可以勾选。取消和草稿路径保留原始文件字节，保存路径已写入新正文和分支，冲突与失败诊断均返回编辑。保存后重开仍出现超时，完整入口回归保持待验收。
+- **#99** 双窗口快捷键和关闭后的项目、光标均有证据。指定方向、Home 指示条、从原生程序节点启动与系统断网录屏仍缺本轮完整设备证据。
+- **#98** 的宿主安全边界和资源生命周期有部分证据。系统层断网、外部脚本和凭据隔离的完整设备用例、≤2 秒首帧及 WebKit 子进程内存仍需验证，因此 #98 的组合验收项保留未勾选。
+
+### 复用夹具与后续顺序
+
+运行 `pnpm -C apps/studio-ios build:samples` 可重新生成双分支项目。证据目录保留了逐文件校验一致的 `Offline Playtest/` 项目。目录包含 `adv.config.json` 和 `adv/`，可从「文件」原地打开，或由 `ChapterPlaytestUITests` 导入测试环境。选择「先看星图」或「初始化文明」，重开可进入另一支，章节菜单可切至 `lighthouse`。模拟器证据保存在本工作树的 `apps/studio-ios/evidence/offline-playtest-2026-11-20/`。Xcode 中断时留下的四份未完成结果包已逐文件校验并归档为 `incomplete-xcresult-staging.tar.gz`。
+
+[#103](https://github.com/YunYouJun/advjs/issues/103) 的独立预验证已用同一夹具将快照 JSON 往返并在新 Runtime 恢复，检查节点、变量和舞台一致，并验证另一份程序和不存在节点的快照被拒绝。原生槽位、App 重启恢复及跨项目存储隔离以 #99 会话边界验收为前提。[#104](https://github.com/YunYouJun/advjs/issues/104) 接续核对轨迹、源码映射和报告。
+
 ## P3 与 P4 本地章节与试玩
 
 2026-11-18 在 `origin/dev@c35c5045` 上开始，工作分支为 `codex/studio-ios-authoring`。Xcode 27.1，iOS 27.0（24A434），使用共享的 iPhone 18 Pro 与 iPad Pro 11-inch（M5），通过 `simulator-session.mjs` 串行执行。
@@ -366,15 +425,15 @@ P2 的首轮 CI（[YunYouJun/advjs#82](https://github.com/YunYouJun/advjs/pull/8
 | N2   | 部分   | 对照清单已于 2026-10-21 经用户确认锁定。P2：W01–W05、W10、W11、S03、S04、S06、S07、S09–S11 可用；W08 计数、W09 校验与修复及跳转到文件可用，内容卡片入口与行列定位随 P3 编辑器补齐；W06 独立部署包移到 P4，W07 封面与复制 ID 移到 P3、P5。 |
 | N3   | 部分   | P1：内容往返保留规则在 Web Studio 与引擎共用；golden 335 例双端一致。待 P3 跨端实操。                                                                                                                                                     |
 | N4   | 未开始 | —                                                                                                                                                                                                                                         |
-| N5   | 未开始 | —                                                                                                                                                                                                                                         |
-| N6   | 未开始 | 播放器探针在模拟器通过，未断网、非实机。                                                                                                                                                                                                  |
+| N5   | 部分   | 章节表单、源码、诊断定位及模拟键盘证据见 P3/P4 复测，50 章性能与外接键盘待实测。                                                                                                                                                          |
+| N6   | 部分   | 正式 App 的 iPhone、iPad Release 播放和关闭证据见本轮复测。系统层断网、首帧预算和原生存档仍待验收。                                                                                                                                       |
 | N7   | 部分   | P2：文件协调、外部修改刷新与草稿冲突（三种选择）有 StudioKit 测试与模拟器 UI 测试；iCloud Drive 跨设备修改与书签失效恢复待实测。                                                                                                          |
 | N8   | 未开始 | 受登录依赖阻塞。                                                                                                                                                                                                                          |
 | N9   | 未开始 | 受 AASA 依赖阻塞。                                                                                                                                                                                                                        |
 | N10  | 部分   | P2：iPad 三栏、上下文菜单在新窗口打开项目、硬件键盘 ⌘N 有 UI 测试；分屏、台前调度与跨 App 拖放待 P7。                                                                                                                                     |
 | N11  | 未开始 | —                                                                                                                                                                                                                                         |
 | N12  | 不适用 | 用户确认 Capacitor 壳从未上传 App Store Connect，无数据需要迁移。                                                                                                                                                                         |
-| N13  | 未开始 | 探针已覆盖路径越界、外部请求、导航限制；正式验收在 P4、P8。                                                                                                                                                                               |
+| N13  | 部分   | 正式 App 保留只读 scheme 和原生资源限制测试，未内置插件被编译拒绝。完整边界验证见 #98。                                                                                                                                                   |
 | N14  | 部分   | P1：Studio 单测 472 项、类型检查、共享包与 CLI 单测通过；E2E 与桌面 Editor 回归待 P8 汇总。                                                                                                                                               |
 | N15  | 部分   | P1：Studio 单测与 Node、JavaScriptCore 一致性测试进入 CI。P2：CI 增加 App 构建、App 单测与 iPhone、iPad XCUITest；性能回归随 P7 加入。                                                                                                    |
 | N16  | 未开始 | —                                                                                                                                                                                                                                         |
