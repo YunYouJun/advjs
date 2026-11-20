@@ -5,6 +5,57 @@
 - 范围：[实施计划](../plans/2026-10-21-studio-native-ios)的验收证据；设计与决策见[设计规格](../specs/2026-10-21-studio-native-ios-design)。
 - 边界：本报告只记录实际运行结果。验收以 iOS 模拟器为准（用户 2026-10-21 决定），实机差异列为风险。
 
+## 试玩启动与模板图标
+
+2026-11-20，以 `11d1c850` 为基线。模板列表使用系统色区分 SF Symbols，名称和选中勾选保留。试玩过程中，线性进度条显示当前启动步骤，首节点回报后收起。首次加载直接将随包 HTML 交给 WebKit，入口 URL、CSP 和项目媒体 scheme 继续使用原有边界。随 App 版本更新的内容规则使用已编译版本。
+
+在 iPad Pro 11-inch（M5）、iOS 27.0、Xcode 27.1 的 Release 宿主测试中，用同一保存夹具对照原 scheme 请求和随包 HTML 响应。每个样本创建新的非持久 WebView，计时从 `PlayerSession.open()` 到首节点回报，覆盖 WebView 配置与规则准备。两次运行分别从两种方式首开，同进程内交叉重开。此取样使用宿主测试的就绪轮询。
+
+| 开启方式          | App 进程内首开 | 同进程后续重开 |
+| ----------------- | -------------: | -------------: |
+| 原 scheme 请求    |         3.69 s |    0.83–0.86 s |
+| 直接提供随包 HTML |         1.97 s |    1.30–1.32 s |
+
+八次采样均到达首节点且页面 URL 保持原入口，日志也观察到本地媒体的 206 应答。首开样本缩短 1.72 秒，原请求的重开样本更快。观察次数有限。
+
+使用正式 App 运行双分支夹具，iPhone 和 iPad Release 均通过，覆盖启动进度、首节点、选择支、切章、两种官方插件和关闭。按既有「发起导航到首节点」口径，本轮 iPhone 为 7.02 秒，iPad 为 39.10 秒。iPad 约 37.65 秒后才收到文档提交，中途出现超时提示，随后同一次启动恢复。完整流程仍有长尾，2 秒目标仍待验证。两设备的结果包 `startup-ui-iphone.xcresult` 和 `startup-ui-ipad.xcresult` 含 `new-project-template-icons` 及 `offline-player-startup-progress` 附件。 两设备另通过模板表单的简体中文深色检查，附件 `new-project-template-icons-zh-dark`。独立的 iPad 窄窗口尚待实测。
+
+证据保存在 `apps/studio-ios/evidence/player-startup-2026-11-20/`。对照记录为 `launch-comparison-ipad.xcresult`、`launch-comparison-reversed-ipad.xcresult` 及对应日志。仅供复现实验的 Swift 入口和 A/B 改动也保存在证据目录。
+
+### 试玩顶部工具栏
+
+2026-11-20，试玩顶部换用 SwiftUI 系统导航工具栏。关闭独立显示，后退与菜单共享系统 Liquid Glass 背景。iPhone 18 Pro 和 iPad Pro 11-inch（M5）在 iOS 27.0 模拟器上各通过两项 Release 检查，覆盖英文浅色双分支试玩和简体中文深色工具栏。验证了启动进度、切章、后退、从灯塔重开至开场及关闭。iPad 使用横屏全屏窗口，窄窗尚待实测。
+
+`apps/studio-ios/evidence/player-glass-2026-11-20/` 中的 `toolbar-iphone.xcresult` 和 `toolbar-ipad.xcresult` 均含浅色截图 `offline-player-startup-progress`、`saved-offline-fixture-dialogue` 及深色截图 `player-glass-loading-zh-dark`、`player-glass-ready-zh-dark`、`player-glass-menu-zh-dark`。`PlayerGlassAppearanceProbe.swift` 保留了临时深色检查用例。
+
+同日将试玩场景延伸到工具栏和状态栏后方。游戏选择、设置与活动面板按舞台方向使用安全区，场景和对白渐变连续铺到窗口边缘。iOS 27.0 的 iPhone 18 Pro 竖屏和 iPad Pro 11-inch（M5）横屏 Release 双分支试玩均通过，检查了 WebView 延伸、工具栏与设置按钮的位置、打开和关闭设置，以及后续切章和分支操作。见 `apps/studio-ios/evidence/player-immersive-2026-11-20/` 的 `immersive-iphone.xcresult` 和 `immersive-ipad.xcresult`，截图 `saved-offline-fixture-chapter-back` 和 `offline-player-edge-to-edge-settings`。
+
+### iPhone Duo 半折叠试玩
+
+2026-11-20，使用 Xcode 27.1 的 Device Hub 和现有 iOS 27.1 Duo 模拟器验证 Release 版。外屏启动后切到半折叠，书本形态左侧显示场景和立绘，右侧显示当前对白、分支与控件。旋转到桌面形态后，同一分支上下重排。进入星图活动后展开，活动继续显示。在展开态将旋转值调为 42°、比对率为 30%，随后合上并转回竖屏，两项数值保持一致。
+
+手动检查截图位于 `apps/studio-ios/evidence/player-duo-2026-11-20/`，包括 `duo-book-dialogue.png`、`duo-book-choice.png`、`duo-tabletop-choice.png`、`duo-open-activity.png` 和 `duo-outer-activity.png`。
+
+闭合态 Duo 和 iOS 27.0 的 iPhone 18 Pro 均通过 Release 双分支自动回归，覆盖设置、切章、后退、重开和官方活动。两个结果包分别为 `final-duo.xcresult` 和 `final-iphone.xcresult`，均含 `saved-offline-fixture-dialogue` 及 `offline-player-edge-to-edge-settings` 附件。
+
+### 游戏内按钮与滑杆
+
+2026-11-20，iOS 试玩分支使用游戏的选项样式，官方星图和文明活动使用可配置的主题颜色、圆角与按钮状态。星图滑杆保留 HTML range 的交互语义，并按活动面板宽度排列。iOS 27.1 Duo 书本形态手动检查了分支按钮、折痕避让、单列滑杆、数值和确认状态。从 64% 拖至 99% 后点击确认，进入「星图已经校准。」对白。截图 `duo-book-choices.png` 和 `duo-book-star-map.png` 在 `apps/studio-ios/evidence/player-control-style-2026-11-20/`。
+
+同一构建的 Duo 外屏 Release 双分支自动回归通过。`pane-duo.xcresult` 含 `saved-offline-fixture-star-map` 和 `saved-offline-fixture-civilization` 附件。活动组件和插件 4 项、共享客户端 17 项、Node 引擎 26 项、StudioKit 41 项、Web Studio 898 项通过，386 个 golden 用例无差异。
+
+### 试玩语言
+
+2026-11-20，在 iOS 27.1 Duo 外屏以 Release 版验证试玩设置默认沿用 Studio 的英文 App 语言。点击翻译图标可切至简体中文，再切回英文并继续进入两个官方活动。星图和文明使用英文控件，作品的中文对白和分支保留原文。组件测试也验证了语言切换会保留星图滑杆值与文明表单状态。Duo 的 WebKit 自动化会返回偏离视口的翻译按钮坐标，测试在确认按钮标签后点击实际触控位置。
+
+`apps/studio-ios/evidence/player-language-2026-11-20/language-duo.xcresult` 含 `offline-player-edge-to-edge-settings`、`offline-player-settings-zh`、`saved-offline-fixture-star-map` 和 `saved-offline-fixture-civilization` 附件。
+
+### 中文试玩界面与窄面板
+
+2026-11-20，设置的分段选项和单选项共用选中反馈，亮暗与语言复用游戏图标按钮。设置按实际面板宽度换行，离线试玩也能显示存读档和重置菜单。星图使用简短的触控提示，对齐双滑杆，并让底部操作随内容滚动。星图与文明活动保留各自的配色与游戏元素。
+
+Chromium 的 320px 模拟折叠分区检查覆盖 44px 选项触控区、键盘切换中英文及英文面板无横向溢出。Duo 外屏按 Release 双分支流程复测，结果包 `apps/studio-ios/evidence/player-zh-design-2026-11-20/zh-design-duo.xcresult` 含 `offline-player-settings-zh`、`saved-offline-fixture-star-map` 和 `saved-offline-fixture-civilization` 附件。
+
 ## 正式播放器与草稿试玩复测
 
 2026-11-20 从 `dev@3dc4af9e` 的独立检出复测。PR #109 已在 `db80235d` 合入，其[原生 CI](https://github.com/YunYouJun/advjs/actions/runs/44476769550/job/135400790189)通过。采用星图关闭坐标回退的 #110 原生回归也[通过](https://github.com/YunYouJun/advjs/actions/runs/44581648417/job/135765857846)。本轮播放器改动为 `56fa9fca`、`0ac052ea` 和 `1b2bb422`，诊断回跳修复为 `eaddac0d`，iPad 窗口快捷键修复为 `09e15bab`，双分支夹具与 UI 用例见 `6688a350`、`4331ccd6` 和 `49f4e8a8`。文档提交 `3dc4af9e` 的 [CI](https://github.com/YunYouJun/advjs/actions/runs/44595125414) 按路径跳过原生任务。本轮使用 Xcode 27.1 和共享 iPhone 18 Pro、iPad Pro 11-inch（M5）的 iOS 27.0，通过 `simulator-session.mjs` 串行执行 Release XCTest。

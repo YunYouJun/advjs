@@ -29,11 +29,56 @@ struct PlayerLaunch: Identifiable {
     let start: RuntimeAddress
 }
 
+nonisolated struct PlayerFold: Equatable, Sendable {
+    enum Axis: String { case horizontal, vertical }
+
+    let axis: Axis
+    let start: Double
+    let end: Double
+
+    init?(frame: CGRect, bounds: CGSize) {
+        let horizontal = frame.width > frame.height
+        let length = horizontal ? bounds.height : bounds.width
+        let lower = horizontal ? frame.minY : frame.minX
+        let upper = horizontal ? frame.maxY : frame.maxX
+        // A reserved region can touch an edge on the closed display.
+        guard lower > 0, lower <= upper, upper < length else { return nil }
+        axis = horizontal ? .horizontal : .vertical
+        start = lower / length
+        end = upper / length
+    }
+
+    var properties: [String: Any] { ["axis": axis.rawValue, "start": start, "end": end] }
+}
+
 @MainActor
 @Observable
 final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
     enum Command: String { case restart, back, chapter, pause, resume, dispose }
-    private enum Phase: String { case idle, preparing, waiting, loading, playing, closed }
+    enum StartupStage: Int, CaseIterable {
+        case preparing, openingWebView, loadingResources, renderingScene
+
+        var title: LocalizedStringResource {
+            switch self {
+            case .preparing: "Preparing the offline player"
+            case .openingWebView: "Opening the game view"
+            case .loadingResources: "Loading the bundled runtime"
+            case .renderingScene: "Rendering the first scene"
+            }
+        }
+    }
+
+    private enum Phase: Equatable {
+        case idle, starting(StartupStage), playing, closed
+    }
+
+    var startupStage: StartupStage? {
+        switch phase {
+        case .idle: .preparing
+        case .starting(let stage): stage
+        case .playing, .closed: nil
+        }
+    }
 
     private struct Event: Decodable {
         enum Kind: String, Decodable { case ready, loaded, diagnostic }
@@ -62,6 +107,10 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
     private var timeout: Task<Void, Never>?
     private var active = true
     private var mediaSuspended = false
+    @ObservationIgnored private var fold: PlayerFold?
+    @ObservationIgnored private var loadedFold: PlayerFold?
+    // Safe to share across windows. The rules contain no project/session data.
+    private static var cachedRules: WKContentRuleList?
     private let logger = Logger(subsystem: "org.advjs.studio", category: "OfflinePlayer")
 
     init(launch: PlayerLaunch) {
@@ -70,20 +119,18 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
 
     func open() async {
         guard phase == .idle else { return }
-        phase = .preparing
+        phase = .starting(.preparing)
         logger.info("Preparing WebKit player")
         Self.logFootprint("before WebView", with: logger)
         guard let resourceRoot = Bundle.main.resourceURL?.appending(path: "OfflinePlayer.bundle"),
-              FileManager.default.fileExists(atPath: resourceRoot.appending(path: "index.html").path) else {
+              let html = try? String(contentsOf: resourceRoot.appending(path: "index.html"), encoding: .utf8) else {
             fail("PLAYER_BUNDLE_MISSING", String(localized: "The offline player is missing from this build."))
             return
         }
+        trackStartupProgress()
         do {
-            guard let rules = try await WKContentRuleListStore.default().compileContentRuleList(
-                forIdentifier: "advjs-offline-player-v1",
-                encodedContentRuleList: #"[{"trigger":{"url-filter":"^http"},"action":{"type":"block"}},{"trigger":{"url-filter":"^ws"},"action":{"type":"block"}},{"trigger":{"url-filter":"^ftp:"},"action":{"type":"block"}},{"trigger":{"url-filter":"^file:"},"action":{"type":"block"}}]"#
-            ) else { throw URLError(.cannotLoadFromNetwork) }
-            guard !Task.isCancelled, phase == .preparing else { return }
+            let rules = try await Self.contentRules()
+            guard !Task.isCancelled, phase == .starting(.preparing) else { return }
             let handler = PlayerSchemeHandler(playerRoot: resourceRoot, projectRoot: launch.projectRoot, projectPaths: launch.paths) {
                 [weak self] code, path in
                 self?.issue = PlayerIssue(code: code, message: String(localized: "Couldn’t load resource “\(path)”."))
@@ -117,7 +164,7 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
             webView.backgroundColor = .black
             schemeHandler = handler
             self.webView = webView
-            startNavigation(in: webView)
+            startNavigation(in: webView, html: html)
             setActive(active)
         }
         catch {
@@ -125,10 +172,29 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
         }
     }
 
-    private func startNavigation(in webView: WKWebView) {
-        phase = .waiting
+    private static func contentRules() async throws -> WKContentRuleList {
+        if let cachedRules { return cachedRules }
+        guard let store = WKContentRuleListStore.default() else { throw URLError(.cannotLoadFromNetwork) }
+        let identifier = "advjs-offline-player-v1"
+        if let existing = try? await store.contentRuleList(forIdentifier: identifier) {
+            cachedRules = existing
+            return existing
+        }
+        guard let rules = try await store.compileContentRuleList(
+            forIdentifier: identifier,
+            encodedContentRuleList: #"[{"trigger":{"url-filter":"^http"},"action":{"type":"block"}},{"trigger":{"url-filter":"^ws"},"action":{"type":"block"}},{"trigger":{"url-filter":"^ftp:"},"action":{"type":"block"}},{"trigger":{"url-filter":"^file:"},"action":{"type":"block"}}]"#
+        ) else { throw URLError(.cannotLoadFromNetwork) }
+        cachedRules = rules
+        return rules
+    }
+
+    private func startNavigation(in webView: WKWebView, html: String) {
+        phase = .starting(.openingWebView)
         logger.info("Loading bundled player page")
-        webView.load(URLRequest(url: PlayerSchemeHandler.entryURL))
+        let request = URLRequest(url: PlayerSchemeHandler.entryURL)
+        // Serve the trusted entry document directly, with its original URL for
+        // relative bundled assets. Project media still uses the restricted scheme.
+        webView.loadSimulatedRequest(request, responseHTML: html)
         trackStartupProgress()
     }
 
@@ -137,8 +203,8 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
         timeout?.cancel()
         timeout = Task { [weak self] in
             try? await Task.sleep(for: .seconds(30))
-            guard !Task.isCancelled, let self, !isPlaying else { return }
-            logger.error("Offline player timed out in phase \(self.phase.rawValue, privacy: .public)")
+            guard !Task.isCancelled, let self, case .starting(let stage) = phase else { return }
+            logger.error("Offline player timed out in launch step \(stage.rawValue + 1, privacy: .public)")
             fail("PLAYER_TIMEOUT", String(localized: "The offline player took too long to start."))
         }
     }
@@ -193,6 +259,27 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
         }
     }
 
+    func updateFold(_ newValue: PlayerFold?) {
+        guard fold != newValue else { return }
+        fold = newValue
+        sendFold()
+    }
+
+    private func sendFold() {
+        guard phase == .playing else { return }
+        let value = fold
+        Task {
+            guard phase == .playing, fold == value else { return }
+            do {
+                let data = try JSONSerialization.data(withJSONObject: [
+                    "type": "fold", "protocol": 1, "fold": value?.properties as Any? ?? NSNull(),
+                ])
+                try await dispatch(String(decoding: data, as: UTF8.self))
+            }
+            catch { logger.debug("Could not update the player fold layout") }
+        }
+    }
+
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard phase != .closed, message.name == "advPlayer", message.webView === webView,
               message.frameInfo.isMainFrame,
@@ -204,13 +291,13 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
         }
         switch event.type {
         case .ready:
-            guard phase == .waiting else { return }
-            phase = .loading
+            guard phase == .starting(.openingWebView) || phase == .starting(.loadingResources) else { return }
+            phase = .starting(.renderingScene)
             logger.info("Offline player bridge ready")
             trackStartupProgress()
             Task { await load() }
         case .loaded:
-            guard phase == .loading, let chapter = event.chapterId, let node = event.nodeId else { return }
+            guard phase == .starting(.renderingScene), let chapter = event.chapterId, let node = event.nodeId else { return }
             timeout?.cancel()
             address = RuntimeAddress(chapterId: chapter, nodeId: node)
             phase = .playing
@@ -219,6 +306,8 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
             logger.info("Offline player rendered its first node")
             Self.logFootprint("first node", with: logger)
             setActive(active)
+            // The display may have changed while the first node was rendering.
+            if fold != loadedFold { sendFold() }
         case .diagnostic:
             guard let code = event.code, let text = event.message, let severity = event.severity else { return }
             if code == "PLAYER_BUNDLE_SCRIPT" {
@@ -235,8 +324,12 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
                 fail("PLAYER_BUILD", String(localized: "The project couldn’t be prepared for playback."))
                 return
             }
+            loadedFold = fold
+            let locale = Bundle.main.preferredLocalizations.first?.hasPrefix("zh") == true ? "zh-CN" : "en"
             let properties = try JSONSerialization.data(withJSONObject: [
                 "type": "load", "protocol": 1, "colorScheme": launch.build.colorScheme.rawValue,
+                "locale": locale,
+                "fold": fold?.properties as Any? ?? NSNull(),
                 "gameConfig": JSONSerialization.jsonObject(with: config),
                 "program": JSONSerialization.jsonObject(with: program),
                 "address": ["chapterId": launch.start.chapterId, "nodeId": launch.start.nodeId],
@@ -270,7 +363,7 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
 
     func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction,
                  decisionHandler: @escaping @MainActor (WKNavigationActionPolicy) -> Void) {
-        let allowed = phase == .waiting && action.request.url == PlayerSchemeHandler.entryURL
+        let allowed = phase == .starting(.openingWebView) && action.request.url == PlayerSchemeHandler.entryURL
             && action.targetFrame?.isMainFrame == true
         logger.info("Bundled navigation policy: \(allowed, privacy: .public)")
         if allowed { trackStartupProgress() }
@@ -279,7 +372,10 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
         logger.info("Bundled player page committed")
-        if phase == .waiting { trackStartupProgress() }
+        if phase == .starting(.openingWebView) {
+            phase = .starting(.loadingResources)
+            trackStartupProgress()
+        }
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {

@@ -28,7 +28,7 @@ struct NewProjectView: View {
 
                 Section("Choose a Template") {
                     ForEach(StarterTemplate.all(templates: model.library.templates)) { template in
-                        StarterRow(title: template.title, detail: template.detail, systemImage: template.systemImage, isSelected: selection == .template(template.id)) {
+                        StarterRow(title: template.title, detail: template.detail, systemImage: template.systemImage, iconColor: template.iconColor, isSelected: selection == .template(template.id)) {
                             selection = .template(template.id)
                         }
                         .accessibilityIdentifier("template-\(template.id)")
@@ -108,6 +108,7 @@ struct StarterRow: View {
     let title: LocalizedStringResource
     let detail: LocalizedStringResource
     let systemImage: String
+    var iconColor: Color = .accentColor
     let isSelected: Bool
     let select: () -> Void
 
@@ -116,8 +117,9 @@ struct StarterRow: View {
             HStack(spacing: 12) {
                 Image(systemName: systemImage)
                     .font(.title3)
-                    .foregroundStyle(.tint)
+                    .foregroundStyle(iconColor)
                     .frame(width: 28)
+                    .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .foregroundStyle(.primary)
@@ -130,6 +132,7 @@ struct StarterRow: View {
                     Image(systemName: "checkmark")
                         .foregroundStyle(.tint)
                         .fontWeight(.semibold)
+                        .accessibilityHidden(true)
                 }
             }
             .contentShape(.rect)
@@ -145,6 +148,7 @@ struct StarterTemplate: Identifiable {
     let title: LocalizedStringResource
     let detail: LocalizedStringResource
     let systemImage: String
+    let iconColor: Color
 
     static func all(templates: EngineTemplateList?) -> [StarterTemplate] {
         let ids = templates.map { $0.templates + [$0.quickStart] } ?? known.map(\.id)
@@ -152,12 +156,12 @@ struct StarterTemplate: Identifiable {
     }
 
     static let known: [StarterTemplate] = [
-        StarterTemplate(id: "visual-novel-starter", title: "Visual Novel Starter", detail: "World setting, outline, and a sample chapter", systemImage: "book"),
-        StarterTemplate(id: "school-romance", title: "School Romance", detail: "A youth story at Sakura Academy with characters and scenes", systemImage: "heart"),
-        StarterTemplate(id: "mystery-detective", title: "Mystery Detective", detail: "A detective’s investigation into a bizarre disappearance", systemImage: "magnifyingglass"),
-        StarterTemplate(id: "fantasy-adventure", title: "Fantasy Adventure", detail: "A magical quest to collect star fragments and save the realm", systemImage: "globe.asia.australia"),
-        StarterTemplate(id: "modern-urban", title: "Modern Urban", detail: "A heartwarming tale of city life, coffee, and finding direction", systemImage: "building.2"),
-        StarterTemplate(id: "quick-start", title: "Quick Start", detail: "Two ready-made characters in a seaside town, ready to play", systemImage: "bolt"),
+        StarterTemplate(id: "visual-novel-starter", title: "Visual Novel Starter", detail: "World setting, outline, and a sample chapter", systemImage: "book", iconColor: .accentColor),
+        StarterTemplate(id: "school-romance", title: "School Romance", detail: "A youth story at Sakura Academy with characters and scenes", systemImage: "heart", iconColor: .pink),
+        StarterTemplate(id: "mystery-detective", title: "Mystery Detective", detail: "A detective’s investigation into a bizarre disappearance", systemImage: "magnifyingglass", iconColor: .indigo),
+        StarterTemplate(id: "fantasy-adventure", title: "Fantasy Adventure", detail: "A magical quest to collect star fragments and save the realm", systemImage: "globe.asia.australia", iconColor: .teal),
+        StarterTemplate(id: "modern-urban", title: "Modern Urban", detail: "A heartwarming tale of city life, coffee, and finding direction", systemImage: "building.2", iconColor: .blue),
+        StarterTemplate(id: "quick-start", title: "Quick Start", detail: "Two ready-made characters in a seaside town, ready to play", systemImage: "bolt", iconColor: .orange),
     ]
 }
 

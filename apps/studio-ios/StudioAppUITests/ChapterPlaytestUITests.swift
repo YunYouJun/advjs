@@ -18,7 +18,7 @@ final class ChapterPlaytestUITests: XCTestCase {
         }
     }
 
-    private func openNewProject(_ app: XCUIApplication, name: String) {
+    private func openNewProject(_ app: XCUIApplication, name: String, captureTemplates: Bool = false) {
         app.launchArguments = ["-studioUITesting", "-studioResetData", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launch()
         let library = app.buttons["new-project"].firstMatch
@@ -33,6 +33,7 @@ final class ChapterPlaytestUITests: XCTestCase {
         XCTAssertTrue(field.waitForExistence(timeout: 15))
         field.typeText(name)
         dismissKeyboardIntroduction(in: app)
+        if captureTemplates { attachScreenshot(app, "new-project-template-icons") }
         app.buttons["template-visual-novel-starter"].tap()
         app.buttons["create-project"].tap()
     }
@@ -265,7 +266,7 @@ final class ChapterPlaytestUITests: XCTestCase {
 
     func testSavedFixtureShowsBothOfficialActivities() throws {
         let app = XCUIApplication()
-        openNewProject(app, name: "Offline Fixture")
+        openNewProject(app, name: "Offline Fixture", captureTemplates: true)
         let documents = try studioUITestingDocuments()
         let root = documents.appending(path: "Offline Fixture")
         let config = root.appending(path: "adv.config.json")
@@ -299,9 +300,14 @@ final class ChapterPlaytestUITests: XCTestCase {
         }
         XCTAssertTrue(play.waitForExistence(timeout: 15), app.debugDescription)
         play.tap()
+        let progress = app.descendants(matching: .any)["player-loading"].firstMatch
+        if progress.waitForExistence(timeout: 1) {
+            attachScreenshot(app, "offline-player-startup-progress")
+        }
 
         let web = app.webViews.firstMatch
         let opening = waitForPlayerDialogue("断网也能试玩吗", in: app)
+        XCTAssertFalse(progress.exists)
         attachScreenshot(app, "saved-offline-fixture-dialogue")
         XCUIDevice.shared.press(.home)
         app.activate()
@@ -319,6 +325,43 @@ final class ChapterPlaytestUITests: XCTestCase {
             dy: (closeFrame.midY - appFrame.minY) / appFrame.height
         ))
         let options = app.descendants(matching: .any)["player-options"].firstMatch
+        let optionsFrame = options.frame
+        XCTAssertLessThan(web.frame.minY, closeFrame.minY)
+        let settings = web.buttons["Settings"].firstMatch
+        XCTAssertTrue(settings.waitForExistence(timeout: 10))
+        let settingsFrame = settings.frame
+        XCTAssertFalse(settingsFrame.intersects(optionsFrame))
+        // WebKit doesn't expose the settings panel's close icon as a button.
+        // Its hit area overlaps the settings gear once the panel is open.
+        let settingsLocation = app.coordinate(withNormalizedOffset: CGVector(
+            dx: (settingsFrame.midX - appFrame.minX) / appFrame.width,
+            dy: (settingsFrame.midY - appFrame.minY) / appFrame.height
+        ))
+        settings.tap()
+        let textSettings = web.buttons["Text"].firstMatch
+        XCTAssertTrue(textSettings.waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertFalse(textSettings.frame.intersects(optionsFrame))
+        attachScreenshot(app, "offline-player-edge-to-edge-settings")
+        func changeLanguage(_ label: String) {
+            let button = web.buttons[label].firstMatch
+            XCTAssertTrue(button.waitForExistence(timeout: 10), app.debugDescription)
+            if button.isHittable {
+                button.tap()
+            } else {
+                // WebKit on Duo can report a frame outside the viewport for the settings header button.
+                settingsLocation.withOffset(CGVector(dx: -60, dy: 16)).tap()
+            }
+        }
+        changeLanguage("Change languages")
+        XCTAssertTrue(web.buttons["对白"].waitForExistence(timeout: 10), app.debugDescription)
+        attachScreenshot(app, "offline-player-settings-zh")
+        changeLanguage("切换语言")
+        XCTAssertTrue(textSettings.waitForExistence(timeout: 10), app.debugDescription)
+        changeLanguage("Change languages")
+        XCTAssertTrue(web.buttons["对白"].waitForExistence(timeout: 10), app.debugDescription)
+        settingsLocation.tap()
+        XCTAssertTrue(web.buttons["设置"].waitForExistence(timeout: 10), app.debugDescription)
+
         func playbackAction(id: String, label: String) {
             options.tap()
             // UIKit's menu elements can expose a label without the SwiftUI identifier.

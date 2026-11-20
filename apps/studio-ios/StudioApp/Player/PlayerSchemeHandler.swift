@@ -41,15 +41,6 @@ final class PlayerSchemeHandler: NSObject, WKURLSchemeHandler {
         }
         let range = task.request.value(forHTTPHeaderField: "Range")
         let head = task.request.httpMethod == "HEAD"
-        if url == Self.entryURL {
-            // The bundled HTML shell is small and immutable. Reply immediately so
-            // initial navigation does not wait for an asynchronous file read.
-            let response = Self.read(root: playerRoot, path: ["index.html"], range: range, head: head)
-            if response.status >= 400 && response.status != 416 { report("PLAYER_RESOURCE", "index.html") }
-            respond(to: task, url: url, response: response)
-            logger.info("Served bundled player document: \(response.status, privacy: .public)")
-            return
-        }
         let bundled = segments.first == Self.playerPrefix
         let path = bundled ? Array(segments.dropFirst()) : segments
         let name = path.joined(separator: "/")
