@@ -72,13 +72,14 @@ final class IPadLayoutUITests: XCTestCase {
         screenshot(app, "ipad-context-menu")
         newWindow.tap()
         // The project window shows the second project's sections.
-        XCTAssertTrue(app.navigationBars["Moonlit"].firstMatch.waitForExistence(timeout: 30))
+        let window = app.windows.containing(.navigationBar, identifier: "Moonlit").firstMatch
+        XCTAssertTrue(window.waitForExistence(timeout: 30))
         screenshot(app, "ipad-project-window")
-        let overview = app.buttons["project-section-overview"].firstMatch
+        let overview = window.buttons["project-section-overview"].firstMatch
         XCTAssertTrue(overview.waitForExistence(timeout: 15), app.debugDescription)
         overview.tap()
-        XCTAssertTrue(app.buttons["overview-play"].firstMatch.waitForExistence(timeout: 15), app.debugDescription)
-        app.typeKey("r", modifierFlags: .command)
+        XCTAssertTrue(window.buttons["overview-play"].firstMatch.waitForExistence(timeout: 15), app.debugDescription)
+        window.typeKey("r", modifierFlags: .command)
         let web = app.webViews.firstMatch
         waitForPlayerDialogue("Second window moonlit", in: app)
         screenshot(app, "ipad-focused-project-playtest")

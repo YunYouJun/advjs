@@ -270,6 +270,7 @@ struct ProjectOverviewView: View {
                 }
 
                 Button("Play from Project Start", systemImage: "play") { playtest.offer(session, start: .project) }
+                    .keyboardShortcut("r", modifiers: .command)
                     .buttonStyle(.bordered)
                     .disabled(playtest.isPreparing)
                     .accessibilityIdentifier("overview-play")
