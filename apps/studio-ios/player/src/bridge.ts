@@ -2,8 +2,15 @@ import type { AdvGameConfig, RuntimeAddress, RuntimeProgram } from '@advjs/types
 
 export const PLAYER_PROTOCOL_VERSION = 1
 
+export interface PlayerFold {
+  axis: 'horizontal' | 'vertical'
+  start: number
+  end: number
+}
+
 export type HostCommand
-  = | { type: 'load', gameConfig: AdvGameConfig, program: RuntimeProgram, address: RuntimeAddress, colorScheme: 'dark' | 'light' }
+  = | { type: 'load', gameConfig: AdvGameConfig, program: RuntimeProgram, address: RuntimeAddress, colorScheme: 'dark' | 'light', locale?: 'en' | 'zh-CN', fold?: PlayerFold | null }
+    | { type: 'fold', fold: PlayerFold | null }
     | { type: 'restart' | 'back' | 'pause' | 'resume' | 'dispose' }
     | { type: 'chapter', chapterId: string }
 

@@ -53,7 +53,11 @@ onBeforeUnmount(() => {
 
 const choiceMotion = useAdvMotionPreference()
 const controlsHeight = shallowRef(0)
-const showToolbar = computed(() => app.showUi && !app.menus.settings && !app.showGlossary && !app.showHistory && !app.showSaveMenu && !app.showLoadMenu)
+const showToolbar = computed(() => (
+  app.showUi
+  && $adv.store.state.status !== 'waiting-activity'
+  && !app.menus.settings && !app.showGlossary && !app.showHistory && !app.showSaveMenu && !app.showLoadMenu
+))
 </script>
 
 <template>

@@ -26,8 +26,14 @@ final class IPadLayoutUITests: XCTestCase {
         app.buttons["create-project"].tap()
     }
 
-    func testThreeColumnsAndProjectWindows() {
+    func testThreeColumnsAndProjectWindows() throws {
+        let originalOrientation = XCUIDevice.shared.orientation
         XCUIDevice.shared.orientation = .landscapeLeft
+        defer {
+            if originalOrientation.isPortrait || originalOrientation.isLandscape {
+                XCUIDevice.shared.orientation = originalOrientation
+            }
+        }
         let app = XCUIApplication()
         app.launchArguments = ["-studioUITesting", "-studioResetData", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launch()
@@ -43,6 +49,15 @@ final class IPadLayoutUITests: XCTestCase {
         app.buttons["create-project"].tap()
         XCTAssertTrue(app.staticTexts["Project Health"].firstMatch.waitForExistence(timeout: 30))
         createProject(app, name: "Moonlit", template: "quick-start")
+        let documents = try studioUITestingDocuments()
+        for (name, line) in [("Harbor", "First window harbor"), ("Moonlit", "Second window moonlit")] {
+            let file = documents.appending(path: "\(name)/adv/chapters/01.adv.md")
+            let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                FileManager.default.fileExists(atPath: file.path)
+            }, object: nil)
+            XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 15), .completed)
+            try coordinatedWrite(Data("> \(line)\n".utf8), to: file)
+        }
 
         let harbor = app.descendants(matching: .any)["project-Harbor"].firstMatch
         XCTAssertTrue(harbor.waitForExistence(timeout: 20))
@@ -57,8 +72,19 @@ final class IPadLayoutUITests: XCTestCase {
         screenshot(app, "ipad-context-menu")
         newWindow.tap()
         // The project window shows the second project's sections.
-        XCTAssertTrue(app.navigationBars["Moonlit"].firstMatch.waitForExistence(timeout: 30))
+        let window = app.windows.containing(.navigationBar, identifier: "Moonlit").firstMatch
+        XCTAssertTrue(window.waitForExistence(timeout: 30))
         screenshot(app, "ipad-project-window")
-        XCUIDevice.shared.orientation = .portrait
+        let overview = window.buttons["project-section-overview"].firstMatch
+        XCTAssertTrue(overview.waitForExistence(timeout: 15), app.debugDescription)
+        overview.tap()
+        XCTAssertTrue(window.buttons["overview-play"].firstMatch.waitForExistence(timeout: 15), app.debugDescription)
+        window.typeKey("r", modifierFlags: .command)
+        let web = app.webViews.firstMatch
+        waitForPlayerDialogue("Second window moonlit", in: app)
+        screenshot(app, "ipad-focused-project-playtest")
+        app.buttons["close-player"].firstMatch.tap()
+        XCTAssertTrue(web.waitForNonExistence(timeout: 10), app.debugDescription)
+        XCTAssertTrue(app.navigationBars["Moonlit"].firstMatch.exists, app.debugDescription)
     }
 }

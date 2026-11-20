@@ -20,6 +20,9 @@
 - 列表与表单：`List`、`Form`、`LabeledContent`、`Picker`、`swipeActions`、`contextMenu`；破坏性操作用 `role: .destructive`，永久删除前用 `confirmationDialog`。
 - 空状态与错误：`ContentUnavailableView`，给出下一步操作；错误信息说明原因和办法，不显示原始异常。
 - 系统集成：导入用 `fileImporter`，导出用分享面板与 `fileMover`，隐私政策用 `SFSafariViewController`，语言跳转系统「设置」中本 App 的页面。
+- 试玩顶部使用 SwiftUI 系统工具栏，由 iOS 提供 Liquid Glass 外观。启动期间可以关闭，后退和菜单在首个可玩节点出现后启用。
+- 试玩场景铺到窗口边缘，包括系统工具栏和状态栏后方。对白、选项、游戏控件和弹层留在安全区，游戏内旋转时安全区随舞台方向映射。
+- iPhone Duo 半折叠时按系统提供的折叠区域分开场景和交互区。书本形态左侧放场景，右侧放对白、选项和活动。桌面形态上半屏放场景，下半屏负责交互。展开或合上时恢复沉浸布局并继续当前试玩。
 - 不自绘系统已有的控件（开关、分段控件、搜索框、工具栏、菜单）。新组件放在 `StudioUI` 包，先确认系统组件无法满足。
 
 ## 品牌表达
@@ -29,13 +32,14 @@
 - **强调色**：Asset Catalog 的 `AccentColor`（浅色 `#7c3aed`，深色 `#a78bfa`）是全 App 的 tint；代码中用 `StudioTheme.purple`。
 - **冒险金**：`StudioTheme.gold`（浅色 `#d97706`，深色 `#fbbf24`）只用于标记、星标与「需要注意」的状态，不用于正文和大面积背景。
 - **语义色**：成功、危险使用 `StudioTheme.success`、`StudioTheme.danger`；状态同时用图标或文字表达，不只靠颜色。
-- **图标与插画**：App 图标沿用 Studio 品牌图标；空状态使用 SF Symbols，品牌插画只在首次使用等少数场景出现。
+- **图标与插画**：App 图标沿用 Studio 品牌图标；空状态使用 SF Symbols，品牌插画只在首次使用等少数场景出现。新建项目的模板列表可使用系统色区分类型，颜色只用于 SF Symbols。模板名称和符号各自可辨，选中状态保留强调色勾选。
 
 ## 文字、动态字体与本地化
 
 - 只用系统文字样式（`.body`、`.headline`、`.caption` 等），不写死字号；所有布局在辅助功能字号下可滚动、不截断关键信息。
 - 用户可见字符串写在 String Catalog（`StudioApp/Localizable.xcstrings`），源语言英文，提供简体中文；键使用英文原文，术语与 Web 版语言包一致。
 - 语言跟随系统的「App 语言」设置，App 内「我的 → 语言」直接打开系统设置中本 App 的页面，不在 App 内另设切换。
+- 试玩默认沿用 App 语言。点击试玩设置中的翻译图标可在本次试玩内切换中英文，设置和官方活动随之更新，作品正文与选项保留原文。
 - 日期、时间、数字、文件大小一律用 `FormatStyle`（如 `.relative`、`.number`、`.byteCount`），跟随用户地区，不手工拼接格式。
 
 ## 动效与触感反馈

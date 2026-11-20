@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { beforeEach, expect, it, vi } from 'vitest'
+import { routerKey } from 'vue-router'
 import RightTools from '../../../packages/client/components/menu/RightTools.vue'
 
 const { app, router, store } = vi.hoisted(() => ({
@@ -17,7 +18,6 @@ vi.mock('../../../packages/client/stores', () => ({
   useAppStore: () => app,
   useSettingsStore: () => ({ resetSettings: vi.fn() }),
 }))
-vi.mock('vue-router', () => ({ useRouter: () => router, useRoute: () => ({ path: '/play' }) }))
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (key: string) => key, locale: { value: 'zh-CN' }, availableLocales: ['zh-CN', 'en'] }),
 }))
@@ -32,7 +32,10 @@ beforeEach(() => {
 
 function renderTools() {
   return mount(RightTools, {
-    global: { stubs: { AdvButton: { template: '<button><slot /></button>' }, AdvIconButton: true } },
+    global: {
+      provide: { [routerKey as symbol]: router },
+      stubs: { AdvButton: { template: '<button><slot /></button>' }, AdvIconButton: true },
+    },
   })
 }
 

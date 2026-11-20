@@ -1,6 +1,6 @@
 import { createPinia } from 'pinia'
 import gameMessages from 'virtual:advjs-game-locales'
-import { createApp } from 'vue'
+import { createApp, watch } from 'vue'
 import { createI18n } from 'vue-i18n'
 import NativePlayer from './NativePlayer.vue'
 import 'virtual:uno.css'
@@ -11,6 +11,10 @@ const i18n = createI18n({
   fallbackLocale: 'en',
   messages: gameMessages,
 })
+
+watch(i18n.global.locale, (locale) => {
+  document.documentElement.lang = locale
+}, { immediate: true })
 
 createApp(NativePlayer)
   .use(createPinia())

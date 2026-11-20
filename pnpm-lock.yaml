@@ -2852,6 +2852,9 @@ importers:
       vue:
         specifier: ^3.5.43
         version: 3.5.43(typescript@5.9.3)
+      vue-i18n:
+        specifier: catalog:frontend
+        version: 11.4.14(vue@3.5.43(typescript@5.9.3))
 
   plugins/plugin-obs:
     dependencies:

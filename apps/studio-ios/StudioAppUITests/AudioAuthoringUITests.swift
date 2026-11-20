@@ -169,7 +169,10 @@ final class AudioAuthoringUITests: XCTestCase {
         let musicGain = app.sliders["mixer-gain-music"]
         bringIntoView(musicGain, in: app)
         XCTAssertTrue(musicGain.exists)
+        let originalMusicGain = try sliderGain(musicGain)
         musicGain.adjust(toNormalizedSliderPosition: 0.65)
+        let selectedMusicGain = try sliderGain(musicGain)
+        XCTAssertNotEqual(selectedMusicGain, originalMusicGain)
         let solo = app.switches["mixer-solo-music"]
         bringIntoView(solo, in: app)
         solo.coordinate(withNormalizedOffset: CGVector(dx: 0.94, dy: 0.5)).tap()
@@ -183,21 +186,21 @@ final class AudioAuthoringUITests: XCTestCase {
         let ducking = app.sliders["mixer-ducking-gain"]
         XCTAssertTrue(ducking.isHittable)
         let defaultDuckingGain = try XCTUnwrap(ducking.value as? String)
-        let duckingGain = 0.75
-        ducking.adjust(toNormalizedSliderPosition: duckingGain)
+        ducking.adjust(toNormalizedSliderPosition: 0.75)
         waitUntil("The Ducked Gain slider changes") {
             guard ducking.exists, let value = ducking.value as? String else { return false }
             return value != defaultDuckingGain
         }
+        let selectedDuckingGain = try sliderGain(ducking)
         tap(app.buttons["mixer-save"], in: app)
         let mixerFile = project.appending(path: "adv/audio/mixer.json")
         waitUntil("The native Mixer writes project settings") { FileManager.default.fileExists(atPath: mixerFile.path) }
         let mixer = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: mixerFile)) as? [String: Any])
         let buses = try XCTUnwrap(mixer["buses"] as? [String: [String: Any]])
-        XCTAssertEqual(try XCTUnwrap(buses["music"]?["gain"] as? Double), 0.65, accuracy: 0.09)
+        XCTAssertEqual(try XCTUnwrap(buses["music"]?["gain"] as? Double), selectedMusicGain, accuracy: 0.005)
         XCTAssertEqual(buses["music"]?["solo"] as? Bool, true)
         XCTAssertEqual(buses["ambience"]?["muted"] as? Bool, true)
-        XCTAssertEqual(try XCTUnwrap((mixer["ducking"] as? [String: Any])?["gain"] as? Double), duckingGain, accuracy: 0.09)
+        XCTAssertEqual(try XCTUnwrap((mixer["ducking"] as? [String: Any])?["gain"] as? Double), selectedDuckingGain, accuracy: 0.005)
 
         try reopenProject(app)
         tap(app.buttons["chapter-music"], in: app)
@@ -301,6 +304,11 @@ final class AudioAuthoringUITests: XCTestCase {
         tap(app.buttons["play-chapter-start"].firstMatch, in: app)
         let closePlayer = app.buttons["close-player"]
         XCTAssertTrue(closePlayer.waitForExistence(timeout: 30), app.debugDescription)
+        let back = app.buttons["player-back"].firstMatch
+        waitUntil("The reopened player renders the first scene", timeout: 90) {
+            back.exists && back.isEnabled
+        }
+        XCTAssertFalse(app.otherElements["player-diagnostic"].exists)
         #if DEBUG
         let measurement = documents.deletingLastPathComponent().appending(path: "player-audio-rms.txt")
         waitUntil("The reopened chapter produces nonzero Web Audio output", timeout: 45) {
@@ -311,7 +319,6 @@ final class AudioAuthoringUITests: XCTestCase {
         log.lifetime = .keepAlways
         add(log)
         #endif
-        XCTAssertFalse(app.otherElements["player-diagnostic"].exists)
         attachScreenshot(app, "audio-reopened-chapter-playtest")
         closePlayer.tap()
     }
@@ -399,6 +406,11 @@ final class AudioAuthoringUITests: XCTestCase {
             if towardTop { app.swipeDown() }
             else { app.swipeUp() }
         }
+    }
+
+    private func sliderGain(_ slider: XCUIElement) throws -> Double {
+        let percentage = try XCTUnwrap(slider.value as? String)
+        return try Double(percentage, format: .percent.locale(Locale(identifier: "en_US")))
     }
 
     private func tap(_ element: XCUIElement, in app: XCUIApplication, timeout: TimeInterval = 12) {

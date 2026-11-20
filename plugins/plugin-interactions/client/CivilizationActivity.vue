@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import type { AdvActivityRendererEmits, AdvActivityRendererProps } from '@advjs/client'
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { activityMessages } from './messages'
 import './style.css'
 
 const props = defineProps<AdvActivityRendererProps>()
 const emit = defineEmits<AdvActivityRendererEmits>()
+const { locale, t } = useI18n({ useScope: 'local', messages: activityMessages })
 const name = ref('')
 const level = ref(1)
 const principle = ref('curiosity')
@@ -14,12 +17,10 @@ const principles = computed(() => {
     ? value.filter((item): item is string => typeof item === 'string' && Boolean(item))
     : []
 })
-const principleLabels: Record<string, string> = {
-  curiosity: '好奇',
-  memory: '记忆',
-  empathy: '共情',
-  survival: '生存',
-  cooperation: '协作',
+function principleLabel(value: string) {
+  return Object.hasOwn(activityMessages.en.civilization.labels, value)
+    ? t(`civilization.labels.${value}`)
+    : value
 }
 
 watch(() => props.activity.id, reset, { immediate: true })
@@ -41,62 +42,62 @@ function submit() {
 </script>
 
 <template>
-  <form class="interaction-activity civilization-activity" @submit.prevent="submit">
+  <form class="interaction-activity civilization-activity" :lang="locale" @submit.prevent="submit">
     <header class="interaction-activity__header">
       <div>
         <p class="interaction-activity__eyebrow">
-          CREATURE PROTOCOL
+          {{ t('civilization.instrument') }}
         </p>
         <h2 class="interaction-activity__title">
-          文明播种协议
+          {{ t('civilization.title') }}
         </h2>
       </div>
-      <span class="civilization-activity__level">LV.{{ level }}</span>
+      <span class="civilization-activity__level">{{ t('civilization.levelBadge', { level }) }}</span>
     </header>
 
     <div class="civilization-activity__body">
       <div class="civilization-activity__form">
         <label class="interaction-activity__field">
-          <span>文明名称</span>
+          <span>{{ t('civilization.name') }}</span>
           <input v-model="name" type="text" autocomplete="off" maxlength="24">
         </label>
 
         <fieldset>
-          <legend>核心原则</legend>
+          <legend>{{ t('civilization.principles') }}</legend>
           <div class="civilization-activity__principles">
             <button
               v-for="item in principles"
               :key="item"
               type="button"
               :class="{ active: principle === item }"
+              :aria-pressed="principle === item"
               @click="principle = item"
             >
-              <b>{{ principleLabels[item] || item }}</b>
-              <small>{{ item }}</small>
+              <b>{{ principleLabel(item) }}</b>
             </button>
           </div>
         </fieldset>
 
         <label class="interaction-activity__field">
-          <span>初始演化等级</span>
+          <span>{{ t('civilization.level') }}</span>
           <input v-model.number="level" type="number" min="1" max="9">
         </label>
       </div>
 
       <aside class="civilization-activity__preview">
-        <span>SEED PREVIEW</span>
+        <span>{{ t('civilization.preview') }}</span>
         <div class="civilization-activity__orb" />
         <h3>{{ name || 'Seed' }}</h3>
-        <p>{{ principleLabels[principle] || principle }} · 等级 {{ level }}</p>
+        <p>{{ t('civilization.previewDetails', { principle: principleLabel(principle), level }) }}</p>
       </aside>
     </div>
 
     <div class="interaction-activity__actions">
       <button type="button" class="secondary" @click="emit('back')">
-        返回
+        {{ t('back') }}
       </button>
       <button type="submit">
-        执行初始化
+        {{ t('civilization.initialize') }}
       </button>
     </div>
   </form>

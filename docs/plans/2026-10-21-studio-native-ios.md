@@ -140,6 +140,8 @@ SwiftUI 界面（全部作者界面）
 
 ### P4：试玩与调试
 
+[#98](https://github.com/YunYouJun/advjs/issues/98) 与 [#99](https://github.com/YunYouJun/advjs/issues/99) 的 Release 复测见[验收报告](../reports/studio-native-ios-acceptance.md#正式播放器与草稿试玩复测)。开始 [#103](https://github.com/YunYouJun/advjs/issues/103) 前，先核实同一项目窗口的试玩入口、关闭和恢复所需的会话边界。
+
 - [ ] 独立部署包导出（W06，自 P2 移入）与「运行」命令 ⌘R。
 - [ ] 播放器以全屏方式呈现，按游戏设置支持横屏，自动隐藏 Home 指示条；可从项目开头、当前章节或当前行开始，有未保存草稿时提示「保存并试玩」或「以草稿试玩」，行为在规格中定义。
 - [ ] 存档槽、读档、重开与原生确认交互；Inspector（变量、舞台、选择、checkpoint、trace、诊断）以原生 sheet 或 iPad 侧栏呈现，调试报告可经分享面板导出。

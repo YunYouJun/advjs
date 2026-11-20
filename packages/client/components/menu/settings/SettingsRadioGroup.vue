@@ -11,17 +11,21 @@ const model = defineModel<T>({ required: true })
 <template>
   <fieldset class="settings-radio-group">
     <legend>{{ legend }}</legend>
-    <label v-for="option in options" :key="option.value" class="settings-radio-option" :class="{ selected: model === option.value }">
-      <input v-model="model" type="radio" :name="name" :value="option.value">
-      <span>{{ option.label }}</span>
-    </label>
+    <div class="settings-radio-options">
+      <label v-for="option in options" :key="option.value" class="settings-radio-option" :class="{ selected: model === option.value }">
+        <input v-model="model" type="radio" :name="name" :value="option.value">
+        <span>{{ option.label }}</span>
+      </label>
+    </div>
     <p v-if="description">
       {{ description }}
     </p>
   </fieldset>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+@use '../../../styles/control-button.scss' as control;
+
 .settings-radio-group {
   grid-column: 1 / -1;
   margin: 0;
@@ -30,41 +34,54 @@ const model = defineModel<T>({ required: true })
 }
 
 .settings-radio-group legend {
-  margin-bottom: 0.5em;
+  margin-bottom: 0.25em;
   font-size: inherit;
-  font-weight: 700;
+  font-weight: 600;
+}
+
+.settings-radio-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25em;
 }
 
 .settings-radio-option {
+  @include control.feedback;
+
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
-  gap: 0.375em;
-  min-height: 2.75em;
-  margin: 0 0.5em 0.5em 0;
-  padding: 0.375em 0.625em;
-  border: 1px solid color-mix(in srgb, var(--adv-c-text) 25%, transparent);
-  border-radius: calc(var(--adv-control-radius, 4px) / var(--adv-screen-scale, 1));
-  cursor: pointer;
+  min-height: var(--adv-settings-control-height, 2.25em);
+  padding: 0.35em 0.625em;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .settings-radio-option input {
+  position: absolute;
+  inset: calc(-1px / var(--adv-screen-scale, 1));
+  width: calc(100% + 2px / var(--adv-screen-scale, 1));
+  height: calc(100% + 2px / var(--adv-screen-scale, 1));
   margin: 0;
-  accent-color: var(--adv-c-primary);
+  opacity: 0;
+  cursor: inherit;
 }
 
 .settings-radio-option.selected {
-  border-color: var(--adv-c-primary, #b59156);
-  background: color-mix(in srgb, var(--adv-c-primary, #b59156) 12%, transparent);
+  @include control.selection($marker: false);
+
+  > span {
+    @include control.text-underline;
+  }
 }
 
-.settings-radio-option:focus-within {
+.settings-radio-option:has(:focus-visible) {
   outline: 2px solid var(--adv-c-focus, var(--adv-c-primary));
   outline-offset: 2px;
 }
 
 .settings-radio-group p {
-  margin: 0 0 0.5em;
+  margin: 0.25em 0 0.5em;
   font-size: 0.875em;
   line-height: 1.6;
   opacity: 0.8;

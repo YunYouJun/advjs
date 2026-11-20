@@ -207,11 +207,13 @@ test('keeps settings and menu controls compact in embedded and narrow previews',
   await dialog.getByRole('tab', { name: '对白', exact: true }).click()
   await expect(content.locator('.adv-dialog-reading')).toHaveCSS('font-size', '36px')
 
-  // Layout queries use the pane, even while the outer browser is wide.
+  // Reproduce a 320px settings pane on a larger stage, like a folded display.
   await page.evaluate(() => {
     const app = document.querySelector<HTMLElement>('#app')!
-    app.style.width = '390px'
+    const mask = app.querySelector<HTMLElement>('.modal-mask')!
+    app.style.width = '800px'
     app.style.height = '700px'
+    mask.style.paddingInlineEnd = '482px'
   })
   await expect.poll(async () => {
     const nav = await menu.boundingBox()
@@ -219,6 +221,22 @@ test('keeps settings and menu controls compact in embedded and narrow previews',
     return nav!.y >= tabs!.y + tabs!.height
   }).toBe(true)
   await expect.poll(() => dialog.locator('.modal-body').evaluate(el => Math.max(el.scrollWidth - el.clientWidth, el.scrollHeight - el.clientHeight))).toBeLessThanOrEqual(1)
+  const textSize = content.getByRole('group', { name: '字体大小', exact: true })
+  const selectedSize = textSize.getByRole('button', { name: '超大', exact: true })
+  const selectedBar = content.getByRole('radio', { checked: true, name: '常驻', exact: true })
+  await expect.poll(async () => (await selectedSize.boundingBox())!.height).toBeGreaterThanOrEqual(44)
+  await expect.poll(async () => (await selectedBar.boundingBox())!.height).toBeGreaterThanOrEqual(44)
+  await expect(selectedSize).toHaveCSS('text-decoration-line', 'underline')
+  await expect(textSize.getByRole('button', { name: '小', exact: true })).toHaveCSS('text-decoration-line', 'none')
+  await expect(content.locator('.settings-radio-option.selected').getByText('常驻', { exact: true })).toHaveCSS('text-decoration-line', 'underline')
+  const language = dialog.getByRole('button', { name: '切换语言', exact: true })
+  await language.focus()
+  await language.press('Space')
+  const englishDialog = page.getByRole('dialog', { name: 'Settings', exact: true })
+  const englishText = englishDialog.getByRole('tabpanel', { name: 'Text', exact: true })
+  await expect(englishText).toBeVisible()
+  await expect.poll(() => englishText.evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1)
+  await englishDialog.getByRole('button', { name: 'Change languages', exact: true }).press('Space')
   await expect(menu.getByRole('button', { name: '加载存档', exact: true })).toBeInViewport({ ratio: 1 })
   await menu.getByRole('button', { name: '加载存档', exact: true }).click()
   await expect(dialog).toBeHidden()

@@ -1,5 +1,29 @@
+@mixin selection($marker: true) {
+  color: var(--adv-control-active-color, var(--adv-c-primary, #f1d8a4));
+  background: var(--adv-control-active-bg, color-mix(in srgb, var(--adv-c-primary, #f1d8a4) 14%, transparent));
+
+  @if $marker {
+    &::after {
+      position: absolute;
+      inset: auto 32% calc(3px / var(--adv-screen-scale, 1));
+      height: calc(2px / var(--adv-screen-scale, 1));
+      border-radius: 1px;
+      background: currentColor;
+      pointer-events: none;
+      content: '';
+    }
+  }
+}
+
+@mixin text-underline {
+  text-decoration-line: underline;
+  text-decoration-skip-ink: none;
+  text-decoration-thickness: calc(2px / var(--adv-screen-scale, 1));
+  text-underline-offset: 0.25em;
+}
+
 // Shared feedback for player controls; geometry remains with each consumer.
-@mixin feedback($hover-bg: rgb(255 255 255 / 10%), $pressed-bg: rgb(255 255 255 / 18%)) {
+@mixin feedback($hover-bg: rgb(255 255 255 / 10%), $pressed-bg: rgb(255 255 255 / 18%), $selection-marker: true) {
   position: relative;
   border: calc(1px / var(--adv-screen-scale, 1)) solid transparent;
   border-radius: calc(var(--adv-control-radius, 4px) / var(--adv-screen-scale, 1));
@@ -34,17 +58,7 @@
   &[aria-pressed='true'],
   &[aria-expanded='true'],
   &.playback-stop {
-    color: var(--adv-control-active-color, var(--adv-c-primary, #f1d8a4));
-    background: var(--adv-control-active-bg, color-mix(in srgb, var(--adv-c-primary, #f1d8a4) 14%, transparent));
-
-    &::after {
-      position: absolute;
-      inset: auto 32% calc(3px / var(--adv-screen-scale, 1));
-      height: calc(2px / var(--adv-screen-scale, 1));
-      border-radius: 1px;
-      background: currentColor;
-      content: '';
-    }
+    @include selection($selection-marker);
   }
 
   &:disabled {

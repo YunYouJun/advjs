@@ -32,6 +32,7 @@ async function buildOfflineFixture() {
   settings.requiredPlugins.civilization = '1.0.0'
   settings.colorScheme = 'light'
   const activity = [
+    '## 文明 {#civilization}',
     '',
     '```yaml',
     'type: activity',
@@ -43,7 +44,11 @@ async function buildOfflineFixture() {
     '```',
     '',
   ].join('\n')
-  await writeFile(resolve(output, path), original.replace('## 结束 {#ending}', `${activity}\n## 结束 {#ending}`))
+  const story = original
+    .replace('- [直接结束](#ending)', '- [初始化文明](#civilization)')
+    .replace('## 结束 {#ending}', `${activity}\n## 结束 {#ending}`)
+  await writeFile(resolve(output, path), story)
+  await writeFile(resolve(output, 'adv/chapters/lighthouse.adv.md'), '---\ntitle: Lighthouse\n---\n\n> Lanterns are lit across the harbor.\n')
   await writeFile(resolve(output, settingsPath), JSON.stringify(settings, null, 2))
 }
 

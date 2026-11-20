@@ -11,6 +11,23 @@ extension XCTestCase {
         add(attachment)
     }
 
+    @discardableResult
+    func waitForPlayerDialogue(_ expected: String, in app: XCUIApplication) -> XCUIElement {
+        let texts = app.webViews.firstMatch.staticTexts
+        let line = texts.containing(NSPredicate(format: "label CONTAINS %@", expected)).firstMatch
+        let firstGlyph = texts.matching(NSPredicate(format: "label == %@", String(expected.prefix(1)))).firstMatch
+        let content = expected.filter { !$0.isWhitespace }
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            if line.exists { return true }
+            guard firstGlyph.exists else { return false }
+            // Some WebKit versions expose each animated glyph as a separate static text.
+            let rendered = texts.allElementsBoundByIndex.map(\.label).joined()
+            return rendered.filter { !$0.isWhitespace }.contains(content)
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 60), .completed, app.debugDescription)
+        return line.exists ? line : firstGlyph
+    }
+
     /// A fresh simulator can show the system's slide-to-type introduction over
     /// the first keyboard. It accepts typing but intercepts subsequent taps.
     func dismissKeyboardIntroduction(in app: XCUIApplication) {

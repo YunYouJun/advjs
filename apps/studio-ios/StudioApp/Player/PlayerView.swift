@@ -12,44 +12,100 @@ struct PlayerView: View {
     }
 
     var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-            if let webView = session.webView {
-                PlayerSurface(webView: webView, orientation: session.launch.build.orientation)
-                    .ignoresSafeArea(edges: [.horizontal, .bottom])
-            }
-            if !session.isPlaying, session.issue == nil {
-                ProgressView("Starting Game…").tint(.white).foregroundStyle(.white)
-                    .accessibilityIdentifier("player-loading")
-            }
-        }
-        .persistentSystemOverlays(.hidden)
-        .safeAreaInset(edge: .top, spacing: 0) {
-            VStack(spacing: 0) {
-                controls
-                if let issue = session.issue {
-                    IssueRow(isError: true, message: issue.message, location: issue.code)
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(.bar)
-                        .accessibilityIdentifier("player-diagnostic")
+        NavigationStack {
+            ZStack {
+                Color.black.ignoresSafeArea()
+                if let webView = session.webView {
+                    PlayerSurface(webView: webView, orientation: session.launch.build.orientation)
+                        .id(ObjectIdentifier(webView))
+                        .allowsHitTesting(session.isPlaying)
+                        .accessibilityHidden(!session.isPlaying)
+                        .onGeometryChange(for: PlayerFold?.self) { geometry in
+                            #if compiler(>=6.4) && !ADVJS_NO_FOLD_GEOMETRY
+                            guard #available(iOS 27.1, *) else { return nil }
+                            return geometry.reservedRegions(kind: .division, layoutDirectionBehavior: .fixed)
+                                .lazy.compactMap { PlayerFold(frame: $0.frame, bounds: geometry.size) }.first
+                            #else
+                            return nil
+                            #endif
+                        } action: { session.updateFold($0) }
+                        .ignoresSafeArea(.container)
+                }
+                if let stage = session.startupStage, session.issue == nil {
+                    startupProgress(stage)
                 }
             }
+            .safeAreaInset(edge: .top, spacing: 0) {
+                if let issue = session.issue {
+                    VStack(alignment: .leading, spacing: 8) {
+                        IssueRow(isError: true, message: issue.message, location: issue.code)
+                            .accessibilityIdentifier("player-diagnostic")
+                        if issue.code == "PLAYER_TIMEOUT" || issue.code == "PLAYER_TERMINATED" {
+                            Button("Try Again") {
+                                let launch = session.launch
+                                session.close()
+                                session = PlayerSession(launch: launch)
+                            }
+                            .accessibilityIdentifier("player-retry")
+                        }
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.bar)
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
+            .toolbar { controls }
         }
-        .task { await session.open() }
+        .persistentSystemOverlays(.hidden)
+        .task(id: ObjectIdentifier(session)) {
+            session.setActive(phase == .active)
+            await session.open()
+        }
         .onDisappear { session.close() }
         .onChange(of: phase, initial: true) { _, phase in session.setActive(phase == .active) }
     }
 
-    private var controls: some View {
-        HStack {
+    private func startupProgress(_ stage: PlayerSession.StartupStage) -> some View {
+        let total = PlayerSession.StartupStage.allCases.count
+        let step = Text("Step \(stage.rawValue + 1) of \(total)")
+        return VStack(alignment: .leading, spacing: 12) {
+            Text("Starting Game…")
+                .font(.headline)
+            ProgressView(value: Double(stage.rawValue), total: Double(total)) {
+                Text(stage.title)
+                    .foregroundStyle(.white)
+            } currentValueLabel: {
+                step
+                    .monospacedDigit()
+                    .foregroundStyle(.white.opacity(0.75))
+            }
+            .progressViewStyle(.linear)
+            .accessibilityValue(step)
+            .tint(.white)
+        }
+        .foregroundStyle(.white)
+        .padding(20)
+        .frame(maxWidth: 360)
+        .background(.black, in: .rect(cornerRadius: 12))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("player-loading")
+    }
+
+    @ToolbarContentBuilder
+    private var controls: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
             Button("Close Player", systemImage: "xmark") {
                 session.close()
                 dismiss()
             }
+            .labelStyle(.iconOnly)
             .accessibilityIdentifier("close-player")
-            Spacer()
+        }
+        ToolbarItemGroup(placement: .topBarTrailing) {
             Button("Step Back", systemImage: "backward.end") { session.send(.back) }
+                .labelStyle(.iconOnly)
                 .accessibilityIdentifier("player-back")
                 .disabled(!session.isPlaying)
             Menu {
@@ -59,20 +115,17 @@ struct PlayerView: View {
                     Section("Chapters") {
                         ForEach(program.chapters.keys.sorted(), id: \.self) { id in
                             Button(program.chapters[id]?.title ?? id) { session.send(.chapter, chapterId: id) }
+                                .accessibilityIdentifier("player-chapter-\(id)")
                         }
                     }
                 }
             } label: {
-                Label("Playback Options", systemImage: "ellipsis.circle")
+                Label("Playback Options", systemImage: "ellipsis")
+                    .labelStyle(.iconOnly)
             }
             .accessibilityIdentifier("player-options")
             .disabled(!session.isPlaying)
         }
-        .labelStyle(.iconOnly)
-        .buttonStyle(.bordered)
-        .padding(.horizontal)
-        .padding(.vertical, 6)
-        .background(.bar)
     }
 }
 

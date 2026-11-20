@@ -65,6 +65,7 @@ function back() {
   z-index: 120;
   inset: 0;
   display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   place-items: center;
   background: rgb(3 7 18 / 72%);
   backdrop-filter: blur(10px);
@@ -85,7 +86,7 @@ function back() {
   color: white;
 }
 
-.adv-activity__panel :deep(button) {
+:where(.adv-activity__panel) :deep(:where(button)) {
   padding: 0.65rem 1rem;
   border: 1px solid rgb(125 211 252 / 60%);
   border-radius: 0.5rem;
