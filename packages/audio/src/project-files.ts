@@ -27,6 +27,8 @@ export interface AudioProjectFilePort {
   commit: (changes: AudioProjectFileChange[], media: AudioProjectMedia[]) => Promise<void>
   /** Read native bytes through the same bounded host file API as media imports. */
   readMedia?: (path: string) => Promise<ArrayBuffer>
+  /** Verify bytes inside the host when the engine runs across a JSON bridge. */
+  verifyMedia?: (path: string, sha256: string, bytes: number) => Promise<void>
   synthesize?: VoiceAuthoringAdapter['synthesize']
   /** Re-read persisted media, hash and profile boundaries before adopting a take. */
   verifySelection?: (take: VoiceTake, asset: AdvAssetEntry, catalog: AdvAssetManifest) => Promise<void>

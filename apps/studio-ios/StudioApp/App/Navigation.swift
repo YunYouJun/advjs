@@ -13,6 +13,7 @@ enum ProjectSection: String, Hashable, CaseIterable, Identifiable {
     case overview
     case chapters
     case content
+    case audio
     case world
     case files
     case health
@@ -25,6 +26,7 @@ enum ProjectSection: String, Hashable, CaseIterable, Identifiable {
         case .overview: "Overview"
         case .chapters: "Chapters"
         case .content: "Story Content"
+        case .audio: "Audio Library"
         case .world: "World"
         case .files: "Files"
         case .health: "Project Health"
@@ -36,6 +38,7 @@ enum ProjectSection: String, Hashable, CaseIterable, Identifiable {
         case .overview: "square.grid.2x2"
         case .chapters: "book.pages"
         case .content: "books.vertical"
+        case .audio: "waveform"
         case .world: "globe"
         case .files: "folder"
         case .health: "stethoscope"

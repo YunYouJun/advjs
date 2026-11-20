@@ -152,6 +152,32 @@ struct StudioAlert: Identifiable {
         if case EngineError.engine(let failure) = error, failure.code == "ENGINE_AUTHORING_INVALID" {
             return String(localized: "The content could not be processed. Check the entry fields or import file.")
         }
+        if let error = error as? ProjectAudioError {
+            switch error {
+            case .missingFile: return String(localized: "The audio file is missing from the project.")
+            case .unreadableFile: return String(localized: "The audio file could not be read. Check that it is downloaded in Files.")
+            case .invalidAudio: return String(localized: "This audio cannot be decoded. Choose a playable audio file.")
+            case .audioTooLarge: return String(localized: "Choose an audio file up to 64 MiB.")
+            case .noLocalMedia: return String(localized: "This resource has no local audio file.")
+            case .changedMedia: return String(localized: "The audio file differs from the catalog’s recorded master.")
+            case .auditionRequired: return String(localized: "Play this audio before confirming the review.")
+            case .staleProject: return String(localized: "The project changed. Reload the audio library and try again.")
+            case .unsavedChapter: return String(localized: "Save the chapter before binding music.")
+            case .incompleteRollback: return String(localized: "The audio edit could not be fully restored after a write error. Reload the project and check its files.")
+            }
+        }
+        if case EngineError.engine(let failure) = error {
+            switch failure.code {
+            case "ENGINE_AUDIO_CONFLICT": return String(localized: "The project changed. Reload the audio library and try again.")
+            case "ENGINE_AUDIO_REFERENCED": return String(localized: "This audio is in use. Remove its references before changing its kind or removing it.")
+            case "ENGINE_AUDIO_REVIEW_REQUIRED": return String(localized: "Review this music and its license before binding it.")
+            case "ENGINE_AUDIO_CHAPTER_INVALID": return String(localized: "Choose a Markdown chapter with saved story content.")
+            case "ENGINE_AUDIO_ROOT_UNSUPPORTED": return String(localized: "Audio authoring requires the adv project folder.")
+            case "ENGINE_AUDIO_FILE_INVALID": return String(localized: "Choose a nonempty audio file in a supported format.")
+            case "ENGINE_AUDIO_INVALID": return String(localized: "The audio edit could not be validated. Check the resource fields and project diagnostics.")
+            default: break
+            }
+        }
         if let error = error as? ProjectImageError {
             switch error {
             case .invalidImage: return String(localized: "This image could not be imported. Check the format and file size.")

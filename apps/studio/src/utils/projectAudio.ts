@@ -3,7 +3,7 @@ import type { VoiceAuthoringAdapter } from '@advjs/types'
 import type { IFileSystem } from './fs'
 import type { StudioNativeMedia } from './nativeProjectMutation'
 import { audioProjectMediaPath, createProjectAudioService, verifyVoiceCandidateBytes } from '@advjs/audio'
-import { compileProject } from '@advjs/core'
+import { compileProject, prepareProjectAudioCatalog } from '@advjs/core'
 import { commitStudioProjectFiles } from './nativeProjectMutation'
 import { whenStudioProjectWritesSettle } from './projectWriteQueue'
 
@@ -39,14 +39,9 @@ export async function initializeStudioAudioCatalog(fs: IFileSystem, catalogId: s
     throw new Error('VOICE_CONFLICT: The catalog already exists; reload before applying')
   if (await fs.exists('adv/assets/index.json'))
     throw new Error('ADV_AUDIO_LEGACY_MIGRATION_REQUIRED: Migrate the existing catalog before creating audio resources')
-  const compilation = await compileProject({ files: before }, { allowEmptyAssetManifest: true })
-  if (compilation.project.root !== 'adv')
-    throw new Error('ADV_AUDIO_CONTENT_ROOT_UNSUPPORTED: Audio authoring currently requires the canonical adv content root')
-  const catalog = `${JSON.stringify({ schemaVersion: 2, id: catalogId, defaultProfile: 'local', profiles: { local: { provider: 'project', root: 'adv/assets' } }, includes: [] }, null, 2)}\n`
-  const after: Record<string, string> = { ...before, 'adv/assets.json': catalog }
-  if (!Object.hasOwn(before, 'adv.config.json'))
-    after['adv.config.json'] = `${JSON.stringify({ schemaVersion: 1, id: catalogId, root: 'adv', format: 'adv-md' }, null, 2)}\n`
-  await commitStudioProjectFiles(fs, Object.entries(after).filter(([path]) => !Object.hasOwn(before, path)).map(([path, content]) => ({ path, expected: null, content })), {
+  const writes = await prepareProjectAudioCatalog(before, catalogId)
+  const after = { ...before, ...Object.fromEntries(writes.map(change => [change.path, change.content])) }
+  await commitStudioProjectFiles(fs, writes, {
     assertCurrent: options.validateAccess,
     acceptsPath: path => path === 'adv/assets.json' || path === 'adv.config.json',
     validateCurrent: scope => assertFiles(scope, before),

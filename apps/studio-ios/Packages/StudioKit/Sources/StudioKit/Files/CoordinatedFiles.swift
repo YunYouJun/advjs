@@ -7,14 +7,29 @@ public enum CoordinatedFiles {
     public enum WriteError: Error {
         case sourceChanged
     }
+    enum ReadError: Error { case sizeLimit }
+
     public static func read(_ url: URL, filePresenter: NSFilePresenter? = nil) throws -> Data {
+        try read(url, filePresenter: filePresenter, maximumBytes: nil)
+    }
+
+    static func read(_ url: URL, filePresenter: NSFilePresenter?, maximumBytes: Int?) throws -> Data {
         try coordinate(filePresenter: filePresenter) { coordinator, error in
             var result: Result<Data, Error> = .failure(CocoaError(.fileReadUnknown))
             coordinator.coordinate(readingItemAt: url, options: [], error: error) { readURL in
-                result = Result { try Data(contentsOf: readURL) }
+                result = Result { try readBytes(readURL, maximumBytes: maximumBytes) }
             }
             return result
         }
+    }
+
+    static func readBytes(_ url: URL, maximumBytes: Int?) throws -> Data {
+        if let maximumBytes, let size = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize, size > maximumBytes {
+            throw ReadError.sizeLimit
+        }
+        let data = try Data(contentsOf: url)
+        if let maximumBytes, data.count > maximumBytes { throw ReadError.sizeLimit }
+        return data
     }
 
     /// Replace `url` atomically: the new bytes go to a temporary file in the

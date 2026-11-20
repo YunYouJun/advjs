@@ -2,7 +2,7 @@ import type { VoiceReviewContext } from '@advjs/audio'
 import type { AudioMixerConfig, VoiceAuthoringSnapshot } from '@advjs/types'
 import type { Ref } from 'vue'
 import type { StudioAudioMetadata } from '../components/audio/AudioAssetForm.vue'
-import { audioProjectMediaPath, createAudioId, verifyVoiceCandidateBytes, voiceAuthoringRevision, voiceReviewContextFromProgram } from '@advjs/audio'
+import { audioProjectMediaPath, prepareAudioAssetImport, verifyVoiceCandidateBytes, voiceAuthoringRevision, voiceReviewContextFromProgram } from '@advjs/audio'
 import { compileProject } from '@advjs/core'
 import { computed, onScopeDispose, shallowRef, watch } from 'vue'
 import { useAuthStore } from '../stores/useAuthStore'
@@ -200,22 +200,18 @@ export function useAudioWorkspace(active: Ref<boolean>) {
     return mutate(async () => {
       if (!isAudioFile(file.name) || !file.size)
         throw new Error('ADV_AUDIO_FILE_INVALID: Choose a non-empty audio file')
-      const assetId = createAudioId('audio')
-      const extension = file.name.slice(file.name.lastIndexOf('.')).toLowerCase()
-      const staging = `adv/audio/.staging/${assetId}${extension}`
       const bytes = await file.arrayBuffer()
       const duration = await inspectStudioAudioDuration(file)
       const sha256 = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), value => value.toString(16).padStart(2, '0')).join('')
-      const mimeTypes: Record<string, string> = { '.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.ogg': 'audio/ogg', '.opus': 'audio/ogg', '.m4a': 'audio/mp4', '.aac': 'audio/aac', '.flac': 'audio/flac', '.webm': 'audio/webm' }
-      const asset = { id: assetId, type: 'audio' as const, kind: data.kind, labels: data.labels, loop: data.loop, ...(data.music ? { music: data.music } : {}), ...(data.license ? { license: data.license } : {}), ...(duration ? { duration } : {}), title: data.title || file.name, path: `audio/${assetId}${extension}`, mimeType: file.type || mimeTypes[extension], bytes: bytes.byteLength, sha256, source: { type: 'original' } }
+      const { asset, source } = prepareAudioAssetImport(data, { name: file.name, sha256, bytes: bytes.byteLength, mimeType: file.type, duration })
       audioProjectMediaPath(current.catalog, asset)
       assertCurrent()
-      await fs.writeBlob(staging, file)
+      await fs.writeBlob(source.path, file)
       try {
-        await service.importAsset({ expectedRevision, asset, source: { path: staging, sha256, bytes: bytes.byteLength } })
+        await service.importAsset({ expectedRevision, asset, source })
       }
       finally {
-        await fs.deleteFile(staging)
+        await fs.deleteFile(source.path)
       }
     })
   }
