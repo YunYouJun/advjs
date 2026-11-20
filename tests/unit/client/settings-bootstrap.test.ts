@@ -8,7 +8,6 @@ import RightTools from '../../../packages/client/components/menu/RightTools.vue'
 import { injectionAdvContext } from '../../../packages/client/constants'
 import { setupAdvContext } from '../../../packages/client/setup/context'
 
-vi.mock('vue-router', () => ({ useRouter: () => ({ getRoutes: () => [{ path: '/start' }, { path: '/game' }], push: vi.fn() }) }))
 vi.mock('vue-i18n', async importOriginal => ({
   ...await importOriginal<typeof import('vue-i18n')>(),
   useI18n: () => ({ t: (key: string) => key }),
