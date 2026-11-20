@@ -111,12 +111,32 @@ final class ChapterPlaytestUITests: XCTestCase {
 
     func testDraftAndSavedChapterPlaytest() throws {
         let app = XCUIApplication()
-        writeChapterDraft(app, project: "Local Story")
+        let isPad = UIDevice.current.userInterfaceIdiom == .pad
+        if isPad {
+            writeChapterDraft(app, project: "Local Story")
+        }
+        else {
+            writeChapterDraft(app, project: "Local Story", body: """
+
+            > Draft lighthouse at night.
+
+            - [Follow the beacon](#beacon)
+            - [Wait in the harbor](#harbor)
+
+            ## Beacon {#beacon}
+
+            > The beacon is bright.
+
+            ## Harbor {#harbor}
+
+            > The harbor is quiet.
+
+            """)
+        }
         let editor = app.textViews["chapter-source"]
         let url = try studioUITestingDocuments().appending(path: "Local Story/adv/chapters/02.adv.md")
         let saved = try Data(contentsOf: url)
         let position = app.staticTexts["chapter-source-position"]
-        let isPad = UIDevice.current.userInterfaceIdiom == .pad
         if isPad {
             editor.typeKey(.upArrow, modifierFlags: [])
             editor.typeKey(.leftArrow, modifierFlags: .command)
@@ -145,8 +165,16 @@ final class ChapterPlaytestUITests: XCTestCase {
         }
         draft.tap()
         XCTAssertTrue(close.waitForExistence(timeout: 20), app.debugDescription)
-        waitForPlayerDialogue("Draft lighthouse", in: app)
+        let opening = waitForPlayerDialogue("Draft lighthouse", in: app)
         attachScreenshot(app, "draft-playtest")
+        if !isPad {
+            let choice = app.webViews.buttons.containing(NSPredicate(format: "label CONTAINS %@", "Follow the beacon")).firstMatch
+            for _ in 0..<3 where !choice.exists { opening.tap() }
+            XCTAssertTrue(choice.waitForExistence(timeout: 10), app.debugDescription)
+            choice.tap()
+            waitForPlayerDialogue("The beacon is bright.", in: app)
+            attachScreenshot(app, "draft-playtest-choice")
+        }
         XCTAssertEqual(try Data(contentsOf: url), saved)
 
         close.tap()
