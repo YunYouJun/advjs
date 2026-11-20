@@ -318,15 +318,22 @@ final class ChapterPlaytestUITests: XCTestCase {
             dx: (closeFrame.midX - appFrame.minX) / appFrame.width,
             dy: (closeFrame.midY - appFrame.minY) / appFrame.height
         ))
-        let options = app.buttons["player-options"].firstMatch
-        options.tap()
-        app.buttons["player-chapter-lighthouse"].firstMatch.tap()
+        let options = app.descendants(matching: .any)["player-options"].firstMatch
+        func playbackAction(id: String, label: String) {
+            options.tap()
+            // UIKit's menu elements can expose a label without the SwiftUI identifier.
+            let action = app.descendants(matching: .any)
+                .matching(NSPredicate(format: "identifier == %@ OR label == %@", id, label)).firstMatch
+            XCTAssertTrue(action.waitForExistence(timeout: 10), app.debugDescription)
+            action.tap()
+        }
+
+        playbackAction(id: "player-chapter-lighthouse", label: "lighthouse")
         waitForPlayerDialogue("Lanterns are lit across the harbor.", in: app)
         app.buttons["player-back"].firstMatch.tap()
         waitForPlayerDialogue("断网也能试玩吗", in: app)
         attachScreenshot(app, "saved-offline-fixture-chapter-back")
-        options.tap()
-        app.buttons["player-restart"].firstMatch.tap()
+        playbackAction(id: "player-restart", label: "Restart")
         waitForPlayerDialogue("断网也能试玩吗", in: app)
 
         let civilization = web.buttons.containing(NSPredicate(format: "label CONTAINS %@", "初始化文明")).firstMatch
@@ -339,8 +346,7 @@ final class ChapterPlaytestUITests: XCTestCase {
         initialize.tap()
         waitForPlayerDialogue("探针结束", in: app)
 
-        options.tap()
-        app.buttons["player-restart"].firstMatch.tap()
+        playbackAction(id: "player-restart", label: "Restart")
         let restarted = waitForPlayerDialogue("断网也能试玩吗", in: app)
         let choice = web.buttons.containing(NSPredicate(format: "label CONTAINS %@", "先看星图")).firstMatch
         for _ in 0..<3 where !choice.exists { restarted.tap() }
