@@ -52,24 +52,8 @@ final class ChapterPlaytestUITests: XCTestCase {
         tile.tap()
     }
 
-    @discardableResult
-    private func waitForDialogue(_ expected: String, in app: XCUIApplication) -> XCUIElement {
-        let texts = app.webViews.firstMatch.staticTexts
-        let line = texts.containing(NSPredicate(format: "label CONTAINS %@", expected)).firstMatch
-        let firstGlyph = texts.matching(NSPredicate(format: "label == %@", String(expected.prefix(1)))).firstMatch
-        let content = expected.filter { !$0.isWhitespace }
-        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            if line.exists { return true }
-            guard firstGlyph.exists else { return false }
-            // Some WebKit versions expose each animated glyph as a separate static text.
-            let rendered = texts.allElementsBoundByIndex.map(\.label).joined()
-            return rendered.filter { !$0.isWhitespace }.contains(content)
-        }, object: nil)
-        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 40), .completed, app.debugDescription)
-        return line.exists ? line : firstGlyph
-    }
-
-    private func writeChapterDraft(_ app: XCUIApplication, project name: String) {
+    private func writeChapterDraft(_ app: XCUIApplication, project name: String,
+                                   body: String = "\n> Draft lighthouse at night.\n") {
         openNewProject(app, name: name)
         openChapters(app)
         let newChapter = app.buttons["new-chapter"]
@@ -78,7 +62,12 @@ final class ChapterPlaytestUITests: XCTestCase {
         let filename = app.alerts.textFields.firstMatch
         XCTAssertTrue(filename.waitForExistence(timeout: 5))
         filename.typeText("02")
-        app.alerts.buttons["Create"].tap()
+        let create = app.alerts.buttons["Create"]
+        create.tap()
+        if !create.waitForNonExistence(timeout: 2), UIDevice.current.userInterfaceIdiom == .pad {
+            filename.typeKey(.return, modifierFlags: [])
+        }
+        XCTAssertTrue(create.waitForNonExistence(timeout: 5), "The chapter prompt did not submit the filename")
 
         let chapter = app.buttons["chapter-adv/chapters/02.adv.md"]
         XCTAssertTrue(chapter.waitForExistence(timeout: 10))
@@ -98,7 +87,7 @@ final class ChapterPlaytestUITests: XCTestCase {
         editor.tap()
         // The end of the existing metadata is the document end.
         editor.typeKey(.end, modifierFlags: .command)
-        editor.typeText("\n> Draft lighthouse at night.\n")
+        editor.typeText(body)
         attachScreenshot(app, "chapter-source-draft")
     }
 
@@ -156,7 +145,7 @@ final class ChapterPlaytestUITests: XCTestCase {
         }
         draft.tap()
         XCTAssertTrue(close.waitForExistence(timeout: 20), app.debugDescription)
-        waitForDialogue("Draft lighthouse", in: app)
+        waitForPlayerDialogue("Draft lighthouse", in: app)
         attachScreenshot(app, "draft-playtest")
         XCTAssertEqual(try Data(contentsOf: url), saved)
 
@@ -166,12 +155,56 @@ final class ChapterPlaytestUITests: XCTestCase {
         play.tap()
         app.buttons["play-chapter-start"].tap()
         app.buttons["Save and Playtest"].firstMatch.tap()
-        waitForDialogue("Draft lighthouse", in: app)
+        waitForPlayerDialogue("Draft lighthouse", in: app)
         XCTAssertTrue(try String(contentsOf: url, encoding: .utf8).contains("Draft lighthouse"))
         close.tap()
         XCTAssertTrue(editor.waitForExistence(timeout: 10))
         XCTAssertEqual(position.label, originalPosition)
     }
+    func testPlaytestRejectsConflictAndInvalidDraft() throws {
+        let app = XCUIApplication()
+        writeChapterDraft(app, project: "Playtest Conflict", body: "\n> Draft lighthouse at night.\n\n- [Broken](#missing)\n")
+        let editor = app.textViews["chapter-source"]
+        let position = app.staticTexts["chapter-source-position"].label
+        let draft = try XCTUnwrap(editor.value as? String)
+        let brokenLine = try XCTUnwrap(draft.components(separatedBy: "\n").firstIndex { $0.contains("[Broken]") }) + 1
+        let file = try studioUITestingDocuments().appending(path: "Playtest Conflict/adv/chapters/02.adv.md")
+        let outside = Data("> Edited elsewhere.\n".utf8)
+        try coordinatedWrite(outside, to: file)
+
+        func requestPlaytest() {
+            app.buttons["play-chapter"].firstMatch.tap()
+            app.buttons["play-chapter-start"].firstMatch.tap()
+        }
+
+        requestPlaytest()
+        app.buttons["Save and Playtest"].firstMatch.tap()
+        let diagnostics = app.navigationBars["Can’t Start Playtest"].firstMatch
+        XCTAssertTrue(diagnostics.waitForExistence(timeout: 15), app.debugDescription)
+        XCTAssertFalse(app.webViews.firstMatch.exists)
+        XCTAssertEqual(try Data(contentsOf: file), outside)
+        attachScreenshot(app, "playtest-save-conflict")
+        app.buttons["Done"].firstMatch.tap()
+        XCTAssertTrue(editor.waitForExistence(timeout: 10))
+        XCTAssertEqual(app.staticTexts["chapter-source-position"].label, position)
+
+        requestPlaytest()
+        app.buttons["Playtest Draft"].firstMatch.tap()
+        XCTAssertTrue(diagnostics.waitForExistence(timeout: 15), app.debugDescription)
+        XCTAssertFalse(app.webViews.firstMatch.exists)
+        XCTAssertEqual(try Data(contentsOf: file), outside)
+        let source = app.buttons["player-issue-ADV_RUNTIME_UNKNOWN_TARGET"].firstMatch
+        XCTAssertTrue(source.waitForExistence(timeout: 10), app.debugDescription)
+        source.tap()
+        let diagnosticEditor = app.textViews["chapter-source"].firstMatch
+        XCTAssertTrue(diagnosticEditor.waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertTrue((diagnosticEditor.value as? String)?.contains("[Broken](#missing)") == true)
+        let destination = app.staticTexts.matching(identifier: "chapter-source-position")
+            .matching(NSPredicate(format: "label == %@", "Line \(brokenLine), Column 1")).firstMatch
+        XCTAssertTrue(destination.waitForExistence(timeout: 10), app.debugDescription)
+        attachScreenshot(app, "playtest-invalid-draft-source")
+    }
+
     func testHealthDiagnosticOpensSourceAtReportedLine() throws {
         let app = XCUIApplication()
         openNewProject(app, name: "Diagnostic Story")
@@ -202,7 +235,7 @@ final class ChapterPlaytestUITests: XCTestCase {
         attachScreenshot(app, "chapter-diagnostic-source-location")
     }
 
-    func testSavedFixtureShowsChoiceAndOfficialActivity() throws {
+    func testSavedFixtureShowsBothOfficialActivities() throws {
         let app = XCUIApplication()
         openNewProject(app, name: "Offline Fixture")
         let documents = try studioUITestingDocuments()
@@ -240,8 +273,11 @@ final class ChapterPlaytestUITests: XCTestCase {
         play.tap()
 
         let web = app.webViews.firstMatch
-        let opening = waitForDialogue("断网也能试玩吗", in: app)
+        let opening = waitForPlayerDialogue("断网也能试玩吗", in: app)
         attachScreenshot(app, "saved-offline-fixture-dialogue")
+        XCUIDevice.shared.press(.home)
+        app.activate()
+        waitForPlayerDialogue("断网也能试玩吗", in: app)
         let close = app.buttons["close-player"].firstMatch
         XCTAssertTrue(close.waitForExistence(timeout: 10), app.debugDescription)
         let appFrame = app.frame
@@ -254,8 +290,32 @@ final class ChapterPlaytestUITests: XCTestCase {
             dx: (closeFrame.midX - appFrame.minX) / appFrame.width,
             dy: (closeFrame.midY - appFrame.minY) / appFrame.height
         ))
+        let options = app.buttons["player-options"].firstMatch
+        options.tap()
+        app.buttons["player-chapter-lighthouse"].firstMatch.tap()
+        waitForPlayerDialogue("Lanterns are lit across the harbor.", in: app)
+        app.buttons["player-back"].firstMatch.tap()
+        waitForPlayerDialogue("断网也能试玩吗", in: app)
+        attachScreenshot(app, "saved-offline-fixture-chapter-back")
+        options.tap()
+        app.buttons["player-restart"].firstMatch.tap()
+        waitForPlayerDialogue("断网也能试玩吗", in: app)
+
+        let civilization = web.buttons.containing(NSPredicate(format: "label CONTAINS %@", "初始化文明")).firstMatch
+        for _ in 0..<3 where !civilization.exists { opening.tap() }
+        XCTAssertTrue(civilization.waitForExistence(timeout: 10), app.debugDescription)
+        civilization.tap()
+        let initialize = web.buttons["执行初始化"].firstMatch
+        XCTAssertTrue(initialize.waitForExistence(timeout: 10), app.debugDescription)
+        attachScreenshot(app, "saved-offline-fixture-civilization")
+        initialize.tap()
+        waitForPlayerDialogue("探针结束", in: app)
+
+        options.tap()
+        app.buttons["player-restart"].firstMatch.tap()
+        let restarted = waitForPlayerDialogue("断网也能试玩吗", in: app)
         let choice = web.buttons.containing(NSPredicate(format: "label CONTAINS %@", "先看星图")).firstMatch
-        for _ in 0..<3 where !choice.exists { opening.tap() }
+        for _ in 0..<3 where !choice.exists { restarted.tap() }
         XCTAssertTrue(choice.waitForExistence(timeout: 10), app.debugDescription)
         choice.tap()
         XCTAssertTrue(web.buttons["重置星图"].waitForExistence(timeout: 10), app.debugDescription)
