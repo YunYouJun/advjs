@@ -159,7 +159,11 @@ final class AudioAuthoringUITests: XCTestCase {
         receipt.lifetime = .keepAlways
         add(receipt)
 
-        tap(app.navigationBars["Music Brief"].buttons["Done"].firstMatch, in: app)
+        let briefBar = app.navigationBars["Music Brief"]
+        let done = briefBar.buttons["Done"].firstMatch
+        waitUntil("The music brief is active after Files closes") { done.exists && done.isHittable }
+        done.tap()
+        XCTAssertTrue(briefBar.waitForNonExistence(timeout: 15))
         tap(app.buttons["audio-actions"], in: app)
         tap(app.buttons["audio-mixer"], in: app)
         let musicGain = app.sliders["mixer-gain-music"]
