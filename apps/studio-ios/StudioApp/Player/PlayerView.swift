@@ -15,8 +15,7 @@ struct PlayerView: View {
         ZStack {
             Color.black.ignoresSafeArea()
             if let webView = session.webView {
-                PlayerSurface(webView: webView, orientation: session.launch.build.orientation,
-                              onAppear: session.startNavigation)
+                PlayerSurface(webView: webView, orientation: session.launch.build.orientation)
                     .id(ObjectIdentifier(webView))
                     .ignoresSafeArea(edges: [.horizontal, .bottom])
             }
@@ -95,10 +94,9 @@ struct PlayerView: View {
 private struct PlayerSurface: UIViewControllerRepresentable {
     let webView: WKWebView
     let orientation: EnginePlayerBuild.Orientation
-    let onAppear: () -> Void
 
     func makeUIViewController(context: Context) -> Controller {
-        Controller(webView: webView, orientation: orientation, onAppear: onAppear)
+        Controller(webView: webView, orientation: orientation)
     }
 
     func updateUIViewController(_ controller: Controller, context: Context) {}
@@ -107,12 +105,10 @@ private struct PlayerSurface: UIViewControllerRepresentable {
         let webView: WKWebView
         let orientation: EnginePlayerBuild.Orientation
         private var previous: UIInterfaceOrientationMask?
-        private let onAppear: () -> Void
 
-        init(webView: WKWebView, orientation: EnginePlayerBuild.Orientation, onAppear: @escaping () -> Void) {
+        init(webView: WKWebView, orientation: EnginePlayerBuild.Orientation) {
             self.webView = webView
             self.orientation = orientation
-            self.onAppear = onAppear
             super.init(nibName: nil, bundle: nil)
         }
 
@@ -122,11 +118,6 @@ private struct PlayerSurface: UIViewControllerRepresentable {
         override func loadView() { view = webView }
 
         override var prefersHomeIndicatorAutoHidden: Bool { true }
-
-        override func viewIsAppearing(_ animated: Bool) {
-            super.viewIsAppearing(animated)
-            onAppear()
-        }
 
         override func viewDidAppear(_ animated: Bool) {
             super.viewDidAppear(animated)

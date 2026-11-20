@@ -117,6 +117,7 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
             webView.backgroundColor = .black
             schemeHandler = handler
             self.webView = webView
+            startNavigation(in: webView)
             setActive(active)
         }
         catch {
@@ -124,9 +125,7 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
         }
     }
 
-    /// The surface must be in a window before WebKit begins navigation.
-    func startNavigation() {
-        guard phase == .preparing, let webView else { return }
+    private func startNavigation(in webView: WKWebView) {
         phase = .waiting
         logger.info("Loading bundled player page")
         webView.load(URLRequest(url: PlayerSchemeHandler.entryURL))
@@ -181,13 +180,14 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
     }
 
     func send(_ command: Command, chapterId: String? = nil) {
-        guard phase == .playing else { return }
+        guard isPlaying, phase == .playing else { return }
         Task {
             do {
                 let data = try JSONEncoder().encode(Request(type: command.rawValue, chapterId: chapterId))
                 try await dispatch(String(decoding: data, as: UTF8.self))
             }
             catch {
+                guard isPlaying else { return }
                 fail("PLAYER_BRIDGE", String(localized: "The offline player couldn’t complete the command."))
             }
         }
