@@ -174,8 +174,15 @@ final class AudioAuthoringUITests: XCTestCase {
         mute.coordinate(withNormalizedOffset: CGVector(dx: 0.94, dy: 0.5)).tap()
         let ducking = app.sliders["mixer-ducking-gain"]
         bringIntoView(ducking, in: app)
-        XCTAssertTrue(ducking.exists)
-        ducking.adjust(toNormalizedSliderPosition: 0.22)
+        XCTAssertTrue(ducking.isHittable)
+        let defaultDuckingGain = try XCTUnwrap(ducking.value as? String)
+        // Use enough slider travel for XCTest's drag to move the thumb reliably on iOS 26.
+        let duckingGain = 0.75
+        ducking.adjust(toNormalizedSliderPosition: duckingGain)
+        waitUntil("The Ducked Gain slider changes") {
+            guard ducking.exists, let value = ducking.value as? String else { return false }
+            return value != defaultDuckingGain
+        }
         tap(app.buttons["mixer-save"], in: app)
         let mixerFile = project.appending(path: "adv/audio/mixer.json")
         waitUntil("The native Mixer writes project settings") { FileManager.default.fileExists(atPath: mixerFile.path) }
@@ -184,7 +191,7 @@ final class AudioAuthoringUITests: XCTestCase {
         XCTAssertEqual(try XCTUnwrap(buses["music"]?["gain"] as? Double), 0.65, accuracy: 0.09)
         XCTAssertEqual(buses["music"]?["solo"] as? Bool, true)
         XCTAssertEqual(buses["ambience"]?["muted"] as? Bool, true)
-        XCTAssertEqual(try XCTUnwrap((mixer["ducking"] as? [String: Any])?["gain"] as? Double), 0.22, accuracy: 0.09)
+        XCTAssertEqual(try XCTUnwrap((mixer["ducking"] as? [String: Any])?["gain"] as? Double), duckingGain, accuracy: 0.09)
 
         try reopenProject(app)
         tap(app.buttons["chapter-music"], in: app)
