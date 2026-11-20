@@ -120,7 +120,6 @@ struct PlaytestHost: ViewModifier {
     func body(content: Content) -> some View {
         @Bindable var coordinator = coordinator
         content
-            .environment(coordinator)
             .disabled(coordinator.isPreparing)
             .alert("Playtest with Unsaved Changes", isPresented: Binding(
                 get: { coordinator.pending != nil },
@@ -156,6 +155,7 @@ struct PlaytestHost: ViewModifier {
                     }
                 }
             }
+            .environment(coordinator)
     }
     private func issueRow(_ issue: PlayerIssue) -> some View {
         IssueRow(isError: true, message: issue.message, location: issue.location?.display ?? issue.code)
