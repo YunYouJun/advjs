@@ -60,6 +60,9 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
     private var phase = Phase.idle
     private var schemeHandler: PlayerSchemeHandler?
     private var timeout: Task<Void, Never>?
+    #if DEBUG
+    private var audioMeasurement: Task<Void, Never>?
+    #endif
     private var active = true
     private var mediaSuspended = false
     private let logger = Logger(subsystem: "org.advjs.studio", category: "OfflinePlayer")
@@ -107,6 +110,11 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
                 """,
                 injectionTime: .atDocumentStart, forMainFrameOnly: true
             ))
+            #if DEBUG
+            if PlayerAudioTestProbe.enabled {
+                configuration.userContentController.addUserScript(PlayerAudioTestProbe.script)
+            }
+            #endif
             let webView = WKWebView(frame: .zero, configuration: configuration)
             webView.navigationDelegate = self
             webView.scrollView.contentInsetAdjustmentBehavior = .never
@@ -134,6 +142,10 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
         phase = .closed
         timeout?.cancel()
         timeout = nil
+        #if DEBUG
+        audioMeasurement?.cancel()
+        audioMeasurement = nil
+        #endif
         if let webView {
             webView.setAllMediaPlaybackSuspended(true, completionHandler: nil)
             webView.evaluateJavaScript("globalThis.advPlayerHost?.receive({type:'dispose',protocol:1})", completionHandler: nil)
@@ -192,6 +204,11 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
             isPlaying = true
             if issue?.code == "PLAYER_TIMEOUT" { issue = nil }
             logger.info("Offline player rendered its first node")
+            #if DEBUG
+            if PlayerAudioTestProbe.enabled, let webView {
+                audioMeasurement = Task { await PlayerAudioTestProbe.measure(in: webView) }
+            }
+            #endif
             setActive(active)
         case .diagnostic:
             guard let code = event.code, let text = event.message, let severity = event.severity else { return }

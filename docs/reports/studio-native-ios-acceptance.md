@@ -1,9 +1,38 @@
 # Studio iPhone／iPad 原生 App 验收报告
 
 - 日期：2026-10-21 创建，随各阶段更新。
-- 状态：P2 已合入，P3 与 P4 本地章节和试玩切片见下方。P0 至 P2 的记录保留当时的环境与结果。
+- 状态：P2 已合入，本页记录 P3 音频与 P3／P4 本地章节和试玩。P0 至 P2 的记录保留当时的环境与结果。
 - 范围：[实施计划](../plans/2026-10-21-studio-native-ios)的验收证据；设计与决策见[设计规格](../specs/2026-10-21-studio-native-ios-design)。
 - 边界：本报告只记录实际运行结果。验收以 iOS 模拟器为准（用户 2026-10-21 决定），实机差异列为风险。
+
+## P3 音频资源库与章节音乐
+
+记录日期为 2026-11-20。基线 `dev@3dc4af9e`，包含已合入的 #109。#97 从已保存章节或项目音频入口操作。系统导入使用仓库原有的 `theme.m4a` 测试素材，原始大小为 129,071 字节，SHA-256 为 `beb4418cdc622844ff0adf93c34a9fcbb1e22a76d74a41c0ee510fd45d928930`。
+
+| #97 交付项                         | 验证结果                                                                                                                                                                                                                            |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A01、A02、W08 · 目录、导入、资源库 | iPhone 和 iPad 对照 Files 导入与目录坐标，逐字节检查媒体，并验证试听、进度拖动和切后台停止。iPhone 验证元数据编辑、标签搜索、类型筛选、离页停止、目录移除和重开。StudioKit 另检查缺失及损坏文件和引用保护。移除目录项保留原始媒体。 |
+| A03、A04 · 方案与音乐审核          | iPhone 验证文本复制、许可和摘要回填及系统 Files 导出。共享引擎与 StudioKit 验证 JSON 内容、SHA-256 关联的批准和拒绝及重新打开。                                                                                                     |
+| C06 · Markdown 章首音乐            | iPhone 和 iPad 完成局部变更预览、Markdown 写入、重开和有声试玩。StudioKit 复核编译结果及播放器资源 URL。                                                                                                                            |
+| A05 · 项目混音                     | iPhone 和 StudioKit 核验增益、静音、独听和闪避的保存重开与运行时配置。共享音频引擎单测验证有效总线增益和对白的压低、恢复。                                                                                                          |
+
+Xcode 27.1（27A9275）。引擎 758.7 KiB，预算 768 KiB。引擎单测 26 项、golden 389 项（Node 沙箱与 JavaScriptCore）、StudioKit 43 项、Web Studio 898 项、共享音频回归 63 项、模拟器会话 26 项通过。Web Studio 类型检查与 iOS Debug 模拟器构建通过。保留 `engine-build.log`、`engine.log`、`golden.log`、`studiokit.log`、`web-studio.log`、`web-typecheck.log`、`shared-audio.log` 和 `simulator-session.log`。
+
+桌面 WebKit 回归播放真实音频。共享运行时测试验证多轨输出，以及对白期间压低音乐与环境音、结束后恢复。另用正式 `OfflinePlayer.bundle` 加载从磁盘重开的 Markdown 项目。导入素材的 SHA-256 一致，播放器报告章节 01 已加载。音乐总线实测增益约 0.65，环境音增益为 0，最终输出 RMS 约 0.0877。音乐静音后增益和 RMS 均为 0。单独启用音乐独听时，未静音的环境音总线增益为 0，取消独听后恢复为 1。记录为 `webkit-audio.log`、`standalone-player-audio.log`。
+
+使用仓库的模拟器会话脚本和每设备锁复用 iOS 27.0 的 iPhone 18 Pro 与 iPad Pro 11-inch（M5）。
+
+iPhone 完整用例 `testFilesMusicReviewBindingAndReopenedPlaytest` 通过，耗时 105.5 秒。从章节入口创建目录，复制音乐方案并将许可和摘要回填到导入表单。从系统 Files 选中 M4A，检查项目相对路径，逐字节比较导入文件。批准前核验试听门槛，切后台后试听凭据失效。恢复前台后重新试听、拖动、暂停继续、批准并应用 Markdown 变更。结束进程再重开 App，从章首试玩测得正式播放器 Web Audio 输出 RMS 约 0.1148。
+
+`iphone-handoff.log` 和 `audio-handoff-iphone.xcresult` 保存 `audio-files-picker`、`audio-files-import`、`audio-music-approved`、`audio-markdown-binding-preview`、`audio-reopened-chapter-playtest` 和 `reopened-chapter-player-audio-rms`。另一个从已保存资源开始的 iPhone 用例也通过，记录在 `iphone-playtest.log` 和 `audio-playtest-iphone.xcresult`。
+
+iPad 横屏用相同完整用例通过，耗时 120.7 秒。重开后正式试玩的 Web Audio 输出 RMS 约 0.1006。见 `ipad-handoff.log` 与 `audio-handoff-ipad.xcresult`，附件名称与 iPhone 一致。两台设备分时运行。
+
+iPhone 用例 `testExportsBriefJSONAndReopensMixer` 通过，实际通过 Files 导出并读回 `music-brief.json`。在原生混音器修改音乐增益和独听、环境音静音及闪避增益，核对 `adv/audio/mixer.json`，重开 App 后核对独听开关。见 `iphone-export-mixer.log` 和 `audio-export-mixer-iphone.xcresult`。附件为 `audio-brief-export-picker`、`audio-music-brief-json` 和 `audio-mixer-persisted`。
+
+iPhone 用例 `testEditsFiltersAndRemovesCatalogEntry` 通过。修改名称与标签后能试听，离开详情再进入时试听已停止。标签搜索与类型筛选返回预期条目。移出目录后重开资源库为空，原始媒体字节保留。见 `iphone-library.log` 与 `audio-library-iphone.xcresult`，标签搜索附件为 `audio-library-tag-search`。切换项目沿用同一离页停止逻辑。
+
+早期复测曾出现系统 Files 本地位置缺失、系统无障碍查询超时、Runner 或 App 启动延迟。定位证据为 `iphone-final.log`、`ipad-native.log`、`audio-native-ipad.xcresult`、`audio-ipad-files-provider-stalled.png`、`ipad-runner.log`、`audio-runner-ipad.xcresult` 和 `ipad-runner-launch-sample.txt`。
 
 ## P3 与 P4 本地章节与试玩
 

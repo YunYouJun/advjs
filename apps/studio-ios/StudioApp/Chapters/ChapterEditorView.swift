@@ -19,6 +19,7 @@ struct ChapterEditorView: View {
     @State private var isWorking = false
     @State private var filename = ""
     @State private var showRename = false
+    @State private var showMusic = false
     @State private var formUnavailable = false
     @State private var cursor: SourceLocation?
     @State private var jump: SourceLocation?
@@ -130,6 +131,14 @@ struct ChapterEditorView: View {
             if phase != .active { persistDraft() }
         }
         .onDisappear(perform: persistDraft)
+        .sheet(isPresented: $showMusic) {
+            NavigationStack {
+                AudioLibraryView(session: session, chapter: path)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) { Button("Done") { showMusic = false } }
+                    }
+            }
+        }
         .alert("Rename Chapter", isPresented: $showRename) {
             TextField("Filename", text: $filename)
                 .textInputAutocapitalization(.never)
@@ -156,6 +165,9 @@ struct ChapterEditorView: View {
                 TextField("Plot Summary", text: form.plotSummary, axis: .vertical)
                     .lineLimit(2...5)
                     .accessibilityIdentifier("chapter-summary")
+                Button("Chapter Music", systemImage: "music.note") { showMusic = true }
+                    .disabled(canSave || conflict != nil)
+                    .accessibilityIdentifier("chapter-music")
                 Section("Chapter Content") {
                     TextEditor(text: form.body)
                         .font(.body.monospaced())
@@ -218,6 +230,10 @@ struct ChapterEditorView: View {
     }
 
     @ToolbarContentBuilder private var chapterToolbar: some ToolbarContent {
+        ToolbarItem(placement: .secondaryAction) {
+            Button("Chapter Music", systemImage: "music.note") { showMusic = true }
+                .disabled(canSave || conflict != nil)
+        }
         ToolbarItem(placement: .secondaryAction) {
             NavigationLink(value: ProjectRoute.analysis) {
                 Label("Diagnostics and Program", systemImage: issueCount > 0 ? "exclamationmark.triangle" : "list.bullet.rectangle")

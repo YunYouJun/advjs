@@ -190,6 +190,16 @@ export async function createGoldenCases(call: EngineCall): Promise<GoldenCase[]>
     override: { file: 'adv/chapters/one.adv.md', content: '# One {#start}\n\n- [Broken](missing#ending)\n' },
   })
   book.add('player:round-trip', 'project.playerConfig', { files: roundTrip.files, baseUrl: 'advjs-player://project/' })
+  book.add('audio:round-trip', 'audio.library', { files: roundTrip.files })
+  book.add('audio:uninitialized', 'audio.library', { files: {} })
+  book.add('audio:brief', 'audio.brief', {
+    music: {
+      source: { type: 'external-ai', tool: 'Suno', url: 'https://suno.com/create' },
+      usage: 'background',
+      brief: { summary: '窗边的雨声', tempoBpm: 86, loopIntent: true },
+      rights: { license: 'CC0-1.0' },
+    },
+  })
   book.add('manifest:round-trip', 'assets.readManifest', { files: roundTrip.files })
   const validation = await book.result('project.validate', { files: roundTrip.files, paths: roundTrip.paths })
   book.add('fix:round-trip', 'project.fixReferences', { files: roundTrip.files, issues: validation.issues })

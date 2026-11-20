@@ -322,12 +322,19 @@ export function createProjectAudioResourceService(port: AudioProjectFilePort) {
   }
 
   async function verify(asset: AdvAssetEntry, catalog: AdvAssetManifest, path: string) {
-    if (!port.readMedia)
-      throw new Error('AUDIO_MEDIA_VERIFICATION_REQUIRED: This host must verify native resource bytes')
     canonicalPath(path)
-    const bytes = await port.readMedia(path)
-    if (bytes.byteLength !== asset.bytes || await digest(bytes) !== asset.sha256)
-      throw new Error('AUDIO_MEDIA_CHANGED: Resource bytes differ from the reviewed immutable master')
+    if (port.verifyMedia) {
+      if (!asset.sha256 || !asset.bytes)
+        throw new Error('AUDIO_MEDIA_CHANGED: Resource master identity is missing')
+      await port.verifyMedia(path, asset.sha256, asset.bytes)
+    }
+    else {
+      if (!port.readMedia)
+        throw new Error('AUDIO_MEDIA_VERIFICATION_REQUIRED: This host must verify native resource bytes')
+      const bytes = await port.readMedia(path)
+      if (bytes.byteLength !== asset.bytes || await digest(bytes) !== asset.sha256)
+        throw new Error('AUDIO_MEDIA_CHANGED: Resource bytes differ from the reviewed immutable master')
+    }
     audioProjectMediaPath(catalog, asset)
   }
 

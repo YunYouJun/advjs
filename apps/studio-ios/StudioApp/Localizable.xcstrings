@@ -1,6 +1,1076 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Choose Audio from Files" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从「文件」选择音频"
+          }
+        }
+      }
+    },
+    "Audio Library" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音频资源库"
+          }
+        }
+      }
+    },
+    "Audio Library Unavailable" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法读取音频资源库"
+          }
+        }
+      }
+    },
+    "Audio Resource Unavailable" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音频资源不可用"
+          }
+        }
+      }
+    },
+    "Audio Actions" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音频操作"
+          }
+        }
+      }
+    },
+    "Audio Kind" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音频用途"
+          }
+        }
+      }
+    },
+    "All Audio" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部用途"
+          }
+        }
+      }
+    },
+    "Search Audio" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜索名称、资源 ID 或标签"
+          }
+        }
+      }
+    },
+    "Initialize Audio Catalog" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "创建项目音频目录"
+          }
+        }
+      }
+    },
+    "Initialize the project’s audio catalog to import and bind audio." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "创建项目音频目录后，即可导入和绑定音频。"
+          }
+        }
+      }
+    },
+    "Migrate the existing asset catalog in Web Studio before editing audio." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先在 Web Studio 迁移已有资源目录，再编辑音频。"
+          }
+        }
+      }
+    },
+    "Chapter Music" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "章节音乐"
+          }
+        }
+      }
+    },
+    "Background Music" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "背景音乐"
+          }
+        }
+      }
+    },
+    "Ambience" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "环境音"
+          }
+        }
+      }
+    },
+    "Voice" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "对白配音"
+          }
+        }
+      }
+    },
+    "Sound Effects" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音效"
+          }
+        }
+      }
+    },
+    "Interface Sounds" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "界面音"
+          }
+        }
+      }
+    },
+    "Reference Audio" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "参考音频"
+          }
+        }
+      }
+    },
+    "Master" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主音量"
+          }
+        }
+      }
+    },
+    "Import Audio" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入音频"
+          }
+        }
+      }
+    },
+    "Audio Metadata" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音频资料"
+          }
+        }
+      }
+    },
+    "Audio Title" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音频名称"
+          }
+        }
+      }
+    },
+    "Labels" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "标签"
+          }
+        }
+      }
+    },
+    "Separate labels with commas" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用逗号分隔标签"
+          }
+        }
+      }
+    },
+    "Loop Audio" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认循环播放"
+          }
+        }
+      }
+    },
+    "Edit Metadata" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑资料"
+          }
+        }
+      }
+    },
+    "Remove Audio from Library" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移出目录"
+          }
+        }
+      }
+    },
+    "Remove this audio resource?" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要移出这条音频资源吗？"
+          }
+        }
+      }
+    },
+    "This removes the catalog entry and keeps the original audio file in the project." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音频条目将从目录移除，原始音频文件会保留在项目中。"
+          }
+        }
+      }
+    },
+    "Duration" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时长"
+          }
+        }
+      }
+    },
+    "Audition" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "试听"
+          }
+        }
+      }
+    },
+    "Play Audio" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放试听"
+          }
+        }
+      }
+    },
+    "Pause Audio" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂停试听"
+          }
+        }
+      }
+    },
+    "Playback Position" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放进度"
+          }
+        }
+      }
+    },
+    "Music Review" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音乐审核"
+          }
+        }
+      }
+    },
+    "Review Status" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "审核状态"
+          }
+        }
+      }
+    },
+    "I Have Listened" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我已试听并确认许可"
+          }
+        }
+      }
+    },
+    "Approve Music" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "审核通过"
+          }
+        }
+      }
+    },
+    "Reject Music" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拒绝此音乐"
+          }
+        }
+      }
+    },
+    "Legacy Music" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "旧音乐兼容"
+          }
+        }
+      }
+    },
+    "Pending Review" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "待试听审核"
+          }
+        }
+      }
+    },
+    "Approved" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已审核可绑定"
+          }
+        }
+      }
+    },
+    "Rejected" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已拒绝"
+          }
+        }
+      }
+    },
+    "Invalid Review" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音乐信息无效"
+          }
+        }
+      }
+    },
+    "Bind to Chapter" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "绑定到章节"
+          }
+        }
+      }
+    },
+    "Cannot Bind Music" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法绑定音乐"
+          }
+        }
+      }
+    },
+    "Preview Music Binding" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预览章节音乐绑定"
+          }
+        }
+      }
+    },
+    "Apply Binding" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "确认保存音乐绑定"
+          }
+        }
+      }
+    },
+    "Chapter" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "章节"
+          }
+        }
+      }
+    },
+    "Before" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "修改前"
+          }
+        }
+      }
+    },
+    "After" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "修改后"
+          }
+        }
+      }
+    },
+    "Music Brief" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音乐创作方案"
+          }
+        }
+      }
+    },
+    "Music Usage" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音乐用途"
+          }
+        }
+      }
+    },
+    "Music Source" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "创作来源"
+          }
+        }
+      }
+    },
+    "Manual / Licensed" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自创或获授权"
+          }
+        }
+      }
+    },
+    "External AI" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "借助外部 AI 创作"
+          }
+        }
+      }
+    },
+    "Source Tool" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "创作工具"
+          }
+        }
+      }
+    },
+    "Source Page URL" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "来源页面"
+          }
+        }
+      }
+    },
+    "Music Brief Summary" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音乐创作说明"
+          }
+        }
+      }
+    },
+    "More Music Details" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更多创作目标与署名"
+          }
+        }
+      }
+    },
+    "Mood" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "情绪目标"
+          }
+        }
+      }
+    },
+    "Style" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "风格目标"
+          }
+        }
+      }
+    },
+    "Target Duration (seconds)" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目标时长（秒）"
+          }
+        }
+      }
+    },
+    "Target Tempo (BPM)" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目标速度（BPM）"
+          }
+        }
+      }
+    },
+    "Instrumental" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "希望纯音乐"
+          }
+        }
+      }
+    },
+    "Loop Intent" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "希望能够循环"
+          }
+        }
+      }
+    },
+    "Credit" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "署名"
+          }
+        }
+      }
+    },
+    "Permission Note" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "许可说明"
+          }
+        }
+      }
+    },
+    "Notes" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "备注"
+          }
+        }
+      }
+    },
+    "Unspecified" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未指定"
+          }
+        }
+      }
+    },
+    "Yes" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "是"
+          }
+        }
+      }
+    },
+    "No" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "否"
+          }
+        }
+      }
+    },
+    "Theme Music" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主题曲"
+          }
+        }
+      }
+    },
+    "Opening Music" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "片头曲"
+          }
+        }
+      }
+    },
+    "Ending Music" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "片尾曲"
+          }
+        }
+      }
+    },
+    "Insert Music" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "插曲"
+          }
+        }
+      }
+    },
+    "Brief Copied" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已复制创作文本"
+          }
+        }
+      }
+    },
+    "Copy Brief Text" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制创作文本"
+          }
+        }
+      }
+    },
+    "Export Brief JSON" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出方案 JSON"
+          }
+        }
+      }
+    },
+    "Use Brief for Import" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按此方案导入音乐"
+          }
+        }
+      }
+    },
+    "Open Suno" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开 Suno 创作"
+          }
+        }
+      }
+    },
+    "Mixer" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "混音器"
+          }
+        }
+      }
+    },
+    "Mute" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "静音"
+          }
+        }
+      }
+    },
+    "Solo" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "独听"
+          }
+        }
+      }
+    },
+    "Gain" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "增益"
+          }
+        }
+      }
+    },
+    "Ducking" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "对白压低背景声"
+          }
+        }
+      }
+    },
+    "Duck Music Under Voice" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "对白时自动压低音乐和环境音"
+          }
+        }
+      }
+    },
+    "Ducked Gain" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "背景增益"
+          }
+        }
+      }
+    },
+    "Attack (ms)" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "压低时长（毫秒）"
+          }
+        }
+      }
+    },
+    "Release (ms)" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "恢复时长（毫秒）"
+          }
+        }
+      }
+    },
+    "Save Mixer" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存项目混音"
+          }
+        }
+      }
+    },
+    "The audio file is missing from the project." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "项目中的音频文件缺失。"
+          }
+        }
+      }
+    },
+    "The audio file could not be read. Check that it is downloaded in Files." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法读取音频文件。请在「文件」中确认已下载。"
+          }
+        }
+      }
+    },
+    "This audio cannot be decoded. Choose a playable audio file." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法解码此音频。请选择可播放的音频文件。"
+          }
+        }
+      }
+    },
+    "Choose an audio file up to 64 MiB." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请选择不超过 64 MiB 的音频文件。"
+          }
+        }
+      }
+    },
+    "This resource has no local audio file." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此资源没有本地音频文件。"
+          }
+        }
+      }
+    },
+    "The audio file differs from the catalog’s recorded master." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音频文件与资源目录记录的原始文件不一致。"
+          }
+        }
+      }
+    },
+    "Play this audio before confirming the review." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "试听此音频后再确认审核。"
+          }
+        }
+      }
+    },
+    "The project changed. Reload the audio library and try again." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "项目已发生变化。请重新加载音频资源库后再试。"
+          }
+        }
+      }
+    },
+    "Save the chapter before binding music." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先保存章节，再绑定音乐。"
+          }
+        }
+      }
+    },
+    "The audio edit could not be fully restored after a write error. Reload the project and check its files." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "写入失败且未能完整恢复音频更改。请重新载入项目并检查文件。"
+          }
+        }
+      }
+    },
+    "This audio is in use. Remove its references before changing its kind or removing it." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此音频正在被引用。请先移除引用，再更改用途或移出目录。"
+          }
+        }
+      }
+    },
+    "Review this music and its license before binding it." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先试听并审核此音乐及其许可，再绑定。"
+          }
+        }
+      }
+    },
+    "Choose a Markdown chapter with saved story content." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请选择已保存故事内容的 Markdown 章节。"
+          }
+        }
+      }
+    },
+    "Audio authoring requires the adv project folder." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑音频需要使用项目的 adv 目录。"
+          }
+        }
+      }
+    },
+    "Choose a nonempty audio file in a supported format." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请选择受支持且非空的音频文件。"
+          }
+        }
+      }
+    },
+    "The audio edit could not be validated. Check the resource fields and project diagnostics." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音频更改未通过验证。请检查资源字段和项目诊断。"
+          }
+        }
+      }
+    },
     "“%@” already exists. Choose another name." : {
       "localizations" : {
         "zh-Hans" : {

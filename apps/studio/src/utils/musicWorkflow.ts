@@ -26,32 +26,12 @@ export function musicFlowEntryCommands(document: FlowEditDocument, asset: AdvAss
 }
 
 export async function prepareStudioMarkdownMusicBinding(fs: import('./fs').IFileSystem, path: string, assetId: string) {
-  const { compileProject, patchMarkdownAudioOperations, readMarkdownAudioTarget } = await import('@advjs/core')
-  const { parseAst } = await import('@advjs/parser')
-  if (!path.startsWith('adv/chapters/') || !path.endsWith('.adv.md') || path.includes('\\') || path.split('/').some(part => ['', '.', '..', '.git', 'node_modules'].includes(part)))
-    throw new Error('ADV_AUDIO_SOURCE_TARGET_INVALID')
+  const { prepareMarkdownMusicBinding } = await import('@advjs/core')
   const files = Object.fromEntries((await fs.collectAllFiles()).map(file => [file.path, file.content]))
-  const compiled = await compileProject({ files }, { allowEmptyAssetManifest: true })
-  const asset = compiled.project.assets?.assets.find(asset => asset.id === assetId)
-  if (!asset || !inspectMusicReview(asset).canBind)
-    throw new Error('MUSIC_REVIEW_REQUIRED')
-  const source = files[path]
-  if (source === undefined)
-    throw new Error('ADV_AUDIO_SOURCE_TARGET_CHANGED')
-  const ast = await parseAst(source)
-  const first = ast.children.find(node => node.position?.start.line)
-  if (!first?.position)
-    throw new Error('ADV_AUDIO_SOURCE_TARGET_CHANGED')
-  const target = await readMarkdownAudioTarget(source, first.position.start.line)
-  const operation = { type: 'bgm' as const, action: 'set' as const, asset: asset.id, ...musicPlaybackDefaults(asset.music?.usage ?? 'background'), ...(asset.loop !== undefined ? { loop: asset.loop } : {}) }
-  const content = await patchMarkdownAudioOperations(source, target, [operation, ...target.operations.filter(row => row.type !== 'bgm')], compiled.project.assets)
-  const validation = await compileProject({ files: { ...files, [path]: content } }, { allowEmptyAssetManifest: true })
-  if (!validation.project.program || validation.diagnostics.some(issue => issue.severity === 'error'))
-    throw new Error(validation.diagnostics.find(issue => issue.severity === 'error')?.code ?? 'ADV_AUDIO_SOURCE_INVALID')
-  const changes = Object.entries(files).map(([file, original]) => ({ path: file, expected: original, content: file === path ? content : original }))
-  if (changes.length > 100)
+  const plan = await prepareMarkdownMusicBinding(files, path, assetId)
+  if (plan.changes.length > 100)
     throw new Error('ADV_STUDIO_TRANSACTION_INVALID')
-  return { path, content, changes }
+  return plan
 }
 
 export async function commitStudioMarkdownMusicBinding(fs: import('./fs').IFileSystem, plan: Awaited<ReturnType<typeof prepareStudioMarkdownMusicBinding>>, assertCurrent: () => void) {
