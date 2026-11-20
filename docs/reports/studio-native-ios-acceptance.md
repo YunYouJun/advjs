@@ -114,6 +114,7 @@ Chromium 的 320px 模拟折叠分区检查覆盖 44px 选项触控区、键盘�
 运行 `pnpm -C apps/studio-ios build:samples` 可重新生成双分支项目。证据目录保留了逐文件校验一致的 `Offline Playtest/` 项目。目录包含 `adv.config.json` 和 `adv/`，可从「文件」原地打开，或由 `ChapterPlaytestUITests` 导入测试环境。选择「先看星图」或「初始化文明」，重开可进入另一支，章节菜单可切至 `lighthouse`。模拟器证据保存在本工作树的 `apps/studio-ios/evidence/offline-playtest-2026-11-20/`。Xcode 中断时留下的四份未完成结果包已逐文件校验并归档为 `incomplete-xcresult-staging.tar.gz`。
 
 [#103](https://github.com/YunYouJun/advjs/issues/103) 的独立预验证已用同一夹具将快照 JSON 往返并在新 Runtime 恢复，检查节点、变量和舞台一致，并验证另一份程序和不存在节点的快照被拒绝。原生槽位、App 重启恢复及跨项目存储隔离以 #99 会话边界验收为前提。[#104](https://github.com/YunYouJun/advjs/issues/104) 接续核对轨迹、源码映射和报告。
+
 ## P3 音频资源库与章节音乐
 
 记录日期为 2026-11-20。基线 `dev@3dc4af9e`，包含已合入的 #109。#97 从已保存章节或项目音频入口操作。系统导入使用仓库原有的 `theme.m4a` 测试素材，原始大小为 129,071 字节，SHA-256 为 `beb4418cdc622844ff0adf93c34a9fcbb1e22a76d74a41c0ee510fd45d928930`。
