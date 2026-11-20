@@ -21,9 +21,13 @@ struct PlayerView: View {
                         .allowsHitTesting(session.isPlaying)
                         .accessibilityHidden(!session.isPlaying)
                         .onGeometryChange(for: PlayerFold?.self) { geometry in
+                            #if compiler(>=6.4) && !ADVJS_NO_FOLD_GEOMETRY
                             guard #available(iOS 27.1, *) else { return nil }
                             return geometry.reservedRegions(kind: .division, layoutDirectionBehavior: .fixed)
                                 .lazy.compactMap { PlayerFold(frame: $0.frame, bounds: geometry.size) }.first
+                            #else
+                            return nil
+                            #endif
                         } action: { session.updateFold($0) }
                         .ignoresSafeArea(.container)
                 }
