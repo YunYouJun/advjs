@@ -39,10 +39,18 @@ final class PlayerSchemeHandler: NSObject, WKURLSchemeHandler {
             task.didFailWithError(URLError(.badURL))
             return
         }
-        let bundled = segments.first == Self.playerPrefix
+        let range = task.request.value(forHTTPHeaderField: "Range")
+        let head = task.request.httpMethod == "HEAD"
         if url == Self.entryURL {
-            logger.info("Serving bundled player document")
+            // The bundled HTML shell is small and immutable. Reply immediately so
+            // initial navigation does not wait for an asynchronous file read.
+            let response = Self.read(root: playerRoot, path: ["index.html"], range: range, head: head)
+            if response.status >= 400 && response.status != 416 { report("PLAYER_RESOURCE", "index.html") }
+            respond(to: task, url: url, response: response)
+            logger.info("Served bundled player document: \(response.status, privacy: .public)")
+            return
         }
+        let bundled = segments.first == Self.playerPrefix
         let path = bundled ? Array(segments.dropFirst()) : segments
         let name = path.joined(separator: "/")
         let ext = (name as NSString).pathExtension.lowercased()
@@ -52,8 +60,6 @@ final class PlayerSchemeHandler: NSObject, WKURLSchemeHandler {
             return
         }
         let root = bundled ? playerRoot : projectRoot
-        let range = task.request.value(forHTTPHeaderField: "Range")
-        let head = task.request.httpMethod == "HEAD"
         let id = ObjectIdentifier(task)
         let read = Task.detached(priority: .userInitiated) {
             guard !Task.isCancelled else { return Response(status: 404) }

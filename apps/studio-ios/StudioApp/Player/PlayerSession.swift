@@ -130,6 +130,12 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
         phase = .waiting
         logger.info("Loading bundled player page")
         webView.load(URLRequest(url: PlayerSchemeHandler.entryURL))
+        trackStartupProgress()
+    }
+
+    /// Allow time for each launch milestone while still detecting a stalled WebKit process.
+    private func trackStartupProgress() {
+        timeout?.cancel()
         timeout = Task { [weak self] in
             try? await Task.sleep(for: .seconds(30))
             guard !Task.isCancelled, let self, !isPlaying else { return }
@@ -201,6 +207,7 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
             guard phase == .waiting else { return }
             phase = .loading
             logger.info("Offline player bridge ready")
+            trackStartupProgress()
             Task { await load() }
         case .loaded:
             guard phase == .loading, let chapter = event.chapterId, let node = event.nodeId else { return }
@@ -266,11 +273,13 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
         let allowed = phase == .waiting && action.request.url == PlayerSchemeHandler.entryURL
             && action.targetFrame?.isMainFrame == true
         logger.info("Bundled navigation policy: \(allowed, privacy: .public)")
+        if allowed { trackStartupProgress() }
         decisionHandler(allowed ? .allow : .cancel)
     }
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
         logger.info("Bundled player page committed")
+        if phase == .waiting { trackStartupProgress() }
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {

@@ -24,7 +24,7 @@ extension XCTestCase {
             let rendered = texts.allElementsBoundByIndex.map(\.label).joined()
             return rendered.filter { !$0.isWhitespace }.contains(content)
         }, object: nil)
-        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 40), .completed, app.debugDescription)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 60), .completed, app.debugDescription)
         return line.exists ? line : firstGlyph
     }
 
