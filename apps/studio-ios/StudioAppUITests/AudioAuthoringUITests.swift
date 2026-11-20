@@ -172,11 +172,13 @@ final class AudioAuthoringUITests: XCTestCase {
         let mute = app.switches["mixer-mute-ambience"]
         bringIntoView(mute, in: app)
         mute.coordinate(withNormalizedOffset: CGVector(dx: 0.94, dy: 0.5)).tap()
+        // Scroll past the slider so its entire track is visible below the toolbar.
+        let duckingRelease = app.textFields["mixer-ducking-release"]
+        bringIntoView(duckingRelease, in: app)
+        XCTAssertTrue(duckingRelease.isHittable)
         let ducking = app.sliders["mixer-ducking-gain"]
-        bringIntoView(ducking, in: app)
         XCTAssertTrue(ducking.isHittable)
         let defaultDuckingGain = try XCTUnwrap(ducking.value as? String)
-        // Use enough slider travel for XCTest's drag to move the thumb reliably on iOS 26.
         let duckingGain = 0.75
         ducking.adjust(toNormalizedSliderPosition: duckingGain)
         waitUntil("The Ducked Gain slider changes") {
