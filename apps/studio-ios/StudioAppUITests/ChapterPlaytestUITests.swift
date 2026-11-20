@@ -63,10 +63,16 @@ final class ChapterPlaytestUITests: XCTestCase {
         let filename = app.alerts.textFields.firstMatch
         XCTAssertTrue(filename.waitForExistence(timeout: 5))
         filename.typeText("02")
+        XCTAssertEqual(filename.value as? String, "02")
         let create = app.alerts.buttons["Create"]
         create.tap()
         if !create.waitForNonExistence(timeout: 2), UIDevice.current.userInterfaceIdiom == .pad {
-            filename.typeKey(.return, modifierFlags: [])
+            // The software keyboard can still be settling after entering the filename.
+            let center = create.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            for _ in 0..<2 where create.exists {
+                center.tap()
+                if create.waitForNonExistence(timeout: 2) { break }
+            }
         }
         XCTAssertTrue(create.waitForNonExistence(timeout: 5), "The chapter prompt did not submit the filename")
 
