@@ -39,6 +39,7 @@ import {
   stringifySceneMd,
   updateChapterMd,
 } from '@advjs/parser'
+import { audioAuthoringOperations } from './audio-authoring'
 import { contentAuthoringOperations } from './content-authoring'
 import {
   isRecord,
@@ -411,6 +412,7 @@ export const operations: Record<string, Operation> = {
   },
 
   ...contentAuthoringOperations,
+  ...audioAuthoringOperations,
   ...projectImageOperations,
 
   'host.selfTest': async (input) => {

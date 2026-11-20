@@ -1,3 +1,4 @@
+export * from './asset-import'
 export * from './authoring'
 export * from './contracts'
 export * from './engine'

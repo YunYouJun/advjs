@@ -7,7 +7,7 @@
  * StudioKit test bundle
  */
 import { createHash } from 'node:crypto'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import process from 'node:process'
 import { createGoldenCases, runGoldenCases } from './golden/cases'
@@ -45,6 +45,10 @@ async function main() {
     await writeFile(resolve(out, 'expected.json'), expectedJson)
     await writeFile(resolve(out, 'summary.json'), `${JSON.stringify(summary, null, 2)}\n`)
   }
+  await copyFile(
+    resolve(engineRoot, '../spike/fixtures/offline-player/adv/assets/bgm/theme.m4a'),
+    resolve(engineRoot, '../Packages/StudioKit/Tests/StudioKitTests/Golden/theme.m4a'),
+  )
   process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`)
   if (mismatches.length > 0)
     throw new Error(`Bundled engine differs from sources in ${mismatches.length} case(s)`)

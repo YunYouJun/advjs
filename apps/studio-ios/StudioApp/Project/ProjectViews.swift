@@ -65,7 +65,7 @@ struct ProjectSectionLabel: View {
 
     private var badge: Int {
         switch section {
-        case .overview, .content, .world: 0
+        case .overview, .content, .audio, .world: 0
         case .chapters: session.index?.chapters.count ?? 0
         case .files: session.snapshot?.paths.count ?? 0
         case .health: session.validation?.issues.count ?? 0
@@ -86,6 +86,8 @@ struct ProjectSectionView: View {
             ChapterListView(session: session)
         case .content:
             ContentLibraryView()
+        case .audio:
+            AudioLibraryView(session: session).id(session.id)
         case .world:
             ProjectWorldView(session: session).id(session.id)
         case .files:
@@ -264,7 +266,12 @@ struct ProjectOverviewView: View {
                         StatTile("Characters", value: index.characters.count, systemImage: "person.2")
                         StatTile("Scenes", value: index.scenes.count, systemImage: "photo")
                         StatTile("Locations", value: index.locations.count, systemImage: "map")
-                        StatTile("Audio", value: index.audios.count, systemImage: "music.note")
+                        NavigationLink(value: ProjectRoute.section(.audio)) {
+                            Label("Audio Library", systemImage: "waveform")
+                                .frame(maxWidth: .infinity, minHeight: 44)
+                        }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("overview-audio")
                         StatTile("Files", value: session.snapshot?.paths.count ?? 0, systemImage: "doc.on.doc")
                     }
                 }

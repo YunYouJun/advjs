@@ -1316,6 +1316,9 @@ importers:
       '@advjs/assets':
         specifier: workspace:*
         version: link:../../packages/assets
+      '@advjs/audio':
+        specifier: workspace:*
+        version: link:../../packages/audio
       '@advjs/core':
         specifier: workspace:*
         version: link:../../packages/core
