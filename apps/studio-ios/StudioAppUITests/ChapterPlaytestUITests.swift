@@ -351,10 +351,12 @@ final class ChapterPlaytestUITests: XCTestCase {
         func changeLanguage(_ label: String) {
             let button = web.buttons[label].firstMatch
             XCTAssertTrue(button.waitForExistence(timeout: 10), app.debugDescription)
-            if button.isHittable {
+            let frame = button.frame
+            let center = CGPoint(x: frame.midX, y: frame.midY)
+            if button.isHittable, appFrame.contains(center) {
                 button.tap()
             } else {
-                // WebKit on Duo can report a frame outside the viewport for the settings header button.
+                // WebKit can report a hittable element with its center outside the viewport.
                 settingsLocation.withOffset(CGVector(dx: -60, dy: 16)).tap()
             }
         }
