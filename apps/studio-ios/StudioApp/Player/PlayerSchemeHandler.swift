@@ -18,6 +18,8 @@ final class PlayerSchemeHandler: NSObject, WKURLSchemeHandler {
     private let scopedURL: URL?
     private var running: [ObjectIdentifier: Task<Void, Never>] = [:]
     private let report: (String, String) -> Void
+    private let logger = Logger(subsystem: "org.advjs.studio", category: "OfflinePlayer")
+    private var loggedMediaRange = false
 
     init(playerRoot: URL, projectRoot: URL, projectPaths: [String], report: @escaping (String, String) -> Void) {
         self.playerRoot = playerRoot
@@ -39,7 +41,7 @@ final class PlayerSchemeHandler: NSObject, WKURLSchemeHandler {
         }
         let bundled = segments.first == Self.playerPrefix
         if url == Self.entryURL {
-            Logger(subsystem: "org.advjs.studio", category: "OfflinePlayer").info("Serving bundled player document")
+            logger.info("Serving bundled player document")
         }
         let path = bundled ? Array(segments.dropFirst()) : segments
         let name = path.joined(separator: "/")
@@ -54,13 +56,22 @@ final class PlayerSchemeHandler: NSObject, WKURLSchemeHandler {
         let head = task.request.httpMethod == "HEAD"
         let id = ObjectIdentifier(task)
         let read = Task.detached(priority: .userInitiated) {
-            Self.read(root: root, path: path, range: range, head: head)
+            guard !Task.isCancelled else { return Response(status: 404) }
+            return Self.read(root: root, path: path, range: range, head: head)
         }
         running[id] = Task { [weak self] in
-            let response = await read.value
+            let response = await withTaskCancellationHandler {
+                await read.value
+            } onCancel: {
+                read.cancel()
+            }
             guard let self, !Task.isCancelled, running.removeValue(forKey: id) != nil else { return }
             if response.status >= 400 && response.status != 416 {
                 report("PLAYER_RESOURCE", name)
+            }
+            if !bundled && response.status == 206 && !loggedMediaRange {
+                loggedMediaRange = true
+                logger.info("Served a project media byte range (206)")
             }
             respond(to: task, url: url, response: response)
         }

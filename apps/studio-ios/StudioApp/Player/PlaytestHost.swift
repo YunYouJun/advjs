@@ -1,4 +1,5 @@
 import Observation
+import OSLog
 import StudioKit
 import SwiftUI
 
@@ -37,6 +38,7 @@ final class PlaytestCoordinator {
     var showIssues = false
     var issueSession: ProjectSession?
     private(set) var isPreparing = false
+    private let logger = Logger(subsystem: "org.advjs.studio", category: "OfflinePlayer")
 
     func offer(_ session: ProjectSession, start: PlaytestStart) {
         guard !isPreparing, launch == nil else { return }
@@ -52,6 +54,7 @@ final class PlaytestCoordinator {
     func begin(_ request: Request, version: ProjectSourceVersion, save: Bool) {
         guard !isPreparing, launch == nil else { return }
         isPreparing = true
+        logger.info("Preparing playtest snapshot")
         issueSession = request.session
         pending = nil
         Task {
@@ -74,7 +77,9 @@ final class PlaytestCoordinator {
                 }
                 guard let root = session.root else { throw ProjectLibraryError.unavailable }
                 let source = try session.sourceInput(version)
+                logger.info("Compiling playtest snapshot")
                 let result = try await session.buildPlayer(source, baseURL: PlayerSchemeHandler.baseURL)
+                logger.info("Compiled playtest snapshot")
                 let errors = result.diagnostics.filter { $0.severity == .error }
                 guard errors.isEmpty, result.program != nil, result.gameConfigJSON != nil else {
                     reject(errors.map(PlayerIssue.init))
@@ -136,6 +141,7 @@ struct PlaytestHost: ViewModifier {
                             NavigationLink {
                                 FileDetailView(session: session, path: location.path, location: location)
                             } label: { issueRow(issue) }
+                            .accessibilityIdentifier("player-issue-\(issue.code)")
                         }
                         else {
                             issueRow(issue)

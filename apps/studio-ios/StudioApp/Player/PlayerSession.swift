@@ -33,7 +33,7 @@ struct PlayerLaunch: Identifiable {
 @Observable
 final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
     enum Command: String { case restart, back, chapter, pause, resume, dispose }
-    private enum Phase { case idle, waiting, loading, playing, closed }
+    private enum Phase: String { case idle, preparing, waiting, loading, playing, closed }
 
     private struct Event: Decodable {
         enum Kind: String, Decodable { case ready, loaded, diagnostic }
@@ -70,7 +70,9 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
 
     func open() async {
         guard phase == .idle else { return }
-        phase = .waiting
+        phase = .preparing
+        logger.info("Preparing WebKit player")
+        Self.logFootprint("before WebView", with: logger)
         guard let resourceRoot = Bundle.main.resourceURL?.appending(path: "OfflinePlayer.bundle"),
               FileManager.default.fileExists(atPath: resourceRoot.appending(path: "index.html").path) else {
             fail("PLAYER_BUNDLE_MISSING", String(localized: "The offline player is missing from this build."))
@@ -81,7 +83,7 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
                 forIdentifier: "advjs-offline-player-v1",
                 encodedContentRuleList: #"[{"trigger":{"url-filter":"^http"},"action":{"type":"block"}},{"trigger":{"url-filter":"^ws"},"action":{"type":"block"}},{"trigger":{"url-filter":"^ftp:"},"action":{"type":"block"}},{"trigger":{"url-filter":"^file:"},"action":{"type":"block"}}]"#
             ) else { throw URLError(.cannotLoadFromNetwork) }
-            guard !Task.isCancelled, phase == .waiting else { return }
+            guard !Task.isCancelled, phase == .preparing else { return }
             let handler = PlayerSchemeHandler(playerRoot: resourceRoot, projectRoot: launch.projectRoot, projectPaths: launch.paths) {
                 [weak self] code, path in
                 self?.issue = PlayerIssue(code: code, message: String(localized: "Couldn’t load resource “\(path)”."))
@@ -115,17 +117,24 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
             webView.backgroundColor = .black
             schemeHandler = handler
             self.webView = webView
-            webView.load(URLRequest(url: PlayerSchemeHandler.entryURL))
-            logger.info("Loading bundled player page")
-            timeout = Task { [weak self] in
-                try? await Task.sleep(for: .seconds(30))
-                guard !Task.isCancelled, let self, !isPlaying else { return }
-                fail("PLAYER_TIMEOUT", String(localized: "The offline player took too long to start."))
-            }
             setActive(active)
         }
         catch {
             fail("PLAYER_RESTRICTIONS", String(localized: "Couldn’t initialize offline playback."))
+        }
+    }
+
+    /// The surface must be in a window before WebKit begins navigation.
+    func startNavigation() {
+        guard phase == .preparing, let webView else { return }
+        phase = .waiting
+        logger.info("Loading bundled player page")
+        webView.load(URLRequest(url: PlayerSchemeHandler.entryURL))
+        timeout = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(30))
+            guard !Task.isCancelled, let self, !isPlaying else { return }
+            logger.error("Offline player timed out in phase \(self.phase.rawValue, privacy: .public)")
+            fail("PLAYER_TIMEOUT", String(localized: "The offline player took too long to start."))
         }
     }
 
@@ -144,14 +153,23 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
         }
         schemeHandler?.close()
         schemeHandler = nil
+        Task { [weak releasedView = webView, logger] in
+            try? await Task.sleep(for: .seconds(2))
+            logger.info("WebView retained after close: \(releasedView != nil, privacy: .public)")
+            Self.logFootprint("2 seconds after close", with: logger)
+        }
         webView = nil
+        logger.info("Closed offline player session")
     }
 
     func setActive(_ active: Bool) {
         self.active = active
         if let webView, mediaSuspended == active {
             mediaSuspended = !active
-            webView.setAllMediaPlaybackSuspended(mediaSuspended, completionHandler: nil)
+            let suspended = mediaSuspended
+            webView.setAllMediaPlaybackSuspended(suspended) { [logger] in
+                logger.info("WebKit media suspension completed: \(suspended, privacy: .public)")
+            }
         }
         if phase == .playing { send(active ? .resume : .pause) }
     }
@@ -192,6 +210,7 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
             isPlaying = true
             if issue?.code == "PLAYER_TIMEOUT" { issue = nil }
             logger.info("Offline player rendered its first node")
+            Self.logFootprint("first node", with: logger)
             setActive(active)
         case .diagnostic:
             guard let code = event.code, let text = event.message, let severity = event.severity else { return }
@@ -230,6 +249,11 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
         )
     }
 
+    private static func logFootprint(_ point: String, with logger: Logger) {
+        guard let bytes = ProcessMemory.footprint() else { return }
+        logger.info("StudioApp footprint \(point, privacy: .public): \(bytes, privacy: .public) bytes")
+    }
+
     private func fail(_ code: String, _ text: String) {
         guard phase != .closed else { return }
         logger.error("Offline player reported \(code, privacy: .public)")
@@ -237,11 +261,12 @@ final class PlayerSession: NSObject, WKScriptMessageHandler, WKNavigationDelegat
         if !isPlaying { timeout?.cancel() }
     }
 
-    func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction) async -> WKNavigationActionPolicy {
+    func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction,
+                 decisionHandler: @escaping @MainActor (WKNavigationActionPolicy) -> Void) {
         let allowed = phase == .waiting && action.request.url == PlayerSchemeHandler.entryURL
-            && action.targetFrame?.isMainFrame != false
+            && action.targetFrame?.isMainFrame == true
         logger.info("Bundled navigation policy: \(allowed, privacy: .public)")
-        return allowed ? .allow : .cancel
+        decisionHandler(allowed ? .allow : .cancel)
     }
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {

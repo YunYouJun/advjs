@@ -15,7 +15,9 @@ struct PlayerView: View {
         ZStack {
             Color.black.ignoresSafeArea()
             if let webView = session.webView {
-                PlayerSurface(webView: webView, orientation: session.launch.build.orientation)
+                PlayerSurface(webView: webView, orientation: session.launch.build.orientation,
+                              onAppear: session.startNavigation)
+                    .id(ObjectIdentifier(webView))
                     .ignoresSafeArea(edges: [.horizontal, .bottom])
             }
             if !session.isPlaying, session.issue == nil {
@@ -28,15 +30,28 @@ struct PlayerView: View {
             VStack(spacing: 0) {
                 controls
                 if let issue = session.issue {
-                    IssueRow(isError: true, message: issue.message, location: issue.code)
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(.bar)
-                        .accessibilityIdentifier("player-diagnostic")
+                    VStack(alignment: .leading, spacing: 8) {
+                        IssueRow(isError: true, message: issue.message, location: issue.code)
+                            .accessibilityIdentifier("player-diagnostic")
+                        if issue.code == "PLAYER_TIMEOUT" || issue.code == "PLAYER_TERMINATED" {
+                            Button("Try Again") {
+                                let launch = session.launch
+                                session.close()
+                                session = PlayerSession(launch: launch)
+                            }
+                            .accessibilityIdentifier("player-retry")
+                        }
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.bar)
                 }
             }
         }
-        .task { await session.open() }
+        .task(id: ObjectIdentifier(session)) {
+            session.setActive(phase == .active)
+            await session.open()
+        }
         .onDisappear { session.close() }
         .onChange(of: phase, initial: true) { _, phase in session.setActive(phase == .active) }
     }
@@ -59,6 +74,7 @@ struct PlayerView: View {
                     Section("Chapters") {
                         ForEach(program.chapters.keys.sorted(), id: \.self) { id in
                             Button(program.chapters[id]?.title ?? id) { session.send(.chapter, chapterId: id) }
+                                .accessibilityIdentifier("player-chapter-\(id)")
                         }
                     }
                 }
@@ -79,9 +95,10 @@ struct PlayerView: View {
 private struct PlayerSurface: UIViewControllerRepresentable {
     let webView: WKWebView
     let orientation: EnginePlayerBuild.Orientation
+    let onAppear: () -> Void
 
     func makeUIViewController(context: Context) -> Controller {
-        Controller(webView: webView, orientation: orientation)
+        Controller(webView: webView, orientation: orientation, onAppear: onAppear)
     }
 
     func updateUIViewController(_ controller: Controller, context: Context) {}
@@ -90,10 +107,12 @@ private struct PlayerSurface: UIViewControllerRepresentable {
         let webView: WKWebView
         let orientation: EnginePlayerBuild.Orientation
         private var previous: UIInterfaceOrientationMask?
+        private let onAppear: () -> Void
 
-        init(webView: WKWebView, orientation: EnginePlayerBuild.Orientation) {
+        init(webView: WKWebView, orientation: EnginePlayerBuild.Orientation, onAppear: @escaping () -> Void) {
             self.webView = webView
             self.orientation = orientation
+            self.onAppear = onAppear
             super.init(nibName: nil, bundle: nil)
         }
 
@@ -103,6 +122,11 @@ private struct PlayerSurface: UIViewControllerRepresentable {
         override func loadView() { view = webView }
 
         override var prefersHomeIndicatorAutoHidden: Bool { true }
+
+        override func viewIsAppearing(_ animated: Bool) {
+            super.viewIsAppearing(animated)
+            onAppear()
+        }
 
         override func viewDidAppear(_ animated: Bool) {
             super.viewDidAppear(animated)

@@ -79,7 +79,9 @@ installHostReceiver(async (message) => {
       ready.value = true
       await nextTick()
       await adv.init({ persistence: false, compiledProgram: message.program })
-      await adv.$audio.unlock().catch(() => false)
+      // WebKit can defer AudioContext.resume while the scene is inactive.
+      // Audio queues its effects until unlock completes.
+      void adv.$audio.unlock().catch(() => false)
       await adv.runtime.go(start)
       await nextTick()
       await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
